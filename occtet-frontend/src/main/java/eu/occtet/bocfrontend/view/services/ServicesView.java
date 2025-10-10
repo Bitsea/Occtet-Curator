@@ -1,6 +1,5 @@
 package eu.occtet.bocfrontend.view.services;
 
-
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
