@@ -1,0 +1,8 @@
+{
+  "type": "descriptor",
+  "name": "occtet-nats-template",
+  "version": "1.0.0",
+  "description": "A microservice template for NATS messaging with OccTET framework",
+  "usageType": "RUNNABLE_BY_UI",
+  "acceptableWorkData": "SampleWorkData"
+}

@@ -1,0 +1,128 @@
+#version: '2025.10.1'
+services:
+    db:
+        image: pgvector/pgvector:pg17-trixie
+        container_name: db
+        ports:
+        - "5439:5432"
+        environment:
+        - POSTGRES_USER=occtetuser
+        - POSTGRES_PASSWORD=vrcn4xerj8u3n587niuhrfwe87zgf345osidhfoiesrf4dtdz3e85u9
+        - POSTGRES_DB=occtet_boc
+        - PGDATA=/data/postgresql
+        volumes:
+        - db_data:/data/postgresql
+        - ./init-postgresql-db.sql:/docker-entrypoint-initdb.d/init-postgresql-db.sql
+        networks:
+        - mynet
+
+    nats:
+        image: nats:latest
+        container_name: nats
+        restart: always
+        #ports:
+        #- "4222:4222"
+        #- "8222:8222"
+        volumes:
+          - nats_data:/data/jetstream
+          - ./nats.conf:/etc/nats/nats.conf
+        command: [ "-c", "/etc/nats/nats.conf" ]
+        networks:
+        - mynet
+
+    ollama:
+        image: ollama/ollama:latest
+        ports:
+        - "11434:11434"
+        volumes:
+        - ollama_data:/root/.ollama
+        networks:
+        - mynet
+
+    frontend:
+      image: occtet-boc-frontend:latest
+      ports:
+        - "8090:8090"
+      depends_on:
+        - db
+        - nats
+      networks:
+        - mynet
+
+    licensematcher-service:
+      image: occtet-nats-licensematcher-service:2025.9.1
+      depends_on:
+        - frontend
+        - db
+        - nats
+      networks:
+        - mynet
+
+    ai-copyrightfilter-service:
+      image: occtet-nats-ai-copyrightfilter-service:2025.9.1
+      depends_on:
+        - frontend
+        - ollama
+        - db
+        - nats
+      networks:
+        - mynet
+
+    copyrightfilter-service:
+      image: occtet-nats-copyrightfilter-service:2025.9.1
+      depends_on:
+        - frontend
+        - db
+        - nats
+      networks:
+        - mynet
+
+    foss-report-service:
+      image: occtet-nats-foss-report-service:2025.9.1
+      depends_on:
+        - frontend
+        - db
+        - nats
+      networks:
+        - mynet
+
+    vulnerability-service:
+      image: occtet-nats-vulnerability-service:2025.9.1
+      depends_on:
+        - frontend
+        - db
+        - nats
+      networks:
+        - mynet
+
+    ai-licensematcher-service:
+      image: occtet-nats-ai-licensematcher-service:2025.10.1
+      depends_on:
+        - ollama
+        - frontend
+        - nats
+      networks:
+        - mynet
+
+    spdx-service:
+      image: occtet-nats-spdx-service:2025.9.1
+      depends_on:
+        - frontend
+        - nats
+      networks:
+        - mynet
+
+volumes:
+  db_data:
+    external: true
+  nats_data:
+    external: true
+  ollama_data:
+    external: true
+
+
+
+networks:
+  mynet:
+    driver: bridge
+

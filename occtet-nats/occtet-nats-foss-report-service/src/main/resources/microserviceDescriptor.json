@@ -1,0 +1,8 @@
+{
+  "type": "descriptor",
+  "name": "occtet-nats-foss-report-service",
+  "version": "1.0.0",
+  "description": "A microservice for processing foss report data",
+  "usageType": "RUNNABLE_BY_UI",
+  "acceptableWorkData": "FossReportSendWorkData"
+}

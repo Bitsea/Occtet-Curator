@@ -1,0 +1,34 @@
+<fetchPlans xmlns="http://jmix.io/schema/core/fetch-plans">
+    <fetchPlan entity="Copyright" name="full"  extends="_base">
+        <property name="codeLocation" >
+            <property name="inventoryItem">
+                <property name="project">
+                </property>
+            </property>
+        </property>
+    </fetchPlan>
+    <fetchPlan entity="CodeLocation" name="full" extends="_base">
+        <property name="inventoryItem">
+            <property name="project">
+            </property>
+        </property>
+    </fetchPlan>
+
+
+    <fetchPlan entity="ScannerInitializer" name="full" extends="_base">
+        <property name="inventoryItem" >
+            <property name="project">
+                <property name="projectName"/>
+            </property>
+            <property name="inventoryName"/>
+            <property name="basePath"/>
+        </property>
+        <property name="scannerConfiguration">
+            <property name="value"/>
+            <property name="upload"/>
+            <property name="name"/>
+        </property>
+    </fetchPlan>
+
+
+</fetchPlans>

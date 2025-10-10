@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+    <packaging>pom</packaging>
+    <modules>
+        <module>occtet-common</module>
+        <module>occtet-common-jpa</module>
+        <module>occtet-nats-template</module>
+        <module>occtet-nats-subscriber-sample</module>
+        <module>occtet-nats-spdx-service</module>
+        <module>occtet-nats-licensematcher-service</module>
+        <module>occtet-nats-ai-licensematcher-service</module>
+        <module>occtet-nats-foss-report-service</module>
+        <module>occtet-nats-ai-copyrightfilter-service</module>
+        <module>occtet-nats-copyrightfilter-service</module>
+        <module>occtet-nats-vulnerability-service</module>
+    </modules>
+
+    <groupId>eu.occtet.boc</groupId>
+	<artifactId>occtet-nats-parent</artifactId>
+	<version>2025.9.2</version>
+
+	<name>occtet-nats-parent</name>
+
+	<!-- TODO: description, url, licenses -->
+
+	<!-- TODO: developers -->
+
+	<!-- TODO: scm, issueManagement, ciManagement -->
+
+	<properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <springboot.version>3.5.5</springboot.version>
+	</properties>
+
+	<dependencies>
+		<!-- ... -->
+	</dependencies>
+</project>

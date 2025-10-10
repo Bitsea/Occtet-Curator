@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:c="http://jmix.io/schema/flowui/jpql-condition"
+      title="msg://projectListView.title"
+      focusComponent="projectsDataGrid">
+    <data>
+        <collection id="projectsDc"
+                    class="eu.occtet.bocfrontend.entity.Project">
+            <fetchPlan extends="_base"/>
+            <loader id="projectsDl" readOnly="true">
+                <query>
+                    <![CDATA[select e from Project e]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+        <urlQueryParameters>
+            <pagination component="pagination"/>
+        </urlQueryParameters>
+    </facets>
+    <actions>
+        <action id="selectAction" type="lookup_select"/>
+        <action id="discardAction" type="lookup_discard"/>
+    </actions>
+    <layout>
+        <vbox width="100%">
+            <hbox classNames="buttons-panel" width="100%">
+                <hbox alignSelf="END">
+                    <textField id="searchField" width="15em" placeholder="search project"/>
+                    <button id="searchButton" text="Search"/>
+                </hbox>
+                <button id="refreshButton" action="projectsDataGrid.refreshAction" alignSelf="CENTER"/>
+                <simplePagination id="pagination" dataLoader="projectsDl" alignSelf="END"/>
+            </hbox>
+            <dataGrid id="projectsDataGrid"
+                      width="100%"
+                      height="40em"
+                      dataContainer="projectsDc"
+                      columnReorderingAllowed="true">
+                <actions>
+                    <action id="createAction" type="list_create"/>
+                    <action id="editAction" type="list_edit"/>
+                    <action id="removeAction" type="list_remove"/>
+                    <action id="refreshAction" type="list_refresh"/>
+                </actions>
+                <columns resizable="true">
+                    <column property="projectName" header="Projectname"/>
+                </columns>
+            </dataGrid>
+            <hbox id="buttonsPanel" classNames="buttons-panel">
+                <button id="createButton" action="projectsDataGrid.createAction"/>
+                <button id="editButton" action="projectsDataGrid.editAction"/>
+                <button id="removeButton" action="projectsDataGrid.removeAction"/>
+            </hbox>
+        </vbox>
+        <hbox id="lookupActions" visible="false">
+            <button id="selectButton" action="selectAction"/>
+            <button id="discardButton" action="discardAction"/>
+        </hbox>
+    </layout>
+</view>

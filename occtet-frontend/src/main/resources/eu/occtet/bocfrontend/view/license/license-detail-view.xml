@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://licenseDetailView.title"
+      focusComponent="form">
+    <data>
+        <instance id="licenseDc"
+                  class="eu.occtet.bocfrontend.entity.License">
+            <fetchPlan extends="_base"/>
+            <loader id="licenseDl"/>
+        </instance>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <actions>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
+    </actions>
+    <layout>
+        <formLayout id="form" dataContainer="licenseDc" height="90%" width="100%">
+                    <textField id="licenseNameField" property="licenseName" label="License name"/>
+                    <textField id="licenseTypeField" property="licenseType" label="License Type"/>
+                    <textField id="detailsUrlField" property="detailsUrl" label="Detail url"/>
+                    <textField id="priorityField" property="priority" label="Priority"/>
+            <hbox>
+                <checkbox id="isSpdxField" property="isSpdx" label="SPDX"/>
+                <checkbox id="isCuratedField" property="curated" label="Curated"/>
+                <checkbox id="isModifiedField" property="isModified" label="Modified"/>
+            </hbox>
+                    <textArea id="licenseTextField"  property="licenseText"
+                              label="License text" minWidth="100%" maxRows="20"/>
+        </formLayout>
+        <hbox id="detailActions" alignSelf="CENTER">
+            <button id="saveAndCloseButton" action="saveAction"/>
+            <button id="closeButton" action="closeAction"/>
+        </hbox>
+    </layout>
+</view>

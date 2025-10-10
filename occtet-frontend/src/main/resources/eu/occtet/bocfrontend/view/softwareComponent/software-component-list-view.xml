@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:c="http://jmix.io/schema/flowui/jpql-condition"
+      title="msg://softwareComponentListView.title"
+      focusComponent="softwareComponentsDataGrid">
+    <data>
+        <collection id="softwareComponentsDc"
+                    class="eu.occtet.bocfrontend.entity.SoftwareComponent">
+            <fetchPlan extends="_base">
+            </fetchPlan>
+            <loader id="softwareComponentsDl" readOnly="true">
+                <query>
+                    <![CDATA[select e from SoftwareComponent e]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+        <urlQueryParameters>
+            <pagination component="pagination"/>
+        </urlQueryParameters>
+    </facets>
+    <actions>
+        <action id="selectAction" type="lookup_select"/>
+        <action id="discardAction" type="lookup_discard"/>
+    </actions>
+    <layout>
+        <vbox width="100%">
+            <accordion id="projectAccordion" width="100%" >
+                <accordionPanel summaryText="Software components from project">
+                    <hbox>
+                        <comboBox id="projectComboBox" label="Project" width="20em"/>
+                    </hbox>
+                </accordionPanel>
+            </accordion>
+            <accordion id="attributesAccordion" width="100%">
+                <accordionPanel summaryText="Filter software components by attributes">
+                    <hbox>
+                        <comboBox id="licenseComboBox" label="License"/>
+                        <comboBox id="curatedComboBox" label="Curated"/>
+                        <comboBox id="vulnerabilityComboBox" label="Vulnerable"/>
+                        <comboBox id="cveComboBox" label="CVE"/>
+                    </hbox>
+                </accordionPanel>
+            </accordion>
+            <hbox classNames="buttons-panel" width="100%">
+                <hbox alignSelf="END">
+                    <textField id="searchField" width="15em" placeholder="search term"/>
+                    <button id="searchButton" text="Search"/>
+                </hbox>
+                <button id="refreshButton" action="softwareComponentsDataGrid.refreshAction" alignSelf="CENTER"/>
+                <simplePagination id="pagination" dataLoader="softwareComponentsDl" alignSelf="END"/>
+            </hbox>
+            <dataGrid id="softwareComponentsDataGrid"
+                      width="100%"
+                      height="25em"
+                      maxHeight="100%"
+                      dataContainer="softwareComponentsDc"
+                      columnReorderingAllowed="true">
+                <actions>
+                    <action id="createAction" type="list_create"/>
+                    <action id="editAction" type="list_edit"/>
+                    <action id="removeAction" type="list_remove"/>
+                    <action id="refreshAction" type="list_refresh"/>
+                </actions>
+                <columns resizable="true">
+                    <column property="name" header="Name"/>
+                    <column property="version" header="Version"/>
+                    <column property="purl" header="Purl"/>
+                    <column property="curated" header="Curated"/>
+                </columns>
+            </dataGrid>
+            <hbox id="lookupActions" visible="false">
+                <button id="selectButton" action="selectAction"/>
+                <button id="discardButton" action="discardAction"/>
+            </hbox>
+            <hbox id="buttonsPanel" classNames="buttons-panel">
+                <button id="createButton" action="softwareComponentsDataGrid.createAction"/>
+                <button id="editButton" action="softwareComponentsDataGrid.editAction"/>
+                <button id="removeButton" action="softwareComponentsDataGrid.removeAction"/>
+            </hbox>
+        </vbox>
+    </layout>
+</view>

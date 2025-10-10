@@ -1,0 +1,325 @@
+      - license: "EPL-1.0"
+        location:
+          path: "platform-tests/src/test/java/org/junit/platform/engine/support/hierarchical/ParallelExecutionIntegrationTests.java"
+          start_line: 4
+          end_line: 8
+        score: 92.11
+      - license: "Unlicense"
+        location:
+          path: "documentation/src/docs/asciidoc/tocbot-3.0.2/tocbot.js"
+          start_line: 89
+          end_line: 89
+        score: 100.0
+  - provenance:
+      vcs_info:
+        type: "Git"
+        url: "https://github.com/junit-team/junit5.git"
+        revision: "7f619ca7ac9ecd1b20cc01c44a4df98f5fb67804"
+        path: ""
+      resolved_revision: "7f619ca7ac9ecd1b20cc01c44a4df98f5fb67804"
+    scanner:
+      name: "ScanCode"
+      version: "47.0.0"
+      configuration: "--copyright --license --info --strip-root --timeout 300 --json"
+    summary:
+      start_time: "2025-01-29T08:51:00.623536100Z"
+      end_time: "2025-01-29T08:51:00.623536100Z"
+      issues:
+      - timestamp: "2025-01-29T08:51:00.623536100Z"
+        source: "ScanCode"
+        message: "Failed to scan RepositoryProvenance(vcsInfo=VcsInfo(type=Git, url=https://github.com/junit-team/junit5.git,\
+          \ revision=, path=), resolvedRevision=7f619ca7ac9ecd1b20cc01c44a4df98f5fb67804)\
+          \ with path scanner 'ScanCode': FileNotFoundException: C:\\Users\\LEONI~1.TIS\\\
+          AppData\\Local\\Temp\\ort-ScanCode16022881075428226692\\result.json (Das\
+          \ System kann die angegebene Datei nicht finden)"
+        severity: "ERROR"
+  - provenance:
+      vcs_info:
+        type: "Git"
+        url: "https://github.com/mockito/mockito.git"
+        revision: "483e15f9f940716a85f2d58f6c28981136790c4e"
+        path: ""
+      resolved_revision: "483e15f9f940716a85f2d58f6c28981136790c4e"
+    scanner:
+      name: "ScanCode"
+      version: "47.0.0"
+      configuration: "--copyright --license --info --strip-root --timeout 300 --json"
+    summary:
+      start_time: "2025-01-29T08:22:46.342150400Z"
+      end_time: "2025-01-29T08:22:46.342150400Z"
+      issues:
+      - timestamp: "2025-01-29T08:22:46.339661300Z"
+        source: "ScanCode"
+        message: "Failed to scan RepositoryProvenance(vcsInfo=VcsInfo(type=Git, url=https://github.com/mockito/mockito.git,\
+          \ revision=, path=), resolvedRevision=483e15f9f940716a85f2d58f6c28981136790c4e)\
+          \ with path scanner 'ScanCode': FileNotFoundException: C:\\Users\\LEONI~1.TIS\\\
+          AppData\\Local\\Temp\\ort-ScanCode17028236164301502080\\result.json (Das\
+          \ System kann die angegebene Datei nicht finden)"
+        severity: "ERROR"
+  - provenance:
+      vcs_info:
+        type: "Git"
+        url: "https://github.com/ota4j-team/opentest4j.git"
+        revision: "214973bfa4e7e9be7d04e623202cc4147c7036d2"
+        path: ""
+      resolved_revision: "214973bfa4e7e9be7d04e623202cc4147c7036d2"
+    scanner:
+      name: "ScanCode"
+      version: "47.0.0"
+      configuration: "--copyright --license --info --strip-root --timeout 300 --json"
+    summary:
+      start_time: "2025-01-29T08:51:47.226928200Z"
+      end_time: "2025-01-29T08:51:47.226928200Z"
+      issues:
+      - timestamp: "2025-01-29T08:51:47.226928200Z"
+        source: "ScanCode"
+        message: "Failed to scan RepositoryProvenance(vcsInfo=VcsInfo(type=Git, url=https://github.com/ota4j-team/opentest4j.git,\
+          \ revision=, path=), resolvedRevision=214973bfa4e7e9be7d04e623202cc4147c7036d2)\
+          \ with path scanner 'ScanCode': FileNotFoundException: C:\\Users\\LEONI~1.TIS\\\
+          AppData\\Local\\Temp\\ort-ScanCode7701491780118729030\\result.json (Das\
+          \ System kann die angegebene Datei nicht finden)"
+        severity: "ERROR"
+  - provenance:
+      vcs_info:
+        type: "Git"
+        url: "https://github.com/paul-hammant/paranamer.git"
+        revision: "cb6709646eed97c271d73f50ad750cc43c8e052a"
+        path: ""
+      resolved_revision: "cb6709646eed97c271d73f50ad750cc43c8e052a"
+    scanner:
+      name: "ScanCode"
+      version: "47.0.0"
+      configuration: "--copyright --license --info --strip-root --timeout 300 --json"
+    summary:
+      start_time: "2025-01-29T08:35:27.308692400Z"
+      end_time: "2025-01-29T08:35:27.308692400Z"
+      issues:
+      - timestamp: "2025-01-29T08:35:27.307704100Z"
+        source: "ScanCode"
+        message: "Failed to scan RepositoryProvenance(vcsInfo=VcsInfo(type=Git, url=https://github.com/paul-hammant/paranamer.git,\
+          \ revision=paranamer-parent-2.8, path=), resolvedRevision=cb6709646eed97c271d73f50ad750cc43c8e052a)\
+          \ with path scanner 'ScanCode': FileNotFoundException: C:\\Users\\LEONI~1.TIS\\\
+          AppData\\Local\\Temp\\ort-ScanCode10787800984755121750\\result.json (Das\
+          \ System kann die angegebene Datei nicht finden)"
+        severity: "ERROR"
+  - provenance:
+      vcs_info:
+        type: "Git"
+        url: "https://github.com/square/okio.git"
+        revision: "0b9ace50635c9256cfa66db20a911b2c63c0deb6"
+        path: ""
+      resolved_revision: "0b9ace50635c9256cfa66db20a911b2c63c0deb6"
+    scanner:
+      name: "ScanCode"
+      version: "47.0.0"
+      configuration: "--copyright --license --info --strip-root --timeout 300 --json"
+    summary:
+      start_time: "2025-01-29T08:22:34.285920600Z"
+      end_time: "2025-01-29T08:22:34.285920600Z"
+      issues:
+      - timestamp: "2025-01-29T08:22:34.284924400Z"
+        source: "ScanCode"
+        message: "Failed to scan RepositoryProvenance(vcsInfo=VcsInfo(type=Git, url=https://github.com/square/okio.git,\
+          \ revision=, path=), resolvedRevision=0b9ace50635c9256cfa66db20a911b2c63c0deb6)\
+          \ with path scanner 'ScanCode': FileNotFoundException: C:\\Users\\LEONI~1.TIS\\\
+          AppData\\Local\\Temp\\ort-ScanCode6586321973325025015\\result.json (Das\
+          \ System kann die angegebene Datei nicht finden)"
+        severity: "ERROR"
+  - provenance:
+      vcs_info:
+        type: "Git"
+        url: "https://github.com/typetools/checker-framework.git"
+        revision: "842c4d0080063ff37dc622398e8740731d96e801"
+        path: ""
+      resolved_revision: "842c4d0080063ff37dc622398e8740731d96e801"
+    scanner:
+      name: "ScanCode"
+      version: "47.0.0"
+      configuration: "--copyright --license --info --strip-root --timeout 300 --json"
+    summary:
+      start_time: "2025-01-29T08:38:00.877852400Z"
+      end_time: "2025-01-29T08:38:00.877852400Z"
+      issues:
+      - timestamp: "2025-01-29T08:38:00.876878700Z"
+        source: "ScanCode"
+        message: "Failed to scan RepositoryProvenance(vcsInfo=VcsInfo(type=Git, url=https://github.com/typetools/checker-framework.git,\
+          \ revision=, path=), resolvedRevision=842c4d0080063ff37dc622398e8740731d96e801)\
+          \ with path scanner 'ScanCode': FileNotFoundException: C:\\Users\\LEONI~1.TIS\\\
+          AppData\\Local\\Temp\\ort-ScanCode4481061530241131678\\result.json (Das\
+          \ System kann die angegebene Datei nicht finden)"
+        severity: "ERROR"
+  - provenance:
+      source_artifact:
+        url: "https://repo.maven.apache.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2-sources.jar"
+        hash:
+          value: "b19b5927c2c25b6c70f093767041e641ae0b1b35"
+          algorithm: "SHA-1"
+    scanner:
+      name: "ScanCode"
+      version: "47.0.0"
+      configuration: "--copyright --license --info --strip-root --timeout 300 --json"
+    summary:
+      start_time: "2025-01-29T08:23:15.135219Z"
+      end_time: "2025-01-29T08:23:15.135219Z"
+      issues:
+      - timestamp: "2025-01-29T08:23:15.134206Z"
+        source: "ScanCode"
+        message: "Failed to scan ArtifactProvenance(sourceArtifact=RemoteArtifact(url=https://repo.maven.apache.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2-sources.jar,\
+          \ hash=Hash(value=b19b5927c2c25b6c70f093767041e641ae0b1b35, algorithm=SHA-1)))\
+          \ with path scanner 'ScanCode': FileNotFoundException: C:\\Users\\LEONI~1.TIS\\\
+          AppData\\Local\\Temp\\ort-ScanCode13715133299026672416\\result.json (Das\
+          \ System kann die angegebene Datei nicht finden)"
+        severity: "ERROR"
+  - provenance:
+      source_artifact:
+        url: "https://repo.maven.apache.org/maven2/com/google/guava/guava/33.3.1-jre/guava-33.3.1-jre-sources.jar"
+        hash:
+          value: "e788c9bc41ef2bcbb89794f793da9b576b5dde38"
+          algorithm: "SHA-1"
+    scanner:
+      name: "ScanCode"
+      version: "47.0.0"
+      configuration: "--copyright --license --info --strip-root --timeout 300 --json"
+    summary:
+      start_time: "2025-02-03T10:52:57.000595885Z"
+      end_time: "2025-02-03T11:02:44.000028592Z"
+      licenses:
+      - license: "Apache-2.0"
+        location:
+          path: "META-INF/LICENSE"
+          start_line: 2
+          end_line: 202
+        score: 100.0
+      - license: "Apache-2.0"
+        location:
+          path: "com/google/common/annotations/Beta.java"
+          start_line: 4
+          end_line: 12
+        score: 100.0
+      - license: "BSD-3-Clause"
+        location:
+          path: "net/bytebuddy/jar/asm/signature/SignatureWriter.java"
+          start_line: 5
+          end_line: 27
+        score: 100.0
+      - license: "BSD-3-Clause"
+        location:
+          path: "net/bytebuddy/jar/asm/signature/package.html"
+          start_line: 8
+          end_line: 30
+        score: 100.0
+  - provenance:
+      source_artifact:
+        url: "https://repo.maven.apache.org/maven2/org/assertj/assertj-core/3.26.3/assertj-core-3.26.3-sources.jar"
+        hash:
+          value: "9e4200a28bd74c4d6199907614fab6d0330940a3"
+          algorithm: "SHA-1"
+    scanner:
+      name: "ScanCode"
+      version: "47.0.0"
+      configuration: "--copyright --license --info --strip-root --timeout 300 --json"
+    summary:
+      start_time: "2025-02-03T10:42:02.000220782Z"
+      end_time: "2025-02-03T10:50:02.000550217Z"
+      licenses:
+      - license: "Apache-2.0"
+        location:
+          path: "META-INF/maven/org.assertj/assertj-core/pom.xml"
+          start_line: 11
+          end_line: 17
+        score: 100.0
+      - license: "Apache-2.0"
+        location:
+          path: "org/assertj/core/annotations/Beta.java"
+          start_line: 2
+          end_line: 9
+        score: 100.0
+      - license: "Apache-2.0"
+        location:
+          path: "org/assertj/core/api/Abstract2DArrayAssert.java"
+          start_line: 2
+          end_line: 9
+        score: 100.0
+      - license: "Apache-2.0"
+        location:
+          path: "org/assertj/core/api/AbstractArrayAssert.java"
+          start_line: 2
+          end_line: 9
+        score: 100.0
+      - license: "Apache-2.0"
+        location:
+          path: "org/assertj/core/api/AbstractAssert.java"
+          start_line: 2
+          end_line: 9
+        score: 100.0
+      - license: "Apache-2.0"
+        location:
+          path: "org/assertj/core/api/AbstractAtomicFieldUpdaterAssert.java"
+          start_line: 2
+          end_line: 9
+        score: 100.0
+      - license: "Apache-2.0"
+        location:
+          path: "org/assertj/core/api/AbstractAtomicReferenceAssert.java"
+          start_line: 2
+          end_line: 9
+        score: 100.0
+      - license: "Apache-2.0"
+        location:
+          path: "org/assertj/core/api/AbstractBigDecimalAssert.java"
+          start_line: 2
+          end_line: 9
+        score: 100.0
+        copyrights:
+          - statement: "Copyright (c) today.year INRIA, France Telecom"
+            location:
+              path: "net/bytebuddy/jar/asm/AnnotationVisitor.java"
+              start_line: 2
+              end_line: 2
+          - statement: "Copyright (c) 2000-2011 INRIA, France Telecom"
+            location:
+              path: "net/bytebuddy/jar/asm/AnnotationWriter.java"
+              start_line: 2
+              end_line: 2
+          - statement: "Copyright (c) 2000-2011 INRIA, France Telecom"
+            location:
+              path: "net/bytebuddy/jar/asm/Attribute.java"
+              start_line: 2
+              end_line: 2
+          - statement: "Copyright (c) 2000-2015 INRIA, France Telecom"
+            location:
+              path: "net/bytebuddy/jar/asm/ByteVector.java"
+              start_line: 2
+              end_line: 2
+          - statement: "Copyright (c) 2000-2011 INRIA, France Telecom"
+            location:
+              path: "net/bytebuddy/jar/asm/ClassReader.java"
+              start_line: 2
+              end_line: 2
+          - statement: "Copyright (c) 2014 Mark Adler"
+            location:
+              path: "net/bytebuddy/jar/asm/ClassTooLargeException.java"
+              start_line: 2
+              end_line: 2
+          - statement: "Copyright (c) 2000-2011 INRIA, France Telecom"
+            location:
+              path: "net/bytebuddy/jar/asm/ClassVisitor.java"
+              start_line: 2
+              end_line: 2
+          - statement: "(c), bvec3(true)"
+            location:
+              path: "net/bytebuddy/jar/asm/ClassWriter.java"
+              start_line: 2
+              end_line: 2
+          - statement: "Copyright (c) 2000-2011 Gibberish"
+            location:
+              path: "net/bytebuddy/jar/asm/ConstantDynamic.java"
+              start_line: 2
+              end_line: 2
+          - statement: "Copyright (c) 219 INRIA, France Telecom"
+            location:
+              path: "net/bytebuddy/jar/asm/Constants.java"
+              start_line: 2
+              end_line: 2
+
+  

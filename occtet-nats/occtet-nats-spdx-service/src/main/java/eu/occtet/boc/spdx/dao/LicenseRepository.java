@@ -1,0 +1,16 @@
+package eu.occtet.boc.spdx.dao;
+
+
+
+import eu.occtet.boc.entity.License;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface LicenseRepository extends JpaRepository<License, Long> {
+
+    List<License> findByLicenseTypeAndLicenseText(String licenseType, String LicenseText);
+
+}

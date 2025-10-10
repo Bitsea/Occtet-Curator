@@ -1,0 +1,19 @@
+{
+  "root_inventory_item_id": "",
+  "scanner_initializer_id": "",
+  "inventory_info": {
+    "component_name_and_version": "",
+    "size": "",
+    "vulnerabilities": "",
+    "linking": "",
+    "external_notes": "",
+    "license_type": "",
+    "license_text": "",
+    "copyright": "",
+    "files": "",
+    "parent_name_and_version": "",
+    "url": "",
+    "encryption": "",
+    "priority": ""
+  }
+}

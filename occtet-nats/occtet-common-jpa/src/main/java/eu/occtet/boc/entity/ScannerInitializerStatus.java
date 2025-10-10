@@ -1,0 +1,30 @@
+package eu.occtet.boc.entity;
+
+import org.springframework.lang.Nullable;
+
+
+public enum ScannerInitializerStatus {
+    CREATING("CREATING"),APPROVE("APPROVE"), WAITING("WAITING"),IN_PROGRESS("IN_PROGRESS"), STOPPED("STOPPED"), COMPLETED("COMPLETED");
+
+    private final String id;
+
+    ScannerInitializerStatus(String value) {
+        this.id = value;
+    }
+
+
+    public String getId() {
+        return id;
+    }
+
+    @Nullable
+    public static ScannerInitializerStatus fromId(String id) {
+        for (ScannerInitializerStatus at : ScannerInitializerStatus.values()) {
+            if (at.getId().equals(id)) {
+                return at;
+            }
+        }
+        return null;
+    }
+}
+

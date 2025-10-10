@@ -1,0 +1,1 @@
+#Library for jpa entities for the microservices

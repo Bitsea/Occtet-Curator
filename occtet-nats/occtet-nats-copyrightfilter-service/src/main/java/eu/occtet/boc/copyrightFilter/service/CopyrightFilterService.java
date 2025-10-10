@@ -1,0 +1,131 @@
+package eu.occtet.boc.copyrightFilter.service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.occtet.boc.copyrightFilter.dao.InventoryItemRepository;
+import eu.occtet.boc.copyrightFilter.factory.PromptFactory;
+import eu.occtet.boc.copyrightFilter.preprocessor.CopyrightPreprocessor;
+import eu.occtet.boc.entity.Copyright;
+import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.model.AICopyrightFilterWorkData;
+import eu.occtet.boc.model.AIStatusQueryWorkData;
+import eu.occtet.boc.model.ScannerSendWorkData;
+import eu.occtet.boc.model.WorkTask;
+import eu.occtet.boc.service.BaseWorkDataProcessor;
+import eu.occtet.boc.service.NatsStreamSender;
+import io.nats.client.Connection;
+import io.nats.client.JetStreamApiException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+
+@Component
+public class CopyrightFilterService  extends BaseWorkDataProcessor {
+
+    private static final Logger log = LogManager.getLogger(CopyrightFilterService.class);
+
+    @Autowired
+    private CopyrightService copyrightService;
+
+    @Autowired
+    private CopyrightPreprocessor copyrightPreprocessor;
+
+    @Autowired
+    private InventoryItemRepository inventoryItemRepository;
+
+    @Autowired
+    private PromptFactory promptFactory;
+
+    @Autowired
+    private Connection natsConnection;
+
+    @Value("${nats.send-subject}")
+    private String sendSubject;
+
+
+    @Bean
+    public NatsStreamSender natsStreamSender() {
+        return new NatsStreamSender(natsConnection, sendSubject);
+    }
+
+
+    private static final Path BASEPATH_JSON = Paths.get("occtet-nats-copyrightFilter-service","src", "main", "resources", "garbage-Copyrights", "garbage-copyrights.json");
+
+    @Override
+    public boolean process(ScannerSendWorkData workData) {
+        log.debug("CopyrightFilterService: filter false Copyrights with data {}", workData.toString());
+        return initializeCopyrightFilter(workData);
+    }
+
+    private boolean initializeCopyrightFilter(ScannerSendWorkData scannerSendWorkData) {
+        log.debug("inventoryItemId: {}", scannerSendWorkData.getInventoryItemId());
+        InventoryItem item = inventoryItemRepository.findById(scannerSendWorkData.getInventoryItemId()).get();
+        List<String> copyrightTexts = new ArrayList<>();
+
+        if (item.getCopyrights() != null && !item.getCopyrights().isEmpty()) {
+            List<Copyright> copyrights = item.getCopyrights();
+            //extract the copyright strings from the copyright objects
+            for (Copyright copy : copyrights) {
+                copyrightTexts.add(copy.getCopyrightText());
+            }
+            List<String> questionableCopyrights = filterFalsCopyrightsWithGarbageFile(copyrightTexts, item);
+            if (!questionableCopyrights.isEmpty()) {
+                log.info("sending copyrightList to ai for inventory item: {}, copyrights to check: {}", item.getInventoryName(), questionableCopyrights.size());
+                String message= promptFactory.createFalseCopyrightPrompt();
+                AICopyrightFilterWorkData workData = new AICopyrightFilterWorkData( message,item.getId(), questionableCopyrights);
+                sendAnswerToStream(workData);
+                return true;
+
+            } else return true;
+        } else return item.getCopyrights() == null && item.getCopyrights().isEmpty();
+    }
+
+
+    public List<String> filterFalsCopyrightsWithGarbageFile(List<String> copyrightTexts, InventoryItem item) {
+        List<String> garbageCopyrightTexts= copyrightPreprocessor.readGarbageCopyrightsFromJson(BASEPATH_JSON);
+        for(String garbage: garbageCopyrightTexts) {
+            if(copyrightTexts.contains(garbage)) {
+                for(Copyright c: item.getCopyrights()){
+                    if(c.getCopyrightText().equals(garbage)) {
+                        copyrightService.updateCopyrightAsGarbage(c);
+                    }
+                }
+                copyrightTexts.remove(garbage);
+            }
+        }
+        return copyrightTexts;
+    }
+
+
+
+    /**
+     * Sends the AI-generated answer to the NATS stream for further processing.
+     * @param aiCopyrightFilterWorkData
+     * @throws JetStreamApiException
+     * @throws IOException
+     */
+    private void sendAnswerToStream(AICopyrightFilterWorkData aiCopyrightFilterWorkData) {
+        LocalDateTime now = LocalDateTime.now();
+        long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
+        WorkTask workTask = new WorkTask("process_inventoryItems", "sending inventoryItem to next microservice according to config", actualTimestamp, aiCopyrightFilterWorkData);
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String message = objectMapper.writeValueAsString(workTask);
+            log.debug("sending message to ai service: {}", message);
+            natsStreamSender().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
+        }catch(Exception e){
+            log.error("error sending message to stream: {}", e.getMessage());
+        }
+    }
+}

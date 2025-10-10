@@ -1,0 +1,59 @@
+/* Define your styles here */
+
+.scanner-layout{
+border: 1px solid;
+border-color: var(--lumo-contrast-10pct);
+}
+
+.image-border {
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-l);
+    padding: var(--lumo-space-s);
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    display: block;
+}
+
+.image-no-border {
+    padding: var(--lumo-space-s);
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    display: block;
+}
+
+:host(.read-only) [part="input-field"]::after {
+    border-style: none;
+    border-width: 0;
+    border-color: white;
+}
+
+vaadin-text-field[readonly].read-only::part(input-field)::before,
+vaadin-text-field[readonly].read-only::part(input-field)::after {
+    border: none !important;
+}
+
+vaadin-text-field[readonly].read-only::part(input-field) {
+    border: none !important;
+    background-color: #e5e7eb !important;
+    cursor: default !important;
+    transition: all 0.2s ease-in-out !important;
+    color: #110000 !important;
+    font-weight: normal !important;
+}
+
+.ace_marker_yellow {
+    position: absolute;
+    background: rgba(255, 255, 0, 0.5);
+    z-index: 20;
+}
+
+.ace_marker_green {
+    position: absolute;
+    background: rgba(144, 238, 144, 0.6);
+    z-index: 20;
+}
+
+
+

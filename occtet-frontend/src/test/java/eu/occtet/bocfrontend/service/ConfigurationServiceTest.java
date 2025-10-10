@@ -1,0 +1,143 @@
+package eu.occtet.bocfrontend.service;
+
+import eu.occtet.bocfrontend.entity.Configuration;
+import eu.occtet.bocfrontend.entity.ScannerInitializer;
+import eu.occtet.bocfrontend.test_support.AuthenticatedAsAdmin;
+import io.jmix.core.DataManager;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.File;
+import java.io.FileInputStream;
+
+
+@SpringBootTest
+@ExtendWith(AuthenticatedAsAdmin.class)
+@Transactional
+public class ConfigurationServiceTest {
+
+
+    @Autowired
+    protected DataManager dataManager;
+    @Autowired
+    private ConfigurationService configurationService;
+
+    private Configuration configuration;
+    private ScannerInitializer flexeraScannerInit;
+
+    private static final String FLEXERA_FILE_NAME = "src/test/resources/foss_report_sample.xlsx";
+    private static final String KEY_FOR_UPLOAD_CONFIG = "fileName";
+    private static final String KEY_FOR_BOOLEAN_CONFIG1 = "UseLicenseMatcher";
+    private static final String KEY_FOR_BOOLEAN_CONFIG2 = "UseFalseCopyrightFilter";
+    private static final String KEY_FOR_BASE_PATH_CONFIG = "basePathForRelativePath";
+
+    @BeforeEach
+    void setUp() {
+        this.configuration = dataManager.create(Configuration.class);
+
+        // Flexera
+        this.flexeraScannerInit = dataManager.create(ScannerInitializer.class);
+        flexeraScannerInit.setScanner("Flexera_Report_Scanner");
+        // SPDX
+    }
+
+    @Test
+    void test_getTypeOfConfiguration(){
+        // Tests for Flexera
+        assertEquals(
+                Configuration.Type.FILE_UPLOAD,
+                configurationService.getTypeOfConfiguration(
+                        "fileName", flexeraScannerInit)
+        );
+        assertEquals(
+                Configuration.Type.BOOLEAN,
+                configurationService.getTypeOfConfiguration(
+                        "UseLicenseMatcher", flexeraScannerInit)
+        );
+        assertEquals(
+                Configuration.Type.BOOLEAN,
+                configurationService.getTypeOfConfiguration(
+                        "UseFalseCopyrightFilter", flexeraScannerInit)
+        );
+        // Tests for SPDX
+    }
+
+    @Test
+    void test_handleConfigForValidFileUpload(){
+        // Test for Flexera
+        File uploadFile = new File(FLEXERA_FILE_NAME);
+        try (FileInputStream uploadFileInputStream = new FileInputStream(uploadFile)){
+
+            byte[] uploadFileValue = new byte[uploadFileInputStream.available()];
+
+            boolean result =
+                    configurationService.handleConfig(
+                            configuration,
+                            KEY_FOR_UPLOAD_CONFIG, // Key for the configuration
+                            uploadFileValue,
+                            uploadFile.getName(),
+                            false,
+                            flexeraScannerInit
+                    );
+
+            assertTrue(result);
+            assertEquals(uploadFileValue.length, configuration.getUpload().length);
+            assertEquals("foss_report_sample.xlsx", configuration.getValue());
+        } catch (Exception e) {
+            assert false : "Exception: " + e;
+        }
+        // Test for SPDX
+    }
+
+    @Test
+    void test_handleConfigForInvalidFileUpload(){
+        // Test for Flexera
+        try{
+            boolean resultForValid =
+                    configurationService.handleConfig(
+                            configuration,
+                            KEY_FOR_UPLOAD_CONFIG, // Key for the configuration
+                            new byte[0],
+                            "",
+                            false,
+                            flexeraScannerInit
+                    );
+
+            assertFalse(resultForValid);
+        } catch (Exception e) {
+            assert false : "Exception: " + e;
+        }
+        // Test for SPDX
+    }
+
+
+    @Test
+    void test_handleConfigForBoolean(){
+        boolean result = configurationService.handleConfig(
+                configuration,
+                KEY_FOR_BOOLEAN_CONFIG1,
+                null,
+                null,
+                true,
+                flexeraScannerInit
+        );
+        assertTrue(result);
+        assertEquals("true", configuration.getValue());
+        result = configurationService.handleConfig(
+                configuration,
+                KEY_FOR_BOOLEAN_CONFIG2,
+                null,
+                null,
+                false,
+                flexeraScannerInit
+        );
+        assertTrue(result);
+        assertEquals("false", configuration.getValue());
+    }
+}

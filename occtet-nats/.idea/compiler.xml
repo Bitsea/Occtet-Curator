@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="occtet-nats-foss-report-service" />
+        <module name="occtet-nats-vulnerability-service" />
+        <module name="occtet-nats-copyrightfilter-service" />
+        <module name="occtet-common-jpa" />
+        <module name="occtet-nats-ai-copyrightfilter-service" />
+        <module name="occtet-nats-ai-licensematcher-service" />
+        <module name="occtet-nats-template" />
+        <module name="occtet-nats-subscriber-sample" />
+        <module name="occtet-nats-licensematcher-service" />
+        <module name="occtet-common" />
+        <module name="occtet-nats-vulnerability-microservice" />
+        <module name="occtet-nats-spdx-service" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="occtet-nats" target="20" />
+      <module name="occtet-nats-ai-service" target="21" />
+      <module name="occtet-nats-copyrightFilter-service" target="21" />
+      <module name="occtet-nats-licenseMatcher-service" target="21" />
+      <module name="occtet-nats-vulnerablity-microservice" target="21" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

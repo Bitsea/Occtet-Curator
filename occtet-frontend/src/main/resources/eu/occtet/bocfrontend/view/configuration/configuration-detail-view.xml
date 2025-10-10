@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://configurationDetailView.title"
+      focusComponent="form">
+    <data>
+        <instance id="configurationDc"
+                  class="eu.occtet.bocfrontend.entity.Configuration">
+            <fetchPlan extends="_base"/>
+            <loader/>
+        </instance>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <actions>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
+    </actions>
+    <layout>
+        <formLayout id="form" dataContainer="configurationDc">
+            <textField id="nameField" property="name" required="true"/>
+            <textField id="valueField" property="value" visible="false"/>
+            <fileUploadField id="uploadField" fileNameVisible="true" maxFileSize="921600" visible="true"/>
+            <checkbox id="booleanField" label="boolean value" visible="false"/>
+        </formLayout>
+        <hbox id="detailActions">
+            <button id="saveAndCloseBtn" text="Edit" />
+            <button id="closeBtn" text="Cancel" />
+        </hbox>
+    </layout>
+</view>

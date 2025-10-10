@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="Log Detail"
+      focusComponent="form">
+    <data>
+        <instance id="dbLogDc"
+                  class="eu.occtet.bocfrontend.entity.DBLog">
+            <fetchPlan extends="_base">
+
+            </fetchPlan>
+            <loader/>
+        </instance>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+        <settings id="settingsFacet" auto="true"/>
+    </facets>
+    <actions>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
+    </actions>
+    <layout spacing="true">
+        <vbox>
+            <formLayout id="form" dataContainer="dbLogDc" colspan="1">
+                <textArea
+                        id="messageField"
+                        property="message"
+                        readOnly="true"
+                        label="Log Message"
+                        colspan="2"
+                        width="AUTO"/>
+                <hbox>
+                    <textField id="componentField" property="component" readOnly="true" label="Component" colspan="1"/>
+                    <textField id="eventDateField" property="eventDate" readOnly="true" label="Date" colspan="1"/>
+                </hbox>
+            </formLayout>
+
+        </vbox>
+    </layout>
+</view>

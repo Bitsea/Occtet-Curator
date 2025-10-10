@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg:// Available Licenses">
+    <data>
+        <collection id="licenseDc"
+                    class="eu.occtet.bocfrontend.entity.License">
+            <fetchPlan extends="_base"/>
+            <loader id="licenseDl">
+                <query>
+                    <![CDATA[select e from License e]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <layout>
+        <vbox>
+            <hbox>
+                <textField id="searchField" placeholder="Name..."/>
+                <button id="searchButton" text="Search"/>
+            </hbox>
+            <dataGrid id="licensesDataGrid"
+                      width="100%"
+                      height="25em"
+                      dataContainer="licenseDc"
+                      columnReorderingAllowed="true"
+                      selectionMode="MULTI">
+                <columns resizable="true">
+                    <column property="licenseType" header="Licence type"/>
+                    <column property="licenseText" header="License text"/>
+                    <column property="priority" header="Priority"/>
+                </columns>
+            </dataGrid>
+            <hbox>
+                <button id="addLicenseButton" text="Add license" themeNames="primary"/>
+                <button id="cancelButton" text="Cancel"/>
+            </hbox>
+        </vbox>
+    </layout>
+</view>

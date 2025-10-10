@@ -1,0 +1,67 @@
+package eu.occtet.bocfrontend.scanner;
+
+import eu.occtet.bocfrontend.entity.Configuration;
+import eu.occtet.bocfrontend.entity.InventoryItem;
+import eu.occtet.bocfrontend.entity.ScannerInitializer;
+import jakarta.validation.constraints.NotNull;
+
+import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
+
+public abstract class Scanner {
+
+
+    private final String name;
+
+
+    protected Scanner(String name) {
+        this.name = name;
+    }
+
+    /**
+     *
+     * @return the name of this scanner
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Process the given scanning task. This may happen in background.
+     * @param scannerInitializer the scanning task to be processed
+     * @param completionCallback callback to be called when the processing is done. The callback receives the same ScannerInitializer instance as given to this method.
+     ** @return true on success, false if something went wrong.
+     */
+    public abstract boolean processTask(@Nonnull ScannerInitializer scannerInitializer, @NotNull Consumer<ScannerInitializer> completionCallback);
+
+    /**
+     *
+     * @return list of supported settings for this scanner
+     */
+    public List<String> getSupportedConfigurationKeys() {return Collections.emptyList();
+    }
+
+    /**
+     *
+     * @return list of required settings for this scanner
+     */
+    public List<String> getRequiredConfigurationKeys() {
+        return Collections.emptyList();
+    }
+
+    public boolean isConfigurationRequired(String key) {
+        return getRequiredConfigurationKeys().contains(key);
+    }
+
+    public String getDefaultConfigurationValue(String k, InventoryItem inventoryItem) {
+        return "";
+    };
+
+    public Configuration.Type getTypeOfConfiguration(String key) {
+        return Configuration.Type.STRING;
+    }
+
+
+}

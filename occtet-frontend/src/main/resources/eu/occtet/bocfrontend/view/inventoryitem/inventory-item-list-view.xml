@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:c="http://jmix.io/schema/flowui/jpql-condition"
+      title="msg://inventoryItemListView.title"
+      focusComponent="inventoryItemsDataGrid">
+    <data>
+        <collection id="inventoryItemsDc"
+                    class="eu.occtet.bocfrontend.entity.InventoryItem">
+            <fetchPlan extends="_base">
+                <property name="softwareComponent"/>
+            </fetchPlan>
+            <loader id="inventoryItemsDl" readOnly="true">
+                <query>
+                    <![CDATA[select e from InventoryItem e]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+        <urlQueryParameters>
+            <pagination component="pagination"/>
+        </urlQueryParameters>
+    </facets>
+    <actions>
+        <action id="selectAction" type="lookup_select"/>
+        <action id="discardAction" type="lookup_discard"/>
+    </actions>
+    <layout>
+        <vbox>
+            <accordion id="projectAccordion" width="100%" >
+                <accordionPanel summaryText="Find inventories from project">
+                    <hbox>
+                        <comboBox id="projectComboBox" label="Project" width="20em"/>
+                        <comboBox id="softwareComponentComboBox" label="Software Component"/>
+                    </hbox>
+                </accordionPanel>
+            </accordion>
+            <accordion id="attributesAccordion" width="100%">
+                <accordionPanel summaryText="Filter inventories by attributes">
+                    <hbox>
+                        <comboBox id="vulnerabilityComboBox" label="Vulnerable"/>
+                        <comboBox id="cveComboBox" label="CVE"/>
+                        <comboBox id="curatedComboBox" label="Curated"/>
+                        <comboBox id="licenseTypeComboBox" label="License"/>
+                    </hbox>
+                </accordionPanel>
+            </accordion>
+            <hbox classNames="buttons-panel" width="100%">
+                <hbox alignSelf="END">
+                    <textField id="searchField" width="15em" placeholder="search term"/>
+                    <button id="searchButton" text="Search"/>
+                </hbox>
+                <button id="refreshButton" action="inventoryItemsDataGrid.refreshAction" alignSelf="CENTER"/>
+                <simplePagination id="pagination" dataLoader="inventoryItemsDl" alignSelf="END"/>
+            </hbox>
+        </vbox>
+        <dataGrid id="inventoryItemsDataGrid"
+                  width="100%"
+                  minHeight="20em"
+                  dataContainer="inventoryItemsDc"
+                  columnReorderingAllowed="true">
+            <actions>
+                <action id="createAction" type="list_create"/>
+                <action id="editAction" type="list_edit"/>
+                <action id="removeAction" type="list_remove"/>
+                <action id="refreshAction" type="list_refresh"/>
+            </actions>
+            <columns resizable="true">
+                <column property="inventoryName" header="Inventory name"/>
+                <column property="softwareComponent" header="Component"/>
+                <column property="softwareComponent.licenses" header="Licenses" key="licenses"/>
+                <column property="size" header="Size"/>
+                <column property="linking" header="Linking"/>
+                <column property="wasCombined" header="Combined"/>
+                <column property="curated" header="Curated"/>
+            </columns>
+        </dataGrid>
+        <hbox id="buttonsPanel" classNames="buttons-panel">
+            <button id="createButton" action="inventoryItemsDataGrid.createAction"/>
+            <button id="editButton" action="inventoryItemsDataGrid.editAction"/>
+            <button id="removeButton" action="inventoryItemsDataGrid.removeAction"/>
+        </hbox>
+        <hbox id="lookupActions" visible="false">
+            <button id="selectButton" action="selectAction"/>
+            <button id="discardButton" action="discardAction"/>
+        </hbox>
+    </layout>
+</view>

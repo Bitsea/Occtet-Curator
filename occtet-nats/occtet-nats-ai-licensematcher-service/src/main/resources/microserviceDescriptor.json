@@ -1,0 +1,9 @@
+{
+  "type": "descriptor",
+  "name": "occtet-nats-ai-licenseMatcher",
+  "version": "2025.09.1",
+  "description": "A microservice for questioning an AI model for licenseMatcher context.",
+  "usageType": "RUNNABLE_BY_SERVICE",
+  "acceptableWorkData": "AILicenseMatcherWorkData"
+
+}

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fragment xmlns="http://jmix.io/schema/flowui/fragment">
+    <content>
+        <vbox id="mainLayout" width="100%" height="100%" margin="false" padding="false" spacing="false">
+            <hbox id="topLayout" width="100%" justifyContent="BETWEEN" alignItems="END">
+                <fileUploadField id="fileUploadField" label="Select File to view"
+                                 fileNameVisible="true"
+                                 dropAllowed="true" uploadIcon="UPLOAD"
+                />
+                <hbox id="searchLayout" width="70%" justifyContent="END">
+                    <textField id="searchField" placeholder="search" width="50%" focusShortcut="TAB"/>
+                    <hbox id="goNextAndPrevLayout">
+                        <button id="findPrevButton"
+                                icon="ARROW_LEFT"
+                                shortcutCombination="SHIFT-ENTER"
+                        title="SHIFT+ENTER"/>
+                        <button id="findNextButton" icon="ARROW_RIGHT" shortcutCombination="ENTER" title="ENTER"/>
+                        <nativeLabel id="countLabel" alignSelf="CENTER" themeNames="small"/>
+                    </hbox>
+                </hbox>
+            </hbox>
+            <codeEditor id="codeEditor" height="100%" width="100%"/>
+        </vbox>
+    </content>
+</fragment>

@@ -1,0 +1,126 @@
+plugins {
+    id 'io.jmix' version '2.5.2'
+    id 'java'
+    id 'org.jetbrains.gradle.plugin.idea-ext' version '1.1.9'
+    id 'com.google.cloud.tools.jib' version '3.3.1'
+}
+
+apply plugin: 'org.springframework.boot'
+apply plugin: 'com.vaadin'
+
+jmix {
+    bomVersion = '2.5.2'
+}
+
+group = 'eu.occtet'
+version = '2025.10.1'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url = 'https://global.repo.jmix.io/repository/public'
+    }
+}
+
+dependencies {
+    // if Gradle fails because this does not exist, please get and build the occtet-nats project
+    // and install the nats-common library into your local maven repository using 'mvn install' as explained
+    // in the README of the occtet-nats project
+    implementation 'eu.occtet.boc:occtet-common:2025.10.2'
+
+    implementation 'io.jmix.core:jmix-core-starter'
+    implementation 'io.jmix.data:jmix-eclipselink-starter'
+    implementation 'io.jmix.security:jmix-security-starter'
+    implementation 'io.jmix.security:jmix-security-flowui-starter'
+    implementation 'io.jmix.security:jmix-security-data-starter'
+    implementation 'io.jmix.localfs:jmix-localfs-starter'
+    implementation 'io.jmix.flowui:jmix-flowui-starter'
+    implementation 'io.jmix.flowui:jmix-flowui-data-starter'
+    implementation 'io.jmix.flowui:jmix-flowui-themes'
+    implementation 'io.jmix.datatools:jmix-datatools-starter'
+    implementation 'io.jmix.datatools:jmix-datatools-flowui-starter'
+    implementation 'io.jmix.rest:jmix-rest-starter'
+    implementation 'io.jmix.gridexport:jmix-gridexport-flowui-starter'
+    implementation("org.apache.poi:poi-ooxml:5.4.1")
+    implementation("org.springframework.ai:spring-ai-core:1.0.0-M6")
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.postgresql:postgresql'
+    runtimeOnly 'org.hsqldb:hsqldb'
+
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.19.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.2'
+
+    implementation 'io.nats:jnats:2.22.0'
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+    testImplementation 'io.jmix.flowui:jmix-flowui-test-assist'
+}
+
+configurations.implementation {
+    exclude group: 'com.vaadin', module: 'hilla'
+    exclude group: 'com.vaadin', module: 'hilla-dev'
+    exclude group: 'com.vaadin', module: 'copilot'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+idea {
+    module {
+        excludeDirs.addAll(files '.jmix', 'node_modules', 'src/main/frontend/generated/', 'src/main/bundles')
+    }
+}
+
+vaadin {
+    optimizeBundle = false
+    pnpmEnable = true
+    productionMode = true
+    generateBundle = true
+    vaadinPrepareFrontend
+    vaadinBuildFrontend
+}
+
+
+ext {
+    springProfile = project.hasProperty('profile') ? project.profile : 'live'
+}
+
+task printProfile {
+    doLast {
+        println "Active Spring Profile: $springProfile"
+    }
+}
+
+jib {
+    from {
+        image = 'eclipse-temurin:21-jre-jammy'
+    }
+    to {
+        image = 'occtet-boc-frontend'
+        tags = ['latest']
+    }
+    container {
+        ports = ['8090']
+        environment = ['SPRING_PROFILES_ACTIVE': "live"]
+        creationTime = "USE_CURRENT_TIMESTAMP"
+    }
+
+    task generateVersionFile {
+        doLast {
+            file('src/main/resources/version.properties').write("artifact.version=${project.version}")
+        }
+    }
+
+    processResources {
+        filesMatching('version.properties') {
+            expand(project.properties)
+        }
+    }
+
+}

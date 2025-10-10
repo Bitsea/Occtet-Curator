@@ -1,0 +1,27 @@
+Occtet NATS Microservice template
+-
+
+Use this as a starting point for new microservices. Create a copy and adjust (at least):
+- artifactId (in pom.xml)
+- package names (in all .java files)
+- application.properties (in src/main/resources)
+- name of main class
+- microserviceDescriptor.json
+- this README.
+
+### Building
+
+To build: run
+`mvn package`
+
+To run (with dev profile, default is live):
+`mvn spring-boot:run -Pdev`
+
+To build a Docker file (with default profile, which is "live"):
+`mvn package dockerfile:build`
+This will be tagged automatically according to name and version in the pom.xml and made available locally
+in the docker registry, so you should find it with `docker images`.
+
+
+
+

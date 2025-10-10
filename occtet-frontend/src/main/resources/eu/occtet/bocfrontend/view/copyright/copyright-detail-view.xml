@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://copyrightDetailView.title"
+      focusComponent="form">
+    <data>
+        <instance id="copyrightDc"
+                  class="eu.occtet.bocfrontend.entity.Copyright">
+            <fetchPlan extends="_base">
+                <property name="codeLocation" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader id="copyrightDl"/>
+        </instance>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <actions>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
+    </actions>
+    <layout>
+        <formLayout id="form" dataContainer="copyrightDc">
+            <vbox >
+                <textField id="copyrightTextField" property="copyrightText" label="Name" minWidth="100%"/>
+                <textField id="filePathField" property="codeLocation.filePath" label="File Path" width="100%"/>
+                <checkbox id="curatedField" property="curated" label="Curated"/>
+                <checkbox id="garbageField" property="garbage" label="Garbage"/>
+                <hbox id="detailActions">
+                    <button id="saveAndCloseButton" action="saveAction"/>
+                    <button id="closeButton" action="closeAction"/>
+                </hbox>
+            </vbox>
+        </formLayout>
+    </layout>
+</view>

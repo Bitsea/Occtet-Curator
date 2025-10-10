@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://inventoryItemDetailView.title"
+      focusComponent="form">
+    <data>
+        <instance id="inventoryItemDc"
+                  class="eu.occtet.bocfrontend.entity.InventoryItem">
+            <fetchPlan extends="_base"/>
+            <loader id="inventoryItemDl"/>
+        </instance>
+        <collection id="copyrightsDc"
+                    class="eu.occtet.bocfrontend.entity.Copyright">
+            <fetchPlan extends="_base"/>
+            <loader id="copyrightsDl" readOnly="true">
+                <query>
+                    <![CDATA[select e from Copyright e]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <actions>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
+    </actions>
+    <layout>
+        <tabSheet width="100%" themeNames="bordered" height="100%">
+            <tab id="generalInformationTab" label="General information" >
+                <vbox alignItems="CENTER" justifyContent="START" alignSelf="START" classNames="scanner-layout" height="100%">
+                    <formLayout id="form" dataContainer="inventoryItemDc" width="100%" alignSelf="CENTER">
+                        <textField id="inventoryNameField" property="inventoryName" label="Inventory Name"
+                                   width="25em" required="true"/>
+                        <hbox>
+                            <comboBox id="projectField" label="Project" required="true"/>
+                            <textField id="sizeField" property="size" label="Size" width="AUTO"/>
+                            <textField id="linkingField" property="linking" label="Linking" width="AUTO"/>
+                        </hbox>
+                        <hbox colspan="1">
+                            <textField id="parentID" property="parent.inventoryName"
+                                       label="Parent-Inventory item" width="25em"/>
+                            <button id="parentButton" text="Show parent-inventory item"
+                                    width="15em" alignSelf="END"/>
+                        </hbox>
+                        <hbox>
+                            <comboBox id="softwareComponentField" label="Software component" width="25em"
+                                      required="false"/>
+                            <button id="softwareComponentButton" text="Show software component" width="15em" alignSelf="END"/>
+                        </hbox>
+                        <textField id="basePathField" property="basePath" label="Base Path" required="true"
+                                   helperText="If creating the root inventory item, enter the absolute base path to the project directory."
+                                   themeNames="helper-above-field"/>
+                        <hbox>
+                            <checkbox id="curatedField" property="curated" label="Curated" alignSelf="START"/>
+                            <checkbox id="wasCombinedField" property="wasCombined" label="Combined" alignSelf="START"/>
+                        </hbox>
+                        <textArea id="externalNotesField" property="externalNotes" label="External notes" width="100%"
+                                          height="20em" colspan="2"/>
+
+                    </formLayout>
+                    <hbox id="detailActions" justifyContent="CENTER" alignItems="CENTER" alignSelf="CENTER" height="100%">
+                        <button id="saveAndCloseButton" action="saveAction" alignSelf="END"/>
+                        <button id="closeButton" action="closeAction" alignSelf="END"/>
+                    </hbox>
+                </vbox>
+            </tab>
+            <tab id="copyrightsTab" label="Copyrights">
+                <vbox alignItems="CENTER" height="100%">
+                    <dataGrid id="copyrightsDataGrid"
+                              width="100%"
+                              height="40em"
+                              dataContainer="copyrightsDc"
+                              columnReorderingAllowed="true">
+                    <columns resizable="true">
+                        <column property="copyrightText" header="Name"/>
+                        <column property="curated" header="Curated"/>
+                        <column property="garbage" header="Garbage"/>
+                    </columns>
+                    </dataGrid>
+                    <button id="addCopyrightButton" text="add copyright" alignSelf="CENTER"/>
+                </vbox>
+            </tab>
+        </tabSheet>
+    </layout>
+</view>

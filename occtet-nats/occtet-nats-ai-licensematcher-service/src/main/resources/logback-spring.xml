@@ -1,0 +1,40 @@
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} -%kvp- %msg%n</pattern>
+        </encoder>
+    </appender>
+    <property resource="application-live.properties" />
+    <appender name="DB" class="ch.qos.logback.classic.db.DBAppender">
+        <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+            <driverClass>org.postgresql.Driver</driverClass>
+            <url>${spring.datasource.url}</url>
+            <user>${spring.datasource.username}</user>
+            <password>${spring.datasource.password}</password>
+        </connectionSource>
+    </appender>
+
+    <springProfile name="live">
+        <root level="error">
+            <appender-ref ref="STDOUT" />
+            <appender-ref ref="DB" />
+        </root>
+        <logger name="eu.occtet" level="INFO" additivity="false">
+            <appender-ref ref="STDOUT" />
+            <appender-ref ref="DB" />
+        </logger>
+    </springProfile>
+    <springProfile name="dev">
+        <root level="error">
+            <!--appender-ref ref="DB" /-->
+            <appender-ref ref="STDOUT" />
+        </root>
+        <logger name="eu.occtet" level="DEBUG" additivity="false">
+            <!--appender-ref ref="DB" /-->
+            <appender-ref ref="STDOUT" />
+        </logger>
+    </springProfile>
+</configuration>
