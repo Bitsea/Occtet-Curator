@@ -66,6 +66,8 @@ You need to get a model for ollama (use the current container id, see docker ps)
 `docker exec -it b5946a233546 sh`
 `ollama pull qwen3:30b`
 
+Note that the ai based services will not start correctly without a model, so download it first.
+
 Once you have built and installed all docker images locally (see above), you can start everything with
 `docker-compose up -d`
 
