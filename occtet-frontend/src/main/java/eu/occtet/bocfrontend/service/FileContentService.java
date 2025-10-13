@@ -25,7 +25,7 @@ public class FileContentService {
      * @param codeLocation the object containing the file path and associated metadata
      * @param inventoryItem the inventory item of the code location
      */
-    public FileResult getFileContent(CodeLocation codeLocation, InventoryItem inventoryItem) {
+    public FileResult getFileContentOfCodeLocation(CodeLocation codeLocation, InventoryItem inventoryItem) {
         String pathToView = codeLocation.getFilePath();
         log.debug("Attempting to view content for path to view: {}", pathToView);
 
@@ -76,6 +76,22 @@ public class FileContentService {
         } catch (InvalidPathException e){
             log.error("Invalid path while viewing file at path '{}'", pathToView, e);
             return new FileResult.Failure("Invalid Path. The file path provided is not valid: pathToView");
+        }
+    }
+
+    public FileResult getFileContent(String absolutePath) {
+        try {
+            Path path = Paths.get(absolutePath);
+
+            String content = Files.readString(path);
+            return new FileResult.Success(content, path.toString());
+
+        } catch (IOException e) {
+            log.error("Error reading file at path '{}'", absolutePath, e);
+            return new FileResult.Failure("Error reading file. Please check file permissions: " + absolutePath);
+        } catch (InvalidPathException e) {
+            log.error("Invalid path '{}'", absolutePath, e);
+            return new FileResult.Failure("Invalid file path: " + absolutePath);
         }
     }
 }

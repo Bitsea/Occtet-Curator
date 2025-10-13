@@ -37,8 +37,6 @@ public class CodeViewerFragment extends Fragment<VerticalLayout> {
     private TextField searchField;
     @ViewComponent
     private NativeLabel countLabel;
-    @ViewComponent
-    private FileUploadField fileUploadField;
 
     @Autowired
     private Notifications notifications;
@@ -104,17 +102,17 @@ public class CodeViewerFragment extends Fragment<VerticalLayout> {
                 , markerColor, markerCss, true); // set to false if working with regexes is not wanted
     }
 
-    @Subscribe("fileUploadField")
-    public void onFileUploadFieldFileUploadSucceeded(final FileUploadSucceededEvent<FileUploadField> event) {
-        String fileName = event.getFileName();
-        byte[] fileBytes = event.getSource().getValue();
-        if (fileBytes == null){
-            notifications.create("File content is empty").withType(Notifications.Type.ERROR).show();
-            return;
-        }
-        String content = new String(fileBytes, StandardCharsets.UTF_8);
-        setCodeEditorContent(content, fileName);
-    }
+//    @Subscribe("fileUploadField")
+//    public void onFileUploadFieldFileUploadSucceeded(final FileUploadSucceededEvent<FileUploadField> event) {
+//        String fileName = event.getFileName();
+//        byte[] fileBytes = event.getSource().getValue();
+//        if (fileBytes == null){
+//            notifications.create("File content is empty").withType(Notifications.Type.ERROR).show();
+//            return;
+//        }
+//        String content = new String(fileBytes, StandardCharsets.UTF_8);
+//        setCodeEditorContent(content, fileName);
+//    }
 
     private CodeEditorMode detectModeByExtension(String filename) {
         String extension = getFileExtension(filename);
@@ -132,6 +130,8 @@ public class CodeViewerFragment extends Fragment<VerticalLayout> {
         if (extension.equals("json")) return CodeEditorMode.JSON;
         if (extension.equals("txt")) return CodeEditorMode.TEXT;
         if (extension.equals("yaml")) return CodeEditorMode.YAML;
+        if (extension.equals("yml")) return CodeEditorMode.YAML;
+        if (extension.equals("sql")) return CodeEditorMode.SQL;
         return CodeEditorMode.TEXT;
     }
 }

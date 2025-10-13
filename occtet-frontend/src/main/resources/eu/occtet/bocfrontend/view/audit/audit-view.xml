@@ -4,9 +4,15 @@
     <data>
         <collection id="inventoryItemDc"
                     class="eu.occtet.bocfrontend.entity.InventoryItem">
+            <loader id="inventoryItemDl">
+                <query>
+                    <![CDATA[select e from InventoryItem e where e.project = :project order by e.inventoryName]]>
+                </query>
+            </loader>
             <fetchPlan extends="_local">
                 <property name="parent" fetchPlan="_base"/>
             </fetchPlan>
+
         </collection>
         <collection id="licenseDc"
                     class="eu.occtet.bocfrontend.entity.License">
@@ -32,24 +38,37 @@
     </facets>
     <layout  padding="false" spacing="false" width="100%" height="100%">
         <hbox width="100%" height="100%">
-            <split width="100%" themeNames="small">
-                <vbox classNames="border rounded-m border-contrast-20" width="30%">
-                    <comboBox id="projectComboBox" label="Choose project"/>
+            <split themeNames="small" width="100%">
+                <split width="80%" themeNames="small">
+                    <vbox classNames="border rounded-m border-contrast-20" width="20%" margin="false" padding="false">
+                        <comboBox id="projectComboBox" label="Choose project" width="90%" alignSelf="CENTER"/>
+                        <vbox id="fileTreeGridLayout" width="100%" height="100%" margin="false" padding="false">
+                        </vbox>
+                    </vbox>
+                    <tabSheet id="mainTabSheet" width="84%" height="100%">
+                        <tab id="inventoryItemSection" label="Inventory Items">
+                            <tabSheet id="inventoryItemTabSheet" width="100%" height="100%">
+                            </tabSheet>
+                        </tab>
+                        <tab id="filesSection" label="Files">
+                            <tabSheet id="filesTabSheet" width="100%" height="100%">
+                            </tabSheet>
+                        </tab>
+                    </tabSheet>
+                </split>
+                <vbox classNames="border rounded-m border-contrast-20" width="16%" margin="false" padding="false">
                     <treeDataGrid id="inventoryItemDataGrid"
                                   dataContainer="inventoryItemDc"
                                   height="100%"
                                   width="100%"
-                                  themeNames="no-border no-row-borders compact "
+                                  themeNames="no-border no-row-borders compact"
                                   hierarchyProperty="parent">
                         <columns>
                             <column property="inventoryName" header="Item"/>
-                            <column key="viewActionColumn" header="" sortable="false" autoWidth="true" flexGrow="0"/>
+                            <column key="fileNumCol" header="Files #" textAlign="END" sortable="false" autoWidth="true" flexGrow="0"/>
                         </columns>
                     </treeDataGrid>
                 </vbox>
-                <tabSheet id="inventoryItemTabSheet" width="70%" height="100%"
-                          classNames="border rounded-m border-contrast-20">
-                </tabSheet>
             </split>
         </hbox>
     </layout>

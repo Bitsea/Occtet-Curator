@@ -13,7 +13,6 @@ import eu.occtet.bocfrontend.dao.CopyrightRepository;
 import eu.occtet.bocfrontend.entity.CodeLocation;
 import eu.occtet.bocfrontend.entity.Copyright;
 import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.factory.CodeLocationFactory;
 import eu.occtet.bocfrontend.model.FileResult;
 import eu.occtet.bocfrontend.service.FileContentService;
@@ -151,7 +150,7 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
     }
 
     private void viewCodeLocation(CodeLocation codeLocation) {
-        FileResult fileResult = fileContentService.getFileContent(codeLocation, inventoryItem);
+        FileResult fileResult = fileContentService.getFileContentOfCodeLocation(codeLocation, inventoryItem);
         if (fileResult instanceof FileResult.Success(String content, String fileName)){
             codeViewer.setCodeEditorContent(content, fileName);
             switchFileTabMode();

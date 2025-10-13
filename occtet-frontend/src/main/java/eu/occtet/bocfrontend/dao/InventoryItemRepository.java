@@ -20,4 +20,5 @@ public interface InventoryItemRepository extends JmixDataRepository<InventoryIte
     List<InventoryItem> searchInventoryItemsBySoftwareComponent_Licenses(License license);
     List<InventoryItem> findInventoryItemsByInventoryNameAndSoftwareComponent(String name,SoftwareComponent softwareComponent);
     List<InventoryItem> findInventoryItemsByParent(InventoryItem item);
+    List<InventoryItem> findInventoryItemsByProjectAndParent(Project project, InventoryItem item);
 }
