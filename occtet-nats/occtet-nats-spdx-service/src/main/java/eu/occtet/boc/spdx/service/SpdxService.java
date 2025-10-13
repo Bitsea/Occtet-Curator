@@ -81,7 +81,6 @@ public class SpdxService extends BaseWorkDataProcessor{
      */
     private boolean parseDocument(SpdxWorkData spdxWorkData){
         try {
-            log.info("wuhu");
             ObjectStore objectStore = natsConnection.objectStore(spdxWorkData.getBucketName());
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             objectStore.get(spdxWorkData.getJsonSpdx(), out);
