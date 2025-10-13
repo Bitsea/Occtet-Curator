@@ -8,21 +8,25 @@ import eu.occtet.boc.service.IWorkDataProcessor;
 public class SpdxWorkData extends BaseWorkData{
 
     @JsonCreator
-    public SpdxWorkData(@JsonProperty("jsonSpdx")byte[] jsonSpdx,
+    public SpdxWorkData(@JsonProperty("jsonSpdx")String jsonSpdx,
+                        @JsonProperty("bucketName")String bucketName,
                         @JsonProperty("projectId")String projectId,
                         @JsonProperty("rootInventoryItemId")String rootInventoryItemId,
                         @JsonProperty("useCopyrightAi")boolean useCopyrightAi,
                         @JsonProperty("useLicenseMatcher")boolean useLicenseMatcher) {
         this.jsonSpdx=jsonSpdx;
-        this.projectId = projectId;
+        this.bucketName=bucketName;
+        this.projectId=projectId;
         this.rootInventoryItemId = rootInventoryItemId;
         this.useCopyrightAi = useCopyrightAi;
-        this.useLicenseMatcher = useLicenseMatcher;
+        this.useLicenseMatcher=useLicenseMatcher;
     }
 
     public SpdxWorkData() { }
 
-    private byte[] jsonSpdx;
+    private String jsonSpdx;
+
+    private String bucketName;
 
     private String projectId;
 
@@ -32,11 +36,11 @@ public class SpdxWorkData extends BaseWorkData{
 
     boolean useLicenseMatcher;
 
-    public byte[] getJsonSpdx() {
+    public String getJsonSpdx() {
         return jsonSpdx;
     }
 
-    public void setJsonSpdx(byte[] jsonSpdx) {
+    public void setJsonSpdx(String jsonSpdx) {
         this.jsonSpdx = jsonSpdx;
     }
 
@@ -71,6 +75,10 @@ public class SpdxWorkData extends BaseWorkData{
     public void setUseLicenseMatcher(boolean useLicenseMatcher) {
         this.useLicenseMatcher = useLicenseMatcher;
     }
+
+    public String getBucketName() {return bucketName;}
+
+    public void setBucketName(String bucketName) {this.bucketName = bucketName;}
 
     @Override
     public boolean process(IWorkDataProcessor processor) {

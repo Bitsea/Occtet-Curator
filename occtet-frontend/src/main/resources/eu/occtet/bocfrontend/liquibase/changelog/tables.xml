@@ -21,7 +21,7 @@
                 <constraints nullable="false" primaryKey="true" primaryKeyName="PK_COPYRIGHT"/>
             </column>
             <column name="CODE_LOCATION_ID" type="UUID"/>
-            <column name="COPYRIGHT_TEXT" type="VARCHAR(255)"/>
+            <column name="COPYRIGHT_TEXT" type="TEXT"/>
             <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
             <column name="GARBAGE" type="BOOLEAN"/>
         </createTable>
@@ -80,7 +80,7 @@
             </column>
             <column name="PROJECT_ID" type="UUID"/>
             <column name="PARENT_INVENTORY_ITEM_ID" type="UUID"/>
-            <column name="INVENTORY_NAME" type="varchar(255)"/>
+            <column name="INVENTORY_NAME" type="TEXT"/>
             <column name="SIZE" type="INTEGER"/>
             <column name="LINKING" type="varchar(255)"/>
             <column name="EXTERNAL_NOTES" type="TEXT"/>

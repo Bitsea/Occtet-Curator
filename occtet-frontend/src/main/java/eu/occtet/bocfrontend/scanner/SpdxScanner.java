@@ -10,12 +10,15 @@ import eu.occtet.bocfrontend.entity.ScannerInitializer;
 import eu.occtet.bocfrontend.entity.ScannerInitializerStatus;
 import eu.occtet.bocfrontend.factory.ScannerInitializerFactory;
 import eu.occtet.bocfrontend.service.NatsService;
+import io.nats.client.api.ObjectInfo;
+import io.nats.client.api.ObjectMeta;
 import jakarta.validation.constraints.NotNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -54,11 +57,13 @@ public class SpdxScanner extends Scanner{
             byte[] spdxJson = new byte[0];
             boolean useCopyright = DEFAULT_USE_FALSE_COPYRIGHT_FILTER;
             boolean useLicenseMatcher = DEFAULT_USE_LICENSE_MATCHER;
+            String filename = "";
             List<Configuration> configurations = scannerInitializer.getScannerConfiguration();
             for(Configuration configuration: configurations){
                 switch (configuration.getName()) {
                     case CONFIG_KEY_FILENAME:
                         spdxJson = configuration.getUpload();
+                        filename = configuration.getValue();
                         break;
                     case CONFIG_KEY_USE_LICENSE_MATCHER:
                         useLicenseMatcher = Boolean.parseBoolean(configuration.getValue());
@@ -72,7 +77,7 @@ public class SpdxScanner extends Scanner{
             UUID projectId = scannerInitializer.getInventoryItem().getProject().getId();
             UUID rootInventoryItemId = scannerInitializer.getInventoryItem().getId();
 
-            sendIntoStream(spdxJson, projectId, rootInventoryItemId, useCopyright ,useLicenseMatcher);
+            sendIntoStream(spdxJson, projectId, rootInventoryItemId, useCopyright ,useLicenseMatcher, filename);
             completionCallback.accept(scannerInitializer);
             return true;
         }catch (Exception e){
@@ -83,9 +88,18 @@ public class SpdxScanner extends Scanner{
 
     }
 
-    private void sendIntoStream(byte[] spdxJson, UUID projectId, UUID rootInventoryItemId, boolean useCopyright, boolean useLicenseMatch) {
+    private void sendIntoStream(byte[] spdxJson, UUID projectId, UUID rootInventoryItemId, boolean useCopyright, boolean useLicenseMatch, String filename) {
 
-        SpdxWorkData spdxWorkData = new SpdxWorkData(spdxJson, projectId.toString(), rootInventoryItemId.toString(), useCopyright, useLicenseMatch);
+        ByteArrayInputStream objectStoreInput = new ByteArrayInputStream(spdxJson);
+
+        ObjectMeta objectMeta = ObjectMeta.builder(filename)
+                .description("Spdxdocument for use by spdx-microservice")
+                .chunkSize(32 * 1024)
+                .build();
+
+        ObjectInfo objectInfo = natsService.putDataIntoObjectStore(objectStoreInput, objectMeta);
+
+        SpdxWorkData spdxWorkData = new SpdxWorkData( objectInfo.getObjectName(), objectInfo.getBucket(), projectId.toString(), rootInventoryItemId.toString(), useCopyright, useLicenseMatch);
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
         WorkTask workTask = new WorkTask("processing_spdx", "uploaded spdx report to be turned into entities by spdx-microservice", actualTimestamp, spdxWorkData);

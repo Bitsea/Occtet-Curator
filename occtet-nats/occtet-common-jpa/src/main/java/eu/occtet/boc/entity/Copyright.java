@@ -17,7 +17,7 @@ public class Copyright {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(name = "COPYRIGHT_TEXT")
+    @Column(name = "COPYRIGHT_TEXT", columnDefinition = "TEXT")
     private String copyrightText;
 
     @Column(name= "CURATED")
@@ -27,7 +27,7 @@ public class Copyright {
     private Boolean garbage;
 
     @ManyToOne (fetch = FetchType.LAZY)
-    @JoinColumn(name = "CODE_LOCATION_ID")
+    @JoinColumn(name = "CODE_LOCATION_ID", columnDefinition = "TEXT")
     private CodeLocation codeLocation;
 
     public Copyright(String copyrightText, CodeLocation cl) {

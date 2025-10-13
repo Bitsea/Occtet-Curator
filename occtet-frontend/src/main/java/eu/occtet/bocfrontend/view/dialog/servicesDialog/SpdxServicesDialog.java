@@ -20,10 +20,13 @@ import io.jmix.flowui.component.upload.receiver.FileTemporaryStorageBuffer;
 import io.jmix.flowui.kit.component.upload.event.FileUploadSucceededEvent;
 import io.jmix.flowui.upload.TemporaryStorage;
 import io.jmix.flowui.view.*;
+import io.nats.client.api.ObjectInfo;
+import io.nats.client.api.ObjectMeta;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -107,7 +110,15 @@ public class SpdxServicesDialog extends AbstractServicesDialog{
             File file = temporaryStorage.getFile(fileId);
 
             if(file != null){
-                workData.setJsonSpdx(file.getAbsolutePath().getBytes());
+                ObjectMeta objectMeta = ObjectMeta.builder(file.getName())
+                        .description("Spdxdocument for use by spdx-microservice")
+                        .chunkSize(32 * 1024)
+                        .build();
+                ByteArrayInputStream objectStoreInput = new ByteArrayInputStream(file.getAbsolutePath().getBytes());
+                ObjectInfo objectInfo = natsService.putDataIntoObjectStore(objectStoreInput, objectMeta);
+
+                workData.setJsonSpdx(objectInfo.getObjectName());
+                workData.setBucketName(objectInfo.getBucket());
             }
         }
     }

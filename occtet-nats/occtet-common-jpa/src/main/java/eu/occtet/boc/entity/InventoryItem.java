@@ -19,13 +19,13 @@ public class InventoryItem {
     @GeneratedValue(strategy= GenerationType.AUTO)
     private UUID id;
 
-    @Column(name="INVENTORY_NAME")
+    @Column(name="INVENTORY_NAME", columnDefinition = "TEXT")
     private String inventoryName;
 
     @Column(name= "SIZE")
     private Integer size;
 
-    @Column(name= "SPDX_ID")
+    @Column(name= "SPDX_ID", columnDefinition = "TEXT")
     private String spdxId;
 
     @Column(name= "LINKING")
@@ -62,7 +62,7 @@ public class InventoryItem {
     @JoinColumn(name = "PROJECT_ID", nullable = false)
     private Project project;
 
-    @Column(name = "BASEPATH")
+    @Column(name = "BASEPATH", columnDefinition = "TEXT")
     private String basePath;
 
     @Column(name = "CREATED_AT", updatable = false)
