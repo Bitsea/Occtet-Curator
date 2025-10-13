@@ -3,11 +3,7 @@
     <content>
         <vbox id="mainLayout" width="100%" height="100%" margin="false" padding="false" spacing="false">
             <hbox id="topLayout" width="100%" justifyContent="BETWEEN" alignItems="END">
-                <fileUploadField id="fileUploadField" label="Select File to view"
-                                 fileNameVisible="true"
-                                 dropAllowed="true" uploadIcon="UPLOAD"
-                />
-                <hbox id="searchLayout" width="70%" justifyContent="END">
+                <hbox id="searchLayout" width="70%" justifyContent="START">
                     <textField id="searchField" placeholder="search" width="50%" focusShortcut="TAB"/>
                     <hbox id="goNextAndPrevLayout">
                         <button id="findPrevButton"
