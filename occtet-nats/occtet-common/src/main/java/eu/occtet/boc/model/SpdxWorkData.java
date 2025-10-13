@@ -16,6 +16,10 @@ public class SpdxWorkData extends BaseWorkData{
                         @JsonProperty("useLicenseMatcher")boolean useLicenseMatcher) {
         this.jsonSpdx=jsonSpdx;
         this.bucketName=bucketName;
+        this.projectId=projectId;
+        this.rootInventoryItemId = rootInventoryItemId;
+        this.useCopyrightAi = useCopyrightAi;
+        this.useLicenseMatcher=useLicenseMatcher;
     }
 
     public SpdxWorkData() { }

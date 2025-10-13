@@ -63,7 +63,7 @@ public class SpdxScanner extends Scanner{
                 switch (configuration.getName()) {
                     case CONFIG_KEY_FILENAME:
                         spdxJson = configuration.getUpload();
-                        filename =configuration.getValue();
+                        filename = configuration.getValue();
                         break;
                     case CONFIG_KEY_USE_LICENSE_MATCHER:
                         useLicenseMatcher = Boolean.parseBoolean(configuration.getValue());
