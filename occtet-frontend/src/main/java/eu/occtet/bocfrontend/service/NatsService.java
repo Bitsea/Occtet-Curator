@@ -6,10 +6,7 @@ import eu.occtet.boc.model.BaseSystemMessage;
 import eu.occtet.boc.model.MicroserviceDescriptor;
 import eu.occtet.boc.model.StatusDescriptor;
 import io.nats.client.*;
-import io.nats.client.api.RetentionPolicy;
-import io.nats.client.api.StreamConfiguration;
-import io.nats.client.api.StreamInfo;
-import io.nats.client.api.StreamState;
+import io.nats.client.api.*;
 import jakarta.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,7 +16,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -45,6 +44,8 @@ public class NatsService {
 
     private List<IOnMicroserviceDescriptorReceived> microserviceDescriptorListeners = new ArrayList<>();
     private StreamInfo stream;
+    private ObjectStore objectStore;
+
 
 
     /**
@@ -63,6 +64,22 @@ public class NatsService {
                 .build();
         stream = jsm.addStream(config);
         log.info("initialized NATS stream: " + stream);
+
+        //prepare objectStore
+        ObjectStoreManagement objectStoreManagement = natsConnection.objectStoreManagement();
+
+        ObjectStoreConfiguration objectStoreConfiguration = ObjectStoreConfiguration.builder()
+                .name("file-bucket")
+                .description("bucket containing large files for other microservices")
+                .storageType(StorageType.Memory)
+                .compression(true)
+                .build();
+
+        ObjectStoreStatus objectStoreStatus = objectStoreManagement.create(objectStoreConfiguration);
+
+        objectStore = natsConnection.objectStore("file-bucket");
+
+        log.info("initialized objectsStore: {}", objectStore.getBucketName());
     }
 
     public String getStreamStatusAsString()  {
@@ -145,6 +162,17 @@ public class NatsService {
 
     public void addStatusDescriptorListener(IOnStatusDescriptorReceived listener) {
         statusDescriptorListeners.add(listener);
+    }
+
+    public ObjectInfo putDataIntoObjectStore(InputStream data, ObjectMeta metaInformation) {
+        try {
+            ObjectInfo oInfo = objectStore.put(metaInformation, data);
+            log.info("Successfully put {} into objectStore:{}", metaInformation.getObjectName(), objectStore.getBucketName());
+            return oInfo;
+        }catch (JetStreamApiException | IOException | NoSuchAlgorithmException e){
+            log.error("Error while trying to put {} into objectStore:{}",metaInformation.getObjectName(), e.toString());
+            return null;
+        }
     }
 
 
