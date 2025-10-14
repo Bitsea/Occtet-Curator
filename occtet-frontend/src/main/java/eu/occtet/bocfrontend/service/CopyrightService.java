@@ -5,10 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.*;
 import eu.occtet.bocfrontend.dao.CopyrightRepository;
-import eu.occtet.bocfrontend.entity.Copyright;
-import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.entity.*;
+import eu.occtet.bocfrontend.factory.CopyrightFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.jmix.core.FileRef;
@@ -30,6 +28,7 @@ public class CopyrightService {
 
     private static final Logger log = LogManager.getLogger(CopyrightService.class);
     private final CopyrightRepository copyrightRepository;
+    private final CopyrightFactory copyrightFactory;
 
     @Autowired
     private InventoryItemService inventoryItemService;
@@ -41,8 +40,9 @@ public class CopyrightService {
     @Autowired
     private TemporaryStorage temporaryStorage;
 
-    public CopyrightService(CopyrightRepository copyrightRepository) {
+    public CopyrightService(CopyrightRepository copyrightRepository, CopyrightFactory copyrightFactory) {
         this.copyrightRepository = copyrightRepository;
+        this.copyrightFactory = copyrightFactory;
     }
 
     public List<Copyright> findCopyrightsByProject(Project project){
@@ -153,6 +153,9 @@ public class CopyrightService {
         }
     }
 
+    public Copyright createCopyright(String name, CodeLocation codeLocation, boolean isCurated, boolean isGarbage){
+        return copyrightFactory.create(name,codeLocation,isCurated,isGarbage);
+    }
 }
 
 

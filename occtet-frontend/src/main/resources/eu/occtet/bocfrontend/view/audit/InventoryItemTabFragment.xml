@@ -103,6 +103,11 @@
                                 <dropdownButton id="editLicense" text="edit" icon="lumo:edit"
                                                 dropdownIndicatorVisible="false" themeNames="small">
                                     <items>
+                                        <componentItem id="createLicense">
+                                            <hbox padding="false">
+                                                <span text="create"/>
+                                            </hbox>
+                                        </componentItem>
                                         <componentItem id="addLicense">
                                             <hbox padding="false">
                                                 <span text="add new"/>
@@ -131,6 +136,11 @@
                                 <dropdownButton id="editCopyright" text="edit" icon="lumo:edit"
                                                 dropdownIndicatorVisible="false" themeNames="small">
                                     <items>
+                                        <componentItem id="createCopyright">
+                                            <hbox padding="false">
+                                                <span text="create"/>
+                                            </hbox>
+                                        </componentItem>
                                         <componentItem id="addCopyright">
                                             <hbox padding="false">
                                                 <span text="add new"/>
