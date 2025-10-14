@@ -33,17 +33,19 @@
                               classNames="jmix-main-view-drawer-toggle"
                               themeNames="contrast"
                               ariaLabel="msg://drawerToggle.ariaLabel"/>
-                <image id="logoImage"
-                       resource="icons/occtet.png"
-                       width="auto"
-                       height="70%"/>
+
                 <h1 id="viewTitle" classNames="jmix-main-view-title"/>
             </header>
         </navigationBar>
         <drawerLayout>
             <section id="section" classNames="jmix-main-view-section">
+
                 <h2 id="applicationTitle"
                     classNames="jmix-main-view-application-title">
+                    <image id="logoImage"
+                           resource="icons/occtet.png"
+                           width="auto"
+                           height="70%"/>
                     <anchor id="baseLink"
                             href="."
                             text="msg://applicationTitle.text"

@@ -22,16 +22,24 @@
   -->
 
 <menu-config xmlns="http://jmix.io/schema/flowui/menu">
-    <menu id="application" title="msg://eu.occtet.bocfrontend/menu.application.title" opened="true">
+    <item view="AuditView" title="msg://eu.occtet.bocfrontend.view.audit/auditView.title" icon="vaadin:compile"/>
+    <item view="Vulnerability.list" title="msg://eu.occtet.bocfrontend/eu.occtet.bocfrontend.view.vulnerabilities"
+          icon="vaadin:doctor-briefcase"/>
+    <item view="InventoryItem.list" title="msg://eu.occtet.bocfrontend.view.inventoryitem/inventoryItemListView.title"
+          icon="vaadin:archives"/>
+    <item view="Copyright.list" title="msg://eu.occtet.bocfrontend.view.copyright/copyrightListView.title"
+          icon="vaadin:copyright"/>
+    <item view="License.list" title="msg://eu.occtet.bocfrontend.view.license/licenseListView.title"
+          icon="vaadin:file-text-o"/>
+    <item view="Project.list" title="msg://eu.occtet.bocfrontend.view.project/projectListView.title"
+          icon="vaadin:toolbox"/>
+    <item view="SoftwareComponent.list" title="msg://eu.occtet.bocfrontend.view.softwareComponent/softwareComponentListView.title"
+          icon="vaadin:browser"/>
+    <menu id="application" title="msg://eu.occtet.bocfrontend/menu.application.title">
         <item view="ServicesView" title="msg://eu.occtet.bocfrontend.view.services/servicesView.title"/>
-        <item view="InventoryItem.list" title="msg://eu.occtet.bocfrontend.view.inventoryitem/inventoryItemListView.title"/>
-        <item view="AuditView" title="msg://eu.occtet.bocfrontend.view.audit/auditView.title"/>
-        <item view="Copyright.list" title="msg://eu.occtet.bocfrontend.view.copyright/copyrightListView.title"/>
-        <item view="License.list" title="msg://eu.occtet.bocfrontend.view.license/licenseListView.title"/>
-        <item view="Project.list" title="msg://eu.occtet.bocfrontend.view.project/projectListView.title"/>
-        <item view="SoftwareComponent.list" title="msg://eu.occtet.bocfrontend.view.softwareComponent/softwareComponentListView.title"/>
         <item view="User.list" title="msg://eu.occtet.bocfrontend.view.user/UserListView.title"/>
         <item view="DBLog.list" title="msg://eu.occtet.bocfrontend.view.DBLog/DBLogListView.title"/>
         <item view="ScannerInitializer.list" title="Scanners"/>
     </menu>
+
 </menu-config>
