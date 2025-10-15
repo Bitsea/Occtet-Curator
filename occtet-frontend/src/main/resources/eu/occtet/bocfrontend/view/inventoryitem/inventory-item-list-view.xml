@@ -49,34 +49,14 @@
         <action id="discardAction" type="lookup_discard"/>
     </actions>
     <layout>
-        <vbox>
-            <accordion id="projectAccordion" width="100%" >
-                <accordionPanel summaryText="Find inventories from project">
-                    <hbox>
-                        <comboBox id="projectComboBox" label="Project" width="20em"/>
-                        <comboBox id="softwareComponentComboBox" label="Software Component"/>
-                    </hbox>
-                </accordionPanel>
-            </accordion>
-            <accordion id="attributesAccordion" width="100%">
-                <accordionPanel summaryText="Filter inventories by attributes">
-                    <hbox>
-                        <comboBox id="vulnerabilityComboBox" label="Vulnerable"/>
-                        <comboBox id="cveComboBox" label="CVE"/>
-                        <comboBox id="curatedComboBox" label="Curated"/>
-                        <comboBox id="licenseTypeComboBox" label="License"/>
-                    </hbox>
-                </accordionPanel>
-            </accordion>
-            <hbox classNames="buttons-panel" width="100%">
-                <hbox alignSelf="END">
-                    <textField id="searchField" width="15em" placeholder="search term"/>
-                    <button id="searchButton" text="Search"/>
-                </hbox>
-                <button id="refreshButton" action="inventoryItemsDataGrid.refreshAction" alignSelf="CENTER"/>
-                <simplePagination id="pagination" dataLoader="inventoryItemsDl" alignSelf="END"/>
-            </hbox>
-        </vbox>
+        <hbox width="100%">
+            <genericFilter id="genericFilter" dataLoader="inventoryItemsDl" themeNames="small"
+                           width="80%" alignSelf="START">
+                <properties include=".*"/>
+                <conditions> </conditions>
+            </genericFilter>
+            <simplePagination id="pagination" dataLoader="inventoryItemsDl" alignSelf="END"/>
+        </hbox>
         <dataGrid id="inventoryItemsDataGrid"
                   width="100%"
                   minHeight="20em"
@@ -96,6 +76,7 @@
                 <column property="linking" header="Linking"/>
                 <column property="wasCombined" header="Combined"/>
                 <column property="curated" header="Curated"/>
+                <column property="project.projectName" header="Project"/>
             </columns>
         </dataGrid>
         <hbox id="buttonsPanel" classNames="buttons-panel">

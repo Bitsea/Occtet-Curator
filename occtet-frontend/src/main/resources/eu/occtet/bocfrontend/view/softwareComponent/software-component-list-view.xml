@@ -49,34 +49,17 @@
     </actions>
     <layout>
         <vbox width="100%">
-            <accordion id="projectAccordion" width="100%" >
-                <accordionPanel summaryText="Software components from project">
-                    <hbox>
-                        <comboBox id="projectComboBox" label="Project" width="20em"/>
-                    </hbox>
-                </accordionPanel>
-            </accordion>
-            <accordion id="attributesAccordion" width="100%">
-                <accordionPanel summaryText="Filter software components by attributes">
-                    <hbox>
-                        <comboBox id="licenseComboBox" label="License"/>
-                        <comboBox id="curatedComboBox" label="Curated"/>
-                        <comboBox id="vulnerabilityComboBox" label="Vulnerable"/>
-                        <comboBox id="cveComboBox" label="CVE"/>
-                    </hbox>
-                </accordionPanel>
-            </accordion>
-            <hbox classNames="buttons-panel" width="100%">
-                <hbox alignSelf="END">
-                    <textField id="searchField" width="15em" placeholder="search term"/>
-                    <button id="searchButton" text="Search"/>
-                </hbox>
-                <button id="refreshButton" action="softwareComponentsDataGrid.refreshAction" alignSelf="CENTER"/>
+            <hbox width="100%">
+                <genericFilter id="genericFilter" dataLoader="softwareComponentsDl" themeNames="small"
+                               width="80%" alignSelf="START">
+                    <properties include=".*"/>
+                    <conditions> </conditions>
+                </genericFilter>
                 <simplePagination id="pagination" dataLoader="softwareComponentsDl" alignSelf="END"/>
             </hbox>
             <dataGrid id="softwareComponentsDataGrid"
                       width="100%"
-                      height="25em"
+                      height="30em"
                       maxHeight="100%"
                       dataContainer="softwareComponentsDc"
                       columnReorderingAllowed="true">
