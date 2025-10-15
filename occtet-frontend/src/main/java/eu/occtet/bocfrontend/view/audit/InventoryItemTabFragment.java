@@ -43,9 +43,7 @@ import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.service.NatsService;
 import eu.occtet.bocfrontend.view.audit.filestabfragment.FilesTabFragment;
 import eu.occtet.bocfrontend.view.copyright.CopyrightDetailView;
-import eu.occtet.bocfrontend.view.dialog.AddCopyrightDialog;
-import eu.occtet.bocfrontend.view.dialog.AddCopyrightHistoryDialog;
-import eu.occtet.bocfrontend.view.dialog.AddLicenseDialog;
+import eu.occtet.bocfrontend.view.dialog.*;
 import eu.occtet.bocfrontend.view.inventoryitem.InventoryItemDetailView;
 import eu.occtet.bocfrontend.view.license.LicenseDetailView;
 import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
@@ -158,8 +156,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         }
 
         inventoryItemDc.setItem(this.inventoryItem);
-        updateCopyrights(this.inventoryItem,copyrightDc);
-        updateLicenses(this.softwareComponent,licenseDc);
+        updateCopyrights(this.inventoryItem, copyrightDc);
+        updateLicenses(this.softwareComponent, licenseDc);
 
         //History of inventory
         setHistoryOfInventory(inventoryItem);
@@ -178,7 +176,9 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         filesTabFragment.setHostView(hostView);
     }
 
-    public InventoryItem getInventoryItem() {return inventoryItem;}
+    public InventoryItem getInventoryItem() {
+        return inventoryItem;
+    }
 
     @Subscribe("saveAction")
     public void onSaveAction(ActionPerformedEvent event) {
@@ -204,7 +204,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             window.getView().setAvailableContent(softwareComponent);
             window.open();
             window.addAfterCloseListener(close ->
-                    updateLicenses(softwareComponent,licenseDc));
+                    updateLicenses(softwareComponent, licenseDc));
         }
     }
 
@@ -225,7 +225,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         if (!selectedLicenses.isEmpty()) {
             softwareComponent.getLicenses().removeAll(selectedLicenses);
             softwareComponentRepository.save(softwareComponent);
-            updateLicenses(softwareComponent,licenseDc);
+            updateLicenses(softwareComponent, licenseDc);
 
             notifications.create("Licenses removed.")
                     .withPosition(Notification.Position.BOTTOM_END)
@@ -236,6 +236,18 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         licensesDataGrid.setSelectionMode(DataGrid.SelectionMode.SINGLE);
         licensesDataGrid.deselectAll();
         removeLicenseButton.setVisible(false);
+    }
+
+    @Subscribe("editLicense.createLicense")
+    public void createAndAddLicense(DropdownButtonItem.ClickEvent event) {
+        if (softwareComponent != null) {
+            DialogWindow<CreateLicenseDialog> window = dialogWindow.view(hostView, CreateLicenseDialog.class).build();
+            window.getView().setAvailableContent(softwareComponent);
+            window.open();
+            window.addAfterCloseListener(close ->
+                    updateLicenses(softwareComponent, licenseDc));
+        }
+
     }
 
     @Subscribe("licensesDataGrid")
@@ -254,19 +266,13 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     }
 
 
-
-
-
-
-
-
     @Subscribe(id = "editCopyright.addCopyright")
     public void addCopyright(DropdownButtonItem.ClickEvent event) {
 
         DialogWindow<AddCopyrightDialog> window = dialogWindow.view(hostView, AddCopyrightDialog.class).build();
         window.getView().setAvailableContent(inventoryItem);
         window.open();
-        window.addAfterCloseListener(close -> updateCopyrights(inventoryItem,copyrightDc));
+        window.addAfterCloseListener(close -> updateCopyrights(inventoryItem, copyrightDc));
     }
 
     @Subscribe(id = "editCopyright.removeCopyright")
@@ -279,6 +285,18 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         removeCopyrightButton.setVisible(deleteMode);
     }
 
+    @Subscribe("editCopyright.createCopyright")
+    public void createAndAddCopyright(DropdownButtonItem.ClickEvent event) {
+        if (inventoryItem != null) {
+            DialogWindow<CreateCopyrightDialog> window = dialogWindow.view(hostView, CreateCopyrightDialog.class).build();
+            window.getView().setAvailableContent(inventoryItem);
+            window.open();
+            window.addAfterCloseListener(close ->
+                    updateCopyrights(inventoryItem, copyrightDc));
+        }
+
+    }
+
     @Subscribe(id = "removeCopyrightButton")
     public void removeCopyrights(ClickEvent<JmixButton> event) {
         Set<Copyright> selectedCopyrights = copyrightsDataGrid.getSelectedItems();
@@ -286,7 +304,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         if (!selectedCopyrights.isEmpty()) {
             inventoryItem.getCopyrights().removeAll(selectedCopyrights);
             inventoryItemRepository.save(inventoryItem);   // or your proper repo
-            updateCopyrights(inventoryItem,copyrightDc);
+            updateCopyrights(inventoryItem, copyrightDc);
 
             notifications.create("Copyrights removed.")
                     .withPosition(Notification.Position.BOTTOM_END)
@@ -315,11 +333,11 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                 .withViewConfigurer(scView -> scView.setEntityToEdit(softwareComponent)).open();
     }
 
-    private void updateCopyrights(InventoryItem inventoryItem, CollectionContainer<Copyright> container){
+    private void updateCopyrights(InventoryItem inventoryItem, CollectionContainer<Copyright> container) {
         container.setItems(inventoryItem.getCopyrights());
     }
 
-    private void updateLicenses(SoftwareComponent softwareComponent, CollectionContainer<License> container){
+    private void updateLicenses(SoftwareComponent softwareComponent, CollectionContainer<License> container) {
         if (softwareComponent != null) {
             container.setItems(softwareComponent.getLicenses());
         } else {
@@ -328,57 +346,57 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     }
 
     @Subscribe(id = "inventoryDataGridHistory")
-    public void showHistoryfromInventoryItem(final ItemClickEvent<InventoryItem> event){
+    public void showHistoryfromInventoryItem(final ItemClickEvent<InventoryItem> event) {
 
         InventoryItem item = event.getItem();
-        if(item != null) {
-            if(item.getExternalNotes() != null  && !item.getExternalNotes().isEmpty()){
+        if (item != null) {
+            if (item.getExternalNotes() != null && !item.getExternalNotes().isEmpty()) {
                 auditHistoryButton.setEnabled(true);
-            }else{
+            } else {
                 auditHistoryButton.setEnabled(false);
             }
-            if(item.getCopyrights() != null){
+            if (item.getCopyrights() != null) {
                 copyrightDcHistory.setItems(item.getCopyrights());
             }
-            if(item.getSoftwareComponent() != null){
+            if (item.getSoftwareComponent() != null) {
                 softwareComponentHistoryField.setValue(item.getSoftwareComponent().getName());
             }
-            if(item.getParent()!=null){
+            if (item.getParent() != null) {
                 parentHistoryID.setValue(item.getParent().getInventoryName());
                 parentHistoryButton.setEnabled(true);
             }
         }
     }
 
-    @Subscribe(id="auditHistoryButton")
-    public void addAuditHistoryToInventory(final ClickEvent<Button> event){
+    @Subscribe(id = "auditHistoryButton")
+    public void addAuditHistoryToInventory(final ClickEvent<Button> event) {
         InventoryItem historyItem = inventoryDataGridHistory.getSingleSelectedItem();
-        if(historyItem != null){
+        if (historyItem != null) {
             String notes = this.inventoryItem.getExternalNotes();
-            if(notes == null){
-                this.inventoryItem.setExternalNotes(getTimeStampSeperator()+"<br>"+historyItem.getExternalNotes());
-            }else{
-                this.inventoryItem.setExternalNotes(notes+"<br>"+getTimeStampSeperator()+"<br>"+historyItem.getExternalNotes());
+            if (notes == null) {
+                this.inventoryItem.setExternalNotes(getTimeStampSeperator() + "<br>" + historyItem.getExternalNotes());
+            } else {
+                this.inventoryItem.setExternalNotes(notes + "<br>" + getTimeStampSeperator() + "<br>" + historyItem.getExternalNotes());
             }
             inventoryItemRepository.save(this.inventoryItem);
             auditNotesText.setValue(this.inventoryItem.getExternalNotes());
         }
     }
 
-    @Subscribe(id="copyrightHistoryButton")
-    public void addHistoryCopyrights(final ClickEvent<Button> event){
+    @Subscribe(id = "copyrightHistoryButton")
+    public void addHistoryCopyrights(final ClickEvent<Button> event) {
 
         InventoryItem historyItem = inventoryDataGridHistory.getSingleSelectedItem();
-        if(historyItem != null){
-            DialogWindow<AddCopyrightHistoryDialog> window = dialogWindow.view(hostView,AddCopyrightHistoryDialog.class).build();
+        if (historyItem != null) {
+            DialogWindow<AddCopyrightHistoryDialog> window = dialogWindow.view(hostView, AddCopyrightHistoryDialog.class).build();
             window.getView().setLatestInventoryItem(inventoryItem);
             window.getView().setAvailableContent(historyItem);
             window.addAfterOpenListener(e ->
                     log.debug("Copyrights before: {}", inventoryItem.getCopyrights().size()));
-            window.addAfterCloseListener( e -> {
+            window.addAfterCloseListener(e -> {
                 log.debug("Copyrights after: {}", inventoryItem.getCopyrights().size());
-                updateCopyrights(inventoryItem,copyrightDc);
-                updateCopyrights(historyItem,copyrightDcHistory);
+                updateCopyrights(inventoryItem, copyrightDc);
+                updateCopyrights(historyItem, copyrightDcHistory);
             });
             window.open();
         }
@@ -398,33 +416,33 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             String message = objectMapper.writeValueAsString(workTask);
             log.info("Sending software id to vulnerability microservice with message: {}", message);
             natsService.sendWorkMessageToStream("work.vulnerability", message.getBytes(StandardCharsets.UTF_8));
-        } catch (Exception e){
+        } catch (Exception e) {
             log.error(e);
             notifications.show("Error sending data to vulnerability microservice: " + e.getMessage());
         }
     }
 
     @Supply(to = "inventoryDataGridHistory.createdAt", subject = "renderer")
-    private Renderer<InventoryItem> inventoryItemDataGridDateRenderer(){
+    private Renderer<InventoryItem> inventoryItemDataGridDateRenderer() {
         return new TextRenderer<>(item -> item.getCreatedAt().toLocalDate().toString());
     }
 
-    private void setHistoryOfInventory(InventoryItem inventoryItem){
+    private void setHistoryOfInventory(InventoryItem inventoryItem) {
 
         List<InventoryItem> historyItems;
         SoftwareComponent softwareComponent = inventoryItem.getSoftwareComponent();
 
-        if(softwareComponent != null){
+        if (softwareComponent != null) {
             historyItems = inventoryItemRepository.findBySoftwareComponent(softwareComponent);
             historyItems.remove(inventoryItem);
-        }else{
+        } else {
             historyItems = new ArrayList<>();
         }
         inventoryItemDcHistory.setItems(historyItems);
     }
 
-    private String getTimeStampSeperator(){
-        return "------------- "+LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)+"------------";
+    private String getTimeStampSeperator() {
+        return "------------- " + LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME) + "------------";
     }
 
     @Supply(to = "vulnerabilityDataContainer.actions", subject = "renderer")

@@ -26,6 +26,7 @@ import eu.occtet.bocfrontend.dao.LicenseRepository;
 import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.factory.LicenseFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,8 @@ public class LicenseService {
     private InventoryItemService inventoryItemService;
     @Autowired
     private SoftwareComponentService softwareComponentService;
+    @Autowired
+    private LicenseFactory licenseFactory;
 
     public LicenseService(LicenseRepository licenseRepository) {
         this.licenseRepository = licenseRepository;
@@ -62,6 +65,12 @@ public class LicenseService {
 
     public List<License> findLicenseByCurated(Boolean isCurated){
         return licenseRepository.findLicensesByCurated(isCurated);
+    }
+
+    public License createLicense(Integer priority, String licenseType,String licenseText, String licenseName,
+                                 String detailsUrl, boolean isModified, boolean curated, boolean isSpdx){
+
+        return licenseFactory.create(priority,licenseType,licenseText,licenseName,detailsUrl,isModified,curated,isSpdx);
     }
 
 }
