@@ -61,7 +61,10 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
     }
 
     @Override
-    public void setAvailableContent(InventoryItem content) {this.inventoryItem = content;}
+    public void setAvailableContent(InventoryItem content) {
+        this.inventoryItem = dataManager.load(InventoryItem.class).id(content.getId())
+                .fetchPlan(f -> f.add("copyrights")).one();
+    }
 
     @Override
     @Subscribe("addCopyrightButton")

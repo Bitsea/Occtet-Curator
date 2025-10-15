@@ -269,7 +269,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
     @Subscribe("editCopyright.createCopyright")
     public void createAndAddCopyright(DropdownButtonItem.ClickEvent event) {
-        if (softwareComponent != null) {
+        if (inventoryItem != null) {
             DialogWindow<CreateCopyrightDialog> window = dialogWindow.view(hostView, CreateCopyrightDialog.class).build();
             window.getView().setAvailableContent(inventoryItem);
             window.open();

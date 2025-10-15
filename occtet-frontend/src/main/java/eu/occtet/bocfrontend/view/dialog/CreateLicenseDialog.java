@@ -69,7 +69,10 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
     }
 
     @Override
-    public void setAvailableContent(SoftwareComponent content) {this.softwareComponent = content;}
+    public void setAvailableContent(SoftwareComponent content) {
+        this.softwareComponent = dataManager.load(SoftwareComponent.class).id(content.getId())
+                .fetchPlan(f -> f.add("licenses")).one();
+    }
 
     @Override
     @Subscribe("addLicenseButton")
@@ -85,8 +88,9 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
 
             License license = licenseService.createLicense(Integer.valueOf(priority),licenseType,licenseText,
                     licenseName,detailsUrl,isModifiedField.getValue(),isCuratedField.getValue(),isSpdxField.getValue());
-            softwareComponent.getLicenses().add(license);
-            dataManager.save(softwareComponent);
+
+            this.softwareComponent.getLicenses().add(license);
+            dataManager.save(this.softwareComponent);
             log.debug("Created and added license {} to softwareComponent",license.getLicenseName());
             close(StandardOutcome.CLOSE);
 
