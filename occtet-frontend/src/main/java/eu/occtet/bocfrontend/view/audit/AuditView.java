@@ -24,6 +24,7 @@ package eu.occtet.bocfrontend.view.audit;
 
 
 import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -33,8 +34,12 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.data.provider.DataProvider;
+import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.data.renderer.Renderer;
@@ -59,6 +64,7 @@ import io.jmix.flowui.component.UiComponentUtils;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
+import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.model.DataContext;
@@ -73,6 +79,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Route(value = "audit-view", layout = MainView.class)
 @ViewController(id = "AuditView")
@@ -111,6 +118,8 @@ public class AuditView extends StandardView {
     private VerticalLayout fileTreeGridLayout;
     @ViewComponent
     private CollectionLoader<InventoryItem> inventoryItemDl;
+    @ViewComponent
+    private HorizontalLayout toolbarBox;
 
     @Autowired
     private Fragments fragments;
@@ -292,6 +301,7 @@ public class AuditView extends StandardView {
         List<FileTreeNode> rootNodes = fileTreeCacheService.getFileTree(project);
         TreeDataGrid<FileTreeNode> fileTreeGrid = createAndPrepareFileTreeGrid(rootNodes);
         fileTreeGridLayout.removeAll();
+        fileTreeGridLayout.add(addExpandCollapseAllButtons(fileTreeGrid));
         fileTreeGridLayout.add(fileTreeGrid);
     }
 
@@ -488,4 +498,84 @@ public class AuditView extends StandardView {
             List<UUID> openInventoryTabsIds,
             List<FileTreeNode> openFileTabsPaths
     ) implements Serializable {}
+
+    public <T> HorizontalLayout addExpandCollapseAllButtons(TreeDataGrid<T> fileTreeGrid) {
+        Button expandAll = uiComponents.create(Button.class);
+        expandAll.setText("Expand all");
+        expandAll.addClickListener(event -> {
+            expandChildrenOfRoots(fileTreeGrid);
+        });
+
+        Button collapseAll = uiComponents.create(Button.class);
+        collapseAll.setText("Collapse all");
+        collapseAll.addClickListener(event -> {
+            collapseChildrenOfRoots(fileTreeGrid);
+        });
+
+        HorizontalLayout toolbar = uiComponents.create(HorizontalLayout.class);
+        toolbar.setWidth("100%");
+        toolbar.setHeight(null);
+        toolbar.setSpacing(true);
+        toolbar.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        toolbar.add(expandAll);
+        toolbar.add(collapseAll);
+        return toolbar;
+    }
+
+    @Subscribe("expandBtn")
+    protected void onExpandBtnClick(final ClickEvent<JmixButton> even) {
+        expandChildrenOfRoots(inventoryItemDataGrid);
+    }
+
+    @Subscribe("collapseBtn")
+    protected void onCollapseBtnClick(final ClickEvent<JmixButton> even) {
+        collapseChildrenOfRoots(inventoryItemDataGrid);
+    }
+
+    private <T> void expandChildrenOfRoots(TreeDataGrid<T> grid) {
+        if (grid == null) return;
+        DataProvider<T, ?> dp = grid.getDataProvider();
+        if (dp instanceof TreeDataProvider) {
+            TreeDataProvider<T> tdp = (TreeDataProvider<T>) dp;
+            TreeData<T> treeData = tdp.getTreeData();
+            for (T root : treeData.getRootItems()) {
+                Collection<T> children = treeData.getChildren(root);
+                if (children != null) {
+                    for (T child : children) {
+                        grid.expandRecursively(List.of(child), Integer.MAX_VALUE);
+                    }
+                }
+            }
+        } else {
+            try (Stream<T> s = dp.fetch(new Query<>())) {
+                s.forEach(item -> {
+                    grid.expandRecursively(List.of(item), Integer.MAX_VALUE);
+                });
+            }
+        }
+    }
+
+    private <T> void collapseChildrenOfRoots(TreeDataGrid<T> grid) {
+        if (grid == null) return;
+        DataProvider<T, ?> dp = grid.getDataProvider();
+        if (dp instanceof TreeDataProvider) {
+            TreeDataProvider<T> tdp = (TreeDataProvider<T>) dp;
+            TreeData<T> treeData = tdp.getTreeData();
+            for (T root : treeData.getRootItems()) {
+                Collection<T> children = treeData.getChildren(root);
+                if (children != null) {
+                    for (T child : children) {
+                        grid.collapseRecursively(List.of(child), Integer.MAX_VALUE);
+                    }
+                }
+            }
+        } else {
+            try (Stream<T> s = dp.fetch(new Query<>())) {
+                s.forEach(item -> {
+                    grid.collapseRecursively(List.of(item), Integer.MAX_VALUE);
+                });
+            }
+        }
+    }
 }
