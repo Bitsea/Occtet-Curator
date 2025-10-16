@@ -83,8 +83,8 @@
                           width="100%"
                           height="auto"
                           justifyContent="CENTER">
-                        <button id="expandBtn" text="Expand all"/>
-                        <button id="collapseBtn" text="Collapse all"/>
+                        <button id="expandBtn" text="Expand all" themeNames="small"/>
+                        <button id="collapseBtn" text="Collapse all" themeNames="small"/>
                     </hbox>
                     <treeDataGrid id="inventoryItemDataGrid"
                                   dataContainer="inventoryItemDc"
