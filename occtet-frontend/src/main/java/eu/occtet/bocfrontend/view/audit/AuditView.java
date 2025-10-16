@@ -30,7 +30,6 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -43,7 +42,6 @@ import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
@@ -304,9 +302,8 @@ public class AuditView extends StandardView {
         refreshInventoryItemDc(project);
 
         List<FileTreeNode> rootNodes = fileTreeCacheService.getFileTree(project);
-        TreeDataGrid<FileTreeNode> fileTreeGrid = createAndPrepareFileTreeGrid(rootNodes);
+        this.fileTreeGrid = createAndPrepareFileTreeGrid(rootNodes);
         fileTreeGridLayout.removeAll();
-        fileTreeGridLayout.add(toolbarBox);
         fileTreeGridLayout.add(addExpandCollapseAllButtons(fileTreeGrid));
         fileTreeGridLayout.add(fileTreeGrid);
     }
@@ -495,6 +492,7 @@ public class AuditView extends StandardView {
         List<FileTreeNode> rootNodes = fileTreeCacheService.getFileTree(project);
         this.fileTreeGrid = createAndPrepareFileTreeGrid(rootNodes);
         fileTreeGridLayout.removeAll();
+        fileTreeGridLayout.add(addExpandCollapseAllButtons(fileTreeGrid));
         fileTreeGridLayout.add(this.fileTreeGrid);
     }
 
