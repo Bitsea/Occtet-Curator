@@ -155,6 +155,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             softwareComponentDc.setItem(this.softwareComponent);
         }
 
+
         inventoryItemDc.setItem(this.inventoryItem);
         updateCopyrights(this.inventoryItem, copyrightDc);
         updateLicenses(this.softwareComponent, licenseDc);
@@ -190,6 +191,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                     .show();
             if (hostView instanceof AuditView) {
                 ((AuditView) hostView).refreshInventoryItemDc(inventoryItem.getProject());
+                ((AuditView) hostView).rebuildFileTreeWithFreshData();
             }
         } else {
             log.debug("Inventory Item {} has no changes.", inventoryItem.getInventoryName());
@@ -323,14 +325,15 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         InventoryItem parent = inventoryItem.getParent();
         if (parent != null) {
             dialogWindow.view(hostView, InventoryItemDetailView.class)
-                    .withViewConfigurer(i -> i.setEntityToEdit(parent)).open();
+                    .withViewConfigurer(i -> i.setEntityToEdit(parent)).open().setSizeFull();
         }
     }
 
     @Subscribe(id = "softwareComponentButton")
     public void showSoftwareComponentDetails(ClickEvent<Button> event) {
         dialogWindow.view(hostView, SoftwareComponentDetailView.class)
-                .withViewConfigurer(scView -> scView.setEntityToEdit(softwareComponent)).open();
+                .withViewConfigurer(scView -> scView.setEntityToEdit(softwareComponent))
+                .open().setSizeFull();
     }
 
     private void updateCopyrights(InventoryItem inventoryItem, CollectionContainer<Copyright> container) {

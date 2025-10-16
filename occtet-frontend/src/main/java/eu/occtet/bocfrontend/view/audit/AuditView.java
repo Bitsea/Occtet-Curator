@@ -87,6 +87,8 @@ public class AuditView extends StandardView {
     private final Map<FileTreeNode, Tab> openFileTabs = new HashMap<>();
     private Map<UUID, Long> fileCounts = new HashMap<>();
 
+    private TreeDataGrid<FileTreeNode> fileTreeGrid;
+
     @ViewComponent
     private JmixComboBox<Project> projectComboBox;
     @ViewComponent
@@ -268,6 +270,16 @@ public class AuditView extends StandardView {
         return new TextRenderer<>(item -> fileCounts.getOrDefault(item.getId(), 0L).toString());
     }
 
+    public void rebuildFileTreeWithFreshData() {
+        Project currentProject = projectComboBox.getValue();
+        if (currentProject != null) {
+            fileTreeCacheService.invalidateCacheForProject(currentProject.getId());
+
+            refreshGridsForProject(currentProject);
+
+            log.debug("Rebuilt file tree with fresh data.");
+        }
+    }
 
     private void refreshAllDataForProject(Project project) {
         if (project == null) {
@@ -465,9 +477,9 @@ public class AuditView extends StandardView {
         refreshInventoryItemDc(project);
 
         List<FileTreeNode> rootNodes = fileTreeCacheService.getFileTree(project);
-        TreeDataGrid<FileTreeNode> fileTreeGrid = createAndPrepareFileTreeGrid(rootNodes);
+        this.fileTreeGrid = createAndPrepareFileTreeGrid(rootNodes);
         fileTreeGridLayout.removeAll();
-        fileTreeGridLayout.add(fileTreeGrid);
+        fileTreeGridLayout.add(this.fileTreeGrid);
     }
 
     // DTO for storing session state

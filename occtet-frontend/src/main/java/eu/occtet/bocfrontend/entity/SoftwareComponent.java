@@ -34,6 +34,9 @@ import jakarta.persistence.*;
 import java.util.List;
 import java.util.UUID;
 
+import static jakarta.persistence.FetchType.EAGER;
+import static jakarta.persistence.FetchType.LAZY;
+
 @JmixEntity
 @Table(name = "SOFTWARE_COMPONENT")
 @Entity
@@ -65,7 +68,7 @@ public class SoftwareComponent {
             inverseJoinColumns = @JoinColumn(name = "LICENSE_ID", referencedColumnName = "ID"))
     private List<License> licenses;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = LAZY)
     @JoinTable(
             name = "SOFTWARE_COMPONENT_VULNERABILITY_LINK",
             joinColumns = @JoinColumn(name = "SOFTWARE_COMPONENT_ID", referencedColumnName = "ID"),

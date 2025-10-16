@@ -26,9 +26,12 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.model.FileTreeNode;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -40,6 +43,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class FileTreeCacheService {
+
+    private static final Logger log = LogManager.getLogger(FileTreeCacheService.class);
 
     @Autowired
     private FilesTreeService filesTreeService;
@@ -63,7 +68,16 @@ public class FileTreeCacheService {
                 return filesTreeService.prepareFilesForTreeGrid(project);
             });
         } catch (ExecutionException e) {
-            throw new RuntimeException("Could not generate file tree for project " + project.getId(), e);
+           log.error("Could not generate file tree for project {}, error message: {} ", project.getId(), e.getMessage());
+           return new ArrayList<>();
         }
+    }
+
+    /**
+     * Removes the old, stale tree from the cache.
+     */
+    public void invalidateCacheForProject(UUID projectId) {
+        fileTreeCache.invalidate(projectId);
+        log.debug("Invalidated file tree cache for project {}", projectId);
     }
 }
