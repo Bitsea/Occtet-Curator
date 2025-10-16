@@ -79,6 +79,13 @@
                     </tabSheet>
                 </split>
                 <vbox classNames="border rounded-m border-contrast-20" width="16%" margin="false" padding="false">
+                    <hbox id="toolbarBox" spacing="true"
+                          width="100%"
+                          height="auto"
+                          justifyContent="CENTER">
+                        <button id="expandBtn" text="Expand all"/>
+                        <button id="collapseBtn" text="Collapse all"/>
+                    </hbox>
                     <treeDataGrid id="inventoryItemDataGrid"
                                   dataContainer="inventoryItemDc"
                                   height="100%"
