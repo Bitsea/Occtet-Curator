@@ -62,6 +62,7 @@ import io.jmix.flowui.*;
 import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.UiComponentUtils;
 import io.jmix.flowui.component.combobox.JmixComboBox;
+import io.jmix.flowui.component.grid.DataGridColumn;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.kit.component.button.JmixButton;
@@ -159,7 +160,7 @@ public class AuditView extends StandardView {
     }
 
     private TreeDataGrid<FileTreeNode> createAndPrepareFileTreeGrid(List<FileTreeNode> rootNodes) {
-        TreeDataGrid<FileTreeNode> fileTreeGrid = uiComponents.create(TreeDataGrid.class);
+        this.fileTreeGrid = uiComponents.create(TreeDataGrid.class);
         fileTreeGrid.setThemeName("no-row-borders compact row-stripes");
         fileTreeGrid.setWidthFull();
         fileTreeGrid.setHeightFull();
@@ -199,7 +200,7 @@ public class AuditView extends StandardView {
             });
         });
 
-        fileTreeGrid.addComponentColumn(node -> {
+        DataGridColumn<FileTreeNode> statusColumn = fileTreeGrid.addComponentColumn(node -> {
             if (node.isDirectory()) return null;
             Icon circleIcon = uiComponents.create(Icon.class);
             circleIcon.setIcon(VaadinIcon.CIRCLE);
@@ -218,9 +219,11 @@ public class AuditView extends StandardView {
             }
             circleIcon.setTooltipText(status);
             return circleIcon;
-        }).setHeader("").setFlexGrow(0).setWidth("20px");
+        });
+        statusColumn.setHeader("").setFlexGrow(0).setWidth("20px");
 
         fileTreeGrid.setDataProvider(new TreeDataProvider<>(treeData));
+        expandChildrenOfRoots(fileTreeGrid); // expand per default
         return fileTreeGrid;
     }
 
@@ -301,6 +304,7 @@ public class AuditView extends StandardView {
         List<FileTreeNode> rootNodes = fileTreeCacheService.getFileTree(project);
         TreeDataGrid<FileTreeNode> fileTreeGrid = createAndPrepareFileTreeGrid(rootNodes);
         fileTreeGridLayout.removeAll();
+        fileTreeGridLayout.add(toolbarBox);
         fileTreeGridLayout.add(addExpandCollapseAllButtons(fileTreeGrid));
         fileTreeGridLayout.add(fileTreeGrid);
     }
