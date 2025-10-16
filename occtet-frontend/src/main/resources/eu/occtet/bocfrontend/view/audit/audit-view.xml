@@ -90,7 +90,8 @@
                                   dataContainer="inventoryItemDc"
                                   height="100%"
                                   width="100%"
-                                  themeNames="no-border no-row-borders compact"
+                                  themeNames="no-border no-row-borders compact row-stripes"
+                                  classNames="wrap-column"
                                   hierarchyProperty="parent">
                         <columns>
                             <column property="inventoryName" header="Item"/>
