@@ -144,7 +144,7 @@ public class SpdxService extends BaseWorkDataProcessor{
 
         log.info("Looking at package: {}", spdxPackage.getId());
 
-        String packageName = spdxPackage.getId();
+        String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
         List<CodeLocation> codeLocations = new ArrayList<>();
         List<Copyright> copyrights = new ArrayList<>();
 
@@ -176,8 +176,10 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
 
         String packageLicenseString = spdxPkgLicense != null ? spdxPkgLicense.toString() : "";
-        String inventoryName = component.getName() + " " +
-                component.getVersion() + " (" + packageLicenseString + ")";
+
+        String inventoryName = spdxPackage.getId().replaceAll("(?i)^SPDXRef-[^-]+-[^-]+-", "");
+        if (!inventoryName.contains(component.getVersion())) inventoryName += component.getVersion();
+        inventoryName += " (" + packageLicenseString + ")";
 
         //Check if license of component is combined
         Pattern pattern = Pattern.compile("\\b(?:BUT|AND)\\b");
