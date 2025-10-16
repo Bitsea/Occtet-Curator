@@ -238,7 +238,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         removeLicenseButton.setVisible(false);
     }
 
-    @Subscribe("editLicense.createLicense")
+    @Subscribe(id = "editLicense.createLicense")
     public void createAndAddLicense(DropdownButtonItem.ClickEvent event) {
         if (softwareComponent != null) {
             DialogWindow<CreateLicenseDialog> window = dialogWindow.view(hostView, CreateLicenseDialog.class).build();
@@ -285,7 +285,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         removeCopyrightButton.setVisible(deleteMode);
     }
 
-    @Subscribe("editCopyright.createCopyright")
+    @Subscribe(id = "editCopyright.createCopyright")
     public void createAndAddCopyright(DropdownButtonItem.ClickEvent event) {
         if (inventoryItem != null) {
             DialogWindow<CreateCopyrightDialog> window = dialogWindow.view(hostView, CreateCopyrightDialog.class).build();
