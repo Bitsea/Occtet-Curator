@@ -180,7 +180,10 @@
                             </hbox>
                         </vbox>
                     </hbox>
-                    <textField id="createdField" label="Created" property="createdAt"  colspan="2" readOnly="true"/>
+                    <hbox>
+                        <nativeLabel text="Created at: "/>
+                        <nativeLabel id="createdField" property="createdAt"  colspan="2"/>
+                    </hbox>
                 </formLayout>
             </tab>
             <tab id="vulnerabilitiesTab" label="Vulnerabilities">
