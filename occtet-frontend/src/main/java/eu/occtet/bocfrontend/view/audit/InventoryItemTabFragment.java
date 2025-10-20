@@ -41,7 +41,6 @@ import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.service.NatsService;
-import eu.occtet.bocfrontend.view.audit.filestabfragment.FilesTabFragment;
 import eu.occtet.bocfrontend.view.copyright.CopyrightDetailView;
 import eu.occtet.bocfrontend.view.dialog.*;
 import eu.occtet.bocfrontend.view.inventoryitem.InventoryItemDetailView;
@@ -191,7 +190,6 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                     .show();
             if (hostView instanceof AuditView) {
                 ((AuditView) hostView).refreshInventoryItemDc(inventoryItem.getProject());
-                ((AuditView) hostView).rebuildFileTreeWithFreshData();
             }
         } else {
             log.debug("Inventory Item {} has no changes.", inventoryItem.getInventoryName());

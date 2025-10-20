@@ -25,10 +25,21 @@ package eu.occtet.bocfrontend.model;
 import eu.occtet.bocfrontend.entity.CodeLocation;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
+/**
+ * Represents a node in the file tree structure.
+ * Can represent either a file or a directory.
+ *
+ * This class is immutable except for the children list which can be modified
+ * during tree construction but should be treated as read-only afterwards.
+ */
 public class FileTreeNode implements Serializable {
 
+    private final UUID id;
     private final String name;
     private final String fullPath;
     private final FileTreeNode parent;
@@ -36,13 +47,23 @@ public class FileTreeNode implements Serializable {
     private final CodeLocation codeLocation;
     private final boolean isDirectory;
 
-    public FileTreeNode(String name, String fullPath, FileTreeNode parent, List<FileTreeNode> children, CodeLocation codeLocation, boolean isDirectory) {
-        this.name = name;
-        this.fullPath = fullPath;
+    public FileTreeNode(String name,
+                        String fullPath,
+                        FileTreeNode parent,
+                        List<FileTreeNode> children,
+                        CodeLocation codeLocation,
+                        boolean isDirectory) {
+        this.id = UUID.randomUUID();
+        this.name = Objects.requireNonNull(name, "Name cannot be null");
+        this.fullPath = Objects.requireNonNull(fullPath, "Full path cannot be null");
         this.parent = parent;
-        this.children = children;
+        this.children = children != null ? children : new ArrayList<>();
         this.codeLocation = codeLocation;
         this.isDirectory = isDirectory;
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     public String getName() {
@@ -67,5 +88,11 @@ public class FileTreeNode implements Serializable {
 
     public boolean isDirectory() {
         return isDirectory;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("FileTreeNode{name='%s', id=%s, path='%s'}",
+                name, id, fullPath);
     }
 }

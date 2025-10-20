@@ -207,7 +207,7 @@
                 </vbox>
             </tab>
             <tab id="filesTab" label="Files">
-                <fragment class="eu.occtet.bocfrontend.view.audit.filestabfragment.FilesTabFragment"
+                <fragment class="eu.occtet.bocfrontend.view.audit.FilesTabFragment"
                           id="filesTabFragment"/>
             </tab>
             <tab id="auditNotesTab" label="Audit notes">
