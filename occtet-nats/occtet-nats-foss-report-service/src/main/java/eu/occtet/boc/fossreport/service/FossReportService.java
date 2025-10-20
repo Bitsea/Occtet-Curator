@@ -22,7 +22,6 @@
 
 package eu.occtet.boc.fossreport.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.fossreport.dao.InventoryItemRepository;
@@ -35,7 +34,6 @@ import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,8 +124,8 @@ public class FossReportService extends BaseWorkDataProcessor {
         if (workData == null || workData.getRowData() == null) {
             log.error("No data provided!");
         }
-        RowDto rowDto= null;
-        InventoryItem inventoryItem= null;
+        RowDto rowDto;
+        InventoryItem inventoryItem;
         try {
             Map<String, Object> rowData = workData.getRowData();
             rowDto = FossReportUtilities.convertMapToRowDto(rowData);
@@ -185,14 +183,15 @@ public class FossReportService extends BaseWorkDataProcessor {
                     String basePath = FossReportUtilities.determineBasePath(rowDto.files()).trim();
                     log.debug("basePath: {}", basePath);
 
-                    if(parentInventory.getBasePath()== null || parentInventory.getBasePath().isEmpty()){
-                        if (basePath.contains("\\") && StringUtils.countMatches(basePath, "\\") >= 2)
-                            parentInventory.setBasePath(basePath.substring(0,PathUtilities.secondLastDirectoryIndex(2,"\\", basePath)));
-                        else if(basePath.contains("/") && StringUtils.countMatches(basePath, "/") >= 2)
-                            parentInventory.setBasePath(basePath.substring(0,PathUtilities.secondLastDirectoryIndex(2,"/", basePath)));
-                        else parentInventory.setBasePath(basePath);
-                        inventoryItemRepository.save(parentInventory);
-                    }
+                    //TODO figure out if this  is needed
+//                    if(parentInventory.getBasePath()== null || parentInventory.getBasePath().isEmpty()){
+//                        if (basePath.contains("\\") && StringUtils.countMatches(basePath, "\\") >= 2)
+//                            parentInventory.setBasePath(basePath.substring(0,PathUtilities.secondLastDirectoryIndex(2,"\\", basePath)));
+//                        else if(basePath.contains("/") && StringUtils.countMatches(basePath, "/") >= 2)
+//                            parentInventory.setBasePath(basePath.substring(0,PathUtilities.secondLastDirectoryIndex(2,"/", basePath)));
+//                        else parentInventory.setBasePath(basePath);
+//                        inventoryItemRepository.save(parentInventory);
+//                    }
 
                     inventoryItemRepository.save(originInventoryItem.get());
                     List<Copyright> copyrights = new ArrayList<>();

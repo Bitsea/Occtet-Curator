@@ -33,13 +33,11 @@ public class SpdxWorkData extends BaseWorkData{
     public SpdxWorkData(@JsonProperty("jsonSpdx")String jsonSpdx,
                         @JsonProperty("bucketName")String bucketName,
                         @JsonProperty("projectId")String projectId,
-                        @JsonProperty("rootInventoryItemId")String rootInventoryItemId,
                         @JsonProperty("useCopyrightAi")boolean useCopyrightAi,
                         @JsonProperty("useLicenseMatcher")boolean useLicenseMatcher) {
         this.jsonSpdx=jsonSpdx;
         this.bucketName=bucketName;
         this.projectId=projectId;
-        this.rootInventoryItemId = rootInventoryItemId;
         this.useCopyrightAi = useCopyrightAi;
         this.useLicenseMatcher=useLicenseMatcher;
     }
@@ -51,8 +49,6 @@ public class SpdxWorkData extends BaseWorkData{
     private String bucketName;
 
     private String projectId;
-
-    private String rootInventoryItemId;
 
     boolean useCopyrightAi;
 
@@ -72,14 +68,6 @@ public class SpdxWorkData extends BaseWorkData{
 
     public void setProjectId(String projectId) {
         this.projectId = projectId;
-    }
-
-    public String getRootInventoryItemId() {
-        return rootInventoryItemId;
-    }
-
-    public void setRootInventoryItemId(String rootInventoryItemId) {
-        this.rootInventoryItemId = rootInventoryItemId;
     }
 
     public boolean isUseCopyrightAi() {
