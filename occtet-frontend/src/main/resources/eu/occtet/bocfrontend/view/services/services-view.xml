@@ -25,14 +25,12 @@
       title="msg://servicesView.title">
     <layout>
         <vbox spacing="false" margin="false" width="1000px">
-            <h2 text="Available Services"/>
-            <button id="detectServices" text="Detect Services" icon="REFRESH" />
-            <listBox id="servicesList" width="100%" height="200px" readOnly="true" />
-            <h2 text="Services Status"/>
-            <listBox id="statusList" width="100%" height="200px" readOnly="true"/>
+            <h2 text="Services"/>
+            <listBox id="statusList" width="100%" height="400px" readOnly="true"/>
             <h2 text="NATS Stream Status"/>
             <span id="streamStatus" text="..."/>
             <hbox>
+                <button id="detectServices" text="Fetch Services Details" icon="REFRESH" />
                 <button id="stopServices" text="Stop Services..." icon="STOP" />
             </hbox>
 

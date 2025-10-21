@@ -72,21 +72,8 @@ public class DBLogListView extends StandardListView<DBLog> {
     @ViewComponent
     private DataGrid<DBLog> DBLogListDataGrid;
 
-
-    @Autowired
-    private NatsService natsService;
-
     @ViewComponent
     JmixButton testConnection;
-
-    @Autowired
-    private UiAsyncTasks uiAsyncTasks;
-
-    @Autowired
-    private DBLogController dbLogController;
-
-    @Autowired
-    private Dialogs dialogs;
 
     private static final Logger log = LogManager.getLogger(DBLogListView.class);
 
@@ -100,66 +87,10 @@ public class DBLogListView extends StandardListView<DBLog> {
 
     }
 
-    @Subscribe("callApiButtonCopyright")
-    protected void onCallApiButtonCopyrightClick(final ClickEvent<JmixButton> event) {
-        event.getSource().setText("Calling in Process");
-
-        uiAsyncTasks.supplierConfigurer(this::callCopyrightApi)
-                .withResultHandler(api -> {
-                    Objects.requireNonNull(DBLogListDataGrid.getAction("refresh"))
-                            .actionPerform(event.getSource());
-                    event.getSource().setText("Call Backend for Copyrights");
-                })
-                .withTimeout(600, TimeUnit.SECONDS)
-                .supplyAsync();
-
-    }
-
-    @Subscribe("callApiButtonLicense")
-    protected void onCallApiButtonLicenseClick(final ClickEvent<JmixButton> event) {
-        event.getSource().setText("Calling in Process");
-
-        uiAsyncTasks.supplierConfigurer(this::callLicenseApi)
-                .withResultHandler(api -> {
-                    Objects.requireNonNull(DBLogListDataGrid.getAction("refresh"))
-                            .actionPerform(event.getSource());
-                    event.getSource().setText("Call Backend for Licenses");
-                })
-                .withTimeout(600, TimeUnit.SECONDS)
-                .supplyAsync();
-
-    }
-
-    private String callCopyrightApi() {
-        return dbLogController.callCopyrightApi();
-    }
-
-    private String callLicenseApi() {
-        return dbLogController.callLicenseApi();
-    }
-
-
 
     @Subscribe("timer")
     public void onTimerTimerAction(final Timer.TimerActionEvent event) {
         Objects.requireNonNull(DBLogListDataGrid.getAction("refresh")).actionPerform(event.getSource().getOwner());
     }
 
-    @Subscribe(id = "testConnection", subject = "clickListener")
-    public void onTestConnectionClick(final ClickEvent<JmixButton> event) {
-        AIStatusQueryWorkData aiStatusQuery = new AIStatusQueryWorkData();
-        aiStatusQuery.setDetails("are you ready to process some tasks?");
-        aiStatusQuery.setExpectedStatus("ready");
-        LocalDateTime now = LocalDateTime.now();
-        long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("status_request", "question", actualTimestamp, aiStatusQuery);
-        try {
-            Gson gson = new Gson();
-            String message = gson.toJson(workTask);
-            log.debug("sending message to ai service: {}", message);
-            natsService.sendWorkMessageToStream("work.ai", message.getBytes(Charset.defaultCharset()));
-        }catch(Exception e){
-            dialogs.createMessageDialog().withText("Error with Ai service connection: "+ e.getMessage()).open();
-        }
-    }
 }

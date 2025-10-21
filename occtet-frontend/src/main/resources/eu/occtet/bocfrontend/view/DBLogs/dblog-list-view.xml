@@ -52,11 +52,6 @@
 
             <vbox spacing="false"
                   margin="false">
-                <button id="testConnection" text="testAiConnection" />
-                <button id="callApiButtonCopyright"
-                        text="Call Backend for Copyrights"/>
-                <button id="callApiButtonLicense"
-                        text="Call Backend for Licenses"/>
 
                 <genericFilter id="genericFilter"
                                dataLoader="dbLogDc">
