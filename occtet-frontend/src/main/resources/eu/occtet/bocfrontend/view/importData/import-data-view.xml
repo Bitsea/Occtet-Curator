@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ /*
+  ~ * Copyright (C) 2025 Bitsea GmbH
+  ~  *
+  ~ * Licensed under the Apache License, Version 2.0 (the "License");
+  ~ * you may not use this file except in compliance with the License.
+  ~ * You may obtain a copy of the License at
+  ~ *
+  ~ *     https://www.apache.org/licenses/LICENSE-2.0
+  ~ *
+  ~ * Unless required by applicable law or agreed to in writing, software
+  ~ * distributed under the License is distributed on an "AS IS" BASIS,
+  ~ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ * See the License for the specific language governing permissions and
+  ~ * limitations under the License.
+  ~ *
+  ~ * SPDX-License-Identifier: Apache-2.0
+  ~ * License-Filename: LICENSE
+  ~ */
+  ~
+  -->
+
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="Import">
+    <data>
+        <collection id="configurationsDc" class="eu.occtet.bocfrontend.entity.Configuration">
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+        <settings id="settingsFacet" auto="true"/>
+    </facets>
+    <layout>
+        <formLayout id="form" width="100%" labelsPosition="ASIDE">
+            <responsiveSteps>
+                <responsiveStep minWidth="0" columns="3"/>
+            </responsiveSteps>
+            <formItem label="project">
+                <comboBox id="projectComboBox"  allowCustomValue="false" title="Projects" colspan="1" css="margin-left: 15px"/>
+            </formItem>
+            <span colspan="2"/>
+            <formItem label="Import-type">
+                <comboBox id="scannerComboBox"  allowCustomValue="false" title="Import-types" colspan="1" css="margin-left: 15px"/>
+            </formItem>
+            <span colspan="2"/>
+            <formItem label="status">
+                <textField id="statusField" property="status"  visible="false" colspan="1" css="margin-left: 15px">CREATING
+                </textField>
+            </formItem>
+            <span colspan="2"/>
+            <formItem colspan="2" label="configuration">
+                <vbox>
+                    <hbox id="buttonsPanel">
+                        <button id="editBtn" enabled="false" text="edit" />
+                        <button id="removeBtn" enabled="false" text="remove" action="configurationsDataGrid.remove" />
+                        <simplePagination/>
+                    </hbox>
+                    <dataGrid id="configurationsDataGrid"  width="100%" height="30em" metaClass="Configuration"
+                              editorBuffered="true" themeNames="row-stripes">
+                        <columns>
+                            <column property="name" resizable="true" editable="false"/>
+                            <column property="value" resizable="true" editable="true"/>
+                        </columns>
+                        <actions>
+                            <action id="edit" type="list_edit"/>
+                            <action id="remove" type="list_remove"/>
+                        </actions>
+                    </dataGrid>
+                    <hbox id="editActions" spacing="true" alignItems="END">
+                        <button id="startImportButton" text="start import" themeNames="primary"/>
+                    </hbox>
+                </vbox>
+            </formItem>
+        </formLayout>
+    </layout>
+</view>

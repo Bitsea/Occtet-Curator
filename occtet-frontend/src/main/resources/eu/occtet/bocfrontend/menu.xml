@@ -25,6 +25,7 @@
     <item view="AuditView" title="msg://eu.occtet.bocfrontend.view.audit/auditView.title" icon="vaadin:compile"/>
     <item view="Vulnerability.list" title="msg://eu.occtet.bocfrontend/eu.occtet.bocfrontend.view.vulnerabilities"
           icon="vaadin:doctor-briefcase"/>
+    <item view="importData" title="Import" icon="vaadin:records"/>
     <item view="InventoryItem.list" title="msg://eu.occtet.bocfrontend.view.inventoryitem/inventoryItemListView.title"
           icon="vaadin:archives"/>
     <item view="Copyright.list" title="msg://eu.occtet.bocfrontend.view.copyright/copyrightListView.title"
