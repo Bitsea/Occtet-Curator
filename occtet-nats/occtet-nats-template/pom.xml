@@ -39,7 +39,7 @@
     </parent>
 
     <properties>
-        <start-class>eu.occtet.template.SampleApp</start-class>
+        <start-class>eu.occtet.boc.download.SampleApp</start-class>
     </properties>
 
     <dependencies>
