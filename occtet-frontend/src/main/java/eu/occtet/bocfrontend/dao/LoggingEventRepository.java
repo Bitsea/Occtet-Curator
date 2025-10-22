@@ -1,3 +1,5 @@
+package eu.occtet.bocfrontend.dao;
+
 /*
  *
  *  Copyright (C) 2025 Bitsea GmbH
@@ -20,18 +22,14 @@
  *
  */
 
-package eu.occtet.bocfrontend.dao;
 
-import eu.occtet.bocfrontend.entity.DBLog;
+import eu.occtet.bocfrontend.entity.LoggingEvent;
 import io.jmix.core.repository.JmixDataRepository;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.UUID;
 
+public interface LoggingEventRepository extends JmixDataRepository<LoggingEvent, Long> {
 
-
-public interface DBLogRepository extends JmixDataRepository<DBLog, UUID> {
-
-    List<DBLog> findAll();
-
+    List<LoggingEvent> findAllByOrderByTimestmpDesc(Pageable pageable);
 }
