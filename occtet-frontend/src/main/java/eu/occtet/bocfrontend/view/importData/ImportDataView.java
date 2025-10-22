@@ -35,10 +35,8 @@ import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.engine.ScannerManager;
 import eu.occtet.bocfrontend.entity.*;
-import eu.occtet.bocfrontend.factory.ScannerInitializerFactory;
 import eu.occtet.bocfrontend.scanner.Scanner;
 import eu.occtet.bocfrontend.service.ConfigurationService;
-import eu.occtet.bocfrontend.service.InventoryItemService;
 import eu.occtet.bocfrontend.service.ScannerInitializerService;
 import eu.occtet.bocfrontend.service.Utilities;
 import eu.occtet.bocfrontend.view.configuration.ConfigurationDetailView;
@@ -98,11 +96,7 @@ public class ImportDataView extends StandardView{
     @Autowired
     private Utilities utilities;
     @Autowired
-    private InventoryItemService inventoryItemService;
-    @Autowired
     private ScannerInitializerService scannerInitializerService;
-    @Autowired
-    private ScannerInitializerFactory scannerInitializerFactory;
 
     Scanner scanner;
     String scannerName;
@@ -113,14 +107,7 @@ public class ImportDataView extends StandardView{
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
 
-        List<String> listScanner = new ArrayList<>();
-        if(!scannerManager.getAvailableScanners().isEmpty()){
-            for(String name : scannerManager.getAvailableScanners()){
-                name = name.replaceAll("_"," ");
-                name = name.replaceAll("Scanner"," ");
-                listScanner.add(name);
-            }
-        }
+        List<String> listScanner = scannerManager.getAvailableScanners();
         scannerComboBox.setItems(listScanner);
 
         ArrayList<Project> listProject = new ArrayList<>();
@@ -136,7 +123,8 @@ public class ImportDataView extends StandardView{
             if(projectComboBox.getValue() != null){
                 scannerName = scannerComboBox.getValue();
                 scanner = scannerManager.findScannerByName(scannerName);
-                scannerInitializer = scannerInitializerFactory.create(null,scannerName);
+                //InventoryItem will change to project
+                scannerInitializer = scannerInitializerService.createScannerInitializer(null,scannerName);
                 setConfigurations(scanner);
                 configurationsDataGrid.setItems(new ContainerDataGridItems<>(configurationsDc));
             }
@@ -228,15 +216,12 @@ public class ImportDataView extends StandardView{
         ArrayList<Configuration> configurations = new ArrayList<>();
 
         scanner.getSupportedConfigurationKeys().forEach(k -> {
+            //InventoryItem will change to project
             String defaultConfigurationValue = scanner.getDefaultConfigurationValue(k, null);
             configurations.add(configurationService.create(k, defaultConfigurationValue));
         });
 
         configurationsDc.setItems(configurations);
-    }
-
-    private boolean checkInput(){
-        return projectComboBox.getValue()!=null&scannerComboBox.getValue()!=null;
     }
 
     private void importInformation(String message, NotificationVariant variant){

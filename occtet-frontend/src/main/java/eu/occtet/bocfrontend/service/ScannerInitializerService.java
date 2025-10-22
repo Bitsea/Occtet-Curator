@@ -23,8 +23,10 @@
 package eu.occtet.bocfrontend.service;
 
 import eu.occtet.bocfrontend.dao.ScannerInitializerRepository;
+import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.ScannerInitializer;
 import eu.occtet.bocfrontend.entity.ScannerInitializerStatus;
+import eu.occtet.bocfrontend.factory.ScannerInitializerFactory;
 import io.jmix.core.DataManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,6 +39,9 @@ public class ScannerInitializerService {
 
     @Autowired
     private ScannerInitializerRepository scannerInitializerRepository;
+
+    @Autowired
+    private ScannerInitializerFactory scannerInitializerFactory;
 
     @Autowired
     private DataManager dataManager;
@@ -60,6 +65,10 @@ public class ScannerInitializerService {
     public void updateScannerStatus(ScannerInitializerStatus status, ScannerInitializer scannerInitializer){
         scannerInitializer.updateStatus(status.getId());
         dataManager.save(scannerInitializer);
+    }
+
+    public ScannerInitializer createScannerInitializer(InventoryItem item, String name){
+        return scannerInitializerFactory.create(item,name);
     }
 
 }

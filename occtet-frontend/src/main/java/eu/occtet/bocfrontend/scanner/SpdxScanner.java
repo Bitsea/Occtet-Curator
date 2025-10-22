@@ -58,7 +58,7 @@ public class SpdxScanner extends Scanner{
     private ScannerInitializerFactory scannerInitializerFactory;
 
     protected SpdxScanner() {
-        super("Spdx_Scanner");
+        super("Spdx");
     }
 
     private static final String CONFIG_KEY_USE_LICENSE_MATCHER = "UseLicenseMatcher";

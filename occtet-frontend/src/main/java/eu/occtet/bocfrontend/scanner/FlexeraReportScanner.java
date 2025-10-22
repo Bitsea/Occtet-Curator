@@ -69,7 +69,7 @@ public class FlexeraReportScanner extends Scanner{
     private ScannerInitializerFactory scannerInitializerFactory;
 
     protected FlexeraReportScanner(ScannerInitializerService scannerInitializerService) {
-        super("Flexera_Report_Scanner");
+        super("Flexera");
         this.scannerInitializerService = scannerInitializerService;
     }
 
