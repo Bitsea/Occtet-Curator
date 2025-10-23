@@ -32,6 +32,7 @@ import eu.occtet.bocfrontend.model.FileTreeNode;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.UiComponentUtils;
+import io.jmix.flowui.component.grid.DataGridColumn;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -102,31 +103,9 @@ public class FileTreeGridFactory {
     }
 
     private void configureColumns(TreeDataGrid<FileTreeNode> grid){
-        grid.addHierarchyColumn(FileTreeNode::getName).setHeader("File")
-                .setTooltipGenerator(FileTreeNode::getName);
-
-        // TODO move to inventoryItem grid
-//        DataGridColumn<FileTreeNode> statusColumn = fileTreeGrid.addComponentColumn(node -> {
-//            if (node.isDirectory()) return null;
-//            Icon circleIcon = uiComponents.create(Icon.class);
-//            circleIcon.setIcon(VaadinIcon.CIRCLE);
-//            circleIcon.setSize("12px");
-//            String status;
-//            CodeLocation codeLocation = node.getCodeLocation();
-//            if (codeLocation == null || codeLocation.getInventoryItem() == null) {
-//                circleIcon.getStyle().set("color", "var(--lumo-error-color)");
-//                status = "Not in inventory";
-//            } else if (Boolean.TRUE.equals(codeLocation.getInventoryItem().getCurated())) {
-//                circleIcon.getStyle().set("color", "var(--lumo-success-color)");
-//                status = "Curated";
-//            } else {
-//                circleIcon.getStyle().set("color", "var(--lumo-primary-color)");
-//                status = "Included but not curated";
-//            }
-//            circleIcon.setTooltipText(status);
-//            return circleIcon;
-//        });
-//        statusColumn.setHeader("").setFlexGrow(0).setWidth("20px");
+        DataGridColumn<FileTreeNode> column = grid.addHierarchyColumn(FileTreeNode::getName);
+        column.setHeader("File");
+        column.setTooltipGenerator(FileTreeNode::getName);
     }
 
     private void configureContextMenu(TreeDataGrid<FileTreeNode> grid, Consumer<InventoryItem> openInventoryHandler,

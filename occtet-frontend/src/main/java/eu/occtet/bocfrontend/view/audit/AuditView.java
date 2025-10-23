@@ -24,16 +24,11 @@ package eu.occtet.bocfrontend.view.audit;
 
 
 import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.ItemClickEvent;
-import com.vaadin.flow.component.grid.dataview.GridDataView;
-import com.vaadin.flow.component.grid.dataview.GridLazyDataView;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
-import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.*;
@@ -44,8 +39,7 @@ import eu.occtet.bocfrontend.model.FileTreeNode;
 import eu.occtet.bocfrontend.service.AuditViewStateService;
 import eu.occtet.bocfrontend.service.FileContentService;
 import eu.occtet.bocfrontend.service.FileTreeCacheService;
-import eu.occtet.bocfrontend.view.audit.helper.FileTreeGridFactory;
-import eu.occtet.bocfrontend.view.audit.helper.TabManager;
+import eu.occtet.bocfrontend.view.audit.helper.*;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
 import io.jmix.core.ValueLoadContext;
@@ -55,7 +49,6 @@ import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
-import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.model.DataContext;
@@ -67,13 +60,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.Serializable;
 import java.util.*;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+/**
+ * AuditView serves as a user interface controller for managing and displaying audit-related data,
+ * including projects, inventory items, files, and tabs.
+ * <ul>
+ * <li>Manages project and inventory contexts and maintains the UI state.</li>
+ * <li>Supports user interactions such as switching tabs, selecting projects, and navigating between views.</li>
+ * <li>Implements state persistence by saving and restoring the session state.</li>
+ * <li>Handles file counts, inventory data, and other project-related data management functionalities.</li>
+ * </ul>
+ */
 @Route(value = "audit-view/:projectId?", layout = MainView.class)
 @ViewController(id = "AuditView")
 @ViewDescriptor(path = "audit-view.xml")
-public class AuditView extends StandardView implements BeforeEnterObserver {
+public class AuditView extends StandardView{
 
     private static final Logger log = LogManager.getLogger(AuditView.class);
 
@@ -88,6 +90,10 @@ public class AuditView extends StandardView implements BeforeEnterObserver {
     @Autowired private FileTreeGridFactory fileTreeGridFactory;
     @Autowired private UiComponents uiComponents;
     @Autowired private Fragments fragments;
+    @Autowired private ComponentFactory toolBoxFactory;
+    @Autowired private TreeGridHelper treeGridHelper;
+    @Autowired private RendererFactory rendererFactory;
+
 
     @ViewComponent private DataContext dataContext;
     @ViewComponent private JmixComboBox<Project> projectComboBox;
@@ -100,18 +106,107 @@ public class AuditView extends StandardView implements BeforeEnterObserver {
     @ViewComponent private TreeDataGrid<InventoryItem> inventoryItemDataGrid;
     @ViewComponent private VerticalLayout fileTreeGridLayout;
     @ViewComponent private CollectionLoader<InventoryItem> inventoryItemDl;
+    @ViewComponent HorizontalLayout toolbarBox;
 
     private TabManager tabManager;
-    private TreeDataGrid<FileTreeNode> fileTreeGrid;
     private Map<UUID, Long> fileCounts = new HashMap<>();
     private boolean suppressNavigation = false;
 
+    /**
+     * Handles actions to be performed before the view is entered. This method ensures
+     * proper initialization of the project context based on route parameters or session state.
+     *
+     * @param event the event triggered before navigating to this view
+     */
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        super.beforeEnter(event);
+        log.debug("BeforeEnterEvent called");
+        Optional<String> projectIdParam = event.getRouteParameters().get("projectId");
+        initializeProjectContext(projectIdParam);
+    }
+
+    /**
+     * Initializes the AuditView. Executes setup for the project combo box,
+     * inventory data grid, tab manager, and tab selection listeners.
+     *
+     * @param event the initialization event invoked during view initialization
+     */
     @Subscribe
     protected void onInit(InitEvent event) {
         initializeProjectComboBox();
         initializeInventoryDataGrid();
         initializeTabManager();
         addTabSelectionListeners();
+    }
+
+    @Subscribe
+    public void onBeforeClose(BeforeCloseEvent event) {
+        saveStateToSession();
+    }
+
+    /**
+     * Initializes the project context for the AuditView. This method determines the appropriate
+     * project to load based on the provided parameter or the saved session state. If no project ID
+     * is available, it clears the view.
+     *
+     * @param projectIdParam an optional parameter containing the project ID from the URL or other sources
+     */
+    private void initializeProjectContext(Optional<String> projectIdParam) {
+        if (projectIdParam.isPresent()) {
+            loadProjectFromUrl(projectIdParam.get());
+            return;
+        }
+
+        viewStateService.get()
+                .map(AuditViewStateService.AuditViewState::projectId)
+                .ifPresentOrElse(
+                        projectId -> {
+                            log.debug("No projectId in URL, redirecting to session project {}", projectId);
+                            UI.getCurrent().getPage().getHistory()
+                                    .replaceState(null, "audit-view/" + projectId);
+                            loadProjectFromUrl(projectId.toString());
+                        },
+                        () -> {
+                            log.debug("No project found in session; clearing view");
+                            clearView();
+                        });
+    }
+
+    private void loadProjectFromUrl(String projectIdStr) {
+        suppressNavigation = true;
+        try {
+            UUID projectId = UUID.fromString(projectIdStr);
+            projectRepository.findById(projectId).ifPresent(project -> {
+                log.debug("Loading project {} from URL", project.getProjectName());
+                projectComboBox.setValue(project);
+                refreshAllDataForProject(project);
+                restoreTabsAndState();
+            });
+        } catch (Exception e) {
+            log.warn("Invalid projectId in URL: {}", projectIdStr, e);
+        } finally {
+            suppressNavigation = false;
+        }
+    }
+
+    private void restoreTabsAndState() {
+        viewStateService.get().ifPresent(state -> {
+            restoreSessionTabs(state);
+
+            log.debug("Restoring session state: {}", state);
+            if (state.activeTabIdentifier() != null) {
+                UI ui = UI.getCurrent();
+                ui.access(() -> {
+                    tabManager.selectTab(state.activeTabIdentifier());
+                    if (state.activeTabIdentifier() instanceof InventoryItem) {
+                        mainTabSheet.setSelectedTab(inventoryItemSection);
+                    } else if (state.activeTabIdentifier() instanceof FileTreeNode) {
+                        mainTabSheet.setSelectedTab(filesSection);
+                    }
+                });
+            }
+        });
     }
 
     private void addTabSelectionListeners() {
@@ -130,6 +225,11 @@ public class AuditView extends StandardView implements BeforeEnterObserver {
     }
 
     private void initializeInventoryDataGrid() {
+        HorizontalLayout inventoryToolbar = toolBoxFactory.createToolBox(inventoryItemDataGrid, true, false);
+        toolbarBox.removeAll();
+        toolbarBox.add(inventoryToolbar);
+        toolBoxFactory.createInfoButtonHeaderForInventoryGrid(inventoryItemDataGrid, "status");
+
         inventoryItemDataGrid.setTooltipGenerator(InventoryItem::getInventoryName);
     }
 
@@ -146,78 +246,6 @@ public class AuditView extends StandardView implements BeforeEnterObserver {
                 .build();
     }
 
-    @Override
-    public void beforeEnter(BeforeEnterEvent event) {
-        RouteParameters params = event.getRouteParameters();
-
-        // Extract URL parameters
-        Optional<String> projectIdParam = params.get("projectId");
-
-        if (projectIdParam.isPresent()) {
-            handleUrlNavigation(projectIdParam.get());
-        } else {
-            handleSessionRestoration();
-        }
-    }
-
-    private void handleUrlNavigation(String projectIdStr) {
-        suppressNavigation = true;
-        try {
-            UUID projectId = UUID.fromString(projectIdStr);
-            projectRepository.findById(projectId).ifPresentOrElse(
-                    project -> {
-                        projectComboBox.setValue(project);
-                        refreshAllDataForProject(project);
-
-                        // Restore session tabs first
-                        viewStateService.get()
-                                .filter(state -> state.projectId().equals(projectId))
-                                .ifPresent(state -> {
-                                    restoreSessionTabs(state);
-
-                                    log.debug("Restoring state from session: {}", state.activeTabIdentifier());
-                                    if (state.activeTabIdentifier() != null) {
-                                        UI.getCurrent().access(() -> {
-                                            tabManager.selectTab(state.activeTabIdentifier());
-                                        });
-                                    }
-                                });
-                    },
-                    () -> {
-                        handleSessionRestoration();
-                    }
-            );
-        } catch (IllegalArgumentException e) {
-            log.warn("Invalid project ID in URL: {}", projectIdStr);
-            handleSessionRestoration();
-        } finally {
-            suppressNavigation = false;
-        }
-    }
-
-    private void handleSessionRestoration() {
-        viewStateService.get().ifPresent(state -> {
-            projectRepository.findById(state.projectId()).ifPresent(project -> {
-                suppressNavigation = true;
-                try {
-                    projectComboBox.setValue(project);
-                    refreshAllDataForProject(project);
-                    restoreSessionTabs(state);
-
-                    // Select the previously active tab
-                    log.debug("Restoring state from session: {}", state.activeTabIdentifier());
-                    if (state.activeTabIdentifier() != null) {
-                        UI.getCurrent().access(() -> {
-                            tabManager.selectTab(state.activeTabIdentifier());
-                        });
-                    }
-                } finally {
-                    suppressNavigation = false;
-                }
-            });
-        });
-    }
-
     private void restoreSessionTabs(AuditViewStateService.AuditViewState state) {
         // Restore inventory item tabs without auto-selecting them
         state.openInventoryTabsIds().stream()
@@ -225,30 +253,8 @@ public class AuditView extends StandardView implements BeforeEnterObserver {
                 .forEach(item -> tabManager.openInventoryItemTab(item,false));
 
         // Restore file tabs without auto-selecting them
-        state.openFileTabsPaths().forEach(nodePath -> {
-            fileTreeCacheService.findNodeByPath(projectComboBox.getValue(), nodePath)
-                    .ifPresent(node -> tabManager.openFileTab(node, false));
-        });
-
-//        // Select the previously active tab with a slight delay
-//        tabManager.selectTab(state.activeTabIdentifier());
-    }
-
-    private Optional<FileTreeNode> findNodeByPath(String fullPath) {
-        if (fileTreeGrid == null) return Optional.empty();
-
-        DataProvider<FileTreeNode, ?> dataProvider = fileTreeGrid.getDataProvider();
-        if (dataProvider instanceof GridDataView) {
-            return ((GridDataView<FileTreeNode>) dataProvider).getItems()
-                    .filter(node -> fullPath.equals(node.getFullPath()))
-                    .findFirst();
-        }
-        return Optional.empty();
-    }
-
-    @Subscribe
-    public void onBeforeClose(BeforeCloseEvent event) {
-        saveStateToSession();
+        state.openFileTabsPaths().forEach(nodePath -> fileTreeCacheService.findNodeByPath(projectComboBox.getValue(), nodePath)
+                .ifPresent(node -> tabManager.openFileTab(node, false)));
     }
 
     private void saveStateToSession() {
@@ -277,7 +283,7 @@ public class AuditView extends StandardView implements BeforeEnterObserver {
         saveStateToSession();
     }
 
-    private void updateUrl(Serializable activeIdentifier) {
+    private void updateUrl() {
         if (suppressNavigation) {
             log.trace("Suppressing navigation (updateUrl) to avoid recursion");
             return;
@@ -322,26 +328,31 @@ public class AuditView extends StandardView implements BeforeEnterObserver {
         this.fileCounts = counts.stream()
                 .collect(Collectors.toMap(
                         kv -> kv.getValue("itemId"),
-                        kv -> (Long) kv.getValue("fileCount")
+                        kv -> kv.getValue("fileCount")
                 ));
     }
 
     @Supply(to = "inventoryItemDataGrid.fileNumCol", subject = "renderer")
     Renderer<InventoryItem> filesCountRenderer() {
-        return new TextRenderer<>(item -> fileCounts.getOrDefault(item.getId(), 0L).toString());
+        return rendererFactory.filesCountRenderer(projectComboBox.getValue());
+    }
+
+    @Supply(to = "inventoryItemDataGrid.status", subject = "renderer")
+    Renderer<InventoryItem> statusRenderer() {
+        return rendererFactory.statusRenderer();
     }
 
     private void rebuildFileTree(Project project) {
         List<FileTreeNode> rootNodes = fileTreeCacheService.getFileTree(project);
-        this.fileTreeGrid = fileTreeGridFactory.create(
+        TreeDataGrid<FileTreeNode> fileTreeGrid = fileTreeGridFactory.create(
                 rootNodes,
-                fileTreeNode -> tabManager.openFileTab(fileTreeNode, true),
-                inventoryItem -> tabManager.openInventoryItemTab(inventoryItem, true)
+                node -> tabManager.openFileTab(node, true),
+                item -> tabManager.openInventoryItemTab(item, true)
         );
 
         fileTreeGridLayout.removeAll();
-        fileTreeGridLayout.add(addExpandCollapseAllButtons(fileTreeGrid));
-        fileTreeGridLayout.add(this.fileTreeGrid);
+        HorizontalLayout toolbar = toolBoxFactory.createToolBox(fileTreeGrid, false, true);
+        fileTreeGridLayout.add(toolbar, fileTreeGrid);
     }
 
     @Subscribe("projectComboBox")
@@ -374,7 +385,7 @@ public class AuditView extends StandardView implements BeforeEnterObserver {
     private void switchProject(Project project) {
         refreshAllDataForProject(project);
         saveStateToSession();
-        updateUrl(null); // Update URL to show only project
+        updateUrl();
     }
 
     @Subscribe("inventoryItemDataGrid")
@@ -382,67 +393,15 @@ public class AuditView extends StandardView implements BeforeEnterObserver {
         if (event.getClickCount() == 2) {
             tabManager.openInventoryItemTab(event.getItem(), true);
         } else {
-            toggleExpansion(inventoryItemDataGrid, event.getItem());
+            treeGridHelper.toggleExpansion(inventoryItemDataGrid, event.getItem());
         }
     }
 
-    private <T> void toggleExpansion(TreeDataGrid<T> grid, T item) {
-        if (grid.isExpanded(item)) {
-            grid.collapse(item);
-        } else {
-            grid.expand(item);
-        }
-    }
+
 
     private void clearView() {
         inventoryItemDc.setItems(Collections.emptyList());
         fileTreeGridLayout.removeAll();
         tabManager.closeAllTabs();
-    }
-
-    public <T> HorizontalLayout addExpandCollapseAllButtons(TreeDataGrid<T> grid) {
-        JmixButton expandAll = uiComponents.create(JmixButton.class);
-        expandAll.setText("Expand all");
-        expandAll.addClickListener(event -> expandChildrenOfRoots(grid));
-
-        JmixButton collapseAll = uiComponents.create(JmixButton.class);
-        collapseAll.setText("Collapse all");
-        collapseAll.addClickListener(event -> collapseChildrenOfRoots(grid));
-
-        HorizontalLayout toolbar = uiComponents.create(HorizontalLayout.class);
-        toolbar.setWidthFull();
-        toolbar.setSpacing(true);
-        toolbar.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-        toolbar.add(expandAll, collapseAll);
-        return toolbar;
-    }
-
-    @Subscribe("expandBtn")
-    protected void onExpandBtnClick(final ClickEvent<JmixButton> event) {
-        expandChildrenOfRoots(inventoryItemDataGrid);
-    }
-
-    @Subscribe("collapseBtn")
-    protected void onCollapseBtnClick(final ClickEvent<JmixButton> event) {
-        collapseChildrenOfRoots(inventoryItemDataGrid);
-    }
-
-    private <T> void expandChildrenOfRoots(TreeDataGrid<T> grid) {
-        if (grid == null) return;
-        iterateGridItems(grid, grid::expand);
-    }
-
-    private <T> void collapseChildrenOfRoots(TreeDataGrid<T> grid) {
-        if (grid == null) return;
-        iterateGridItems(grid, grid::collapse);
-    }
-
-    private <T> void iterateGridItems(TreeDataGrid<T> grid, Consumer<T> action) {
-        DataProvider<T, ?> dp = grid.getDataProvider();
-        if (dp instanceof GridLazyDataView) {
-            ((GridLazyDataView<T>) dp).getItems().forEach(action);
-        } else if (dp instanceof GridDataView) {
-            ((GridDataView<T>) dp).getItems().forEach(action);
-        }
     }
 }
