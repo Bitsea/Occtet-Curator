@@ -78,8 +78,6 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
     @ViewComponent
     private JmixComboBox<Project> projectComboBox;
     @ViewComponent
-    private JmixComboBox<InventoryItem> inventoryItemComboBox;
-    @ViewComponent
     private CollectionContainer<Configuration> configurationsDc;
 
     @Autowired
@@ -118,9 +116,6 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
             projectComboBox.setItems(listProject);
             projectComboBox.setItemLabelGenerator(Project::getProjectName);
 
-            inventoryItemComboBox.setItems(Collections.emptyList());
-            inventoryItemComboBox.setEnabled(false);
-
             configurationsDataGrid.setItems(new ContainerDataGridItems<>(configurationsDc));
 
             scanner = scannerManager.findScannerByName(scannerName);
@@ -140,24 +135,6 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
             List<InventoryItem> inventoryItemList = new ArrayList<>(inventoryItemService.findInventoryItemsOfProject(chosenProject));
 
             inventoryItemList.removeIf(in -> in.getParent() != null );
-
-            inventoryItemComboBox.setEnabled(true);
-            inventoryItemComboBox.setItems(inventoryItemList);
-
-            if (!inventoryItemList.isEmpty()) {
-                inventoryItemComboBox.setValue(inventoryItemList.getFirst());
-            }
-            inventoryItemComboBox.setItemLabelGenerator(InventoryItem::getInventoryName);
-        }
-    }
-
-    @Subscribe("inventoryItemComboBox")
-    public void onInventoryItemFieldValueChange(final AbstractField.ComponentValueChangeEvent<JmixComboBox<InventoryItem>,
-            InventoryItem> event) {
-        if (event.getValue() != null) {
-            if (scannerName != null) {
-                setConfigurations(scanner);
-            }
         }
     }
 
@@ -256,7 +233,7 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
         ArrayList<Configuration> configurations = new ArrayList<>();
 
         scanner.getSupportedConfigurationKeys().forEach(k -> {
-            String defaultConfigurationValue = scanner.getDefaultConfigurationValue(k, inventoryItemComboBox.getValue());
+            String defaultConfigurationValue = scanner.getDefaultConfigurationValue(k);
             configurations.add(configurationService.create(k, defaultConfigurationValue));
         });
 

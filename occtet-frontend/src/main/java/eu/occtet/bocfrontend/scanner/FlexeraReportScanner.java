@@ -215,11 +215,11 @@ public class FlexeraReportScanner extends Scanner{
     }
 
     @Override
-    public String getDefaultConfigurationValue(String k, InventoryItem inventoryItem) {
+    public String getDefaultConfigurationValue(String k) {
         switch(k) {
             case CONFIG_KEY_USE_LICENSE_MATCHER: return ""+DEFAULT_USE_LICENSE_MATCHER;
             case CONFIG_KEY_USE_FALSE_COPYRIGHT_FILTER: return ""+DEFAULT_USE_FALSE_COPYRIGHT_FILTER;
         }
-        return super.getDefaultConfigurationValue(k, inventoryItem);
+        return super.getDefaultConfigurationValue(k);
     }
 }

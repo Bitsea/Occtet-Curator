@@ -97,9 +97,8 @@ public class SpdxScanner extends Scanner{
             }
 
             UUID projectId = scannerInitializer.getInventoryItem().getProject().getId();
-            UUID rootInventoryItemId = scannerInitializer.getInventoryItem().getId();
 
-            sendIntoStream(spdxJson, projectId, rootInventoryItemId, useCopyright ,useLicenseMatcher, filename);
+            sendIntoStream(spdxJson, projectId, useCopyright ,useLicenseMatcher, filename);
             completionCallback.accept(scannerInitializer);
             return true;
         }catch (Exception e){
@@ -110,7 +109,7 @@ public class SpdxScanner extends Scanner{
 
     }
 
-    private void sendIntoStream(byte[] spdxJson, UUID projectId, UUID rootInventoryItemId, boolean useCopyright, boolean useLicenseMatch, String filename) {
+    private void sendIntoStream(byte[] spdxJson, UUID projectId, boolean useCopyright, boolean useLicenseMatch, String filename) {
 
         ByteArrayInputStream objectStoreInput = new ByteArrayInputStream(spdxJson);
 
@@ -121,7 +120,7 @@ public class SpdxScanner extends Scanner{
 
         ObjectInfo objectInfo = natsService.putDataIntoObjectStore(objectStoreInput, objectMeta);
 
-        SpdxWorkData spdxWorkData = new SpdxWorkData( objectInfo.getObjectName(), objectInfo.getBucket(), projectId.toString(), rootInventoryItemId.toString(), useCopyright, useLicenseMatch);
+        SpdxWorkData spdxWorkData = new SpdxWorkData( objectInfo.getObjectName(), objectInfo.getBucket(), projectId.toString(), useCopyright, useLicenseMatch);
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
         WorkTask workTask = new WorkTask("processing_spdx", "uploaded spdx report to be turned into entities by spdx-microservice", actualTimestamp, spdxWorkData);
@@ -157,12 +156,12 @@ public class SpdxScanner extends Scanner{
     }
 
     @Override
-    public String getDefaultConfigurationValue(String k, InventoryItem inventoryItem) {
+    public String getDefaultConfigurationValue(String k) {
         switch(k) {
             case CONFIG_KEY_USE_LICENSE_MATCHER: return ""+DEFAULT_USE_LICENSE_MATCHER;
             case CONFIG_KEY_USE_FALSE_COPYRIGHT_FILTER: return ""+DEFAULT_USE_FALSE_COPYRIGHT_FILTER;
         }
-        return super.getDefaultConfigurationValue(k, inventoryItem);
+        return super.getDefaultConfigurationValue(k);
     }
 
 }
