@@ -124,18 +124,6 @@ public class CodeViewerFragment extends Fragment<VerticalLayout> {
                 , markerColor, markerCss, true); // set to false if working with regexes is not wanted
     }
 
-//    @Subscribe("fileUploadField")
-//    public void onFileUploadFieldFileUploadSucceeded(final FileUploadSucceededEvent<FileUploadField> event) {
-//        String fileName = event.getFileName();
-//        byte[] fileBytes = event.getSource().getValue();
-//        if (fileBytes == null){
-//            notifications.create("File content is empty").withType(Notifications.Type.ERROR).show();
-//            return;
-//        }
-//        String content = new String(fileBytes, StandardCharsets.UTF_8);
-//        setCodeEditorContent(content, fileName);
-//    }
-
     private CodeEditorMode detectModeByExtension(String filename) {
         String extension = getFileExtension(filename);
 
