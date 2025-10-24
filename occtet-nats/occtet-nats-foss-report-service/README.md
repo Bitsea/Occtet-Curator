@@ -19,8 +19,14 @@ Export Docker image as file for remote deployment:
 Import Docker image on remote machine:
 `gunzip -c occtet-nats-foss-report-service.tar.gz | docker load`
 
+# Run locally
 
-#Setup
+Default Maven profile is "live" (for the docker-based setup on the server), to run with "dev" profile, use:
+`mvn spring-boot:run -Pdev`
+
+This uses the application-dev.properties file and connects to dev database and NATS server on server-6.
+
+# Setup
 
 # DB:
 

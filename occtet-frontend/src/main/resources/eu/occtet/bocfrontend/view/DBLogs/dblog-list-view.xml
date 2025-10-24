@@ -23,14 +23,16 @@
 
 <view xmlns="http://jmix.io/schema/flowui/view"
       title="Backend Logs"
-      focusComponent="DBLogListDataGrid">
+      focusComponent="dataGrid">
     <data>
         <collection id="dbLogDc"
-                    class="eu.occtet.bocfrontend.entity.DBLog">
+                    class="eu.occtet.bocfrontend.entity.LoggingEvent">
             <fetchPlan extends="_base"/>
-            <loader id="dbLogDc" readOnly="true">
+
+            <loader id="dbLogLoader" readOnly="true">
+
                 <query>
-                    <![CDATA[select e from DBLog e order by e.eventDate]]>
+                    <![CDATA[select e from LoggingEvent e order by e.timestmp]]>
                 </query>
             </loader>
         </collection>
@@ -40,53 +42,22 @@
         <settings id="settingsFacet" auto="true"/>
         <timer id="timer" delay="15000" autostart="true" repeating="true"/>
     </facets>
-    <actions>
-        <action id="selectAction" type="lookup_select"/>
-        <action id="discardAction" type="lookup_discard"/>
-    </actions>
+
     <layout>
 
-        <hbox spacing="false"
-              width="100%"
-              alignItems="CENTER">
-
-            <vbox spacing="false"
-                  margin="false">
-                <button id="testConnection" text="testAiConnection" />
-                <button id="callApiButtonCopyright"
-                        text="Call Backend for Copyrights"/>
-                <button id="callApiButtonLicense"
-                        text="Call Backend for Licenses"/>
-
-                <genericFilter id="genericFilter"
-                               dataLoader="dbLogDc">
-                    <properties include=".*"/>
-                </genericFilter>
-            </vbox>
-
-        </hbox>
-
-        <dataGrid id="DBLogListDataGrid"
+        <simplePagination dataLoader="dbLogLoader"/>
+        <dataGrid id="dataGrid"
                   width="100%"
-                  columnReorderingAllowed="true"
                   minHeight="20em"
                   dataContainer="dbLogDc">
-            <actions>
-                <action id="create" type="list_create"/>
-                <action id="edit" type="list_edit"/>
-                <action id="refresh" type="list_refresh"/>
-                <action id="remove" type="list_remove"/>
 
-            </actions>
-            <columns resizable="true">
-                <column property="eventDate" header="msg://eu.occtet.bocfrontend.entity/DbLog.eventDate"/>
-                <column property="component" header="msg://eu.occtet.bocfrontend.entity/DbLog.component"/>
-                <column property="message" header="msg://eu.occtet.bocfrontend.entity/DbLog.message"/>
+            <columns resizable="true" sortable="false">
+                <column property="timestmp" width="15%" header="msg://eu.occtet.bocfrontend.entity/DbLog.eventDate"
+                        sortable="false"/>
+                <column property="loggerName" width="25%" header="" sortable="false"/>
+                <column property="formattedMessage" autoWidth="true"
+                        header="msg://eu.occtet.bocfrontend.entity/DbLog.message" sortable="false"/>
             </columns>
         </dataGrid>
-        <hbox id="lookupActions" visible="false">
-            <button id="selectButton" action="selectAction"/>
-            <button id="discardButton" action="discardAction"/>
-        </hbox>
     </layout>
 </view>
