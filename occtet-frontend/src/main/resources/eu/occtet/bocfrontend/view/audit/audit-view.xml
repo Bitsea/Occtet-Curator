@@ -28,7 +28,19 @@
                     class="eu.occtet.bocfrontend.entity.InventoryItem">
             <loader id="inventoryItemDl">
                 <query>
-                    <![CDATA[select e from InventoryItem e where e.project = :project order by e.inventoryName]]>
+                    <![CDATA[
+                        select distinct e
+                        from InventoryItem e
+                        where e.project = :project
+                        and (
+                            :vulnerableOnly = false
+                            or (
+                                e.softwareComponent is not null
+                                and e.softwareComponent.vulnerabilities is not empty
+                            )
+                        )
+                        order by e.inventoryName
+                    ]]>
                 </query>
             </loader>
             <fetchPlan extends="_local">

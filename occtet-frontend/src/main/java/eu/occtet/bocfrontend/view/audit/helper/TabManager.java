@@ -34,7 +34,7 @@ import eu.occtet.bocfrontend.model.FileResult;
 import eu.occtet.bocfrontend.model.FileTreeNode;
 import eu.occtet.bocfrontend.service.FileContentService;
 import eu.occtet.bocfrontend.view.audit.AuditView;
-import eu.occtet.bocfrontend.view.audit.InventoryItemTabFragment;
+import eu.occtet.bocfrontend.view.audit.fragment.InventoryItemTabFragment;
 import eu.occtet.bocfrontend.view.codeviewerfragment.CodeViewerFragment;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Fragments;

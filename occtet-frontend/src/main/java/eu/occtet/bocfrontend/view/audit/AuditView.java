@@ -173,6 +173,13 @@ public class AuditView extends StandardView{
                         });
     }
 
+    /**
+     * Loads a project based on its ID string passed via URL. This method attempts to parse the project ID,
+     * fetches the project from the repository, and updates the UI state accordingly. It handles invalid
+     * IDs gracefully by logging the error and ensuring navigation suppression state is properly managed.
+     *
+     * @param projectIdStr the string representation of the project ID to be loaded from the URL
+     */
     private void loadProjectFromUrl(String projectIdStr) {
         suppressNavigation = true;
         try {
@@ -190,6 +197,15 @@ public class AuditView extends StandardView{
         }
     }
 
+    /**
+     * Restores the active tabs and session state for the AuditView.
+     *
+     * This method retrieves the previously saved state of the AuditView using
+     * the viewStateService. It restores the session tabs, including
+     * inventory item and file tree tabs, and attempts to reselect the last active
+     * tab based on the identifier stored in the state. If an active tab is found,
+     * it updates the UI components appropriately.
+     */
     private void restoreTabsAndState() {
         viewStateService.get().ifPresent(state -> {
             restoreSessionTabs(state);
@@ -225,12 +241,30 @@ public class AuditView extends StandardView{
     }
 
     private void initializeInventoryDataGrid() {
-        HorizontalLayout inventoryToolbar = toolBoxFactory.createToolBox(inventoryItemDataGrid, true, false);
+        HorizontalLayout inventoryToolbar = toolBoxFactory.createToolBox(
+                inventoryItemDataGrid, true, false,
+                InventoryItem.class, this::onVulnerabilityFilterToggled);
         toolbarBox.removeAll();
         toolbarBox.add(inventoryToolbar);
         toolBoxFactory.createInfoButtonHeaderForInventoryGrid(inventoryItemDataGrid, "status");
 
         inventoryItemDataGrid.setTooltipGenerator(InventoryItem::getInventoryName);
+    }
+
+    /**
+     * Toggles the vulnerability filter for inventory items. Updates the data loader parameter to
+     * filter items based on their vulnerability status and reloads the data.
+     *
+     * @param vulnerableOnly a boolean indicating whether to display only vulnerable inventory items (true)
+     *                        or all items (false)
+     */
+    private void onVulnerabilityFilterToggled(boolean vulnerableOnly) {
+        Project project = projectComboBox.getValue();
+        if (project == null) return;
+
+        inventoryItemDl.setParameter("vulnerableOnly", vulnerableOnly);
+        inventoryItemDl.load();
+        loadFileCounts(project);
     }
 
     private void initializeTabManager() {
@@ -246,6 +280,13 @@ public class AuditView extends StandardView{
                 .build();
     }
 
+
+    /**
+     * Restores the session tabs for the AuditView, including inventory item tabs and file tabs,
+     * without automatically selecting them.
+     *
+     * @param state containing the previously saved open inventory and file tabs state
+     */
     private void restoreSessionTabs(AuditViewStateService.AuditViewState state) {
         // Restore inventory item tabs without auto-selecting them
         state.openInventoryTabsIds().stream()
@@ -257,6 +298,13 @@ public class AuditView extends StandardView{
                 .ifPresent(node -> tabManager.openFileTab(node, false)));
     }
 
+    /**
+     * Saves the current state of the AuditView to the user's session.
+     *
+     * This method captures the active state of the application, including the selected project,
+     * open inventory item tabs, open file tabs, and the currently active tab identifier.
+     * If no project is selected, the session state is cleared.
+     */
     private void saveStateToSession() {
         Project selectedProject = projectComboBox.getValue();
         if (selectedProject == null) {
@@ -274,6 +322,14 @@ public class AuditView extends StandardView{
         viewStateService.save(state);
     }
 
+
+    /**
+     * Handles changes to the active tab in the AuditView.
+     *
+     * This method updates the application's state or URL when the active tab changes.
+     *
+     * @param activeIdentifier the identifier of the newly active tab
+     */
     private void onTabChange(Serializable activeIdentifier) {
         if (suppressNavigation) {
             log.trace("Navigation suppressed — skipping URL update for {}", activeIdentifier);
@@ -292,8 +348,11 @@ public class AuditView extends StandardView{
         if (selectedProject == null) return;
 
         try {
-            UI.getCurrent().navigate(AuditView.class, new RouteParameters(new RouteParam("projectId",
-                    selectedProject.getId().toString())));
+            UI.getCurrent().access(() -> {
+                UI.getCurrent().navigate(AuditView.class, new RouteParameters(
+                        new RouteParam("projectId", selectedProject.getId().toString())
+                ));
+            });
 
         } finally {
             suppressNavigation = false;
@@ -311,15 +370,28 @@ public class AuditView extends StandardView{
 
     public void refreshInventoryItemDc(Project project) {
         inventoryItemDl.setParameter("project", project);
+        inventoryItemDl.setParameter("vulnerableOnly", false);
         inventoryItemDl.load();
         loadFileCounts(project);
     }
 
+
+    /**
+     * Loads the count of files associated with inventory items for the specified project.
+     * This method queries the database for each inventory item in the project,
+     * retrieves the count of associated files, and updates the internal file counts map.
+     * It also refreshes the data in the inventory item data grid.
+     *
+     * @param project the project whose inventory item file counts are to be loaded
+     */
     private void loadFileCounts(Project project) {
         ValueLoadContext context = new ValueLoadContext()
-                .setQuery(new ValueLoadContext.Query(
-                        "select cl.inventoryItem.id as itemId, count(cl) as fileCount from CodeLocation cl " +
-                                "where cl.inventoryItem.project = :project group by cl.inventoryItem.id")
+                .setQuery(new ValueLoadContext.Query("""
+                            select cl.inventoryItem.id as itemId, count(cl) as fileCount
+                            from CodeLocation cl
+                            where cl.inventoryItem.project = :project
+                            group by cl.inventoryItem.id
+                        """)
                         .setParameter("project", project))
                 .addProperty("itemId")
                 .addProperty("fileCount");
@@ -330,11 +402,13 @@ public class AuditView extends StandardView{
                         kv -> kv.getValue("itemId"),
                         kv -> kv.getValue("fileCount")
                 ));
+
+        inventoryItemDataGrid.getDataProvider().refreshAll();
     }
 
     @Supply(to = "inventoryItemDataGrid.fileNumCol", subject = "renderer")
     Renderer<InventoryItem> filesCountRenderer() {
-        return rendererFactory.filesCountRenderer(projectComboBox.getValue());
+        return rendererFactory.filesCountRenderer(() -> fileCounts != null ? fileCounts : Collections.emptyMap());
     }
 
     @Supply(to = "inventoryItemDataGrid.status", subject = "renderer")
@@ -351,10 +425,17 @@ public class AuditView extends StandardView{
         );
 
         fileTreeGridLayout.removeAll();
-        HorizontalLayout toolbar = toolBoxFactory.createToolBox(fileTreeGrid, false, true);
+        HorizontalLayout toolbar = toolBoxFactory.createToolBox(fileTreeGrid, false, false, FileTreeNode.class, null);
         fileTreeGridLayout.add(toolbar, fileTreeGrid);
     }
 
+    /**
+     * Handles the value change event for the projectComboBox component.
+     * This method updates the current project context, manages active tabs,
+     * and prompts the user to confirm actions if necessary.
+     *
+     * @param event contains old and new selected project,
+     */
     @Subscribe("projectComboBox")
     public void onProjectComboBoxValueChange(
             final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event) {
@@ -396,8 +477,6 @@ public class AuditView extends StandardView{
             treeGridHelper.toggleExpansion(inventoryItemDataGrid, event.getItem());
         }
     }
-
-
 
     private void clearView() {
         inventoryItemDc.setItems(Collections.emptyList());

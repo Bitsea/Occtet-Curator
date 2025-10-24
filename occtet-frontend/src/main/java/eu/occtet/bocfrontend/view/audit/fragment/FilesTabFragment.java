@@ -19,7 +19,7 @@
  *
  */
 
-package eu.occtet.bocfrontend.view.audit;
+package eu.occtet.bocfrontend.view.audit.fragment;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
@@ -63,6 +63,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
+/**
+ * The FilesTabFragment class represents a fragment of a user interface for managing and interacting
+ * with code locations in a vertical layout. It provides functionality to add, view, edit, delete,
+ * and switch between a grid and code viewer view mode.
+ */
 @FragmentDescriptor("files-tab-fragment.xml")
 public class FilesTabFragment extends Fragment<VerticalLayout>{
 
@@ -109,6 +114,12 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
         codeLocationDl.load();
     }
 
+    /**
+     * Handles the addition of a new code location for the current inventory item.
+     * Opens an input dialog to collect information such as file path and optional line number range.
+     *
+     * @param event the click event triggered by the UI component, representing the user interaction
+     */
     @Subscribe(id = "codeloctionsEditButton.addCodeLocation")
     public void addCodeLocation(DropdownButtonItem.ClickEvent event) {
         dialogs.createInputDialog(hostView)
@@ -155,9 +166,6 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
         });
     }
 
-    /**
-     * Copies the code location file path to the clipboard.
-     */
     private void copyCodeLocation(CodeLocation codeLocation) {
         UiComponentUtils.copyToClipboard(codeLocation.getFilePath())
                 .then(successResult -> notifications.create("Text copied!")

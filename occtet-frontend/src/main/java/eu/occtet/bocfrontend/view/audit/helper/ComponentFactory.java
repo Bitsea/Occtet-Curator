@@ -21,6 +21,7 @@
 
 package eu.occtet.bocfrontend.view.audit.helper;
 
+import com.github.javaparser.quality.Nullable;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.NativeLabel;
@@ -32,21 +33,16 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.popover.PopoverVariant;
-import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
-import com.vaadin.flow.data.provider.hierarchy.TreeData;
-import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.Vulnerability;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.kit.component.button.JmixButton;
-import io.jmix.flowui.kit.component.grid.JmixTreeGrid;
 import io.jmix.flowui.view.ViewComponent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 
 /**
@@ -64,6 +60,13 @@ public class ComponentFactory {
     @ViewComponent
     private Notifications notifications;
 
+    /**
+     * Creates an information button with a tooltip and attaches it to the header of the specified column in the inventory grid.
+     * The button also displays a popover with additional information when clicked.
+     *
+     * @param inventoryItemDataGrid The TreeDataGrid containing the inventory items.
+     * @param colKey The key of the column where the information button will be added.
+     */
     public void createInfoButtonHeaderForInventoryGrid(TreeDataGrid<InventoryItem> inventoryItemDataGrid, String colKey) {
         Grid.Column<InventoryItem> statusColumn = inventoryItemDataGrid.getColumnByKey(colKey);
 
@@ -116,30 +119,42 @@ public class ComponentFactory {
         return layout;
     }
 
+    /**
+     * Creates a toolbox layout for a given TreeDataGrid with optional functionality
+     * like a search button and a vulnerability filter checkbox.
+     *
+     * @param grid The TreeDataGrid instance for which the toolbox is being created.
+     * @param vulnerabilityFilterIsVisible A boolean indicating whether the vulnerability filter checkbox should be visible.
+     * @param searchButtonIsVisible A boolean indicating whether the search button should be visible.
+     * @param entityClass The entity class associated with the TreeDataGrid.
+     * @param vulnerabilityToggleHandler An optional Consumer that handles the state changes of the vulnerability filter checkbox.
+     * @return A HorizontalLayout containing the configured toolbox components.
+     */
     public <T> HorizontalLayout createToolBox(TreeDataGrid<T> grid, boolean vulnerabilityFilterIsVisible,
-                                              boolean searchButtonIsVisible) {
+                                              boolean searchButtonIsVisible, Class<T> entityClass,
+                                              @Nullable Consumer<Boolean> vulnerabilityToggleHandler) {
         HorizontalLayout toolbox = uiComponents.create(HorizontalLayout.class);
 
         toolbox.setSpacing(true);
         toolbox.setPadding(true);
         toolbox.setAlignItems(FlexComponent.Alignment.CENTER);
+        toolbox.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
 
         JmixButton searchButton = uiComponents.create(JmixButton.class);
         searchButton.setTooltipText("Search");
         searchButton.setIcon(VaadinIcon.SEARCH.create());
         searchButton.setThemeName("small icon primary");
         searchButton.setVisible(searchButtonIsVisible);
-        if (searchButtonIsVisible) {
-
-        }
 
         Checkbox vulnerabilityFilter = uiComponents.create(Checkbox.class);
         vulnerabilityFilter.setLabel("vulnerable");
         vulnerabilityFilter.setValue(false);
         vulnerabilityFilter.setVisible(vulnerabilityFilterIsVisible);
-        if (vulnerabilityFilterIsVisible) {
+        if (vulnerabilityFilterIsVisible && entityClass.equals(InventoryItem.class)) {
             vulnerabilityFilter.addValueChangeListener(event -> {
-                vulnerabilityFilterValueChangeListener(grid);
+                if (vulnerabilityToggleHandler != null) {
+                    vulnerabilityToggleHandler.accept(Boolean.TRUE.equals(event.getValue()));
+                }
             });
         }
 
@@ -155,39 +170,45 @@ public class ComponentFactory {
         return toolbox;
     }
 
+    /**
+     * Creates a horizontal toolbar containing "Expand all" and "Collapse all" buttons for a TreeDataGrid.
+     * The "Expand all" button expands all children of root items in the provided grid,
+     * while the "Collapse all" button collapses all children of root items.
+     *
+     * @param <T> The type of the items in the TreeDataGrid.
+     * @param grid The TreeDataGrid instance for which the expand and collapse functionality is being created.
+     * @return A HorizontalLayout containing the "Expand all" and "Collapse all" buttons.
+     */
     public <T> HorizontalLayout createExpandAndCollapseToolBar(TreeDataGrid<T> grid) {
+        Icon expandIcon = VaadinIcon.EXPAND.create();
+        Icon compressIcon = VaadinIcon.COMPRESS.create();
+
         JmixButton expandAll = uiComponents.create(JmixButton.class);
         expandAll.setTooltipText("Expand all");
-        expandAll.setIcon(VaadinIcon.EXPAND.create());
+        expandAll.setIcon(expandIcon);
         expandAll.setThemeName("small icon primary");
-        expandAll.setWidth("20px");
-        expandAll.setHeight("20px");
+        expandAll.setMaxHeight("20px");
+        expandAll.setMaxWidth("28px");
         expandAll.addClickListener(event -> treeGridHelper.expandChildrenOfRoots(grid));
 
         JmixButton collapseAll = uiComponents.create(JmixButton.class);
         collapseAll.setTooltipText("Collapse all");
-        collapseAll.setIcon(VaadinIcon.COMPRESS.create());
+        collapseAll.setIcon(compressIcon);
         collapseAll.setThemeName("small icon primary");
-        collapseAll.setWidth("20px");
-        collapseAll.setHeight("20px");
+        collapseAll.setMaxHeight("20px");
+        collapseAll.setMaxWidth("28px");
         collapseAll.addClickListener(event -> treeGridHelper.collapseChildrenOfRoots(grid));
 
-        HorizontalLayout toolbar = uiComponents.create(HorizontalLayout.class);
-        toolbar.setWidthFull();
-        toolbar.setMargin(false);
-        toolbar.setPadding(false);
-        toolbar.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-        toolbar.add(expandAll, collapseAll);
+        HorizontalLayout mergeLayout = uiComponents.create(HorizontalLayout.class);
+        mergeLayout.setMargin(false);
+        mergeLayout.setWidthFull();
+        mergeLayout.getStyle().set("padding", "var(--lumo-space-s)");
+        mergeLayout.getStyle().set("spacing", "2px");
+        mergeLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        mergeLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        mergeLayout.add(expandAll, collapseAll);
 
-        return toolbar;
+        return mergeLayout;
     }
-
-    private <T> void vulnerabilityFilterValueChangeListener(TreeDataGrid<T> grid){
-       // TODO
-    }
-
-//    private boolean isVulnerable(InventoryItem item) {
-//    }
-
 }
 

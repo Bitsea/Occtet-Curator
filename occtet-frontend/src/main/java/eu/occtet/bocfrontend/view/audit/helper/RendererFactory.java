@@ -27,18 +27,13 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.Project;
-import io.jmix.core.DataManager;
-import io.jmix.core.ValueLoadContext;
-import io.jmix.core.entity.KeyValueEntity;
 import io.jmix.flowui.UiComponents;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 
 import static java.lang.Boolean.*;
 
@@ -53,9 +48,10 @@ public class RendererFactory {
 
     @Autowired
     private UiComponents uiComponents;
-    @Autowired
-    private DataManager dataManager;
 
+    /**
+     * Creates a renderer that visually represents the "curated" status of an InventoryItem.
+     */
     public Renderer<InventoryItem> statusRenderer(){
         return new ComponentRenderer<>(item -> {
             Icon circleIcon  = uiComponents.create(Icon.class);
@@ -75,26 +71,18 @@ public class RendererFactory {
         });
     }
 
-    public Renderer<InventoryItem> filesCountRenderer(Project project ){
-        return new TextRenderer<>(item -> loadFileCounts(project).getOrDefault(item.getId(), 0L).toString());
+    /**
+     * Creates a renderer that displays the file count for a given InventoryItem.
+     * The renderer uses the provided supplier to retrieve a map of file counts,
+     * where the keys are the IDs of InventoryItem instances, and the values are their respective file counts.
+     *
+     * @param fileCountsSupplier a Supplier providing a Map that contains the file count data.
+     *                           The map's keys are UUID values corresponding to InventoryItem IDs,
+     *                           and the values are Long representing the file counts.
+     * @return a Renderer for rendering the file count of an InventoryItem.
+     */
+    public Renderer<InventoryItem> filesCountRenderer(Supplier<Map<UUID, Long>> fileCountsSupplier) {
+        return new TextRenderer<>(item -> fileCountsSupplier.get().getOrDefault(item.getId(), 0L).toString());
+
     }
-
-    private Map<UUID, Long> loadFileCounts(Project project) {
-        ValueLoadContext context = new ValueLoadContext()
-                .setQuery(new ValueLoadContext.Query(
-                        "select cl.inventoryItem.id as itemId, count(cl) as fileCount from CodeLocation cl " +
-                                "where cl.inventoryItem.project = :project group by cl.inventoryItem.id")
-                        .setParameter("project", project))
-                .addProperty("itemId")
-                .addProperty("fileCount");
-
-        List<KeyValueEntity> counts = dataManager.loadValues(context);
-        return counts.stream()
-                .collect(Collectors.toMap(
-                        kv -> kv.getValue("itemId"),
-                        kv -> kv.getValue("fileCount")
-                ));
-    }
-
-
 }
