@@ -183,22 +183,12 @@ public class FossReportService extends BaseWorkDataProcessor {
                     String basePath = FossReportUtilities.determineBasePath(rowDto.files()).trim();
                     log.debug("basePath: {}", basePath);
 
-                    //TODO figure out if this  is needed
-//                    if(parentInventory.getBasePath()== null || parentInventory.getBasePath().isEmpty()){
-//                        if (basePath.contains("\\") && StringUtils.countMatches(basePath, "\\") >= 2)
-//                            parentInventory.setBasePath(basePath.substring(0,PathUtilities.secondLastDirectoryIndex(2,"\\", basePath)));
-//                        else if(basePath.contains("/") && StringUtils.countMatches(basePath, "/") >= 2)
-//                            parentInventory.setBasePath(basePath.substring(0,PathUtilities.secondLastDirectoryIndex(2,"/", basePath)));
-//                        else parentInventory.setBasePath(basePath);
-//                        inventoryItemRepository.save(parentInventory);
-//                    }
-
                     inventoryItemRepository.save(originInventoryItem.get());
                     List<Copyright> copyrights = new ArrayList<>();
                     inventoryItem=  inventoryItemService.getOrCreateInventoryItemWithAllAttributes(
                             project, inventoryName, rowDto.size()==null?0:rowDto.size(),
                             rowDto.linking(), rowDto.externalNotes(),
-                            parentInventory, softwareComponent, wasCombined, copyrights, basePath, priority
+                            parentInventory, softwareComponent, wasCombined, copyrights, priority
                     );
                     CodeLocation basePathCodeLocation = codeLocationService.findOrCreateCodeLocationWithInventory(basePath, inventoryItem);
                     prepareCodeLocations(rowDto, inventoryItem, basePathCodeLocation);
