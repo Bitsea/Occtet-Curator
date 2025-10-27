@@ -101,8 +101,7 @@ public class InventoryItem {
             SoftwareComponent softwareComponent,
             boolean wasCombined,
             boolean curated,
-            Project project,
-            String basePath, String spdxId
+            Project project, String spdxId
     ) {
         this.createdAt = LocalDateTime.now();
         this.inventoryName = inventoryName;

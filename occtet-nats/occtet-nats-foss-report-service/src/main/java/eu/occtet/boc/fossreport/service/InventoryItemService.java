@@ -64,7 +64,6 @@ public class InventoryItemService {
             SoftwareComponent sc,
             Boolean wasCombined,
             List<Copyright> copyrights,
-            String basePath,
             Integer priority
     ) {
         List<InventoryItem> inventoryItemList =
@@ -76,7 +75,7 @@ public class InventoryItemService {
         if(inventoryItemList.isEmpty()){
             inventoryItem = inventoryItemFactory.create(
                     inventoryName, size, linking, externalNotes, parentItem, sc, wasCombined, copyrights,
-                    project, basePath, priority);
+                    project, priority);
         } else {
             inventoryItem = inventoryItemList.getFirst();
             updateInventoryItem(inventoryItem,

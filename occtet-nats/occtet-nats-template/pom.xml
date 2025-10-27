@@ -96,7 +96,7 @@
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-common-jpa</artifactId>
-            <version>2025.10.1</version>
+            <version>2025.10.2</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
