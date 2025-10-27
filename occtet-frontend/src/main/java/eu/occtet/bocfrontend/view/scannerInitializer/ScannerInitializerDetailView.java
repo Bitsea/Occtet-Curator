@@ -135,6 +135,7 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
             List<InventoryItem> inventoryItemList = new ArrayList<>(inventoryItemService.findInventoryItemsOfProject(chosenProject));
 
             inventoryItemList.removeIf(in -> in.getParent() != null );
+            setConfigurations(scanner);
         }
     }
 
