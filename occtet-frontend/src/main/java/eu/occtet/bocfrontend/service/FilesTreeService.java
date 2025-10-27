@@ -75,8 +75,8 @@ public class FilesTreeService {
         List<FileTreeNode> roots = new ArrayList<>();
 
         for (InventoryItem item : baseInventoryItems){
-            if (item.getBasePath() == null) continue;
-            File baseDir = new File(item.getBasePath());
+            if (item.getProject().getBasePath() == null) continue;
+            File baseDir = new File(item.getProject().getBasePath());
             if (baseDir.exists() && baseDir.isDirectory()) {
                 FileTreeNode node = buildTreeFromFile(baseDir, null, baseDir.toPath(), fileNameToCodeLocationsMap);
                 roots.add(node);
