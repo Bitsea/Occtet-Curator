@@ -39,10 +39,8 @@ public class DownloadService extends BaseWorkDataProcessor {
     private static final Logger log = LoggerFactory.getLogger(DownloadService.class);
 
     @Autowired
-    private GitService gitService;
+    private PackageService packageService;
 
-    @Autowired
-    private ZipService zipService;
 
     @Override
     public boolean process(DownloadServiceWorkData workData) {
@@ -55,11 +53,12 @@ public class DownloadService extends BaseWorkDataProcessor {
         try{
             String analyzedUrl = analyzingUrl(workData.getUrl());
 
-            if(analyzedUrl.equals("zip")|| analyzedUrl.equals("jar")){
-                zipService.editJarFile(workData.getUrl(),workData.getLocation());
-
-            }else if(analyzedUrl.equals("git")){
-                gitService.unpackRepo(workData.getUrl(),workData.getLocation());
+            if(analyzedUrl.equals("git")){
+                packageService.unpackGitZipRepo(workData.getUrl(),workData.getLocation(),workData.getVersion());
+            }else if(analyzedUrl.equals("gz")){
+                packageService.unpackTarGzFile(workData.getUrl(),workData.getLocation());
+            }else{
+                packageService.unpackZipFile(workData.getUrl(), workData.getLocation());
             }
         }catch (Exception e){
             log.error("Error in storeData...");
