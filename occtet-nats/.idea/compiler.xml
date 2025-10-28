@@ -13,6 +13,8 @@
         <module name="occtet-nats-subscriber-sample" />
         <module name="occtet-nats-vulnerability-microservice" />
         <module name="occtet-nats-foss-report-service" />
+        <module name="occtet-nats-ort-run-starter-service" />
+        <module name="occtet-ort-client" />
         <module name="occtet-nats-copyrightfilter-service" />
         <module name="occtet-nats-ai-licensematcher-service" />
         <module name="occtet-nats-template" />

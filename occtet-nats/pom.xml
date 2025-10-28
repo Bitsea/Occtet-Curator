@@ -38,6 +38,8 @@
         <module>occtet-nats-copyrightfilter-service</module>
         <module>occtet-nats-vulnerability-service</module>
         <module>occtet-nats-issue-catcher-service</module>
+        <module>occtet-nats-ort-run-starter-service</module>
+        <module>occtet-ort-client</module>
     </modules>
 
     <groupId>eu.occtet.boc</groupId>

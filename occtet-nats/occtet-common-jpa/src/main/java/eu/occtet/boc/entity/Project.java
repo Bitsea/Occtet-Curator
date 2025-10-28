@@ -42,6 +42,14 @@ public class Project {
     @Column(name="PROJECT_NAME")
     private String projectName;
 
+    @Column(name="RUN_ID")
+    private int runId;
+
+    @Column(name="SCAN_STATUS")
+    private String scanStatus;
+
+
+
     public Project() {
     }
 
@@ -63,5 +71,21 @@ public class Project {
 
     public void setProjectName(String projectName) {
         this.projectName = projectName;
+    }
+
+    public int getRunId() {
+        return runId;
+    }
+
+    public void setRunId(int runId) {
+        this.runId = runId;
+    }
+
+    public String getScanStatus() {
+        return scanStatus;
+    }
+
+    public void setScanStatus(String scanStatus) {
+        this.scanStatus = scanStatus;
     }
 }
