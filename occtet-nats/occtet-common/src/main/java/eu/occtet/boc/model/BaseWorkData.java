@@ -45,6 +45,7 @@ import eu.occtet.boc.service.IWorkDataProcessor;
         @JsonSubTypes.Type(value = AICopyrightFilterWorkData.class, name = "copyrightFilter_task"),
         @JsonSubTypes.Type(value = FossReportServiceWorkData.class, name = "fossreport_task"),
         @JsonSubTypes.Type(value = SpdxWorkData.class, name = "spdx_task"),
+        @JsonSubTypes.Type(value = ORTRunWorkData.class, name = "ortrun_task"),
         @JsonSubTypes.Type(value = SampleWorkData.class, name = "sample"),
         @JsonSubTypes.Type(value = VulnerabilityServiceWorkData.class, name = "vulnerability_task")
 })

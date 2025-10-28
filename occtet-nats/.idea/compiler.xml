@@ -6,17 +6,18 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="occtet-nats-foss-report-service" />
+        <module name="occtet-nats-issue-catcher-service" />
         <module name="occtet-nats-vulnerability-service" />
-        <module name="occtet-nats-copyrightfilter-service" />
         <module name="occtet-common-jpa" />
         <module name="occtet-nats-ai-copyrightfilter-service" />
+        <module name="occtet-nats-subscriber-sample" />
+        <module name="occtet-nats-vulnerability-microservice" />
+        <module name="occtet-nats-foss-report-service" />
+        <module name="occtet-nats-copyrightfilter-service" />
         <module name="occtet-nats-ai-licensematcher-service" />
         <module name="occtet-nats-template" />
-        <module name="occtet-nats-subscriber-sample" />
         <module name="occtet-nats-licensematcher-service" />
         <module name="occtet-common" />
-        <module name="occtet-nats-vulnerability-microservice" />
         <module name="occtet-nats-spdx-service" />
       </profile>
     </annotationProcessing>
