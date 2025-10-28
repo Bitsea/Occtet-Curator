@@ -9695,7 +9695,7 @@
             "title" : "Long"
           },
           "issuesCountBySeverity" : {
-            "type" : [ "null", "object" ],
+            "type" : [ "object" ],
             "additionalProperties" : {
               "type" : "integer",
               "format" : "int64",
@@ -9714,7 +9714,7 @@
             "title" : "Long"
           },
           "ruleViolationsCountBySeverity" : {
-            "type" : [ "null", "object" ],
+            "type" : [  "object" ],
             "additionalProperties" : {
               "type" : "integer",
               "format" : "int64",
@@ -9728,7 +9728,7 @@
             "title" : "Long"
           },
           "vulnerabilitiesCountByRating" : {
-            "type" : [ "null", "object" ],
+            "type" : [  "object" ],
             "additionalProperties" : {
               "type" : "integer",
               "format" : "int64",
@@ -10148,7 +10148,7 @@
             } ]
           },
           "parameters" : {
-            "type" : [ "null", "object" ],
+            "type" : [  "object" ],
             "additionalProperties" : {
               "type" : "string",
               "title" : "String"
@@ -10188,7 +10188,7 @@
             "title" : "List_String"
           },
           "config" : {
-            "type" : [ "null", "object" ],
+            "type" : [  "object" ],
             "additionalProperties" : {
               "$ref" : "#/components/schemas/PluginConfig"
             },
@@ -10270,7 +10270,7 @@
             "title" : "List_ProviderPluginConfiguration"
           },
           "packageManagerOptions" : {
-            "type" : [ "null", "object" ],
+            "type" : [  "object" ],
             "additionalProperties" : {
               "$ref" : "#/components/schemas/PackageManagerConfiguration"
             },
@@ -10401,7 +10401,7 @@
             "title" : "List_String"
           },
           "options" : {
-            "type" : [ "null", "object" ],
+            "type" : [  "object" ],
             "additionalProperties" : {
               "type" : "string",
               "title" : "String"
@@ -10471,7 +10471,7 @@
             "title" : "List_String"
           },
           "config" : {
-            "type" : [ "null", "object" ],
+            "type" : [  "object" ],
             "additionalProperties" : {
               "$ref" : "#/components/schemas/PluginConfig"
             },
@@ -10503,7 +10503,7 @@
         "type" : "object",
         "properties" : {
           "config" : {
-            "type" : [ "null", "object" ],
+            "type" : [  "object" ],
             "additionalProperties" : {
               "$ref" : "#/components/schemas/PluginConfig"
             },
@@ -10558,7 +10558,7 @@
             "$ref" : "#/components/schemas/JobConfigurations"
           },
           "labels" : {
-            "type" : [ "null", "object" ],
+            "type" : [  "object" ],
             "additionalProperties" : {
               "type" : "string",
               "title" : "String"

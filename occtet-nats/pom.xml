@@ -27,6 +27,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>occtet-common</module>
+        <module>occtet-ort-client</module>
         <module>occtet-common-jpa</module>
         <module>occtet-nats-template</module>
         <module>occtet-nats-subscriber-sample</module>

@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>occtet-ort-client</artifactId>
+    <version>2025.10.1</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
