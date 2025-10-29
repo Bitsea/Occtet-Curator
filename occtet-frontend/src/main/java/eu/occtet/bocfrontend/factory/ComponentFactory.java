@@ -36,13 +36,9 @@ import com.vaadin.flow.component.popover.PopoverVariant;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.model.FileTreeNode;
 import eu.occtet.bocfrontend.service.TreeGridHelper;
-import io.jmix.flowui.DialogWindows;
-import io.jmix.flowui.Fragments;
-import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.kit.component.button.JmixButton;
-import io.jmix.flowui.view.ViewComponent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -61,12 +57,6 @@ public class ComponentFactory {
     private TreeGridHelper treeGridHelper;
     @Autowired
     private UiComponents uiComponents;
-    @Autowired
-    private Fragments fragments;
-    @Autowired
-    private DialogWindows dialogWindow;
-    @ViewComponent
-    private Notifications notifications;
 
     /**
      * Creates an information button with a tooltip and attaches it to the header of the specified column in the inventory grid.
@@ -143,14 +133,14 @@ public class ComponentFactory {
     public <T> HorizontalLayout createToolBox(TreeDataGrid<T> grid, Class<T> entityClass,
                                               @Nullable Consumer<Boolean> vulnerabilityToggleHandler) {
         if (entityClass.equals(InventoryItem.class)) {
-            return createToolBoxForInventoryItemGrid(grid, entityClass, vulnerabilityToggleHandler);
+            return createToolBoxForInventoryItemGrid(grid, vulnerabilityToggleHandler);
         } else if (entityClass.equals(FileTreeNode.class)) {
-            return createToolBoxForFileTreeNodeGrid(grid, entityClass);
+            return createToolBoxForFileTreeNodeGrid(grid);
         }
         return null;
     }
 
-    private <T> HorizontalLayout createToolBoxForInventoryItemGrid(TreeDataGrid<T> grid, Class<T> entityClass, @Nullable Consumer<Boolean> vulnerabilityToggleHandler) {
+    private <T> HorizontalLayout createToolBoxForInventoryItemGrid(TreeDataGrid<T> grid, @Nullable Consumer<Boolean> vulnerabilityToggleHandler) {
         HorizontalLayout toolbox = uiComponents.create(HorizontalLayout.class);
 
         toolbox.setSpacing(true);
@@ -176,7 +166,7 @@ public class ComponentFactory {
         return toolbox;
     }
 
-    private <T> HorizontalLayout createToolBoxForFileTreeNodeGrid(TreeDataGrid<T> grid, Class<T> entityClass) {
+    private <T> HorizontalLayout createToolBoxForFileTreeNodeGrid(TreeDataGrid<T> grid) {
         HorizontalLayout toolbox = uiComponents.create(HorizontalLayout.class);
 
         toolbox.setSpacing(true);
@@ -188,7 +178,6 @@ public class ComponentFactory {
         searchButton.setTooltipText("Search");
         searchButton.setIcon(VaadinIcon.SEARCH.create());
         searchButton.setThemeName("small icon primary");
-        searchButton.addClickListener(event -> {}); // TODO
 
         toolbox.setClassName("toolbox-audit-view");
         toolbox.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
