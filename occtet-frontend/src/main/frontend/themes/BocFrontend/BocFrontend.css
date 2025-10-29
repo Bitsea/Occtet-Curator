@@ -77,7 +77,16 @@ vaadin-text-field[readonly].read-only::part(input-field) {
     z-index: 20;
 }
 
-.wrap-column {
-    border-top: 1px solid black;
-    border-bottom: 1px solid black;
+.not-curated-icon {
+    color: #ff8700;
+}
+
+.curated-icon {
+    color: #a1ff0a;
+}
+
+.toolbox-audit-view {
+    background-color: var(--lumo-contrast-5pct);
+    border-radius: 6px;
+    padding: var(--lumo-space-s);
 }

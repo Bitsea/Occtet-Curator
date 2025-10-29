@@ -1,12 +1,11 @@
 /*
- *
  *  Copyright (C) 2025 Bitsea GmbH
- *  *
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,11 +15,11 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
+ *
  *
  */
 
-package eu.occtet.bocfrontend.view.audit.filestabfragment;
+package eu.occtet.bocfrontend.fragment;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
@@ -38,7 +37,6 @@ import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.factory.CodeLocationFactory;
 import eu.occtet.bocfrontend.model.FileResult;
 import eu.occtet.bocfrontend.service.FileContentService;
-import eu.occtet.bocfrontend.view.codeviewerfragment.CodeViewerFragment;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.action.DialogAction;
@@ -64,6 +62,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
+/**
+ * The FilesTabFragment class represents a fragment of a user interface for managing and interacting
+ * with code locations in a vertical layout. It provides functionality to add, view, edit, delete,
+ * and switch between a grid and code viewer view mode.
+ */
 @FragmentDescriptor("files-tab-fragment.xml")
 public class FilesTabFragment extends Fragment<VerticalLayout>{
 
@@ -110,6 +113,12 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
         codeLocationDl.load();
     }
 
+    /**
+     * Handles the addition of a new code location for the current inventory item.
+     * Opens an input dialog to collect information such as file path and optional line number range.
+     *
+     * @param event the click event triggered by the UI component, representing the user interaction
+     */
     @Subscribe(id = "codeloctionsEditButton.addCodeLocation")
     public void addCodeLocation(DropdownButtonItem.ClickEvent event) {
         dialogs.createInputDialog(hostView)
@@ -156,9 +165,6 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
         });
     }
 
-    /**
-     * Copies the code location file path to the clipboard.
-     */
     private void copyCodeLocation(CodeLocation codeLocation) {
         UiComponentUtils.copyToClipboard(codeLocation.getFilePath())
                 .then(successResult -> notifications.create("Text copied!")

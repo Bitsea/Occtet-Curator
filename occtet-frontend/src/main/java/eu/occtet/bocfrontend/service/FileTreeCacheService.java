@@ -22,8 +22,10 @@
 
 package eu.occtet.bocfrontend.service;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import eu.occtet.bocfrontend.dao.CodeLocationRepository;
+import eu.occtet.bocfrontend.dao.InventoryItemRepository;
+import eu.occtet.bocfrontend.entity.CodeLocation;
+import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.model.FileTreeNode;
 import org.apache.logging.log4j.LogManager;
@@ -31,15 +33,15 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * An application-level cache for storing generated FileTreeNode structures.
- * This prevents regenerating the tree for every user and every view load.
+ * Service for building and caching file tree structures for projects.
+ * Optimized for performance with batch loading and efficient path matching.
  */
 @Service
 public class FileTreeCacheService {
@@ -47,37 +49,263 @@ public class FileTreeCacheService {
     private static final Logger log = LogManager.getLogger(FileTreeCacheService.class);
 
     @Autowired
-    private FilesTreeService filesTreeService;
+    private InventoryItemRepository inventoryItemRepository;
+    @Autowired
+    private CodeLocationRepository codeLocationRepository;
 
-    private final Cache<UUID, List<FileTreeNode>> fileTreeCache = CacheBuilder.newBuilder()
-            .maximumSize(100) // Store up to 100 project trees
-            .expireAfterWrite(1, TimeUnit.HOURS) // Automatically evict entries after 1 hour of inactivity
-            .build();
+    private final Map<UUID, List<FileTreeNode>> fileTreeCache = new ConcurrentHashMap<>();
 
     /**
-     * Gets the file tree for a project.
-     * If the tree is in the cache, it's returned instantly.
-     * If not, it's generated, added to the cache, and then returned.
-     *
-     * @param project The project for which to get the file tree.
-     * @return A list of root FileTreeNode objects.
+     * Gets the file tree for a project, using cache if available.
      */
     public List<FileTreeNode> getFileTree(Project project) {
-        try {
-            return fileTreeCache.get(project.getId(), () -> {
-                return filesTreeService.prepareFilesForTreeGrid(project);
-            });
-        } catch (ExecutionException e) {
-           log.error("Could not generate file tree for project {}, error message: {} ", project.getId(), e.getMessage());
-           return new ArrayList<>();
+        if (project == null) {
+            return Collections.emptyList();
+        }
+
+        return fileTreeCache.computeIfAbsent(project.getId(),
+                id -> buildFileTree(project));
+    }
+
+    /**
+     * Clears the cache for a specific project.
+     */
+    public void invalidateCache(Project project) {
+        if (project != null) {
+            fileTreeCache.remove(project.getId());
+            log.debug("Invalidated file tree cache for project: {}", project.getProjectName());
         }
     }
 
     /**
-     * Removes the old, stale tree from the cache.
+     * Clears the entire cache.
      */
-    public void invalidateCacheForProject(UUID projectId) {
-        fileTreeCache.invalidate(projectId);
-        log.debug("Invalidated file tree cache for project {}", projectId);
+    public void clearCache() {
+        fileTreeCache.clear();
+        log.debug("Cleared entire file tree cache");
+    }
+
+    /**
+     * Builds the complete file tree structure for a project.
+     */
+    private List<FileTreeNode> buildFileTree(Project project) {
+        log.debug("Building file tree for project: {}", project.getProjectName());
+        long startTime = System.currentTimeMillis();
+
+        List<CodeLocation> codeLocations = codeLocationRepository
+                .findByInventoryItem_Project(project);
+
+        Map<String, List<CodeLocation>> fileNameIndex = indexCodeLocationsByFileName(codeLocations);
+
+        // Load base inventory items (those without parent)
+        List<InventoryItem> baseInventoryItems = inventoryItemRepository
+                .findInventoryItemsByProjectAndParent(project, null);
+
+        // Build tree from each base path
+        List<FileTreeNode> roots = baseInventoryItems.stream()
+                .filter(item -> item.getBasePath() != null)
+                .map(item -> buildTreeFromBasePath(item.getBasePath(), fileNameIndex))
+                .filter(Objects::nonNull)
+                .toList();
+
+        long duration = System.currentTimeMillis() - startTime;
+        log.debug("Built file tree with {} roots in {}ms", roots.size(), duration);
+
+        return roots;
+    }
+
+    /**
+     * Creates an index mapping filenames to their code locations for efficient lookup.
+     */
+    private Map<String, List<CodeLocation>> indexCodeLocationsByFileName(
+            List<CodeLocation> codeLocations) {
+
+        Map<String, List<CodeLocation>> index = new HashMap<>();
+
+        for (CodeLocation location : codeLocations) {
+            if (location.getFilePath() == null || location.getFilePath().isBlank()) {
+                continue;
+            }
+
+            try {
+                String fileName = Paths.get(location.getFilePath())
+                        .getFileName()
+                        .toString();
+
+                index.computeIfAbsent(fileName, k -> new ArrayList<>())
+                        .add(location);
+            } catch (Exception e) {
+                log.warn("Failed to parse file path '{}': {}",
+                        location.getFilePath(), e.getMessage());
+            }
+        }
+
+        return index;
+    }
+
+    /**
+     * Builds a file tree from a base directory path.
+     */
+    private FileTreeNode buildTreeFromBasePath(
+            String basePath,
+            Map<String, List<CodeLocation>> fileNameIndex) {
+
+        File baseDir = new File(basePath);
+
+        if (!baseDir.exists()) {
+            log.warn("Base path does not exist: {}", basePath);
+            return null;
+        }
+
+        if (!baseDir.isDirectory()) {
+            log.warn("Base path is not a directory: {}", basePath);
+            return null;
+        }
+
+        return buildTreeNode(baseDir, null, baseDir.toPath(), fileNameIndex);
+    }
+
+    /**
+     * Recursively builds a FileTreeNode from a File.
+     */
+    private FileTreeNode buildTreeNode(
+            File file,
+            FileTreeNode parent,
+            Path basePath,
+            Map<String, List<CodeLocation>> fileNameIndex) {
+
+        CodeLocation codeLocation = null;
+
+        // For files (not directories), try to find matching CodeLocation
+        if (file.isFile()) {
+            codeLocation = findMatchingCodeLocation(file, basePath, fileNameIndex);
+        }
+
+        FileTreeNode node = new FileTreeNode(
+                file.getName(),
+                file.getAbsolutePath(),
+                parent,
+                new ArrayList<>(),
+                codeLocation,
+                file.isDirectory()
+        );
+
+        // Recursively build children for directories
+        if (file.isDirectory()) {
+            File[] children = file.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    FileTreeNode childNode = buildTreeNode(
+                            child, node, basePath, fileNameIndex);
+                    if (childNode != null) {
+                        node.getChildren().add(childNode);
+                    }
+                }
+
+                // Sort children: directories first, then files, alphabetically
+                node.getChildren().sort((a, b) -> {
+                    if (a.isDirectory() && !b.isDirectory()) return -1;
+                    if (!a.isDirectory() && b.isDirectory()) return 1;
+                    return a.getName().compareToIgnoreCase(b.getName());
+                });
+            }
+        }
+
+        return node;
+    }
+
+    /**
+     * Finds the CodeLocation that matches a given file.
+     */
+    private CodeLocation findMatchingCodeLocation(
+            File file,
+            Path basePath,
+            Map<String, List<CodeLocation>> fileNameIndex) {
+
+        String fileName = file.getName();
+        String relativePath = basePath.relativize(file.toPath())
+                .toString()
+                .replace(File.separator, "/");
+
+        List<CodeLocation> candidates = fileNameIndex.getOrDefault(fileName,
+                Collections.emptyList());
+
+        // Find the first candidate where the relative path matches
+        for (CodeLocation candidate : candidates) {
+            if (candidate.getFilePath() != null &&
+                    candidate.getFilePath().endsWith(relativePath)) {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Finds a FileTreeNode by its full path in the cached tree.
+     * Returns Optional.empty() if not found or if cache is empty for the project.
+     */
+    public Optional<FileTreeNode> findNodeByPath(Project project, String fullPath) {
+        if (project == null || fullPath == null) {
+            return Optional.empty();
+        }
+
+        List<FileTreeNode> roots = fileTreeCache.get(project.getId());
+        if (roots == null || roots.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return roots.stream()
+                .map(root -> findNodeInTree(root, fullPath))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findFirst();
+    }
+
+    /**
+     * Recursively searches for a node with the given full path.
+     */
+    private Optional<FileTreeNode> findNodeInTree(FileTreeNode node, String fullPath) {
+        if (node.getFullPath().equals(fullPath)) {
+            return Optional.of(node);
+        }
+
+        for (FileTreeNode child : node.getChildren()) {
+            Optional<FileTreeNode> found = findNodeInTree(child, fullPath);
+            if (found.isPresent()) {
+                return found;
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Returns statistics about the cached file trees.
+     */
+    public Map<String, Object> getCacheStatistics() {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("cachedProjects", fileTreeCache.size());
+
+        int totalNodes = fileTreeCache.values().stream()
+                .mapToInt(roots -> countNodesInTree(roots))
+                .sum();
+        stats.put("totalNodes", totalNodes);
+
+        return stats;
+    }
+
+    private int countNodesInTree(List<FileTreeNode> roots) {
+        return roots.stream()
+                .mapToInt(this::countNodesRecursive)
+                .sum();
+    }
+
+    private int countNodesRecursive(FileTreeNode node) {
+        int count = 1; // Count this node
+        for (FileTreeNode child : node.getChildren()) {
+            count += countNodesRecursive(child);
+        }
+        return count;
     }
 }

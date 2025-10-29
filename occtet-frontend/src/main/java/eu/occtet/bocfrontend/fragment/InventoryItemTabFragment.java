@@ -1,12 +1,11 @@
 /*
- *
  *  Copyright (C) 2025 Bitsea GmbH
- *  *
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,38 +15,33 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
+ *
  *
  */
 
-package eu.occtet.bocfrontend.view.audit;
+package eu.occtet.bocfrontend.fragment;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
-import eu.occtet.boc.model.VulnerabilityServiceWorkData;
-import eu.occtet.boc.model.WorkTask;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
-import eu.occtet.bocfrontend.entity.*;
-import eu.occtet.bocfrontend.service.NatsService;
-import eu.occtet.bocfrontend.view.audit.filestabfragment.FilesTabFragment;
+import eu.occtet.bocfrontend.entity.Copyright;
+import eu.occtet.bocfrontend.entity.InventoryItem;
+import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.view.audit.AuditView;
 import eu.occtet.bocfrontend.view.copyright.CopyrightDetailView;
 import eu.occtet.bocfrontend.view.dialog.*;
 import eu.occtet.bocfrontend.view.inventoryitem.InventoryItemDetailView;
 import eu.occtet.bocfrontend.view.license.LicenseDetailView;
 import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
-import eu.occtet.bocfrontend.view.vulnerability.VulnerabilityDetailView;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
@@ -69,12 +63,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @FragmentDescriptor("InventoryItemTabFragment.xml")
 public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
@@ -126,13 +119,14 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private RichTextEditor auditNotesText;
     @ViewComponent
     private DataGrid<InventoryItem> inventoryDataGridHistory;
-
     @ViewComponent
     private CollectionContainer<InventoryItem> inventoryItemDcHistory;
 
     // Tab fragments
     @ViewComponent
     private FilesTabFragment filesTabFragment;
+    @ViewComponent
+    private Vulnerabilitytabfragment vulnerabilitytabfragment;
 
     @Autowired
     private DialogWindows dialogWindow;
@@ -142,10 +136,15 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
-    @Autowired
-    private NatsService natsService;
 
 
+    /**
+     * Sets the inventory item for the current fragment and initializes necessary
+     * components, updates data contexts, and manages UI state based on the supplied
+     * inventory item.
+     *
+     * @param inventoryItem the object to be set. It must not be null.
+     */
     public void setInventoryItem(@Nonnull InventoryItem inventoryItem) {
         // track instances !important for saving
         this.inventoryItem = dataContext.merge(inventoryItem);
@@ -164,6 +163,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         setHistoryOfInventory(inventoryItem);
 
         filesTabFragment.setInventoryItemId(this.inventoryItem);
+        vulnerabilitytabfragment.setSoftwareComponent(this.softwareComponent);
 
         // Handle disabling buttons to prevent errors
         parentButton.setEnabled(this.inventoryItem.getParent() != null);
@@ -171,9 +171,16 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         editLicense.setEnabled(softwareComponent != null);
     }
 
+    /**
+     * Sets the host view for the current fragment and updates references
+     * in associated tab fragments.
+     *
+     * @param hostView the view to be set as the host view. It must not be null.
+     */
     public void setHostView(View<?> hostView) {
         this.hostView = hostView;
 
+        vulnerabilitytabfragment.setHostView(hostView);
         filesTabFragment.setHostView(hostView);
     }
 
@@ -181,6 +188,14 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         return inventoryItem;
     }
 
+    /**
+     * Handles the save action triggered by the user.
+     * This method checks if there are unsaved changes in the data context.
+     * If changes are present, it saves them and updates relevant views.
+     * If no changes are detected, it notifies the user.
+     *
+     * @param event the event object captured when the saveAction is triggered
+     */
     @Subscribe("saveAction")
     public void onSaveAction(ActionPerformedEvent event) {
         if (dataContext.hasChanges()) {
@@ -191,7 +206,6 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                     .show();
             if (hostView instanceof AuditView) {
                 ((AuditView) hostView).refreshInventoryItemDc(inventoryItem.getProject());
-                ((AuditView) hostView).rebuildFileTreeWithFreshData();
             }
         } else {
             log.debug("Inventory Item {} has no changes.", inventoryItem.getInventoryName());
@@ -199,6 +213,13 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         }
     }
 
+    /**
+     * Handles the action of adding a license. When triggered, this method opens a dialog
+     * allowing the user to add a license to the software component. After the dialog
+     * is closed, the licenses associated with the software component are updated.
+     *
+     * @param event the event object triggered by the click action on the dropdown button item
+     */
     @Subscribe(id = "editLicense.addLicense")
     public void addLicense(DropdownButtonItem.ClickEvent event) {
         if (softwareComponent != null) {
@@ -210,6 +231,13 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         }
     }
 
+    /**
+     * Toggles the deletion mode for licenses and updates the UI components accordingly.
+     * When triggered, this method changes the selection mode of the licenses data grid
+     * to either single or multiple based on the current state. It also toggles the
+     * visibility of the "Remove License" button.
+     *
+     **/
     @Subscribe(id = "editLicense.removeLicense")
     public void removeLicenses(DropdownButtonItem.ClickEvent event) {
         deleteMode = !deleteMode;
@@ -220,6 +248,13 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         removeLicenseButton.setVisible(deleteMode);
     }
 
+    /**
+     * Handles the removal of selected licenses from the software component associated with the current view.
+     * Updates the software component repository, notifies the user upon successful removal, and adjusts the
+     * UI state including the data grid selection mode and button visibility.
+     *
+     * @param event the click event triggered by the user interacting with the "Remove License" button
+     */
     @Subscribe(id = "removeLicenseButton")
     public void removeLicenses(ClickEvent<JmixButton> event) {
         Set<License> selectedLicenses = licensesDataGrid.getSelectedItems();
@@ -240,6 +275,13 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         removeLicenseButton.setVisible(false);
     }
 
+    /**
+     * Handles the creation and addition of a new license via a dialog window. This method
+     * opens a dialog to input license details for the associated software component. After
+     * the dialog is closed, it updates the licenses linked to the software component.
+     *
+     * @param event the click event triggered by the user interacting with the dropdown button item
+     */
     @Subscribe(id = "editLicense.createLicense")
     public void createAndAddLicense(DropdownButtonItem.ClickEvent event) {
         if (softwareComponent != null) {
@@ -252,6 +294,13 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
     }
 
+    /**
+     * Handles the double-click event on an item in the licenses data grid.
+     * Opens a dialog window to display and edit details of the selected license.
+     *
+     * @param event the event triggered when an item in the licenses data grid is double-clicked.
+     *              Contains the license item that was clicked.
+     */
     @Subscribe("licensesDataGrid")
     public void onLicensesDataGridItemDoubleClick(final ItemDoubleClickEvent<License> event) {
         DialogWindow<LicenseDetailView> window = dialogWindow.view(hostView, LicenseDetailView.class).build();
@@ -259,6 +308,13 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         window.open();
     }
 
+    /**
+     * Handles the double-click event on an item in the copyrights data grid.
+     * Opens a dialog window to display and edit details of the selected copyright.
+     *
+     * @param event the event triggered when an item in the copyrights data grid is double-clicked.
+     *              Contains the copyright item that was clicked.
+     */
     @Subscribe("copyrightsDataGrid")
     public void onCopyrightDataGridItemDoubleClick(final ItemDoubleClickEvent<Copyright> event) {
         DialogWindow<CopyrightDetailView> window = dialogWindow.view(hostView, CopyrightDetailView.class).build();
@@ -267,7 +323,17 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         window.open();
     }
 
-
+    /**
+     * Handles the addition of a copyright to an inventory item.
+     * When this method is triggered, it opens a dialog window to
+     * allow the user to add copyright information. After the dialog
+     * is closed, it updates the associated copyright entries
+     * for the inventory item.
+     *
+     * @param event the click event triggered by user interaction
+     *              with the dropdown button item that initiates
+     *              the process of adding a copyright
+     */
     @Subscribe(id = "editCopyright.addCopyright")
     public void addCopyright(DropdownButtonItem.ClickEvent event) {
 
@@ -277,6 +343,14 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         window.addAfterCloseListener(close -> updateCopyrights(inventoryItem, copyrightDc));
     }
 
+    /**
+     * Toggles the deletion mode for copyrights and updates the UI components accordingly.
+     * This method switches the selection mode of the copyrights data grid to either
+     * single or multiple depending on the current state. It also manages the visibility
+     * of the "Remove Copyright" button.
+     *
+     * @param event the click event triggered by the user interacting with the dropdown button item
+     */
     @Subscribe(id = "editCopyright.removeCopyright")
     public void removeCopyrights(DropdownButtonItem.ClickEvent event) {
         deleteMode = !deleteMode;
@@ -287,6 +361,14 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         removeCopyrightButton.setVisible(deleteMode);
     }
 
+    /**
+     * Handles the creation and addition of a new copyright entry via a dialog window.
+     * When triggered, this method opens a dialog for the user to input copyright details
+     * associated with the current inventory item. After the dialog is closed, the method
+     * updates the list of copyrights linked to the inventory item.
+     *
+     * @param event the click event triggered by the user interacting with the dropdown button item
+     */
     @Subscribe(id = "editCopyright.createCopyright")
     public void createAndAddCopyright(DropdownButtonItem.ClickEvent event) {
         if (inventoryItem != null) {
@@ -299,6 +381,15 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
     }
 
+    /**
+     * Handles the removal of selected copyrights from the inventory item associated with the current view.
+     * If any copyrights are selected, they are removed from the inventory item, and the changes
+     * are persisted using the inventory item repository. The method also updates the UI components,
+     * notifies the user upon successful removal, and resets the data grid selection mode and button visibility.
+     *
+     * @param event the ClickEvent triggered by the user interacting with the "Remove Copyright" button.
+     *              Contains details about the button click action.
+     */
     @Subscribe(id = "removeCopyrightButton")
     public void removeCopyrights(ClickEvent<JmixButton> event) {
         Set<Copyright> selectedCopyrights = copyrightsDataGrid.getSelectedItems();
@@ -319,6 +410,14 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         removeCopyrightButton.setVisible(false);
     }
 
+    /**
+     * Handles the click event on the "Parent" button to display details of
+     * the parent inventory item. If the current inventory item has a parent,
+     * this method opens a dialog window to view its details.
+     *
+     * @param event the event triggered by the user clicking the "Parent" button.
+     *              Contains information about the click action.
+     */
     @Subscribe(id = "parentButton")
     public void showParentDetails(ClickEvent<Button> event) {
 
@@ -329,6 +428,13 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         }
     }
 
+    /**
+     * Displays the details of a software component in a separate dialog window.
+     * Opens a view allowing the user to view and edit properties of the selected software component.
+     *
+     * @param event the ClickEvent triggered by the user interacting with the associated button.
+     *              Contains details about the button click action.
+     */
     @Subscribe(id = "softwareComponentButton")
     public void showSoftwareComponentDetails(ClickEvent<Button> event) {
         dialogWindow.view(hostView, SoftwareComponentDetailView.class)
@@ -405,26 +511,6 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         }
     }
 
-    @Subscribe("updateData")
-    public void updateDataButtonAction(ClickEvent<JmixButton> event) {
-        VulnerabilityServiceWorkData vulnerabilityServiceWorkData =
-                new VulnerabilityServiceWorkData(inventoryItem.getSoftwareComponent().getId());
-        WorkTask workTask = new WorkTask(
-                "vulnerability_task",
-                "sending software component to vulnerability microservice",
-                LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().getEpochSecond(),
-                vulnerabilityServiceWorkData);
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            String message = objectMapper.writeValueAsString(workTask);
-            log.info("Sending software id to vulnerability microservice with message: {}", message);
-            natsService.sendWorkMessageToStream("work.vulnerability", message.getBytes(StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            log.error(e);
-            notifications.show("Error sending data to vulnerability microservice: " + e.getMessage());
-        }
-    }
-
     @Supply(to = "inventoryDataGridHistory.createdAt", subject = "renderer")
     private Renderer<InventoryItem> inventoryItemDataGridDateRenderer() {
         return new TextRenderer<>(item -> item.getCreatedAt().toLocalDate().toString());
@@ -448,20 +534,4 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         return "------------- " + LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME) + "------------";
     }
 
-    @Supply(to = "vulnerabilityDataContainer.actions", subject = "renderer")
-    private Renderer<Vulnerability> actionsButtonRenderer() {
-        return new ComponentRenderer<>(vulnerability -> {
-            JmixButton infoButton = uiComponents.create(JmixButton.class);
-            infoButton.setIcon(VaadinIcon.INFO_CIRCLE.create());
-            infoButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-            infoButton.setTooltipText("View Details");
-
-            infoButton.addClickListener(e -> {
-                dialogWindow.view(hostView, VulnerabilityDetailView.class)
-                        .withViewConfigurer(v -> v.setEntityToEdit(vulnerability)).open();
-            });
-
-            return infoButton;
-        });
-    }
 }

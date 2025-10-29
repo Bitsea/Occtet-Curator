@@ -1,12 +1,11 @@
 /*
- *
  *  Copyright (C) 2025 Bitsea GmbH
- *  *
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,11 +15,11 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
+ *
  *
  */
 
-package eu.occtet.bocfrontend.view.codeviewerfragment;
+package eu.occtet.bocfrontend.fragment;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.dependency.JsModule;
@@ -32,16 +31,13 @@ import elemental.json.JsonType;
 import elemental.json.JsonValue;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.codeeditor.CodeEditor;
-import io.jmix.flowui.component.upload.FileUploadField;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentDescriptor;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.component.codeeditor.CodeEditorMode;
-import io.jmix.flowui.kit.component.upload.event.FileUploadSucceededEvent;
-import io.jmix.flowui.view.*;
+import io.jmix.flowui.view.Subscribe;
+import io.jmix.flowui.view.ViewComponent;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.nio.charset.StandardCharsets;
 
 import static com.google.common.io.Files.getFileExtension;
 
@@ -123,18 +119,6 @@ public class CodeViewerFragment extends Fragment<VerticalLayout> {
                 regexForMarking
                 , markerColor, markerCss, true); // set to false if working with regexes is not wanted
     }
-
-//    @Subscribe("fileUploadField")
-//    public void onFileUploadFieldFileUploadSucceeded(final FileUploadSucceededEvent<FileUploadField> event) {
-//        String fileName = event.getFileName();
-//        byte[] fileBytes = event.getSource().getValue();
-//        if (fileBytes == null){
-//            notifications.create("File content is empty").withType(Notifications.Type.ERROR).show();
-//            return;
-//        }
-//        String content = new String(fileBytes, StandardCharsets.UTF_8);
-//        setCodeEditorContent(content, fileName);
-//    }
 
     private CodeEditorMode detectModeByExtension(String filename) {
         String extension = getFileExtension(filename);
