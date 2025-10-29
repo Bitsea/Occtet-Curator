@@ -22,6 +22,9 @@
 
 package eu.occtet.boc.download.controller;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
@@ -37,23 +40,31 @@ public class GitRepoController {
 
     private final static String GIT_API = "https://api.github.com/repos/";
 
-    public URI getGitRepository(String owner, String repo,String version) throws IOException, InterruptedException {
+    private static final Logger log = LoggerFactory.getLogger(GitRepoController.class);
 
-        String apiUrl = GIT_API+owner+"/"+repo+"/zipball";
+    public String getGitRepository(String owner, String repo, String version) throws IOException, InterruptedException {
+
+        String url;
+        StringBuilder apiUrl = new StringBuilder();
+        apiUrl.append(GIT_API).append(owner).append("/").append(repo).append("/zipball");
+
+        if(version!=null){
+            apiUrl.append("/").append(version);
+        }
 
         HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(apiUrl))
+                .uri(URI.create(apiUrl.toString()))
                 .GET()
                 .header("Accept", "application/vnd.github+json").build();
 
         HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+        url = response.uri().toString();
 
-        if(response.uri()==null){
-            return null;
+        if(url != null){
+            return url;
         }
-        return response.uri();
+        return "";
     }
-
 }

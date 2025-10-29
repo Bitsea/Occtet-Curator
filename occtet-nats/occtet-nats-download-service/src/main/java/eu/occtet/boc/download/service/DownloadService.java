@@ -61,7 +61,7 @@ public class DownloadService extends BaseWorkDataProcessor {
                 packageService.unpackZipFile(workData.getUrl(), workData.getLocation());
             }
         }catch (Exception e){
-            log.error("Error in storeData...");
+            log.error(e.getMessage());
             return false;
         }
         return true;
@@ -69,7 +69,7 @@ public class DownloadService extends BaseWorkDataProcessor {
 
     private String analyzingUrl(String url){
         int index = url.lastIndexOf('.');
-        return url.substring(index,url.length()-1);
+        return url.substring(index+1);
     }
 
 }

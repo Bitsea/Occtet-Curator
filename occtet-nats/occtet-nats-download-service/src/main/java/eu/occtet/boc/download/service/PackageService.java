@@ -33,8 +33,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -46,17 +48,29 @@ public class PackageService {
     @Autowired
     private GitRepoController gitRepoController;
 
+    private File tmpFile;
+
+    private final static Path tmpLocation = Path.of("src","main","resources/TmpFilePackage");
+
     public void unpackZipFile(String url, String location) {
 
-        String fileName = location.substring(url.lastIndexOf('/'),location.length()-1);
-        File file = getZipFile(url,fileName);
+        String fileName = url.substring(url.lastIndexOf('/')+1);
+        log.info("File name: {}",fileName);
+        log.info("Location: {}",location);
+        setTmpFile(url,fileName);
 
         try{
-            ZipInputStream zip = new ZipInputStream(new FileInputStream(file));
+            Path savePath = Paths.get(location);
+            if(Files.notExists(savePath)){
+                Files.createDirectories(Path.of(savePath.toFile().getAbsolutePath()));
+            }
+
+            ZipInputStream zip = new ZipInputStream(new FileInputStream(tmpFile));
             ZipEntry entry = zip.getNextEntry();
+            File folder = new File(savePath.toFile().getAbsolutePath(),fileName);
 
             while(entry != null){
-                File outFile = new File(location, entry.getName());
+                File outFile = new File(folder, entry.getName());
 
                 if (entry.isDirectory()) {
                     outFile.mkdirs();
@@ -73,7 +87,8 @@ public class PackageService {
                     log.error(e.getMessage());
                 }
                 entry = zip.getNextEntry();
-            }
+            }zip.close();
+            Files.deleteIfExists(tmpFile.toPath());
         }catch (Exception e){
             log.error(e.getMessage());
         }
@@ -81,16 +96,22 @@ public class PackageService {
 
     public void unpackTarGzFile(String url, String location){
 
-        String fileName = location.substring(url.lastIndexOf('/'),location.length()-1);
-        File file = getZipFile(url,fileName);
+        String fileName = url.substring(url.lastIndexOf('/')+1);
+        setTmpFile(url,fileName);
 
         try {
-            GzipCompressorInputStream gz = new GzipCompressorInputStream(new FileInputStream(file));
+            Path savePath = Paths.get(location);
+            if(Files.notExists(savePath)){
+                Files.createDirectories(Path.of(savePath.toFile().getAbsolutePath()));
+            }
+
+            GzipCompressorInputStream gz = new GzipCompressorInputStream(new FileInputStream(tmpFile));
             TarArchiveInputStream tar = new TarArchiveInputStream(gz);
             TarArchiveEntry entry = tar.getNextTarEntry();
+            File folder = new File(savePath.toFile().getAbsolutePath(),fileName);
 
             while(entry != null) {
-                File outFile = new File(location, entry.getName());
+                File outFile = new File(folder, entry.getName());
 
                 if (entry.isDirectory()) {
                     outFile.mkdirs();
@@ -107,7 +128,8 @@ public class PackageService {
                     }
                 }
                 entry = tar.getNextTarEntry();
-            }
+            }tar.close();
+            Files.deleteIfExists(tmpFile.toPath());
         } catch (Exception e) {
             log.error(e.getMessage());
         }
@@ -122,30 +144,37 @@ public class PackageService {
             int index = repoGit.lastIndexOf('.');
             String repo = repoGit.substring(0,index);
 
-            URI uri = gitRepoController.getGitRepository(owner,repo,version);
-            unpackZipFile(uri.toString(),location);
+            String gitUrl = gitRepoController.getGitRepository(owner,repo,version);
+            log.info("Git url: {}",gitUrl);
+
+            if(gitUrl.isEmpty()){
+                log.error("Git url is null or empty...");
+            }else{
+                unpackZipFile(gitUrl,location);
+            }
         } catch (Exception e) {
             log.error(e.getMessage());
         }
     }
 
-    private File getZipFile(String urlString, String fileName) {
+    private void setTmpFile(String urlString, String fileName) {
 
-        File file = null;
         try {
+            if(Files.notExists(tmpLocation)){
+                Files.createDirectories(Path.of(tmpLocation.toFile().getAbsolutePath()));
+            }
             URL url = new URL(urlString);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
             InputStream inputStream = connection.getInputStream();
-            file = new File(fileName);
-            FileOutputStream outputStream = new FileOutputStream(file);
+            tmpFile = new File(tmpLocation.toFile().getAbsolutePath(),fileName);
+            FileOutputStream outputStream = new FileOutputStream(tmpFile);
             inputStream.transferTo(outputStream);
             inputStream.close();
-
+            outputStream.close();
         } catch (Exception e) {
             log.error(e.getMessage());
         }
-        return file;
     }
 }
 
