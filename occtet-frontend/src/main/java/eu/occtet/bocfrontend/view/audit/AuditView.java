@@ -30,16 +30,19 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.data.renderer.Renderer;
-import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.*;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
+import eu.occtet.bocfrontend.engine.TabManager;
 import eu.occtet.bocfrontend.entity.*;
+import eu.occtet.bocfrontend.factory.ComponentFactory;
+import eu.occtet.bocfrontend.factory.FileTreeGridFactory;
+import eu.occtet.bocfrontend.factory.RendererFactory;
 import eu.occtet.bocfrontend.model.FileTreeNode;
 import eu.occtet.bocfrontend.service.AuditViewStateService;
 import eu.occtet.bocfrontend.service.FileContentService;
 import eu.occtet.bocfrontend.service.FileTreeCacheService;
-import eu.occtet.bocfrontend.view.audit.helper.*;
+import eu.occtet.bocfrontend.service.TreeGridHelper;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
 import io.jmix.core.ValueLoadContext;
@@ -242,8 +245,7 @@ public class AuditView extends StandardView{
 
     private void initializeInventoryDataGrid() {
         HorizontalLayout inventoryToolbar = toolBoxFactory.createToolBox(
-                inventoryItemDataGrid, true, false,
-                InventoryItem.class, this::onVulnerabilityFilterToggled);
+                inventoryItemDataGrid, InventoryItem.class, this::onVulnerabilityFilterToggled);
         toolbarBox.removeAll();
         toolbarBox.add(inventoryToolbar);
         toolBoxFactory.createInfoButtonHeaderForInventoryGrid(inventoryItemDataGrid, "status");
@@ -425,7 +427,7 @@ public class AuditView extends StandardView{
         );
 
         fileTreeGridLayout.removeAll();
-        HorizontalLayout toolbar = toolBoxFactory.createToolBox(fileTreeGrid, false, false, FileTreeNode.class, null);
+        HorizontalLayout toolbar = toolBoxFactory.createToolBox(fileTreeGrid, FileTreeNode.class, null);
         fileTreeGridLayout.add(toolbar, fileTreeGrid);
     }
 

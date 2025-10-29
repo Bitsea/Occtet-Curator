@@ -19,7 +19,7 @@
  *
  */
 
-package eu.occtet.bocfrontend.view.audit.fragment;
+package eu.occtet.bocfrontend.fragment;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
@@ -37,7 +37,6 @@ import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.factory.CodeLocationFactory;
 import eu.occtet.bocfrontend.model.FileResult;
 import eu.occtet.bocfrontend.service.FileContentService;
-import eu.occtet.bocfrontend.view.codeviewerfragment.CodeViewerFragment;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.action.DialogAction;

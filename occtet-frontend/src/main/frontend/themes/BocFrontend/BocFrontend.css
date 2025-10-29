@@ -84,3 +84,9 @@ vaadin-text-field[readonly].read-only::part(input-field) {
 .curated-icon {
     color: #a1ff0a;
 }
+
+.toolbox-audit-view {
+    background-color: var(--lumo-contrast-5pct);
+    border-radius: 6px;
+    padding: var(--lumo-space-s);
+}

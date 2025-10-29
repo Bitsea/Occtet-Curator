@@ -19,7 +19,7 @@
  *
  */
 
-package eu.occtet.bocfrontend.view.audit.helper;
+package eu.occtet.bocfrontend.factory;
 
 import com.github.javaparser.quality.Nullable;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -34,6 +34,10 @@ import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.popover.PopoverVariant;
 import eu.occtet.bocfrontend.entity.InventoryItem;
+import eu.occtet.bocfrontend.model.FileTreeNode;
+import eu.occtet.bocfrontend.service.TreeGridHelper;
+import io.jmix.flowui.DialogWindows;
+import io.jmix.flowui.Fragments;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.TreeDataGrid;
@@ -57,6 +61,10 @@ public class ComponentFactory {
     private TreeGridHelper treeGridHelper;
     @Autowired
     private UiComponents uiComponents;
+    @Autowired
+    private Fragments fragments;
+    @Autowired
+    private DialogWindows dialogWindow;
     @ViewComponent
     private Notifications notifications;
 
@@ -120,19 +128,55 @@ public class ComponentFactory {
     }
 
     /**
-     * Creates a toolbox layout for a given TreeDataGrid with optional functionality
-     * like a search button and a vulnerability filter checkbox.
+     * Creates a toolbox for a given and entity class.
+     * The created toolbox may include specific components or functionalities
+     * based on the type of the entity class provided.
      *
-     * @param grid The TreeDataGrid instance for which the toolbox is being created.
-     * @param vulnerabilityFilterIsVisible A boolean indicating whether the vulnerability filter checkbox should be visible.
-     * @param searchButtonIsVisible A boolean indicating whether the search button should be visible.
-     * @param entityClass The entity class associated with the TreeDataGrid.
-     * @param vulnerabilityToggleHandler An optional Consumer that handles the state changes of the vulnerability filter checkbox.
-     * @return A HorizontalLayout containing the configured toolbox components.
+     * @param <T> The type of the items in the TreeDataGrid.
+     * @param grid The TreeDataGrid instance for which the toolbox is created.
+     * @param entityClass The class type of the entity corresponding to the grid's items.
+     * @param vulnerabilityToggleHandler An optional Consumer that handles toggling
+     *                                     vulnerabilities in case of {InventoryItem.
+     * @return A HorizontalLayout representing the created toolbox, or null
+     *         if the entity class is not supported.
      */
-    public <T> HorizontalLayout createToolBox(TreeDataGrid<T> grid, boolean vulnerabilityFilterIsVisible,
-                                              boolean searchButtonIsVisible, Class<T> entityClass,
+    public <T> HorizontalLayout createToolBox(TreeDataGrid<T> grid, Class<T> entityClass,
                                               @Nullable Consumer<Boolean> vulnerabilityToggleHandler) {
+        if (entityClass.equals(InventoryItem.class)) {
+            return createToolBoxForInventoryItemGrid(grid, entityClass, vulnerabilityToggleHandler);
+        } else if (entityClass.equals(FileTreeNode.class)) {
+            return createToolBoxForFileTreeNodeGrid(grid, entityClass);
+        }
+        return null;
+    }
+
+    private <T> HorizontalLayout createToolBoxForInventoryItemGrid(TreeDataGrid<T> grid, Class<T> entityClass, @Nullable Consumer<Boolean> vulnerabilityToggleHandler) {
+        HorizontalLayout toolbox = uiComponents.create(HorizontalLayout.class);
+
+        toolbox.setSpacing(true);
+        toolbox.setPadding(true);
+        toolbox.setAlignItems(FlexComponent.Alignment.CENTER);
+        toolbox.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
+
+        Checkbox vulnerabilityFilter = uiComponents.create(Checkbox.class);
+        vulnerabilityFilter.setLabel("vulnerable");
+        vulnerabilityFilter.setValue(false);
+        vulnerabilityFilter.addValueChangeListener(event -> {
+            if (vulnerabilityToggleHandler != null) {
+                vulnerabilityToggleHandler.accept(Boolean.TRUE.equals(event.getValue()));
+            }
+        });
+
+        toolbox.setClassName("toolbox-audit-view");
+        toolbox.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
+        toolbox.setAlignItems(FlexComponent.Alignment.START);
+        toolbox.setWidthFull();
+        toolbox.add(vulnerabilityFilter, createExpandAndCollapseToolBar(grid));
+
+        return toolbox;
+    }
+
+    private <T> HorizontalLayout createToolBoxForFileTreeNodeGrid(TreeDataGrid<T> grid, Class<T> entityClass) {
         HorizontalLayout toolbox = uiComponents.create(HorizontalLayout.class);
 
         toolbox.setSpacing(true);
@@ -144,28 +188,13 @@ public class ComponentFactory {
         searchButton.setTooltipText("Search");
         searchButton.setIcon(VaadinIcon.SEARCH.create());
         searchButton.setThemeName("small icon primary");
-        searchButton.setVisible(searchButtonIsVisible);
+        searchButton.addClickListener(event -> {}); // TODO
 
-        Checkbox vulnerabilityFilter = uiComponents.create(Checkbox.class);
-        vulnerabilityFilter.setLabel("vulnerable");
-        vulnerabilityFilter.setValue(false);
-        vulnerabilityFilter.setVisible(vulnerabilityFilterIsVisible);
-        if (vulnerabilityFilterIsVisible && entityClass.equals(InventoryItem.class)) {
-            vulnerabilityFilter.addValueChangeListener(event -> {
-                if (vulnerabilityToggleHandler != null) {
-                    vulnerabilityToggleHandler.accept(Boolean.TRUE.equals(event.getValue()));
-                }
-            });
-        }
-
-        toolbox.addClassName("toolbox");
-        toolbox.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
-        toolbox.getStyle().set("border-radius", "6px");
-        toolbox.getStyle().set("padding", "var(--lumo-space-s)");
+        toolbox.setClassName("toolbox-audit-view");
         toolbox.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
         toolbox.setAlignItems(FlexComponent.Alignment.START);
         toolbox.setWidthFull();
-        toolbox.add(searchButton, vulnerabilityFilter, createExpandAndCollapseToolBar(grid));
+        toolbox.add(searchButton, createExpandAndCollapseToolBar(grid));
 
         return toolbox;
     }
