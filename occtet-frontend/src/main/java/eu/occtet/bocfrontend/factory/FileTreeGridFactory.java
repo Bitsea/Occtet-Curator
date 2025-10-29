@@ -19,7 +19,7 @@
  *
  */
 
-package eu.occtet.bocfrontend.view.audit.helper;
+package eu.occtet.bocfrontend.factory;
 
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
 import com.vaadin.flow.component.notification.Notification;

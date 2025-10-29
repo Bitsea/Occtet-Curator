@@ -186,11 +186,11 @@
             </tab>
             <tab id="vulnerabilitiesTab" label="Vulnerabilities">
                 <vbox>
-                    <fragment class="eu.occtet.bocfrontend.view.audit.fragment.Vulnerabilitytabfragment" id="vulnerabilitytabfragment"/>
+                    <fragment class="eu.occtet.bocfrontend.fragment.Vulnerabilitytabfragment" id="vulnerabilitytabfragment"/>
                 </vbox>
             </tab>
             <tab id="filesTab" label="Files">
-                <fragment class="eu.occtet.bocfrontend.view.audit.fragment.FilesTabFragment"
+                <fragment class="eu.occtet.bocfrontend.fragment.FilesTabFragment"
                           id="filesTabFragment"/>
             </tab>
             <tab id="auditNotesTab" label="Audit notes">

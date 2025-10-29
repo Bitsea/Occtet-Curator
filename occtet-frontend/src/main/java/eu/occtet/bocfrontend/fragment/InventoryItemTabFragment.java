@@ -19,7 +19,7 @@
  *
  */
 
-package eu.occtet.bocfrontend.view.audit.fragment;
+package eu.occtet.bocfrontend.fragment;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
@@ -32,7 +32,10 @@ import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
-import eu.occtet.bocfrontend.entity.*;
+import eu.occtet.bocfrontend.entity.Copyright;
+import eu.occtet.bocfrontend.entity.InventoryItem;
+import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.view.audit.AuditView;
 import eu.occtet.bocfrontend.view.copyright.CopyrightDetailView;
 import eu.occtet.bocfrontend.view.dialog.*;
@@ -66,15 +69,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-/**
- * InventoryItemTabFragment is a Fragment responsible for managing and displaying the details
- * of an InventoryItem within a tab interface. It provides functionality for interacting with
- * licenses, copyrights, and related software components.
- *
- * Usage Notes:
- * - Ensure to call `setInventoryItem` to initialize the fragment with the relevant
- *   InventoryItem and its associated components, which acts like onInit method.
- */
 @FragmentDescriptor("InventoryItemTabFragment.xml")
 public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 

@@ -19,7 +19,7 @@
  *
  */
 
-package eu.occtet.bocfrontend.view.audit.helper;
+package eu.occtet.bocfrontend.engine;
 
 
 import com.vaadin.flow.component.Component;
@@ -34,8 +34,8 @@ import eu.occtet.bocfrontend.model.FileResult;
 import eu.occtet.bocfrontend.model.FileTreeNode;
 import eu.occtet.bocfrontend.service.FileContentService;
 import eu.occtet.bocfrontend.view.audit.AuditView;
-import eu.occtet.bocfrontend.view.audit.fragment.InventoryItemTabFragment;
-import eu.occtet.bocfrontend.view.codeviewerfragment.CodeViewerFragment;
+import eu.occtet.bocfrontend.fragment.InventoryItemTabFragment;
+import eu.occtet.bocfrontend.fragment.CodeViewerFragment;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Fragments;
 import io.jmix.flowui.Notifications;

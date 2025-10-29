@@ -19,7 +19,7 @@
  *
  */
 
-package eu.occtet.bocfrontend.view.audit.helper;
+package eu.occtet.bocfrontend.service;
 
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.Query;

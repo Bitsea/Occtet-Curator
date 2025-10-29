@@ -19,7 +19,7 @@
  *
  */
 
-package eu.occtet.bocfrontend.view.audit.helper;
+package eu.occtet.bocfrontend.factory;
 
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -59,10 +59,10 @@ public class RendererFactory {
             circleIcon.setSize("12px");
             String status = "";
             if (item == null) return circleIcon;
-            if (FALSE.equals(item.getCurated())) {
+            if (FALSE.equals(item.getCurated()) || item.getCurated() == null) {
                 circleIcon.setClassName("not-curated-icon");
                 status = "Not curated";
-            } else if (TRUE.equals(item.getCurated()) || item.getCurated() == null) {
+            } else if (TRUE.equals(item.getCurated())) {
                 circleIcon.setClassName("curated-icon");
                 status = "Curated";
             } // more...
