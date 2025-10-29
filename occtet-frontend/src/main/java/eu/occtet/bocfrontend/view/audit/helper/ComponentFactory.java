@@ -201,8 +201,8 @@ public class ComponentFactory {
 
         HorizontalLayout mergeLayout = uiComponents.create(HorizontalLayout.class);
         mergeLayout.setMargin(false);
+        mergeLayout.setPadding(false);
         mergeLayout.setWidthFull();
-        mergeLayout.getStyle().set("padding", "var(--lumo-space-s)");
         mergeLayout.getStyle().set("spacing", "2px");
         mergeLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         mergeLayout.setAlignItems(FlexComponent.Alignment.CENTER);
