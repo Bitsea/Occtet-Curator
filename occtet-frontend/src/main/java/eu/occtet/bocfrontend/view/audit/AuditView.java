@@ -24,7 +24,9 @@ package eu.occtet.bocfrontend.view.audit;
 
 
 import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -39,10 +41,7 @@ import eu.occtet.bocfrontend.factory.ComponentFactory;
 import eu.occtet.bocfrontend.factory.FileTreeGridFactory;
 import eu.occtet.bocfrontend.factory.RendererFactory;
 import eu.occtet.bocfrontend.model.FileTreeNode;
-import eu.occtet.bocfrontend.service.AuditViewStateService;
-import eu.occtet.bocfrontend.service.FileContentService;
-import eu.occtet.bocfrontend.service.FileTreeCacheService;
-import eu.occtet.bocfrontend.service.TreeGridHelper;
+import eu.occtet.bocfrontend.service.*;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
 import io.jmix.core.ValueLoadContext;
@@ -52,9 +51,7 @@ import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
-import io.jmix.flowui.model.CollectionContainer;
-import io.jmix.flowui.model.CollectionLoader;
-import io.jmix.flowui.model.DataContext;
+import io.jmix.flowui.model.*;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -84,17 +81,16 @@ public class AuditView extends StandardView{
 
     @Autowired private ProjectRepository projectRepository;
     @Autowired private InventoryItemRepository inventoryItemRepository;
+    @Autowired private Fragments fragments;
     @Autowired private Dialogs dialogs;
     @Autowired private Notifications notifications;
-    @Autowired private FileContentService fileContentService;
     @Autowired private DataManager dataManager;
+    @Autowired private FileContentService fileContentService;
     @Autowired private FileTreeCacheService fileTreeCacheService;
     @Autowired private AuditViewStateService viewStateService;
-    @Autowired private FileTreeGridFactory fileTreeGridFactory;
-    @Autowired private UiComponents uiComponents;
-    @Autowired private Fragments fragments;
-    @Autowired private ComponentFactory toolBoxFactory;
     @Autowired private TreeGridHelper treeGridHelper;
+    @Autowired private FileTreeGridFactory fileTreeGridFactory;
+    @Autowired private ComponentFactory componentFactory;
     @Autowired private RendererFactory rendererFactory;
 
 
@@ -244,13 +240,29 @@ public class AuditView extends StandardView{
     }
 
     private void initializeInventoryDataGrid() {
-        HorizontalLayout inventoryToolbar = toolBoxFactory.createToolBox(
-                inventoryItemDataGrid, InventoryItem.class, this::onVulnerabilityFilterToggled);
+        HorizontalLayout inventoryToolbox = componentFactory.createToolBox(
+                inventoryItemDataGrid, InventoryItem.class);
+        // Find the vulnerability filter checkbox and add a value change listener to it.
+        findCheckBoxById(inventoryToolbox, componentFactory.getVulnerabilityFilterId())
+                .ifPresentOrElse(checkbox -> {
+                    checkbox.addValueChangeListener(event ->
+                                    onVulnerabilityFilterToggled(Boolean.TRUE.equals(event.getValue())));
+                    log.debug("Vulnerability filter checkbox found in inventory toolbox");
+                }, () -> log.warn("Unable to find vulnerability filter checkbox in inventory toolbox")
+                );
         toolbarBox.removeAll();
-        toolbarBox.add(inventoryToolbar);
-        toolBoxFactory.createInfoButtonHeaderForInventoryGrid(inventoryItemDataGrid, "status");
+        toolbarBox.add(inventoryToolbox);
+        componentFactory.createInfoButtonHeaderForInventoryGrid(inventoryItemDataGrid, "status");
 
         inventoryItemDataGrid.setTooltipGenerator(InventoryItem::getInventoryName);
+    }
+
+    private Optional<Checkbox> findCheckBoxById(Component container, String id){
+        return container.getChildren()
+                .filter(child -> id.equals(child.getId().orElse(null)))
+                .filter(child -> child instanceof Checkbox)
+                .map(child -> (Checkbox) child)
+                .findFirst();
     }
 
     /**
@@ -420,15 +432,17 @@ public class AuditView extends StandardView{
 
     private void rebuildFileTree(Project project) {
         List<FileTreeNode> rootNodes = fileTreeCacheService.getFileTree(project);
-        TreeDataGrid<FileTreeNode> fileTreeGrid = fileTreeGridFactory.create(
-                rootNodes,
-                node -> tabManager.openFileTab(node, true),
-                item -> tabManager.openInventoryItemTab(item, true)
-        );
-
+        FileTreeGridFactory.TreeGridWithFilter treeWithFilter  =
+                fileTreeGridFactory.createTreeGridWithFilter(rootNodes,
+                        node -> tabManager.openFileTab(node, true),
+                        item -> tabManager.openInventoryItemTab(item, true)
+                );
         fileTreeGridLayout.removeAll();
-        HorizontalLayout toolbar = toolBoxFactory.createToolBox(fileTreeGrid, FileTreeNode.class, null);
-        fileTreeGridLayout.add(toolbar, fileTreeGrid);
+
+        HorizontalLayout toolBox = componentFactory.createToolBox(treeWithFilter.grid(), FileTreeNode.class);
+        toolBox.addComponentAsFirst(treeWithFilter.filterField());
+        fileTreeGridLayout.add(toolBox);
+        fileTreeGridLayout.add(treeWithFilter.grid());
     }
 
     /**
