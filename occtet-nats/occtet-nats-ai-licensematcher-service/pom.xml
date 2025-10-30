@@ -229,12 +229,6 @@
             </properties>
             <activation><activeByDefault>true</activeByDefault></activation>
         </profile>
-        <profile>
-            <id>local</id>
-            <properties>
-                <spring.profiles.active>local</spring.profiles.active>
-            </properties>
-        </profile>
     </profiles>
 
 </project>

@@ -223,12 +223,6 @@
             </properties>
         </profile>
         <profile>
-            <id>local</id>
-            <properties>
-                <spring.profiles.active>local</spring.profiles.active>
-            </properties>
-        </profile>
-        <profile>
             <id>live</id>
             <activation><activeByDefault>true</activeByDefault></activation>
             <properties>
