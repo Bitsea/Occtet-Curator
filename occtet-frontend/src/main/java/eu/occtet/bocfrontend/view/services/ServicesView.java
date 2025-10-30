@@ -57,6 +57,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static eu.occtet.boc.model.WorkerStatus.IDLE;
 import static eu.occtet.boc.model.WorkerStatus.WORKING;
@@ -65,9 +66,6 @@ import static eu.occtet.boc.model.WorkerStatus.WORKING;
 @ViewController(id = "ServicesView")
 @ViewDescriptor(path = "services-view.xml")
 public class ServicesView extends StandardView {
-
-    @ViewComponent
-    protected JmixListBox<MicroserviceDescriptor> servicesList;
 
     @ViewComponent
     protected JmixListBox<StatusDescriptor> statusList;
@@ -142,8 +140,7 @@ public class ServicesView extends StandardView {
                         new DialogAction(DialogAction.Type.YES)
                                 .withHandler(e -> {
                                     natsService.sendSimpleMessage("system","exit");
-                                    availableServices = new ArrayList<>();
-                                    servicesList.setItems(availableServices);
+                                    statusDescriptors.clear();
                                 }),
                         new DialogAction(DialogAction.Type.NO)
                 )
@@ -152,7 +149,6 @@ public class ServicesView extends StandardView {
 
     private void updateAvailableServices() {
         availableServices = new ArrayList<>();
-        servicesList.setItems(availableServices);
         natsService.sendHello();
     }
 
@@ -164,30 +160,24 @@ public class ServicesView extends StandardView {
             Icon icon = ComponentUtils.parseIcon("vaadin:circle");
             icon.setColor(statusDescriptor.getStatus()==IDLE ? "green" : statusDescriptor.getStatus()==WORKING ? "orange" : "red");
             icon.setSize("12px");
-            row.add(icon, new Span(statusDescriptor.getName() +": " + statusDescriptor.getStatus() ) );
-            return row;
-        });
-    }
-
-
-    @Supply(to = "servicesList", subject = "renderer")
-    protected ComponentRenderer<HorizontalLayout, MicroserviceDescriptor> listBoxRenderer() {
-        return new ComponentRenderer<>(microserviceDescriptor -> {
-            HorizontalLayout row = uiComponents.create(HorizontalLayout.class);
-            row.setAlignItems(FlexComponent.Alignment.CENTER);
+            row.add(icon );
 
             VerticalLayout column = uiComponents.create(VerticalLayout.class);
-            Span name = new Span(microserviceDescriptor.getName());
-            Span descriptionAndVersion = new Span(microserviceDescriptor.getDescription()
-                    + ", version " + microserviceDescriptor.getVersion());
-
-            column.add(new H4(name), descriptionAndVersion);
+            column.add(new H4(statusDescriptor.getName() +": " + statusDescriptor.getStatus() ));
+            Optional<MicroserviceDescriptor> optionalMicroserviceDescriptor = availableServices.stream().filter(md -> md.getName().equals(statusDescriptor.getName())).findFirst();
+            if(optionalMicroserviceDescriptor.isPresent()) {
+                MicroserviceDescriptor microserviceDescriptor = optionalMicroserviceDescriptor.get();
+                Span descriptionAndVersion = new Span(microserviceDescriptor.getDescription()
+                        + ", version " + microserviceDescriptor.getVersion());
+                column.add(descriptionAndVersion);
+            }
             column.setPadding(false);
             column.setSpacing(false);
             row.add(column);
             return row;
         });
     }
+
 
     private void onStatusDescriptorReceived(StatusDescriptor statusDescriptor) {
         log.debug("received a status descriptor from {}", statusDescriptor.getName());
@@ -205,10 +195,6 @@ public class ServicesView extends StandardView {
         // avoid duplicates
         if (availableServices.stream().noneMatch(s -> s.getName().equals(microserviceDescriptor.getName()))) {
             availableServices.add(microserviceDescriptor);
-            ui.access(() -> {
-                servicesList.setItems(availableServices);
-            });
-
         }
     }
 

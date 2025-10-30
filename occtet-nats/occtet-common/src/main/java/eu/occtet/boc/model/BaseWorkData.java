@@ -46,7 +46,8 @@ import eu.occtet.boc.service.IWorkDataProcessor;
         @JsonSubTypes.Type(value = FossReportServiceWorkData.class, name = "fossreport_task"),
         @JsonSubTypes.Type(value = SpdxWorkData.class, name = "spdx_task"),
         @JsonSubTypes.Type(value = SampleWorkData.class, name = "sample"),
-        @JsonSubTypes.Type(value = VulnerabilityServiceWorkData.class, name = "vulnerability_task")
+        @JsonSubTypes.Type(value = VulnerabilityServiceWorkData.class, name = "vulnerability_task"),
+        @JsonSubTypes.Type(value = DownloadServiceWorkData.class, name = "download_task")
 })
 public abstract class BaseWorkData {
     public abstract boolean process(IWorkDataProcessor processor);

@@ -35,5 +35,6 @@ public interface IWorkDataProcessor {
     boolean process(VulnerabilityServiceWorkData workData);
     boolean process(SpdxWorkData workData);
     boolean process(AICopyrightFilterWorkData workData);
+    boolean process(DownloadServiceWorkData workData);
 
 }

@@ -28,7 +28,19 @@
                     class="eu.occtet.bocfrontend.entity.InventoryItem">
             <loader id="inventoryItemDl">
                 <query>
-                    <![CDATA[select e from InventoryItem e where e.project = :project order by e.inventoryName]]>
+                    <![CDATA[
+                        select distinct e
+                        from InventoryItem e
+                        where e.project = :project
+                        and (
+                            :vulnerableOnly = false
+                            or (
+                                e.softwareComponent is not null
+                                and e.softwareComponent.vulnerabilities is not empty
+                            )
+                        )
+                        order by e.inventoryName
+                    ]]>
                 </query>
             </loader>
             <fetchPlan extends="_local">
@@ -62,40 +74,43 @@
         <hbox width="100%" height="100%">
             <split themeNames="small" width="100%">
                 <split width="80%" themeNames="small">
-                    <vbox classNames="border rounded-m border-contrast-20" width="20%" margin="false" padding="false">
+                    <vbox classNames="border rounded-m border-contrast-20" width="20%" margin="false" padding="false"
+                          spacing="false">
                         <comboBox id="projectComboBox" label="Choose project" width="90%" alignSelf="CENTER"/>
-                        <vbox id="fileTreeGridLayout" width="100%" height="100%" margin="false" padding="false">
+                        <vbox id="fileTreeGridLayout" width="100%" height="100%" margin="false" padding="false"
+                              spacing="false">
                         </vbox>
                     </vbox>
-                    <tabSheet id="mainTabSheet" width="84%" height="100%">
+                    <tabSheet id="mainTabSheet" width="84%" height="100%" themeNames="no-padding" >
                         <tab id="inventoryItemSection" label="Inventory Items">
-                            <tabSheet id="inventoryItemTabSheet" width="100%" height="100%">
+                            <tabSheet id="inventoryItemTabSheet" width="100%" height="100%"
+                                      themeNames="small no-padding">
                             </tabSheet>
                         </tab>
                         <tab id="filesSection" label="Files">
-                            <tabSheet id="filesTabSheet" width="100%" height="100%">
+                            <tabSheet id="filesTabSheet" width="100%" height="100%" themeNames="no-padding small">
                             </tabSheet>
                         </tab>
                     </tabSheet>
                 </split>
-                <vbox classNames="border rounded-m border-contrast-20" width="16%" margin="false" padding="false">
-                    <hbox id="toolbarBox" spacing="true"
+                <vbox classNames="border rounded-m border-contrast-20" width="16%" margin="false" padding="false"
+                      spacing="false">
+                    <hbox id="toolbarBox"
                           width="100%"
                           height="auto"
-                          justifyContent="CENTER">
-                        <button id="expandBtn" text="Expand all" themeNames="small"/>
-                        <button id="collapseBtn" text="Collapse all" themeNames="small"/>
+                          justifyContent="CENTER"
+                          margin="false">
                     </hbox>
                     <treeDataGrid id="inventoryItemDataGrid"
                                   dataContainer="inventoryItemDc"
                                   height="100%"
                                   width="100%"
-                                  themeNames="no-border no-row-borders compact row-stripes"
-                                  classNames="wrap-column"
-                                  hierarchyProperty="parent">
+                                  themeNames="no-row-borders compact row-stripes"
+                                  hierarchyProperty="parent" showOrphans="true">
                         <columns>
-                            <column property="inventoryName" header="Item"/>
+                            <column property="inventoryName" header="Item" filterable="true"/>
                             <column key="fileNumCol" header="Files #" textAlign="END" sortable="false" autoWidth="true" flexGrow="0"/>
+                            <column key="status" autoWidth="true" flexGrow="0" sortable="false" textAlign="CENTER"/>
                         </columns>
                     </treeDataGrid>
                 </vbox>

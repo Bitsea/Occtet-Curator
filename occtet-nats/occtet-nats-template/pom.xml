@@ -39,7 +39,7 @@
     </parent>
 
     <properties>
-        <start-class>eu.occtet.template.SampleApp</start-class>
+        <start-class>eu.occtet.boc.download.SampleApp</start-class>
     </properties>
 
     <dependencies>
@@ -115,6 +115,12 @@
             <id>dev</id>
             <properties>
                 <spring.profiles.active>dev</spring.profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>local</id>
+            <properties>
+                <spring.profiles.active>local</spring.profiles.active>
             </properties>
         </profile>
         <profile>

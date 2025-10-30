@@ -232,21 +232,21 @@
     <profiles>
         <profile>
             <id>dev</id>
-            <activation><activeByDefault>true</activeByDefault></activation>
             <properties>
                 <spring.profiles.active>dev</spring.profiles.active>
-            </properties>
-        </profile>
-        <profile>
-            <id>live</id>
-            <properties>
-                <spring.profiles.active>live</spring.profiles.active>
             </properties>
         </profile>
         <profile>
             <id>local</id>
             <properties>
                 <spring.profiles.active>local</spring.profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>live</id>
+            <activation><activeByDefault>true</activeByDefault></activation>
+            <properties>
+                <spring.profiles.active>live</spring.profiles.active>
             </properties>
         </profile>
     </profiles>
