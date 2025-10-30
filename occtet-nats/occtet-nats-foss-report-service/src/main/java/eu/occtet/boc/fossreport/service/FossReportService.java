@@ -25,6 +25,7 @@ package eu.occtet.boc.fossreport.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.fossreport.dao.InventoryItemRepository;
+import eu.occtet.boc.fossreport.dao.ProjectRepository;
 import eu.occtet.boc.fossreport.dao.ScannerInitializerRepository;
 import eu.occtet.boc.model.*;
 import eu.occtet.boc.model.FossReportServiceWorkData;
@@ -76,6 +77,8 @@ public class FossReportService extends BaseWorkDataProcessor {
     private ScannerInitializerRepository scannerInitializerRepository;
     @Autowired
     private ScannerInitializerService scannerInitializerService;
+    @Autowired
+    private ProjectRepository projectRepository;
 
     @Autowired
     private Connection natsConnection;
@@ -134,14 +137,15 @@ public class FossReportService extends BaseWorkDataProcessor {
             return false;
         }
         Optional<ScannerInitializer> scannerInitializer = scannerInitializerRepository.findById(workData.getScannerInitializerId());
-        Optional<InventoryItem> originInventoryItem;
+        Optional<Project> project;
 
         if (scannerInitializer.isEmpty() ) {
             log.error("Scanner not found! (id:{})", workData.getScannerInitializerId() );
         } else {
-            originInventoryItem = inventoryItemRepository.findById(scannerInitializer.get().getInventoryItem().getId());
-            if (originInventoryItem.isEmpty() || rowDto == null) {
-                log.error("Root Inventory Item not found! (id:{}) or row is null: {}", scannerInitializer.get().getInventoryItem().getId(), rowDto== null );
+            project = projectRepository.findById(scannerInitializer.get().getProject().getId());
+                    //inventoryItemRepository.findById(scannerInitializer.get().getInventoryItem().getId());
+            if (project.isEmpty() || rowDto == null) {
+                log.error("Project not found! (id:{}) or row is null: {}", scannerInitializer.get().getProject().getId(), rowDto== null );
             } else {
                 try {
                     // prepare necessary data
@@ -161,7 +165,6 @@ public class FossReportService extends BaseWorkDataProcessor {
                     String parentInventoryName = rowDto.parentNameAndVersion();
                     int priority = rowDto.priority();
                     log.debug("parentInventoryName: {}", parentInventoryName);
-                    Project project = originInventoryItem.get().getProject();
                     log.debug("project: {}", project);
 
                     SoftwareComponent softwareComponent = softwareComponentService.getOrCreateSoftwareComponent(
@@ -171,22 +174,16 @@ public class FossReportService extends BaseWorkDataProcessor {
                     SoftwareComponent parentSoftwareComponent =
                             softwareComponentService.getOrCreateSoftwareComponent(parentComponentName, parentComponentVersion);
 
-                    InventoryItem parentInventory = parentInventoryName == null || parentComponentName.isEmpty() ?
-                            originInventoryItem.get() :
-                            inventoryItemService.getOrCreateInventoryItem(parentInventoryName,
-                                    parentSoftwareComponent, project);
-                    if (parentInventory.getParent() == null && parentInventory.getId() != originInventoryItem.get().getId())
-                        parentInventory.setParent(originInventoryItem.get());
+                    InventoryItem parentInventory = inventoryItemService.getOrCreateInventoryItem(parentInventoryName, parentSoftwareComponent, project.get());
 
                     log.debug("parent inventory : {}", parentInventory.getInventoryName());
 
                     String basePath = FossReportUtilities.determineBasePath(rowDto.files()).trim();
                     log.debug("basePath: {}", basePath);
 
-                    inventoryItemRepository.save(originInventoryItem.get());
                     List<Copyright> copyrights = new ArrayList<>();
                     inventoryItem=  inventoryItemService.getOrCreateInventoryItemWithAllAttributes(
-                            project, inventoryName, rowDto.size()==null?0:rowDto.size(),
+                            project.get(), inventoryName, rowDto.size()==null?0:rowDto.size(),
                             rowDto.linking(), rowDto.externalNotes(),
                             parentInventory, softwareComponent, wasCombined, copyrights, priority
                     );
