@@ -21,7 +21,6 @@
 
 package eu.occtet.bocfrontend.factory;
 
-import com.github.javaparser.quality.Nullable;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.NativeLabel;
@@ -42,8 +41,6 @@ import io.jmix.flowui.kit.component.button.JmixButton;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.function.Consumer;
-
 
 /**
  * Factory class for creating UI components for the Audit View.
@@ -57,6 +54,8 @@ public class ComponentFactory {
     private TreeGridHelper treeGridHelper;
     @Autowired
     private UiComponents uiComponents;
+
+    private final String vulnerabilityFilterId = "vulnerability-filter";
 
     /**
      * Creates an information button with a tooltip and attaches it to the header of the specified column in the inventory grid.
@@ -125,22 +124,19 @@ public class ComponentFactory {
      * @param <T> The type of the items in the TreeDataGrid.
      * @param grid The TreeDataGrid instance for which the toolbox is created.
      * @param entityClass The class type of the entity corresponding to the grid's items.
-     * @param vulnerabilityToggleHandler An optional Consumer that handles toggling
-     *                                     vulnerabilities in case of {InventoryItem.
      * @return A HorizontalLayout representing the created toolbox, or null
      *         if the entity class is not supported.
      */
-    public <T> HorizontalLayout createToolBox(TreeDataGrid<T> grid, Class<T> entityClass,
-                                              @Nullable Consumer<Boolean> vulnerabilityToggleHandler) {
+    public <T> HorizontalLayout createToolBox(TreeDataGrid<T> grid, Class<T> entityClass) {
         if (entityClass.equals(InventoryItem.class)) {
-            return createToolBoxForInventoryItemGrid(grid, vulnerabilityToggleHandler);
+            return createToolBoxForInventoryItemGrid(grid);
         } else if (entityClass.equals(FileTreeNode.class)) {
             return createToolBoxForFileTreeNodeGrid(grid);
         }
         return null;
     }
 
-    private <T> HorizontalLayout createToolBoxForInventoryItemGrid(TreeDataGrid<T> grid, @Nullable Consumer<Boolean> vulnerabilityToggleHandler) {
+    private <T> HorizontalLayout createToolBoxForInventoryItemGrid(TreeDataGrid<T> grid) {
         HorizontalLayout toolbox = uiComponents.create(HorizontalLayout.class);
 
         toolbox.setSpacing(true);
@@ -149,13 +145,9 @@ public class ComponentFactory {
         toolbox.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
 
         Checkbox vulnerabilityFilter = uiComponents.create(Checkbox.class);
+        vulnerabilityFilter.setId(vulnerabilityFilterId); // important
         vulnerabilityFilter.setLabel("vulnerable");
         vulnerabilityFilter.setValue(false);
-        vulnerabilityFilter.addValueChangeListener(event -> {
-            if (vulnerabilityToggleHandler != null) {
-                vulnerabilityToggleHandler.accept(Boolean.TRUE.equals(event.getValue()));
-            }
-        });
 
         toolbox.setClassName("toolbox-audit-view");
         toolbox.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
@@ -174,16 +166,11 @@ public class ComponentFactory {
         toolbox.setAlignItems(FlexComponent.Alignment.CENTER);
         toolbox.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
 
-        JmixButton searchButton = uiComponents.create(JmixButton.class);
-        searchButton.setTooltipText("Search");
-        searchButton.setIcon(VaadinIcon.SEARCH.create());
-        searchButton.setThemeName("small icon primary");
-
         toolbox.setClassName("toolbox-audit-view");
         toolbox.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
         toolbox.setAlignItems(FlexComponent.Alignment.START);
         toolbox.setWidthFull();
-        toolbox.add(searchButton, createExpandAndCollapseToolBar(grid));
+        toolbox.add(createExpandAndCollapseToolBar(grid));
 
         return toolbox;
     }
@@ -204,29 +191,29 @@ public class ComponentFactory {
         JmixButton expandAll = uiComponents.create(JmixButton.class);
         expandAll.setTooltipText("Expand all");
         expandAll.setIcon(expandIcon);
-        expandAll.setThemeName("small icon primary");
-        expandAll.setMaxHeight("20px");
-        expandAll.setMaxWidth("28px");
+        expandAll.setThemeName("icon");
         expandAll.addClickListener(event -> treeGridHelper.expandChildrenOfRoots(grid));
 
         JmixButton collapseAll = uiComponents.create(JmixButton.class);
         collapseAll.setTooltipText("Collapse all");
         collapseAll.setIcon(compressIcon);
-        collapseAll.setThemeName("small icon primary");
-        collapseAll.setMaxHeight("20px");
-        collapseAll.setMaxWidth("28px");
+        collapseAll.setThemeName("icon");
         collapseAll.addClickListener(event -> treeGridHelper.collapseChildrenOfRoots(grid));
 
         HorizontalLayout mergeLayout = uiComponents.create(HorizontalLayout.class);
         mergeLayout.setMargin(false);
         mergeLayout.setPadding(false);
+        mergeLayout.setSpacing(false);
         mergeLayout.setWidthFull();
-        mergeLayout.getStyle().set("spacing", "2px");
         mergeLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         mergeLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         mergeLayout.add(expandAll, collapseAll);
 
         return mergeLayout;
+    }
+
+    public String getVulnerabilityFilterId() {
+        return vulnerabilityFilterId;
     }
 }
 
