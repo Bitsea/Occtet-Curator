@@ -40,7 +40,7 @@ To use the library in your project, add the dependency to your pom.xml:
 ``` 
 
 Then you can use the generated API classes to interact with the ORT Server.
-For example, to get a list of projects:
+For example, to get a list of product vulnerabilities (add authentification as needed):
 
 ```java
 import eu.occtet.boc.ort.client.ApiClient;
