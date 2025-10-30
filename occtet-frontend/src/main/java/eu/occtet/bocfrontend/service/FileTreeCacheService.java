@@ -101,13 +101,8 @@ public class FileTreeCacheService {
         List<InventoryItem> baseInventoryItems = inventoryItemRepository
                 .findInventoryItemsByProjectAndParent(project, null);
 
-        // Build tree from each base path
-        List<FileTreeNode> roots = baseInventoryItems.stream()
-                .filter(item -> item.getBasePath() != null)
-                .map(item -> buildTreeFromBasePath(item.getBasePath(), fileNameIndex))
-                .filter(Objects::nonNull)
-                .toList();
-
+        // Build tree from base path
+        List<FileTreeNode> roots = List.of(buildTreeFromBasePath(project.getBasePath(), fileNameIndex));
         long duration = System.currentTimeMillis() - startTime;
         log.debug("Built file tree with {} roots in {}ms", roots.size(), duration);
 
