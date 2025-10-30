@@ -68,6 +68,7 @@
                 </actions>
                 <columns resizable="true">
                     <column property="projectName" header="Name"/>
+                    <column property="basePath" header="Basepath"/>
                 </columns>
             </dataGrid>
             <hbox id="buttonsPanel" classNames="buttons-panel">
