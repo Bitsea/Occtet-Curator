@@ -139,6 +139,30 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <createTable tableName="VEX_DATA" ifNotExists="true">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_VEX_DATA" />
+            </column>
+            <column name="TITLE" type="TEXT"/>
+            <column name="CHECKED" type="BOOLEAN"/>
+            <column name="BOM_FORMAT" type="TEXT"/>
+            <column name="SPEC_VERSION" type="TEXT"/>
+            <column name="SERIAL_NUMBER" type="TEXT"/>
+            <column name="VERSION" type="INTEGER"/>
+            <column name="TIME_STAMP" type="DATE"/>
+            <column name="META_DATA" type="varchar(255)"/>
+            <column name="ANALYSIS_DATA" type="varchar(255)"/>
+            <column name="VULNERABILITY_DATA" type="varchar(255)"/>
+            <column name="SOFTWARE_COMPONENT_ID" type="UUID"/>
+        </createTable>
+        <createTable tableName="VULNERABILITY_VEX_LINK" ifNotExists="true">
+            <column name="VEX_DATA_ID" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="VULNERABILITY_ID" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
     </changeSet>
 
 

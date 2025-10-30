@@ -79,6 +79,7 @@ public class SoftwareComponent {
     @Column(name = "DETAILS_URL")
     private String detailsUrl;
 
+
     public SoftwareComponent(){}
 
     public SoftwareComponent(String name, String version, String purl,

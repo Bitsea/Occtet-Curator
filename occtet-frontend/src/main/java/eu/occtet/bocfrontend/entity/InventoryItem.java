@@ -74,6 +74,7 @@ public class InventoryItem {
     @JoinColumn(name = "SOFTWARE_COMPONENT_ID", nullable = true)
     private SoftwareComponent softwareComponent;
 
+
     @Column(name= "WAS_COMBINED")
     private Boolean wasCombined;
 
@@ -251,4 +252,5 @@ public class InventoryItem {
     public Boolean getCurated() {
         return curated;
     }
+
 }

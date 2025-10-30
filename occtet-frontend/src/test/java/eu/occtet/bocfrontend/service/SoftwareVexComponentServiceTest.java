@@ -49,9 +49,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ExtendWith(AuthenticatedAsAdmin.class)
 @Transactional
-public class SoftwareComponentServiceTest {
+public class SoftwareVexComponentServiceTest {
 
-    private static final Logger log = LogManager.getLogger(SoftwareComponentServiceTest.class);
+    private static final Logger log = LogManager.getLogger(SoftwareVexComponentServiceTest.class);
 
     @Autowired
     private SoftwareComponentService softwareComponentService;
