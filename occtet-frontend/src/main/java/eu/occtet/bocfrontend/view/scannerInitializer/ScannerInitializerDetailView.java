@@ -34,7 +34,6 @@ import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.scanner.Scanner;
 import eu.occtet.bocfrontend.engine.ScannerManager;
 import eu.occtet.bocfrontend.service.ConfigurationService;
-import eu.occtet.bocfrontend.service.InventoryItemService;
 import eu.occtet.bocfrontend.service.Utilities;
 import eu.occtet.bocfrontend.view.configuration.ConfigurationDetailView;
 import eu.occtet.bocfrontend.view.main.MainView;
@@ -94,8 +93,6 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
     private ConfigurationService configurationService;
     @Autowired
     private Utilities utilities;
-    @Autowired
-    private InventoryItemService inventoryItemService;
 
     Scanner scanner;
     String scannerName;
@@ -131,10 +128,6 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
     @Subscribe("projectComboBox")
     public void onProjectValueChange(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event) {
         if (event.getValue() != null) {
-            Project chosenProject = event.getValue();
-            List<InventoryItem> inventoryItemList = new ArrayList<>(inventoryItemService.findInventoryItemsOfProject(chosenProject));
-
-            inventoryItemList.removeIf(in -> in.getParent() != null );
             setConfigurations(scanner);
         }
     }
@@ -165,6 +158,7 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
             }
         }
 
+        scannerInitializer.setProject(projectComboBox.getValue());
         scannerInitializer.setScannerConfiguration(configurations);
         scannerInitializer.updateStatus(ScannerInitializerStatus.IN_PROGRESS.getId());
 

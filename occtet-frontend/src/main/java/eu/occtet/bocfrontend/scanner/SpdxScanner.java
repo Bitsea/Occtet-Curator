@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.bocfrontend.entity.Configuration;
-import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.ScannerInitializer;
 import eu.occtet.bocfrontend.entity.ScannerInitializerStatus;
 import eu.occtet.bocfrontend.factory.ScannerInitializerFactory;
@@ -96,7 +95,7 @@ public class SpdxScanner extends Scanner{
                 }
             }
 
-            UUID projectId = scannerInitializer.getInventoryItem().getProject().getId();
+            UUID projectId = scannerInitializer.getProject().getId();
 
             sendIntoStream(spdxJson, projectId, useCopyright ,useLicenseMatcher, filename);
             completionCallback.accept(scannerInitializer);
@@ -131,7 +130,7 @@ public class SpdxScanner extends Scanner{
             log.debug("sending message to spdx service: {}", message);
             natsService.sendWorkMessageToStream("work.spdx", message.getBytes(Charset.defaultCharset()));
         }catch(Exception e){
-            log.error("Error with microservice connection: "+ e.getMessage());
+            log.error("Error with microservice connection: {}", e.getMessage());
         }
     }
 
@@ -157,11 +156,11 @@ public class SpdxScanner extends Scanner{
 
     @Override
     public String getDefaultConfigurationValue(String k) {
-        switch(k) {
-            case CONFIG_KEY_USE_LICENSE_MATCHER: return ""+DEFAULT_USE_LICENSE_MATCHER;
-            case CONFIG_KEY_USE_FALSE_COPYRIGHT_FILTER: return ""+DEFAULT_USE_FALSE_COPYRIGHT_FILTER;
-        }
-        return super.getDefaultConfigurationValue(k);
+        return switch (k) {
+            case CONFIG_KEY_USE_LICENSE_MATCHER -> "" + DEFAULT_USE_LICENSE_MATCHER;
+            case CONFIG_KEY_USE_FALSE_COPYRIGHT_FILTER -> "" + DEFAULT_USE_FALSE_COPYRIGHT_FILTER;
+            default -> super.getDefaultConfigurationValue(k);
+        };
     }
 
 }

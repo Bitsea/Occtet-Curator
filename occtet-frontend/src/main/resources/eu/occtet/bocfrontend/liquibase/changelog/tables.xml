@@ -72,7 +72,7 @@
             <column name="SCANNER" type="varchar(255)"/>
             <column name="STATUS" type="VARCHAR(255)"/>
             <column name="FEEDBACK" type="TEXT"/>
-            <column name="INVENTORY_ITEM_ID" type="UUID"/>
+            <column name="PROJECT_ID" type="UUID"/>
             <column name="LAST_UPDATE" type="date"/>
         </createTable>
         <createTable tableName="INVENTORY_ITEM" ifNotExists="true">
