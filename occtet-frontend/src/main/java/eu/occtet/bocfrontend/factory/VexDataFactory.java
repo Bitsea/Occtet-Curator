@@ -19,27 +19,30 @@
 
 package eu.occtet.bocfrontend.factory;
 
-import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.entity.VexData;
+import eu.occtet.bocfrontend.entity.Vulnerability;
 import io.jmix.core.DataManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nonnull;
+import java.util.List;
 
+
+/**
+ * Factory class for creating of finding VEX data objects.
+ */
 @Component
-public class ProjectFactory {
-
+public class VexDataFactory {
     @Autowired
-    protected DataManager dataManager;
+    private DataManager dataManager;
 
-    /**
-     * creates project with all attributes
-     * @param name
-     * @return
-     */
-    public Project create(@Nonnull String name) {
-        Project project = dataManager.create(Project.class);
-        project.setProjectName(name);
-        return dataManager.save(project);
+    public VexData create(SoftwareComponent softwareComponent){
+        VexData vexData = dataManager.create(VexData.class);
+        vexData.setSoftwareComponent(softwareComponent);
+        vexData.setVulnerability(softwareComponent.getVulnerabilities());
+        dataManager.save(vexData);
+        return vexData;
     }
+
 }
