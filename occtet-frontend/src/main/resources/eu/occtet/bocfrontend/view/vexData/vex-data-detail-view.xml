@@ -33,12 +33,34 @@
     <facets>
         <dataLoadCoordinator auto="true"/>
     </facets>
-    <layout>
+    <layout padding="true">
         <formLayout id="form" dataContainer="vexDataDc" height="90%" width="100%">
-        <textField id="title" property="title" label="License name"/>
-        <textField id="specVersion" property="specVersion" label="License Type"/>
-        <textField id="bomFormat" property="bomFormat" label="Detail url"/>
-        <textField id="version" property="version" label="Priority"/>
+<!--            <textField id="title" property="title" label="Title"/>-->
+            <textField id="bomFormat" property="bomFormat" label="Bom format"/>
+            <textField id="specVersion" property="specVersion" label="Spec version" width="30%"/>
+            <textField id="serialNumber" property="serialNumber" label="Serial number" />
+            <textField id="version" property="version" label="version" width="30%"/>
+            <htmlObject colspan="2">
+                <hr></hr>
+            </htmlObject>
+            <hbox colspan="2" spacing="true" alignItems="END">
+                <h3 text="Metadata"/>
+                <hbox spacing="false">
+                    <h6 text="Timestamp: "/>
+                    <nativeLabel id="timeStamp" property="timeStamp"/>
+                </hbox>
+            </hbox>
+            <textField id="softwareComponentType" property="metaData" label="Type"/>
+            <textField id="softwareComponentName" property="softwareComponent.name" label="Component"/>
+            <textField id="softwareComponentVersion" property="softwareComponent.version" label="Version"/>
+            <htmlObject colspan="2">
+                <hr></hr>
+            </htmlObject>
+            <hbox colspan="2" spacing="true" alignItems="END">
+                <h3 text="Vulnerabilities"/>
+            </hbox>
+            <virtualList id="virtualList" alignSelf="CENTER" colspan="2">
+            </virtualList>
         </formLayout>
     </layout>
 </view>
