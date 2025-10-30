@@ -42,10 +42,13 @@ public class Project {
     @Column(name="PROJECT_NAME")
     private String projectName;
 
+    @Column(name = "BASEPATH", columnDefinition = "TEXT")
+    private String basePath;
+
     public Project() {
     }
 
-    public Project(String projectName) {
+    public Project(String projectName ) {
         this.projectName = projectName;
     }
 
@@ -64,4 +67,8 @@ public class Project {
     public void setProjectName(String projectName) {
         this.projectName = projectName;
     }
+
+    public String getBasePath() {return basePath;}
+
+    public void setBasePath(String basePath) {this.basePath = basePath;}
 }

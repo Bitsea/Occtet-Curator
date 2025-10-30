@@ -27,9 +27,6 @@
     <data readOnly="true">
         <collection id="scannerInitializerDc"
                     class="eu.occtet.bocfrontend.entity.ScannerInitializer">
-            <fetchPlan extends="_base">
-                <property name="inventoryItem" fetchPlan="_base"/>
-            </fetchPlan>
             <loader id="scannerInitializerDl" readOnly="true">
                 <query>
                     <![CDATA[select e from ScannerInitializer e]]>
@@ -98,7 +95,6 @@
                 </actions>
                 <columns resizable="true" sortable="true">
                     <column property="scanner" sortable="true" header="Scanner"/>
-                    <column property="inventoryItem.inventoryName" sortable="true" header="Inventory Item"/>
                     <column property="status" sortable="true" header="Status"/>
                     <column property="lastUpdate" sortable="true" header="LastUpdate"/>
                 </columns>

@@ -100,7 +100,6 @@
                                dataContainer="softwareComponentDc"/>
                     <hbox spacing="true" width="100%" alignItems="BASELINE">
                         <textField id="priorityField" label="Priority" property="priority" width="70px"/>
-                        <textField id="basePathField" label="Base path" property="basePath" width="100%"/>
                     </hbox>
                     <hbox spacing="true">
                         <checkbox id="curatedID" property="curated" label="Curated"/>
@@ -228,7 +227,6 @@
                                                     <textField id="createdAtIDHistory" property="createdAt" label="Created"/>
                                                 </hbox>
                                                 <hbox>
-                                                    <textField id="urlIDHistory" property="basePath" label="Url" width="30em"/>
                                                     <textField id="linkingIDHistory" property="linking" label="Linking"/>
                                                     <textField id="sizeIDHistory" property="size" label="Size" maxWidth="5em"/>
                                                 </hbox>

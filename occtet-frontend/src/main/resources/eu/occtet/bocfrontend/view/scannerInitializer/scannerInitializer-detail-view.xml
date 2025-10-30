@@ -27,9 +27,6 @@
     <data>
         <instance id="scannerInitializerDc"
                   class="eu.occtet.bocfrontend.entity.ScannerInitializer">
-            <fetchPlan extends="_base">
-                <property name="inventoryItem" fetchPlan="_base"/>
-            </fetchPlan>
             <loader/>
         </instance>
         <collection id="configurationsDc" class="eu.occtet.bocfrontend.entity.Configuration">
@@ -53,10 +50,6 @@
             </responsiveSteps>
             <formItem label="project">
                 <comboBox id="projectComboBox"  allowCustomValue="false" title="Projects" colspan="1" css="margin-left: 15px"/>
-            </formItem>
-            <span colspan="2"/>
-            <formItem label="inventoryItem">
-                <comboBox id="inventoryItemComboBox" property="inventoryItem" css="margin-left: 15px"/>
             </formItem>
             <span colspan="2"/>
             <formItem label="status">

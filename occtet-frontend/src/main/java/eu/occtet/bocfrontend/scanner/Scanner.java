@@ -77,7 +77,7 @@ public abstract class Scanner {
         return getRequiredConfigurationKeys().contains(key);
     }
 
-    public String getDefaultConfigurationValue(String k, InventoryItem inventoryItem) {
+    public String getDefaultConfigurationValue(String k) {
         return "";
     };
 

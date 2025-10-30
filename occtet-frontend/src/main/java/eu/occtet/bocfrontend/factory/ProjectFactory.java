@@ -40,9 +40,10 @@ public class ProjectFactory {
      * @param name
      * @return
      */
-    public Project create(@Nonnull String name) {
+    public Project create(@Nonnull String name, @Nonnull String basepath) {
         Project project = dataManager.create(Project.class);
         project.setProjectName(name);
+        project.setBasePath(basepath);
         return dataManager.save(project);
     }
 }
