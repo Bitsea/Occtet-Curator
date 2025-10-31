@@ -20,9 +20,11 @@
 package eu.occtet.bocfrontend.view.vexData;
 
 import com.vaadin.flow.component.html.NativeLabel;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.virtuallist.VirtualList;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -32,11 +34,24 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.VexData;
 import eu.occtet.bocfrontend.entity.Vulnerability;
+import eu.occtet.bocfrontend.factory.VexDataFactory;
+import eu.occtet.bocfrontend.view.audit.fragment.FilesTabFragment;
 import eu.occtet.bocfrontend.view.main.MainView;
+import eu.occtet.bocfrontend.view.vexData.fragment.VexDetailFragment;
+import eu.occtet.bocfrontend.view.vexData.fragment.VexMetaDataFragment;
+import eu.occtet.bocfrontend.view.vexData.fragment.VexVulnerabilityFragment;
+import io.jmix.flowui.Fragments;
 import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.component.details.JmixDetails;
+import io.jmix.flowui.component.virtuallist.JmixVirtualList;
 import io.jmix.flowui.view.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jsoup.internal.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Route(value = "vexData/:id", layout = MainView.class)
@@ -45,63 +60,74 @@ import java.util.Set;
 @EditedEntityContainer("vexDataDc")
 public class VexDataDetailView extends StandardDetailView<VexData> {
 
+    private static final Logger log = LogManager.getLogger(VexDataDetailView.class);
+
+    @Autowired
+    private Fragments fragments;
+
+    @ViewComponent
+    private JmixDetails metaDataDetailsBox;
+
+    @ViewComponent
+    private JmixDetails vulnerabilityDetailsBox;
+
+    @ViewComponent
+    private TextField bomFormat;
+
+    @ViewComponent
+    private TextField specVersion;
+
+    @ViewComponent
+    private TextField serialNumber;
+    @ViewComponent
+    private IntegerField version;
+
+    @Autowired
+    private VexDataFactory vexDataFactory;
+
+    @ViewComponent
+    private JmixVirtualList<Vulnerability> virtualList;
     @Autowired
     private UiComponents uiComponents;
-    @ViewComponent
-    private VirtualList<Vulnerability> virtualList;
+
+    @Supply(to = "virtualList", subject = "renderer")
+    protected Renderer<Vulnerability> dayRenderer() {
+        return new ComponentRenderer<>(v -> {
+            HorizontalLayout layout = uiComponents.create(HorizontalLayout.class);
+            layout.add(new Span(v.getVulnerabilityId()));
+            return layout;
+        });
+    }
+
 
     private SoftwareComponent softwareComponent;
-    private Set<Vulnerability> selectedVulnerabilities;
+    private List<Vulnerability> selectedVulnerabilities;
 
     public void setSelectedVulnerabilitiesAndComponent(Set<Vulnerability> selectedVulnerabilities, SoftwareComponent softwareComponent) {
-        this.selectedVulnerabilities = selectedVulnerabilities;
+        this.selectedVulnerabilities = new ArrayList<>(selectedVulnerabilities);
         this.softwareComponent = softwareComponent;
     }
 
     @Subscribe
     public void onInit(InitEvent event) {
-        virtualList.setRenderer(vulnerabilityRenderer());
+        VexData vexData= getEditedEntity();
+        vexDataFactory.addVexData(vexData,softwareComponent, selectedVulnerabilities);
+        virtualList.setItems(selectedVulnerabilities);
     }
 
     @Subscribe
     public void onBeforeShow(BeforeShowEvent event) {
-        if (selectedVulnerabilities != null) {
-            virtualList.setItems(selectedVulnerabilities);
-        }
+        VexData vexData = getEditedEntity();
+        bomFormat.setValue(vexData.getBomFormat());
+        specVersion.setValue(vexData.getSpecVersion());
+        serialNumber.setValue(vexData.getSerialNumber());
+        version.setValue(vexData.getVersion());
+
+        VexMetaDataFragment fragment = fragments.create(this, VexMetaDataFragment.class);
+        fragment.setVexData(vexData);
+        metaDataDetailsBox.add(fragment);
+
     }
 
-    private Renderer<Vulnerability> vulnerabilityRenderer() {
-        // TODO set values
-        return new ComponentRenderer<>(vulnerability -> {
-            HorizontalLayout mainLayout = uiComponents.create(HorizontalLayout.class);
-            mainLayout.setPadding(true);
-            mainLayout.setSpacing(true);
-            mainLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-            mainLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-            mainLayout.addClassName("vulnerability-virtual-list-card");
 
-            TextField vulnerabilityName = uiComponents.create(TextField.class);
-            vulnerabilityName.setLabel("ID");
-            vulnerabilityName.setValue(vulnerability.getVulnerabilityId());
-
-            VerticalLayout sourceLayout = uiComponents.create(VerticalLayout.class);
-            NativeLabel sourceLabel = uiComponents.create(NativeLabel.class);
-            sourceLabel.setText("Source:");
-            TextField sourceName = uiComponents.create(TextField.class);
-            sourceLayout.add(sourceLabel, sourceName);
-
-            VerticalLayout analysisLayout = uiComponents.create(VerticalLayout.class);
-            analysisLayout.setSpacing(false);
-            NativeLabel analysisLabel = uiComponents.create(NativeLabel.class);
-            analysisLabel.setText("Analysis:");
-            TextField analysisState = uiComponents.create(TextField.class);
-            analysisState.setLabel("State");
-            TextField analysisDetail = uiComponents.create(TextField.class);
-            analysisDetail.setLabel("Detail");
-            analysisLayout.add(analysisLabel, analysisState, analysisDetail);
-
-            mainLayout.add(vulnerabilityName, sourceLayout, analysisLayout);
-            return mainLayout;
-        });
-    }
 }

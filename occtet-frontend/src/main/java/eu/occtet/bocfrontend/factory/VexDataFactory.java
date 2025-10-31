@@ -19,6 +19,7 @@
 
 package eu.occtet.bocfrontend.factory;
 
+import com.google.gson.Gson;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.VexData;
 import eu.occtet.bocfrontend.entity.Vulnerability;
@@ -37,11 +38,55 @@ public class VexDataFactory {
     @Autowired
     private DataManager dataManager;
 
+    /**
+     * create a new VexData object with software component and its vulnerabilities
+     * @param softwareComponent
+     * @return
+     */
     public VexData create(SoftwareComponent softwareComponent){
         VexData vexData = dataManager.create(VexData.class);
         vexData.setSoftwareComponent(softwareComponent);
         vexData.setVulnerability(softwareComponent.getVulnerabilities());
         dataManager.save(vexData);
+        return vexData;
+    }
+
+    /**
+     * add software component and vulnerabilities to the vexData
+     * @param vexData
+     * @param softwareComponent
+     * @param vulnerabilities
+     * @return
+     */
+    public VexData addVexData(VexData vexData, SoftwareComponent softwareComponent, List<Vulnerability> vulnerabilities){
+        vexData.setSoftwareComponent(softwareComponent);
+        vexData.setVulnerability(vulnerabilities);
+        return vexData;
+    }
+
+    /**
+     * add generic data to the vexData. This will be converted to json format before.
+     *
+     * @param vexData
+     * @param data
+     * @return
+     */
+    public VexData addMetaDataAsJson(VexData vexData, Object data) {
+        Gson gson = new Gson();
+        vexData.setMetaData(gson.toJson(data));
+        return vexData;
+    }
+
+    /**
+     * add generic data to the vexData. This will be converted to json format before.
+     *
+     * @param vexData
+     * @param data
+     * @return
+     */
+    public VexData addVulnerabilityDataAsJson(VexData vexData, Object data) {
+        Gson gson = new Gson();
+        vexData.setVulnerabilityData(gson.toJson(data));
         return vexData;
     }
 

@@ -17,29 +17,11 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.model;
+package eu.occtet.bocfrontend.model.vexModels;
 
-public class VexVulnerabilityAnalysis {
-    private enum state{
-            not_affected,
-            affected,
-            in_triage,
-            resolved,
-            resolved_with_pedigree,
-            exploitable,
-            false_positive}
+import java.time.LocalDateTime;
 
-    private enum justification{
-            code_not_present,
-            code_not_reachable,
-            requires_configuration,
-            requires_dependency,
-            requires_environment,
-            protected_by_compiler,
-            protected_at_runtime,
-            protected_at_network,
-            protected_by_mitigating_control}
+public record VexMetadata(LocalDateTime timestamp,
+        VexComponent component) { }
 
-    private String detail;
 
-}

@@ -28,39 +28,45 @@
                 <property name="vulnerability" fetchPlan="_base"/>
             </fetchPlan>
             <loader id="vexDataDl"/>
+
         </instance>
+        <collection id="vulnerabilitiesDc" class="eu.occtet.bocfrontend.entity.Vulnerability">
+            <loader id="vulnerabilitiesDl">
+                <query>
+                    <![CDATA[select v from Vulnerability v where v.vexData = :vexData]]>
+                </query>
+            </loader>
+        </collection>
     </data>
+    <actions>
+        <action id="saveAction"/>
+    </actions>
     <facets>
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout padding="true">
         <formLayout id="form" dataContainer="vexDataDc" height="90%" width="100%">
 <!--            <textField id="title" property="title" label="Title"/>-->
-            <textField id="bomFormat" property="bomFormat" label="Bom format"/>
-            <textField id="specVersion" property="specVersion" label="Spec version" width="30%"/>
-            <textField id="serialNumber" property="serialNumber" label="Serial number" />
-            <textField id="version" property="version" label="version" width="30%"/>
+            <textField id="bomFormat" property="bomFormat" label="BomFormat"/>
+            <textField id="specVersion" property="specVersion" label="SpecVersion" width="30%"/>
+            <textField id="serialNumber" property="serialNumber" label="SerialNumber" />
+            <integerField id="version" property="version" label="version" width="30%"/>
             <htmlObject colspan="2">
-                <hr></hr>
+                <hr/>
             </htmlObject>
-            <hbox colspan="2" spacing="true" alignItems="END">
-                <h3 text="Metadata"/>
-                <hbox spacing="false">
-                    <h6 text="Timestamp: "/>
-                    <nativeLabel id="timeStamp" property="timeStamp"/>
-                </hbox>
-            </hbox>
-            <textField id="softwareComponentType" property="metaData" label="Type"/>
-            <textField id="softwareComponentName" property="softwareComponent.name" label="Component"/>
-            <textField id="softwareComponentVersion" property="softwareComponent.version" label="Version"/>
+            <details id="metaDataDetailsBox" classNames="bordered-panel" summaryText="Finding Details" opened="true"
+                     alignSelf="STRETCH"/>
             <htmlObject colspan="2">
-                <hr></hr>
+                <hr/>
             </htmlObject>
-            <hbox colspan="2" spacing="true" alignItems="END">
-                <h3 text="Vulnerabilities"/>
-            </hbox>
-            <virtualList id="virtualList" alignSelf="CENTER" colspan="2">
+            <virtualList id="virtualList"
+                         itemsContainer="vulnerabilitiesDc">
+                <fragmentRenderer
+                        class="eu.occtet.bocfrontend.view.vexData.fragment.VexVulnerabilityFragment"/>
             </virtualList>
         </formLayout>
+        <hbox>
+            <button id="saveButton" text="save" themeNames="primary small" action="saveAction"/>
+        </hbox>
     </layout>
 </view>
