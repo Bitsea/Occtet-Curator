@@ -1,0 +1,8 @@
+{
+  "type": "descriptor",
+  "name": "occtet-nats-file-indexing-service",
+  "version": "2025.11.1",
+  "description": "This service is responsible for indexing files into OpenSearch cluster",
+  "usageType": "RUNNABLE_BY_SERVICE",
+  "acceptableWorkData": ""
+}
