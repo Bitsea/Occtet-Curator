@@ -19,7 +19,7 @@
   -->
 
 <view xmlns="http://jmix.io/schema/flowui/view"
-      title="msg://vexDataDetailView.title">
+      title="msg://eu.occtet.bocfrontend.view.vexData/caption">
     <data>
         <instance id="vexDataDc"
                   class="eu.occtet.bocfrontend.entity.VexData">
@@ -39,14 +39,14 @@
         </collection>
     </data>
     <actions>
-        <action id="saveAction"/>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
     </actions>
     <facets>
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout padding="true">
         <formLayout id="form" dataContainer="vexDataDc" height="90%" width="100%">
-<!--            <textField id="title" property="title" label="Title"/>-->
             <textField id="bomFormat" property="bomFormat" label="BomFormat"/>
             <textField id="specVersion" property="specVersion" label="SpecVersion" width="30%"/>
             <textField id="serialNumber" property="serialNumber" label="SerialNumber" />
@@ -54,19 +54,18 @@
             <htmlObject colspan="2">
                 <hr/>
             </htmlObject>
-            <details id="metaDataDetailsBox" classNames="bordered-panel" summaryText="Finding Details" opened="true"
-                     alignSelf="STRETCH"/>
+            <details id="metaDataDetailsBox" classNames="bordered-panel" opened="true"
+                     alignSelf="STRETCH">
+            </details>
             <htmlObject colspan="2">
                 <hr/>
             </htmlObject>
             <virtualList id="virtualList"
-                         itemsContainer="vulnerabilitiesDc">
-                <fragmentRenderer
-                        class="eu.occtet.bocfrontend.view.vexData.fragment.VexVulnerabilityFragment"/>
-            </virtualList>
+                         itemsContainer="vulnerabilitiesDc"/>
         </formLayout>
         <hbox>
             <button id="saveButton" text="save" themeNames="primary small" action="saveAction"/>
+            <button id="closeButton" text="close" themeNames="small" action="closeAction"/>
         </hbox>
     </layout>
 </view>

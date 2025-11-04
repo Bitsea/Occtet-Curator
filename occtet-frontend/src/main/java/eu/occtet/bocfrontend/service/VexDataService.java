@@ -23,11 +23,14 @@ package eu.occtet.bocfrontend.service;
 import eu.occtet.bocfrontend.dao.VexDataRepository;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.VexData;
+import eu.occtet.bocfrontend.entity.Vulnerability;
 import eu.occtet.bocfrontend.factory.VexDataFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class VexDataService {
@@ -45,4 +48,5 @@ public class VexDataService {
         } else
             return vexDataFactory.create(softwareComponent);
     }
+
 }

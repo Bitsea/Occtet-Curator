@@ -19,7 +19,6 @@
 
 package eu.occtet.bocfrontend.view.vexData.fragment;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -29,7 +28,6 @@ import eu.occtet.bocfrontend.factory.VexDataFactory;
 import eu.occtet.bocfrontend.model.vexModels.VexComponent;
 import eu.occtet.bocfrontend.model.vexModels.VexComponentType;
 import eu.occtet.bocfrontend.model.vexModels.VexMetadata;
-import io.jmix.core.DataManager;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.fragment.FragmentDescriptor;
 import io.jmix.flowui.view.Subscribe;
@@ -63,6 +61,7 @@ public class VexMetaDataFragment extends VexDetailFragment {
 
     @Subscribe(target = Target.HOST_CONTROLLER)
     public void onHostReady(final View.ReadyEvent event) {
+        log.debug("make ready");
         timeStamp.setHtmlContent(vexData.getTimeStamp().toString());
         componentName.setValue(vexData.getSoftwareComponent().getName());
         componentVersion.setValue(vexData.getSoftwareComponent().getVersion());

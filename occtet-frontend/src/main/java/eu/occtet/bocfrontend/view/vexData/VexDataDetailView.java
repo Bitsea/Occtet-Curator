@@ -19,25 +19,18 @@
 
 package eu.occtet.bocfrontend.view.vexData;
 
-import com.vaadin.flow.component.html.NativeLabel;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.virtuallist.VirtualList;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.VexData;
 import eu.occtet.bocfrontend.entity.Vulnerability;
 import eu.occtet.bocfrontend.factory.VexDataFactory;
-import eu.occtet.bocfrontend.view.audit.fragment.FilesTabFragment;
 import eu.occtet.bocfrontend.view.main.MainView;
-import eu.occtet.bocfrontend.view.vexData.fragment.VexDetailFragment;
 import eu.occtet.bocfrontend.view.vexData.fragment.VexMetaDataFragment;
 import eu.occtet.bocfrontend.view.vexData.fragment.VexVulnerabilityFragment;
 import io.jmix.flowui.Fragments;
@@ -47,7 +40,6 @@ import io.jmix.flowui.component.virtuallist.JmixVirtualList;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jsoup.internal.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -67,9 +59,6 @@ public class VexDataDetailView extends StandardDetailView<VexData> {
 
     @ViewComponent
     private JmixDetails metaDataDetailsBox;
-
-    @ViewComponent
-    private JmixDetails vulnerabilityDetailsBox;
 
     @ViewComponent
     private TextField bomFormat;
@@ -92,13 +81,22 @@ public class VexDataDetailView extends StandardDetailView<VexData> {
 
     @Supply(to = "virtualList", subject = "renderer")
     protected Renderer<Vulnerability> dayRenderer() {
-        return new ComponentRenderer<>(v -> {
-            HorizontalLayout layout = uiComponents.create(HorizontalLayout.class);
-            layout.add(new Span(v.getVulnerabilityId()));
-            return layout;
-        });
+        return new ComponentRenderer<>(this::createVulnerabilityComponent);
     }
 
+    private VerticalLayout createVulnerabilityComponent() {
+        log.debug("create vulnerability list");
+        VerticalLayout layout = uiComponents.create(VerticalLayout.class);
+        for(Vulnerability v: selectedVulnerabilities) {
+            VexVulnerabilityFragment fragment = fragments.create(this, VexVulnerabilityFragment.class);
+            fragment.setVulnerability(v);
+            layout.add(fragment);
+        }
+        layout.setPadding(false);
+        layout.setSpacing(false);
+        layout.setAlignItems(FlexComponent.Alignment.STRETCH);
+        return layout;
+    }
 
     private SoftwareComponent softwareComponent;
     private List<Vulnerability> selectedVulnerabilities;
@@ -108,22 +106,22 @@ public class VexDataDetailView extends StandardDetailView<VexData> {
         this.softwareComponent = softwareComponent;
     }
 
-    @Subscribe
-    public void onInit(InitEvent event) {
-        VexData vexData= getEditedEntity();
-        vexDataFactory.addVexData(vexData,softwareComponent, selectedVulnerabilities);
-        virtualList.setItems(selectedVulnerabilities);
-    }
 
     @Subscribe
     public void onBeforeShow(BeforeShowEvent event) {
-        VexData vexData = getEditedEntity();
+        log.debug("before show Selected vulnerabilities for creation {} , softwareComponent {}", selectedVulnerabilities.size(), softwareComponent.getName());
+
+        VexData vexData= getEditedEntity();
+        vexDataFactory.addVexData(vexData,softwareComponent, selectedVulnerabilities);
+        virtualList.setItems(selectedVulnerabilities);
+        log.debug("virtual list items size {}", virtualList.getDataProvider().size(new com.vaadin.flow.data.provider.Query<>()));
         bomFormat.setValue(vexData.getBomFormat());
         specVersion.setValue(vexData.getSpecVersion());
         serialNumber.setValue(vexData.getSerialNumber());
         version.setValue(vexData.getVersion());
-
+        log.debug("set some vex data values, version {}", vexData.getVersion());
         VexMetaDataFragment fragment = fragments.create(this, VexMetaDataFragment.class);
+        log.debug("fragment created");
         fragment.setVexData(vexData);
         metaDataDetailsBox.add(fragment);
 

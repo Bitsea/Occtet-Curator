@@ -20,18 +20,18 @@
 
 <fragment xmlns="http://jmix.io/schema/flowui/fragment">
     <content>
-    <vbox>
-        <hbox colspan="2" spacing="true" alignItems="END">
-            <h3 text="Metadata"/>
-            <hbox spacing="false">
-                <h6 text="Timestamp: "/>
-                <html id="timeStamp"/>
+        <vbox>
+            <hbox colspan="2" spacing="true" alignItems="END">
+                <h3 text="Metadata"/>
+                <hbox spacing="false">
+                    <h6 text="Timestamp: "/>
+                    <html id="timeStamp"/>
+                </hbox>
             </hbox>
-        </hbox>
-        <comboBox id="type" property="type" itemsEnum="eu.occtet.bocfrontend.model.vexModels.VexComponentType" placeholder="Select type"
-                  label="Type"/>
-        <textField id="componentName"  label="ComponentName"/>
-        <textField id="componentVersion" label="VersionName"/>
-    </vbox>
+            <comboBox id="type" property="type" itemsEnum="eu.occtet.bocfrontend.model.vexModels.VexComponentType" placeholder="Select type"
+                      label="Type"/>
+            <textField id="componentName"  label="ComponentName"/>
+            <textField id="componentVersion" label="VersionName"/>
+        </vbox>
     </content>
 </fragment>

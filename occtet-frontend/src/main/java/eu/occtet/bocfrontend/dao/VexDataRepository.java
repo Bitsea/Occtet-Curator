@@ -21,9 +21,11 @@ package eu.occtet.bocfrontend.dao;
 
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.VexData;
+import eu.occtet.bocfrontend.entity.Vulnerability;
 import io.jmix.core.repository.JmixDataRepository;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -32,4 +34,6 @@ import java.util.UUID;
 public interface VexDataRepository extends JmixDataRepository<VexData, UUID> {
 
     List<VexData> findBySoftwareComponent(SoftwareComponent softwareComponent);
+
+    List<VexData> findBySoftwareComponentAndVulnerability(SoftwareComponent softwareComponent, List<Vulnerability> selected);
 }
