@@ -48,6 +48,9 @@ public class DownloadServiceApp {
     @Autowired
     private Connection natsConnection;
 
+    @Autowired
+    private DownloadWorkConsumer downloadWorkConsumer;
+
     @Value("${nats.stream-name}")
     private String streamName;
 
@@ -62,8 +65,6 @@ public class DownloadServiceApp {
     private Executor executor = new SimpleAsyncTaskScheduler();
 
     private static final Logger log = LoggerFactory.getLogger(DownloadServiceApp.class);
-
-    private DownloadWorkConsumer downloadWorkConsumer;
 
     public static void main(String[] args) {
         SpringApplication.run(DownloadServiceApp.class, args);
