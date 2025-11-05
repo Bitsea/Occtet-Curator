@@ -19,23 +19,16 @@
  * /
  *
  */
+package eu.occtet.boc.informationFile.factory;
 
-package eu.occtet.boc.service;
+import eu.occtet.boc.entity.InformationFile;
+import org.springframework.stereotype.Component;
 
-import eu.occtet.boc.model.*;
+@Component
+public class InformationFileFactory {
 
-public interface IWorkDataProcessor {
+    public InformationFile createInfoFile(String fileName, String context, String content, String path){
+        return new InformationFile(fileName, context, content, path);
 
-    boolean process(AIAnswerWorkData workData);
-    boolean process(AILicenseMatcherWorkData workData);
-    boolean process(FossReportServiceWorkData workData);
-    boolean process(ScannerSendWorkData workData);
-    boolean process(SampleWorkData workData);
-    boolean process(AIStatusQueryWorkData workData);
-    boolean process(VulnerabilityServiceWorkData workData);
-    boolean process(SpdxWorkData workData);
-    boolean process(AICopyrightFilterWorkData workData);
-    boolean process(DownloadServiceWorkData workData);
-    boolean process(InformationFileSendWorkData workData);
-
+    }
 }

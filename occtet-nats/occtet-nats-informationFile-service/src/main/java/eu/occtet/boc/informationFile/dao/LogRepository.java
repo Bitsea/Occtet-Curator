@@ -19,23 +19,12 @@
  * /
  *
  */
+package eu.occtet.boc.informationFile.dao;
 
-package eu.occtet.boc.service;
+import eu.occtet.boc.entity.DBLog;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import eu.occtet.boc.model.*;
-
-public interface IWorkDataProcessor {
-
-    boolean process(AIAnswerWorkData workData);
-    boolean process(AILicenseMatcherWorkData workData);
-    boolean process(FossReportServiceWorkData workData);
-    boolean process(ScannerSendWorkData workData);
-    boolean process(SampleWorkData workData);
-    boolean process(AIStatusQueryWorkData workData);
-    boolean process(VulnerabilityServiceWorkData workData);
-    boolean process(SpdxWorkData workData);
-    boolean process(AICopyrightFilterWorkData workData);
-    boolean process(DownloadServiceWorkData workData);
-    boolean process(InformationFileSendWorkData workData);
-
+@Repository
+public interface LogRepository extends JpaRepository<DBLog, Long> {
 }

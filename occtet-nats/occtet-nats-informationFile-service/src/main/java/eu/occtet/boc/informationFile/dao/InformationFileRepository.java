@@ -19,23 +19,19 @@
  * /
  *
  */
+package eu.occtet.boc.informationFile.dao;
 
-package eu.occtet.boc.service;
+import eu.occtet.boc.entity.InformationFile;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import eu.occtet.boc.model.*;
+import java.util.List;
 
-public interface IWorkDataProcessor {
+@Repository
+public interface InformationFileRepository extends JpaRepository<InformationFile, Long> {
 
-    boolean process(AIAnswerWorkData workData);
-    boolean process(AILicenseMatcherWorkData workData);
-    boolean process(FossReportServiceWorkData workData);
-    boolean process(ScannerSendWorkData workData);
-    boolean process(SampleWorkData workData);
-    boolean process(AIStatusQueryWorkData workData);
-    boolean process(VulnerabilityServiceWorkData workData);
-    boolean process(SpdxWorkData workData);
-    boolean process(AICopyrightFilterWorkData workData);
-    boolean process(DownloadServiceWorkData workData);
-    boolean process(InformationFileSendWorkData workData);
+    List<InformationFile> findByFileName(String name);
+    List<InformationFile> findByContext(String context);
+    List<InformationFile> findAll();
 
 }

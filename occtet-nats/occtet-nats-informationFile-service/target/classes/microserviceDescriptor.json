@@ -1,0 +1,5 @@
+{
+  "name": "occtet-nats-informationFile",
+    "version": "1.0.0",
+    "description": "A microservice for upload information files"
+}

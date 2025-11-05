@@ -19,23 +19,26 @@
  * /
  *
  */
+package eu.occtet.boc.informationFile.config;
 
-package eu.occtet.boc.service;
+import io.nats.client.Connection;
+import io.nats.client.Nats;
+import io.nats.client.Options;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import eu.occtet.boc.model.*;
+import java.io.IOException;
 
-public interface IWorkDataProcessor {
+@Configuration
+public class NatsConfig {
 
-    boolean process(AIAnswerWorkData workData);
-    boolean process(AILicenseMatcherWorkData workData);
-    boolean process(FossReportServiceWorkData workData);
-    boolean process(ScannerSendWorkData workData);
-    boolean process(SampleWorkData workData);
-    boolean process(AIStatusQueryWorkData workData);
-    boolean process(VulnerabilityServiceWorkData workData);
-    boolean process(SpdxWorkData workData);
-    boolean process(AICopyrightFilterWorkData workData);
-    boolean process(DownloadServiceWorkData workData);
-    boolean process(InformationFileSendWorkData workData);
+    @Value("${nats.url}")
+    private String natsUrl;
 
+    @Bean
+    public Connection natsConnection() throws IOException, InterruptedException {
+        Options options = new Options.Builder().server(natsUrl).build();
+        return Nats.connect(options);
+    }
 }

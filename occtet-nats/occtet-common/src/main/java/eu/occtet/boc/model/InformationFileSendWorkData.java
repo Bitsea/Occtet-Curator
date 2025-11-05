@@ -20,22 +20,22 @@
  *
  */
 
-package eu.occtet.boc.service;
+package eu.occtet.boc.model;
 
-import eu.occtet.boc.model.*;
+import eu.occtet.boc.service.IWorkDataProcessor;
 
-public interface IWorkDataProcessor {
+public class InformationFileSendWorkData extends BaseWorkData{
 
-    boolean process(AIAnswerWorkData workData);
-    boolean process(AILicenseMatcherWorkData workData);
-    boolean process(FossReportServiceWorkData workData);
-    boolean process(ScannerSendWorkData workData);
-    boolean process(SampleWorkData workData);
-    boolean process(AIStatusQueryWorkData workData);
-    boolean process(VulnerabilityServiceWorkData workData);
-    boolean process(SpdxWorkData workData);
-    boolean process(AICopyrightFilterWorkData workData);
-    boolean process(DownloadServiceWorkData workData);
-    boolean process(InformationFileSendWorkData workData);
+    private String path;
 
+    public InformationFileSendWorkData(String path){
+        this.path = path;
+    }
+
+    public void setPath(String path) {this.path = path;}
+
+    public String getPath() {return path;}
+
+    @Override
+    public boolean process(IWorkDataProcessor processor) {return processor.process(this);}
 }
