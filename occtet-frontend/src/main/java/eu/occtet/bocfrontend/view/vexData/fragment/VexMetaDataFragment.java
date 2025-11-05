@@ -19,8 +19,9 @@
 
 package eu.occtet.bocfrontend.view.vexData.fragment;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.textfield.TextField;
 import eu.occtet.bocfrontend.entity.VexData;
@@ -38,6 +39,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
+
 
 @FragmentDescriptor("vex-metadata-fragment.xml")
 public class VexMetaDataFragment extends VexDetailFragment {
@@ -46,27 +49,34 @@ public class VexMetaDataFragment extends VexDetailFragment {
     private static final Logger log = LogManager.getLogger(VexMetaDataFragment.class);
 
     @ViewComponent
-    private Html timeStamp;
+    private TextField timeStamp;
 
     @ViewComponent
-    private ComboBox type;
+    private ComboBox<String> type;
 
     @ViewComponent
-    private TextField componentName;
+    private TextField name;
     @ViewComponent
-    private TextField componentVersion;
+    private TextField version;
 
     @Autowired
     private VexDataFactory vexDataFactory;
 
     @Subscribe(target = Target.HOST_CONTROLLER)
     public void onHostReady(final View.ReadyEvent event) {
+        ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         log.debug("make ready");
-        timeStamp.setHtmlContent(vexData.getTimeStamp().toString());
-        componentName.setValue(vexData.getSoftwareComponent().getName());
-        componentVersion.setValue(vexData.getSoftwareComponent().getVersion());
-        changeMetaDataValues(vexData, type.getElement().toString());
-
+        try {
+//            String time = objectMapper.writeValueAsString(vexData.getTimeStamp());
+//            log.debug("time {}", time);
+//            timeStamp.setValue(time);
+            type.setItems(Arrays.toString(VexComponentType.values()));
+            name.setValue(vexData.getSoftwareComponent().getName());
+            version.setValue(vexData.getSoftwareComponent().getVersion());
+            changeMetaDataValues(vexData, type.getElement().toString());
+        }catch (Exception e){
+            log.error("Error parsing timeStamp {}", e.getMessage());
+        }
     }
 
     @Subscribe("type")
@@ -76,7 +86,7 @@ public class VexMetaDataFragment extends VexDetailFragment {
     }
 
     private void changeMetaDataValues(VexData vexData, String type ){
-        VexMetadata vexMetadata = new VexMetadata(vexData.getTimeStamp(), new VexComponent(type, componentName.getValue(), componentVersion.getValue()));
+        VexMetadata vexMetadata = new VexMetadata(vexData.getTimeStamp(), new VexComponent(type, name.getValue(), version.getValue()));
         vexDataFactory.addMetaDataAsJson(vexData, vexMetadata);
     }
 

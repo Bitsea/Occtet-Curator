@@ -20,6 +20,8 @@
 package eu.occtet.bocfrontend.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonView;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.annotation.Nonnull;
@@ -58,6 +60,7 @@ public class VexData{
     private Integer version;
 
     @Column(name="TIME_STAMP")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private @Nonnull LocalDateTime timeStamp;
 
     @JoinTable(name = "VULNERABILITY_VEX_LINK", joinColumns = @JoinColumn(name = "VEX_DATA_ID", referencedColumnName = "ID"),
@@ -77,6 +80,12 @@ public class VexData{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "SOFTWARE_COMPONENT_ID")
     private SoftwareComponent softwareComponent;
+
+
+    public VexData() {
+        this.timeStamp= LocalDateTime.now();
+    }
+
 
     public SoftwareComponent getSoftwareComponent() {
         return softwareComponent;
@@ -110,9 +119,7 @@ public class VexData{
         this.vulnerabilityData = vulnerabilityData;
     }
 
-    public VexData() {
-        this.timeStamp = LocalDateTime.now();
-    }
+
 
     public UUID getId() {
         return id;
@@ -182,4 +189,5 @@ public class VexData{
     public LocalDateTime getTimeStamp() {
         return timeStamp;
     }
+
 }

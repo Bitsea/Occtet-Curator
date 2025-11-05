@@ -90,13 +90,16 @@ public class VexDataDetailView extends StandardDetailView<VexData> {
         for(Vulnerability v: selectedVulnerabilities) {
             VexVulnerabilityFragment fragment = fragments.create(this, VexVulnerabilityFragment.class);
             fragment.setVulnerability(v);
+            fragment.setHostView(this);
             layout.add(fragment);
         }
         layout.setPadding(false);
         layout.setSpacing(false);
+        layout.setSizeFull();
         layout.setAlignItems(FlexComponent.Alignment.STRETCH);
         return layout;
     }
+
 
     private SoftwareComponent softwareComponent;
     private List<Vulnerability> selectedVulnerabilities;
@@ -109,21 +112,18 @@ public class VexDataDetailView extends StandardDetailView<VexData> {
 
     @Subscribe
     public void onBeforeShow(BeforeShowEvent event) {
-        log.debug("before show Selected vulnerabilities for creation {} , softwareComponent {}", selectedVulnerabilities.size(), softwareComponent.getName());
-
         VexData vexData= getEditedEntity();
         vexDataFactory.addVexData(vexData,softwareComponent, selectedVulnerabilities);
-        virtualList.setItems(selectedVulnerabilities);
-        log.debug("virtual list items size {}", virtualList.getDataProvider().size(new com.vaadin.flow.data.provider.Query<>()));
+        //virtualList.setItems(selectedVulnerabilities);
         bomFormat.setValue(vexData.getBomFormat());
         specVersion.setValue(vexData.getSpecVersion());
         serialNumber.setValue(vexData.getSerialNumber());
         version.setValue(vexData.getVersion());
-        log.debug("set some vex data values, version {}", vexData.getVersion());
         VexMetaDataFragment fragment = fragments.create(this, VexMetaDataFragment.class);
-        log.debug("fragment created");
         fragment.setVexData(vexData);
+        fragment.setHostView(this);
         metaDataDetailsBox.add(fragment);
+
 
     }
 

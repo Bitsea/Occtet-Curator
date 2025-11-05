@@ -23,16 +23,18 @@ import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import eu.occtet.bocfrontend.entity.VexData;
 import io.jmix.flowui.fragment.Fragment;
+import io.jmix.flowui.view.View;
 
 public class VexDetailFragment extends Fragment<VerticalLayout> {
 
     protected VexData vexData;
+    protected View<?> hostView;
 
     public void setVexData(VexData vexData) {
         this.vexData = vexData;
     }
 
-    protected void setHTMLContent(Html html, String content) {
-        html.setHtmlContent("<main>" + content + "</main>");
+    public void setHostView(View<?> hostView) {
+        this.hostView = hostView;
     }
 }

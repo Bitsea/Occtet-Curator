@@ -24,11 +24,19 @@
     <data>
         <instance id="softwareComponentDc"
                   class="eu.occtet.bocfrontend.entity.SoftwareComponent">
-            <collection id="vulnerabilityDc" property="vulnerabilities"/>
             <fetchPlan extends="_base">
             </fetchPlan>
             <loader id="softwareComponentDl"/>
-        </instance>
+            </instance>
+        <collection id="vulnerabilityDc" class="eu.occtet.bocfrontend.entity.Vulnerability">
+            <fetchPlan extends="_base"/>
+            <loader id="vulnerabilityDl">
+                <query>
+                    <![CDATA[select e from Vulnerability e]]>
+                </query>
+
+            </loader>
+        </collection>
         <collection id="licenseDc"
                     class="eu.occtet.bocfrontend.entity.License">
             <fetchPlan extends="_base"/>

@@ -46,16 +46,23 @@
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout padding="true">
+        <hbox>
+            <button id="saveButton" text="save" themeNames="primary small" action="saveAction"/>
+            <button id="closeButton" text="close" themeNames="small" action="closeAction"/>
+            <button id="downloadButton" text="download" themeNames="small"/>
+            <dateTimePicker id="timeStamp" property="timeStamp" dataContainer="vexDataDc" label="TimeStamp"  datatype="localDateTime" readOnly="true" themeNames="small" maxHeight="50%"/>
+
+        </hbox>
         <formLayout id="form" dataContainer="vexDataDc" height="90%" width="100%">
-            <textField id="bomFormat" property="bomFormat" label="BomFormat"/>
-            <textField id="specVersion" property="specVersion" label="SpecVersion" width="30%"/>
-            <textField id="serialNumber" property="serialNumber" label="SerialNumber" />
-            <integerField id="version" property="version" label="version" width="30%"/>
+            <textField id="bomFormat" property="bomFormat" label="msg://BomFormat"/>
+            <textField id="specVersion" property="specVersion" label="msg://SpecVersion" width="30%"/>
+            <textField id="serialNumber" property="serialNumber" label="msg://SerialNumber"/>
+            <integerField id="version" property="version" label="msg://eu.occtet.bocfrontend.view.vexData/version" width="30%"/>
             <htmlObject colspan="2">
                 <hr/>
             </htmlObject>
-            <details id="metaDataDetailsBox" classNames="bordered-panel" opened="true"
-                     alignSelf="STRETCH">
+            <details id="metaDataDetailsBox" summaryText="Meta Data" classNames="bordered-panel" opened="true"
+                     width="100%">
             </details>
             <htmlObject colspan="2">
                 <hr/>
@@ -63,9 +70,6 @@
             <virtualList id="virtualList"
                          itemsContainer="vulnerabilitiesDc"/>
         </formLayout>
-        <hbox>
-            <button id="saveButton" text="save" themeNames="primary small" action="saveAction"/>
-            <button id="closeButton" text="close" themeNames="small" action="closeAction"/>
-        </hbox>
+
     </layout>
 </view>
