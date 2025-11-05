@@ -147,12 +147,10 @@ public class SpdxServicesDialog extends AbstractServicesDialog{
 
     private boolean processworkData(){
 
-        workData.setRootInventoryItemId(inventoryItemComboBox.getValue().getId().toString());
         workData.setUseCopyrightAi(useCopyrigthAIBox.getValue());
         workData.setUseLicenseMatcher(licenseMatcherBox.getValue());
 
         log.info("Project {}",workData.getProjectId());
-        log.info("Inventory item {}",workData.getRootInventoryItemId());
         log.info("JsonSPDX {}",workData.getJsonSpdx());
 
         if(checkData()){
@@ -175,6 +173,6 @@ public class SpdxServicesDialog extends AbstractServicesDialog{
     }
 
     private boolean checkData() {
-        return workData.getJsonSpdx() != null && !workData.getProjectId().isEmpty() && !workData.getRootInventoryItemId().isEmpty();
+        return workData.getJsonSpdx() != null && !workData.getProjectId().isEmpty();
     }
 }

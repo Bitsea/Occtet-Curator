@@ -82,9 +82,6 @@ public class InventoryItem {
     @JoinColumn(name = "PROJECT_ID", nullable = false)
     private Project project;
 
-    @Column(name = "BASEPATH")
-    private String basePath;
-
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
 
@@ -190,14 +187,6 @@ public class InventoryItem {
 
     public void setProject(Project project) {
         this.project = project;
-    }
-
-    public String getBasePath() {
-        return basePath;
-    }
-
-    public void setBasePath(String basePath) {
-        this.basePath = basePath;
     }
 
     public String getSpdxId() {

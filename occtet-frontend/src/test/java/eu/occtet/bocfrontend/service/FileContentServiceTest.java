@@ -53,13 +53,13 @@ public class FileContentServiceTest {
         InventoryItem rootItem = mock(InventoryItem.class);
 
         String projectRootPath = Paths.get("").toAbsolutePath().toString();
-        when(rootItem.getBasePath()).thenReturn(projectRootPath);
+        when(rootItem.getProject().getBasePath()).thenReturn(projectRootPath);
         when(rootItem.getParent()).thenReturn(null);
 
         CodeLocation codeLocation = codeLocationFactory.create(null,
                 "src/test/resources/FileContentTestFile", 0, 0);
 
-        FileResult result = fileContentService.getFileContent(codeLocation, rootItem);
+        FileResult result = fileContentService.getFileContent(projectRootPath);
 
         assertInstanceOf(FileResult.Success.class, result);
         FileResult.Success successResult = (FileResult.Success) result;

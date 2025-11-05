@@ -84,9 +84,6 @@ public class InventoryItem {
     @JoinColumn(name = "PROJECT_ID", nullable = false)
     private Project project;
 
-    @Column(name = "BASEPATH", columnDefinition = "TEXT")
-    private String basePath;
-
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
 
@@ -104,8 +101,7 @@ public class InventoryItem {
             SoftwareComponent softwareComponent,
             boolean wasCombined,
             boolean curated,
-            Project project,
-            String basePath, String spdxId
+            Project project, String spdxId
     ) {
         this.createdAt = LocalDateTime.now();
         this.inventoryName = inventoryName;
@@ -118,7 +114,6 @@ public class InventoryItem {
         this.wasCombined = wasCombined;
         this.curated = curated;
         this.project = project;
-        this.basePath = basePath;
         this.spdxId = spdxId;
     }
 
@@ -218,14 +213,6 @@ public class InventoryItem {
 
     public void setProject(Project project) {
         this.project = project;
-    }
-
-    public String getBasePath() {
-        return basePath;
-    }
-
-    public void setBasePath(String basePath) {
-        this.basePath = basePath;
     }
 
     public LocalDateTime getCreatedAt() {

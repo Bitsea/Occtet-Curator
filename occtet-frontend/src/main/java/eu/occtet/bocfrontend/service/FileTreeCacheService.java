@@ -88,25 +88,25 @@ public class FileTreeCacheService {
     private List<FileTreeNode> buildFileTree(Project project) {
         log.debug("Building file tree for project: {}", project.getProjectName());
         long startTime = System.currentTimeMillis();
+        String basePath = project.getBasePath();
+        if (basePath == null){
+            log.error("No basePath in project: {}", project.getProjectName());
+            return new ArrayList<>();
+        }
 
         List<CodeLocation> codeLocations = codeLocationRepository
                 .findByInventoryItem_Project(project);
 
         Map<String, List<CodeLocation>> fileNameIndex = indexCodeLocationsByFileName(codeLocations);
 
-        // Load base inventory items (those without parent)
-        List<InventoryItem> baseInventoryItems = inventoryItemRepository
-                .findInventoryItemsByProjectAndParent(project, null);
-
-        // Build tree from each base path
-        List<FileTreeNode> roots = baseInventoryItems.stream()
-                .filter(item -> item.getBasePath() != null)
-                .map(item -> buildTreeFromBasePath(item.getBasePath(), fileNameIndex))
-                .filter(Objects::nonNull)
-                .toList();
-
-        long duration = System.currentTimeMillis() - startTime;
-        log.debug("Built file tree with {} roots in {}ms", roots.size(), duration);
+        // Build tree from base path
+        List<FileTreeNode> roots = new ArrayList<>();
+        FileTreeNode root = buildTreeFromBasePath(basePath, fileNameIndex);
+        if(root!=null) {
+            roots.add(root);
+            long duration = System.currentTimeMillis() - startTime;
+            log.debug("Built file tree in {}ms", duration);
+        }
 
         return roots;
     }

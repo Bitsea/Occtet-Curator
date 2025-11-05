@@ -20,16 +20,12 @@
 package eu.occtet.bocfrontend.scanner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import eu.occtet.boc.model.FossReportServiceWorkData;
-import eu.occtet.boc.model.ScannerSendWorkData;
 import eu.occtet.boc.model.WorkTask;
-import eu.occtet.bocfrontend.controller.FlexeraReportController;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.factory.ScannerInitializerFactory;
 import eu.occtet.bocfrontend.service.NatsService;
 import eu.occtet.bocfrontend.service.ScannerInitializerService;
-import io.jmix.core.DataManager;
 import jakarta.validation.constraints.NotNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,9 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -79,7 +73,6 @@ public class FlexeraReportScanner extends Scanner{
 
     @Override
     public boolean processTask(@NotNull ScannerInitializer scannerInitializer, @NotNull Consumer<ScannerInitializer> completionCallback) {
-        String inventoryItem = scannerInitializer.getInventoryItem().getInventoryName();
         // Get the configuration containing the uploaded file
         Configuration configuration = Objects.requireNonNull(scannerInitializer.getScannerConfiguration()
                 .stream()
@@ -92,7 +85,7 @@ public class FlexeraReportScanner extends Scanner{
 
         try {
             readExcelRows(scannerInitializer, contentInByte );
-            log.debug("Processing Flexera Report inventory item: {}", inventoryItem);
+            log.debug("Processing Flexera Report for Procejt: {}", scannerInitializer.getProject().getProjectName());
             return true;
         }catch (Exception e){
             log.error("Error when connecting to backend: {}", e.getMessage());
@@ -102,7 +95,7 @@ public class FlexeraReportScanner extends Scanner{
 
     }
 
-    private void readExcelRows( ScannerInitializer scannerInitializer, byte[] contentInByte) throws Exception {
+    private void readExcelRows( ScannerInitializer scannerInitializer, byte[] contentInByte) {
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(contentInByte)){
             OPCPackage pkg = OPCPackage.open(byteArrayInputStream);
             XSSFWorkbook workbook = new XSSFWorkbook(pkg);
@@ -200,23 +193,19 @@ public class FlexeraReportScanner extends Scanner{
     @Override
     public Configuration.Type getTypeOfConfiguration(String key) {
         log.debug("getTypeOfConfiguration called for key: {}", key);
-        switch (key) {
-            case CONFIG_KEY_FILENAME:
-                return Configuration.Type.FILE_UPLOAD;
-            case CONFIG_KEY_USE_LICENSE_MATCHER:
-            case CONFIG_KEY_USE_FALSE_COPYRIGHT_FILTER:
-                return Configuration.Type.BOOLEAN;
-
-        }
-        return super.getTypeOfConfiguration(key);
+        return switch (key) {
+            case CONFIG_KEY_FILENAME -> Configuration.Type.FILE_UPLOAD;
+            case CONFIG_KEY_USE_LICENSE_MATCHER, CONFIG_KEY_USE_FALSE_COPYRIGHT_FILTER -> Configuration.Type.BOOLEAN;
+            default -> super.getTypeOfConfiguration(key);
+        };
     }
 
     @Override
-    public String getDefaultConfigurationValue(String k, InventoryItem inventoryItem) {
-        switch(k) {
-            case CONFIG_KEY_USE_LICENSE_MATCHER: return ""+DEFAULT_USE_LICENSE_MATCHER;
-            case CONFIG_KEY_USE_FALSE_COPYRIGHT_FILTER: return ""+DEFAULT_USE_FALSE_COPYRIGHT_FILTER;
-        }
-        return super.getDefaultConfigurationValue(k, inventoryItem);
+    public String getDefaultConfigurationValue(String k) {
+        return switch (k) {
+            case CONFIG_KEY_USE_LICENSE_MATCHER -> "" + DEFAULT_USE_LICENSE_MATCHER;
+            case CONFIG_KEY_USE_FALSE_COPYRIGHT_FILTER -> "" + DEFAULT_USE_FALSE_COPYRIGHT_FILTER;
+            default -> super.getDefaultConfigurationValue(k);
+        };
     }
 }

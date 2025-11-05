@@ -52,7 +52,7 @@
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-common</artifactId>
-            <version>2025.10.2</version>
+            <version>2025.10.3</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -159,7 +159,7 @@
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-common-jpa</artifactId>
-            <version>2025.10.1</version>
+            <version>2025.10.2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -217,23 +217,11 @@
             </properties>
         </profile>
         <profile>
-            <id>local</id>
-            <properties>
-                <spring.profiles.active>local</spring.profiles.active>
-            </properties>
-        </profile>
-        <profile>
             <id>live</id>
             <properties>
                 <spring.profiles.active>live</spring.profiles.active>
             </properties>
             <activation><activeByDefault>true</activeByDefault></activation>
-        </profile>
-        <profile>
-            <id>local</id>
-            <properties>
-                <spring.profiles.active>local</spring.profiles.active>
-            </properties>
         </profile>
     </profiles>
 

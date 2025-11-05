@@ -54,7 +54,6 @@ public class InventoryItemFactory {
         inventoryItem.setWasCombined(wasCombined);
         inventoryItem.setCurated(curated);
         inventoryItem.setProject(project);
-        inventoryItem.setBasePath(basePath);
 
         return dataManager.save(inventoryItem);
     }

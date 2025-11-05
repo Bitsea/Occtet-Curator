@@ -67,9 +67,6 @@
                                       required="false"/>
                             <button id="softwareComponentButton" text="Show software component" width="15em" alignSelf="END"/>
                         </hbox>
-                        <textField id="basePathField" property="basePath" label="Base Path" required="true"
-                                   helperText="If creating the root inventory item, enter the absolute base path to the project directory."
-                                   themeNames="helper-above-field"/>
                         <hbox>
                             <checkbox id="curatedField" property="curated" label="Curated" alignSelf="START"/>
                             <checkbox id="wasCombinedField" property="wasCombined" label="Combined" alignSelf="START"/>

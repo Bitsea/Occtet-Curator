@@ -64,7 +64,9 @@
                     <action id="removeAction" type="list_remove"/>
                 </actions>
                 <columns resizable="true">
-                    <column property="projectName" header="Name"/>
+                    <column property="projectName" header="Name" filterable="true" autoWidth="true"/>
+                    <column key="exportBtn" header="" sortable="false" autoWidth="true" flexGrow="0"/>
+                    <column property="basePath" header="Basepath"/>
                 </columns>
             </dataGrid>
             <hbox id="buttonsPanel" classNames="buttons-panel">
