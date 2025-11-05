@@ -23,7 +23,7 @@
 package eu.occtet.bocfrontend.factory;
 
 
-import eu.occtet.bocfrontend.entity.InventoryItem;
+import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.ScannerInitializer;
 import eu.occtet.bocfrontend.entity.ScannerInitializerStatus;
 import io.jmix.core.DataManager;
@@ -42,13 +42,13 @@ public class ScannerInitializerFactory {
 
     /**
      * create ScannerInitializer entity for given softwareComponent and scanner
-     * @param inventoryItem the origin inventory item which will be used as root inventory item
+     * @param project the origin project
      * @param scanner name of the scanner to use for scanning this softwareComponent.
      * @return the persisted scannerInitializer entity
      */
-    public ScannerInitializer create(@Nonnull InventoryItem inventoryItem, @Nonnull String scanner) {
+    public ScannerInitializer create(@Nonnull Project project, @Nonnull String scanner) {
         ScannerInitializer scannerTask = dataManager.create(ScannerInitializer.class);
-        scannerTask.setInventoryItem(inventoryItem);
+        scannerTask.setProject(project);
         scannerTask.setScanner(scanner);
 
         return dataManager.save(scannerTask);

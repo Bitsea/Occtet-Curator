@@ -70,12 +70,12 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
     @Subscribe("addCopyrightButton")
     public void addContentButton(ClickEvent<Button> event) {
 
-        String copyrigthName = copyrightNameField.getValue();
+        String copyrightName = copyrightNameField.getValue();
         CodeLocation location = copyrightFilePathComboBox.getValue();
 
-        if(checkInput(copyrigthName,location)){
+        if(checkInput(copyrightName,location)){
 
-            Copyright copyright = copyrightService.createCopyright(copyrigthName,location,
+            Copyright copyright = copyrightService.createCopyright(copyrightName,location,
                     isCuratedField.getValue(),isGarbageField.getValue());
 
             this.inventoryItem.getCopyrights().add(copyright);

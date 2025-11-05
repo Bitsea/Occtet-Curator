@@ -66,12 +66,12 @@ public class FileContentService {
                     root = root.getParent();
                 }
 
-                if (root == null || root.getBasePath() == null || root.getBasePath().isBlank()) {
+                if (root == null || root.getProject().getBasePath() == null || root.getProject().getBasePath().isBlank()) {
                     log.error("No root base path found for relative path {}. Cannot view file.", pathToView);
                     return new FileResult.Failure("Cannot view file: The root project directory path is not set.");
                 }
 
-                Path rootBasePath = Paths.get(root.getBasePath());
+                Path rootBasePath = Paths.get(root.getProject().getBasePath());
 
                 if (!rootBasePath.isAbsolute()) {
                     log.warn("Aborting: The root base path '{}' is not an absolute path.", rootBasePath);

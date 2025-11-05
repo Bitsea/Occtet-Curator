@@ -39,7 +39,7 @@
                   visible="true" margin="false" padding="false">
                 <dataGrid dataContainer="codeLocationDc" id="codeLocationDataGrid">
                     <columns>
-                        <column property="filePath" sortable="false" editable="true" flexGrow="1"/>
+                        <column property="filePath" sortable="false" editable="true" flexGrow="1" filterable="true"/>
                         <column key="options" header="" sortable="false" autoWidth="true" flexGrow="0"/>
                     </columns>
                 </dataGrid>

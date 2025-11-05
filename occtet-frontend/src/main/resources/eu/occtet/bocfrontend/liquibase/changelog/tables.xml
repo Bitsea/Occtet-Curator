@@ -53,6 +53,7 @@
                 <constraints nullable="false" primaryKey="true" primaryKeyName="PK_PROJECT"/>
             </column>
             <column name="PROJECT_NAME" type="VARCHAR(255)"/>
+            <column name="BASEPATH" type="text"/>
         </createTable>
         <createTable tableName="SOFTWARE_COMPONENT" ifNotExists="true">
             <column name="ID" type="UUID">
@@ -71,7 +72,7 @@
             <column name="SCANNER" type="varchar(255)"/>
             <column name="STATUS" type="VARCHAR(255)"/>
             <column name="FEEDBACK" type="TEXT"/>
-            <column name="INVENTORY_ITEM_ID" type="UUID"/>
+            <column name="PROJECT_ID" type="UUID"/>
             <column name="LAST_UPDATE" type="date"/>
         </createTable>
         <createTable tableName="INVENTORY_ITEM" ifNotExists="true">
@@ -87,7 +88,6 @@
             <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
             <column name="SOFTWARE_COMPONENT_ID" type="UUID"/>
             <column name="WAS_COMBINED" type="BOOLEAN"/>
-            <column name="BASEPATH" type="varchar(255)"/>
             <column name="CREATED_AT" type="DATE"/>
             <column name="SPDX_ID" type="varchar(255)"/>
             <column name="PRIORITY" type="INTEGER"/>

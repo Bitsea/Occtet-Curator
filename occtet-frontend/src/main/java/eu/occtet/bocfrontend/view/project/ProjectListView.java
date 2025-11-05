@@ -22,10 +22,19 @@
 
 package eu.occtet.bocfrontend.view.project;
 
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.entity.Vulnerability;
 import eu.occtet.bocfrontend.view.main.MainView;
+import eu.occtet.bocfrontend.view.vulnerability.VulnerabilityDetailView;
+import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.view.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
 @Route(value = "projects", layout = MainView.class)
@@ -35,4 +44,17 @@ import io.jmix.flowui.view.*;
 @DialogMode(width = "64em")
 public class ProjectListView extends StandardListView<Project> {
 
+    @Autowired private UiComponents uiComponents;
+
+    @Supply(to = "projectsDataGrid.exportBtn", subject = "renderer")
+    private Renderer<Project> projectsDataGridExportBtnRenderer() {
+        return new ComponentRenderer<>(() -> {
+            JmixButton exportButton = uiComponents.create(JmixButton.class);
+            exportButton.setIcon(VaadinIcon.DOWNLOAD.create());
+            exportButton.setText("Export SBOM");
+            exportButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+            exportButton.setTooltipText("Export Project");
+            return exportButton;
+        });
+    }
 }
