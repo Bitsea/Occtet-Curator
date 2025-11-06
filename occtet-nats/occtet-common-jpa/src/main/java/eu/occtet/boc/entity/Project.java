@@ -42,18 +42,13 @@ public class Project {
     @Column(name="PROJECT_NAME")
     private String projectName;
 
-    @Column(name="RUN_ID")
-    private int runId;
-
-    @Column(name="SCAN_STATUS")
-    private String scanStatus;
-
-
+    @Column(name = "BASEPATH", columnDefinition = "TEXT")
+    private String basePath;
 
     public Project() {
     }
 
-    public Project(String projectName) {
+    public Project(String projectName ) {
         this.projectName = projectName;
     }
 
@@ -73,19 +68,7 @@ public class Project {
         this.projectName = projectName;
     }
 
-    public int getRunId() {
-        return runId;
-    }
+    public String getBasePath() {return basePath;}
 
-    public void setRunId(int runId) {
-        this.runId = runId;
-    }
-
-    public String getScanStatus() {
-        return scanStatus;
-    }
-
-    public void setScanStatus(String scanStatus) {
-        this.scanStatus = scanStatus;
-    }
+    public void setBasePath(String basePath) {this.basePath = basePath;}
 }

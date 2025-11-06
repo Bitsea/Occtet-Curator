@@ -39,7 +39,7 @@
     </parent>
 
     <properties>
-        <start-class>eu.occtet.template.SampleApp</start-class>
+        <start-class>eu.occtet.boc.download.SampleApp</start-class>
     </properties>
 
     <dependencies>
@@ -91,12 +91,12 @@
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-common</artifactId>
-            <version>2025.10.2</version>
+            <version>2025.10.3</version>
         </dependency>
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-common-jpa</artifactId>
-            <version>2025.10.1</version>
+            <version>2025.10.2</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -115,6 +115,12 @@
             <id>dev</id>
             <properties>
                 <spring.profiles.active>dev</spring.profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>local</id>
+            <properties>
+                <spring.profiles.active>local</spring.profiles.active>
             </properties>
         </profile>
         <profile>

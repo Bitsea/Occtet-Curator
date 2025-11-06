@@ -48,7 +48,7 @@ public class DumbScanner extends Scanner {
     public boolean processTask(@Nonnull ScannerInitializer scannerInitializer,
                                @Nonnull Consumer<ScannerInitializer> completionConsumer) {
         // find nothing, don't call findingConsumer, just finish.
-        log.debug("DumbScanner: doing nothing for inventory item {}", scannerInitializer.getInventoryItem().getInventoryName());
+        log.debug("DumbScanner: doing nothing for project {}", scannerInitializer.getProject().getProjectName());
         completionConsumer.accept(scannerInitializer);
         return true;
     }

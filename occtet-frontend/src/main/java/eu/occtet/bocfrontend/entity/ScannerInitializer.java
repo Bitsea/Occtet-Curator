@@ -48,8 +48,8 @@ public class ScannerInitializer {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "INVENTORY_ITEM_ID", nullable = false)
-    private InventoryItem inventoryItem;
+    @JoinColumn(name = "PROJECT_ID", nullable = false)
+    private Project project;
 
     @Column(name = "SCANNER", nullable = false)
     private String scanner;
@@ -73,10 +73,10 @@ public class ScannerInitializer {
         status = ScannerInitializerStatus.CREATING.getId();
     }
 
-    public ScannerInitializer(String scanner, InventoryItem inventoryItem) {
+    public ScannerInitializer(String scanner, Project project) {
         status = ScannerInitializerStatus.CREATING.getId();
         this.scanner= scanner;
-        this.inventoryItem = inventoryItem;
+        this.project = project;
     }
 
     public String getScanner() {
@@ -136,12 +136,7 @@ public class ScannerInitializer {
         this.feedback = feedback;
     }
 
-    public InventoryItem getInventoryItem()
-    {
-        return inventoryItem;
-    }
+    public Project getProject() {return project;}
 
-    public void setInventoryItem(InventoryItem inventoryItem) {
-        this.inventoryItem = inventoryItem;
-    }
+    public void setProject(Project project) {this.project = project;}
 }

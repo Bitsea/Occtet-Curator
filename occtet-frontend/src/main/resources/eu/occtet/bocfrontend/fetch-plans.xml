@@ -38,13 +38,6 @@
 
 
     <fetchPlan entity="ScannerInitializer" name="full" extends="_base">
-        <property name="inventoryItem" >
-            <property name="project">
-                <property name="projectName"/>
-            </property>
-            <property name="inventoryName"/>
-            <property name="basePath"/>
-        </property>
         <property name="scannerConfiguration">
             <property name="value"/>
             <property name="upload"/>

@@ -26,6 +26,7 @@ package eu.occtet.boc.spdx.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.model.DownloadServiceWorkData;
 import eu.occtet.boc.model.ScannerSendWorkData;
 import eu.occtet.boc.model.VulnerabilityServiceWorkData;
 import eu.occtet.boc.model.WorkTask;
@@ -59,6 +60,8 @@ public class AnswerService {
     private String sendSubject2;
     @Value("${nats.send-subject3}")
     private String sendSubject3;
+    @Value("${nats.send-subject4}")
+    private String sendSubject4;
 
     @Bean
     public NatsStreamSender natsStreamSenderLicenseMatcher(){
@@ -75,13 +78,18 @@ public class AnswerService {
         return new NatsStreamSender(natsConnection, sendSubject3);
     }
 
+    @Bean
+    public NatsStreamSender natsStreamSenderDownloads(){
+        return new NatsStreamSender(natsConnection, sendSubject4);
+    }
+
 
     /**
      * Sends answer about entities to the NATS stream for further processing.
      * @param inventoryItems list of entities to be included in messages
      * @param toCopyrightAi weather to send to copyright microservice
      * @param toLicenseMatcher weather to send to copyright microservice
-     * @return true if sending was successful
+     * @return true if sending was successful otherwise false
      * @throws JetStreamApiException
      * @throws IOException
      */
@@ -119,5 +127,31 @@ public class AnswerService {
             natsStreamSenderVulnerabilities().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
         }
         return true;
+    }
+
+    /**
+     * Send messages to the DownloadService, the service downloads the component at the specified link with the provided version to the base path
+     * @param url url where the component is located
+     * @param location location path where the component will be downloaded into
+     * @param version version of the component to be downloaded
+     * @return true if sending was successful otherwise false
+     */
+    public boolean sendToDownload(String url, String location, String version){
+        try {
+            DownloadServiceWorkData payload = new DownloadServiceWorkData(url, location, version);
+            LocalDateTime now = LocalDateTime.now();
+            long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
+            WorkTask workTask = new WorkTask("download_task", "information about a component to be downloaded to a specific location", actualTimestamp, payload);
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+            String message = mapper.writeValueAsString(workTask);
+            log.debug("sending message to download service: {}", message);
+            natsStreamSenderDownloads().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
+            return true;
+        } catch (IOException | JetStreamApiException e){
+            log.error("an error occurred while trying to send to the downloadService: {}", e.toString());
+            return false;
+        }
+
     }
 }

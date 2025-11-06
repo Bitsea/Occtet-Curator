@@ -56,7 +56,6 @@ import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -101,8 +100,9 @@ public class SpdxService extends BaseWorkDataProcessor{
      * @param spdxWorkData
      * @return true if the entities where created successfully, false is any error occurred
      */
-    private boolean parseDocument(SpdxWorkData spdxWorkData){
+    public boolean parseDocument(SpdxWorkData spdxWorkData){
         try {
+            // FIXME fetching the json must be done by the caller, as service classes should not know about where this data come from (and have no dependency on nats connection)
             ObjectStore objectStore = natsConnection.objectStore(spdxWorkData.getBucketName());
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             objectStore.get(spdxWorkData.getJsonSpdx(), out);
@@ -119,10 +119,7 @@ public class SpdxService extends BaseWorkDataProcessor{
             SpdxDocument spdxDocument = inputStore.deSerialize(inputStream, false);
 
             UUID projectId = UUID.fromString(spdxWorkData.getProjectId());
-            UUID rootInventoryItemId = UUID.fromString(spdxWorkData.getRootInventoryItemId());
             Project project = projectRepository.findById(projectId).get();
-            InventoryItem rootInventoryItem = inventoryItemRepository.findById(rootInventoryItemId).orElse(null);
-            CodeLocation rootCodeLocation= codeLocationService.findOrCreateCodeLocationWithInventory(rootInventoryItem.getBasePath(), rootInventoryItem);
 
             List<InventoryItem> inventoryItems = new ArrayList<>();
             List<TypedValue> packageUri = spdxDocument.getModelStore().getAllItems(null, "Package").toList();
@@ -136,7 +133,7 @@ public class SpdxService extends BaseWorkDataProcessor{
                         spdxPackage -> {
                             try {
                                 if (!seenPackages.contains(spdxPackage.toString())) {
-                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project, rootInventoryItem, rootCodeLocation));
+                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project));
                                     spdxPackages.add((SpdxPackage) spdxPackage);
                                     seenPackages.add((spdxPackage).toString());
                                 }
@@ -161,7 +158,7 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
     }
 
-    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project, InventoryItem rootInventoryItem, CodeLocation rootCodeLocation)
+    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project)
             throws Exception {
 
         log.info("Looking at package: {}", spdxPackage.getId());
@@ -173,11 +170,6 @@ public class SpdxService extends BaseWorkDataProcessor{
         // Creation
         // Use the method from service instead of factory to avoid duplicated software components
         SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(packageName, spdxPackage.getVersionInfo().orElse(""));
-
-        //Copyright of the package itself does not have a codeLocation within spdx
-        //so we link it to the rootCodeLocation of the rootInventoryItem
-        if (!spdxPackage.getCopyrightText().equals("NONE"))
-            copyrights.add(copyrightService.findOrCreateCopyright(spdxPackage.getCopyrightText(),rootCodeLocation ));
 
         //get License from package
         AnyLicenseInfo spdxPkgLicense = spdxPackage.getLicenseConcluded();
@@ -221,10 +213,6 @@ public class SpdxService extends BaseWorkDataProcessor{
 
 
         inventoryItem.setSize(spdxPackage.getFiles().size());
-        //set rootInventoryItem as default parent only if parent not already set somewhere else
-        if(inventoryItem.getParent()==null || (!(inventoryItem.getParent()==null && !(inventoryItem.getParent().equals(rootInventoryItem))))) {
-            inventoryItem.setParent(rootInventoryItem);
-        }
 
         spdxPackage.getFiles().forEach(f -> {
             try {
@@ -234,13 +222,23 @@ public class SpdxService extends BaseWorkDataProcessor{
             }
         });
 
-        component.setDetailsUrl(spdxPackage.getDownloadLocation().orElse(""));
+        String downloadLocation = spdxPackage.getDownloadLocation().orElse("");
+        component.setDetailsUrl(downloadLocation);
 
         List<ExternalRef> externalRefs = spdxPackage.getExternalRefs().stream().toList();
         for(ExternalRef externalRef: externalRefs){
             if(externalRef.getReferenceType().getIndividualURI().endsWith("purl")){
                 component.setPurl(externalRef.getReferenceLocator());
                 log.info("Found purl: {} for Component: {}", externalRef.getReferenceLocator(), component.getName());
+            }
+        }
+
+        String version = spdxPackage.getVersionInfo().orElse("");
+        if (!version.isEmpty() && !downloadLocation.isEmpty()) {
+            if(answerService.sendToDownload(downloadLocation ,project.getBasePath(), version)){
+                log.info("sending to DownloadService was successful");
+            }else{
+                log.error("failed to send to Downloadservice");
             }
         }
 
@@ -307,9 +305,7 @@ public class SpdxService extends BaseWorkDataProcessor{
             //No action needed if there is no license
             case SpdxNoneLicense ignored -> {
             }
-            case null, default -> {
-                log.info("Encountered unknown license type: {}", licenseInfo);
-            }
+            case null, default -> log.info("Encountered unknown license type: {}", licenseInfo);
         }
     }
 

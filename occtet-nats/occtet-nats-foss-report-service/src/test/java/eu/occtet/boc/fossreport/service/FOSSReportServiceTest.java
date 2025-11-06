@@ -77,19 +77,18 @@ public class FOSSReportServiceTest {
         projectRepository.save(project);
 
         InventoryItem rootInventoryItem = inventoryItemFactory.create("root inventoryItem", project, null);
-
-        ScannerInitializer scannerInitializer = new ScannerInitializer("", rootInventoryItem);
-        scannerInitializer.setId(UUID.fromString("01999445-6cf4-71f5-91c6-503618226a49"));
-        scannerInitializer.setInventoryItem(rootInventoryItem);
-        scannerInitializerRepository.save(scannerInitializer);
-
-        String rowJson = Files.readString(Paths.get("src", "test", "resources",
-                "workdata_example_test.json"));
-        Gson gson = new Gson();
-        JsonObject root = JsonParser.parseString(rowJson).getAsJsonObject();
-        JsonObject workDataJson = root.getAsJsonObject("workData");
-        FossReportServiceWorkData workData = gson.fromJson(workDataJson, FossReportServiceWorkData.class);
         //FIXME
+//        ScannerInitializer scannerInitializer = new ScannerInitializer("", null);
+//        scannerInitializer.setId(UUID.fromString("01999445-6cf4-71f5-91c6-503618226a49"));
+//        scannerInitializer.setInventoryItem(rootInventoryItem);
+//        scannerInitializerRepository.save(scannerInitializer);
+//
+//        String rowJson = Files.readString(Paths.get("src", "test", "resources",
+//                "workdata_example_test.json"));
+//        Gson gson = new Gson();
+//        JsonObject root = JsonParser.parseString(rowJson).getAsJsonObject();
+//        JsonObject workDataJson = root.getAsJsonObject("workData");
+//        FossReportServiceWorkData workData = gson.fromJson(workDataJson, FossReportServiceWorkData.class);
 //        InventoryItem inventoryItem = fossReportService.generateAndStoreData(workData);
 //        assertNotNull(inventoryItem);
 //

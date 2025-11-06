@@ -73,6 +73,5 @@ public abstract class BaseWorkDataProcessor implements IWorkDataProcessor {
     public boolean process(SpdxWorkData workData){return false;}
 
     @Override
-    public boolean process(ORTRunWorkData workData){return false;}
-
+    public boolean process(DownloadServiceWorkData workData){return false;}
 }
