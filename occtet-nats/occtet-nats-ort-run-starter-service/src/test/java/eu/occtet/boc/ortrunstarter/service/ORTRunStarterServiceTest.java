@@ -1,3 +1,11 @@
+package eu.occtet.boc.ortrunstarter.service;
+
+import junit.framework.TestCase;
+import org.openapitools.client.ApiException;
+import org.openapitools.client.model.Organization;
+
+import java.util.List;
+
 /*
  *
  *  Copyright (C) 2025 Bitsea GmbH
@@ -20,22 +28,19 @@
  *
  */
 
-package eu.occtet.boc.service;
 
-import eu.occtet.boc.model.*;
+public class ORTRunStarterServiceTest extends TestCase {
 
-public interface IWorkDataProcessor {
 
-    boolean process(AIAnswerWorkData workData);
-    boolean process(AILicenseMatcherWorkData workData);
-    boolean process(FossReportServiceWorkData workData);
-    boolean process(ScannerSendWorkData workData);
-    boolean process(SampleWorkData workData);
-    boolean process(AIStatusQueryWorkData workData);
-    boolean process(VulnerabilityServiceWorkData workData);
-    boolean process(SpdxWorkData workData);
-    boolean process(AICopyrightFilterWorkData workData);
-    boolean process(ORTRunWorkData workData);
-    boolean process(DownloadServiceWorkData workData);
 
+    public void testGetOrganizations() throws ApiException {
+
+        ORTRunStarterService service = new ORTRunStarterService();
+        List<Organization> organizations = service.getOrganizations();
+        for(Organization o : organizations) {
+            System.out.println(o.toString());
+        }
+
+
+    }
 }
