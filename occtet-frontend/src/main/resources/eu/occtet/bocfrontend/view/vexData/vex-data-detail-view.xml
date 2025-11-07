@@ -50,8 +50,7 @@
             <button id="saveButton" text="save" themeNames="primary small" action="saveAction"/>
             <button id="closeButton" text="close" themeNames="small" action="closeAction"/>
             <button id="downloadButton" text="download" themeNames="small"/>
-            <dateTimePicker id="timeStamp" property="timeStamp" dataContainer="vexDataDc" label="TimeStamp"  datatype="localDateTime" readOnly="true" themeNames="small" maxHeight="50%"/>
-
+            <span id="timeStamp" themeNames="small" maxHeight="50%" alignSelf="END"/>
         </hbox>
         <formLayout id="form" dataContainer="vexDataDc" height="90%" width="100%">
             <textField id="bomFormat" property="bomFormat" label="msg://BomFormat"/>

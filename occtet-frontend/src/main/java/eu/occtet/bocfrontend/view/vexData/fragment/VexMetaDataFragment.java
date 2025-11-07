@@ -48,8 +48,6 @@ public class VexMetaDataFragment extends VexDetailFragment {
 
     private static final Logger log = LogManager.getLogger(VexMetaDataFragment.class);
 
-    @ViewComponent
-    private TextField timeStamp;
 
     @ViewComponent
     private ComboBox<String> type;
@@ -64,25 +62,16 @@ public class VexMetaDataFragment extends VexDetailFragment {
 
     @Subscribe(target = Target.HOST_CONTROLLER)
     public void onHostReady(final View.ReadyEvent event) {
-        ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-        log.debug("make ready");
-        try {
-//            String time = objectMapper.writeValueAsString(vexData.getTimeStamp());
-//            log.debug("time {}", time);
-//            timeStamp.setValue(time);
-            type.setItems(Arrays.toString(VexComponentType.values()));
-            name.setValue(vexData.getSoftwareComponent().getName());
-            version.setValue(vexData.getSoftwareComponent().getVersion());
-            changeMetaDataValues(vexData, type.getElement().toString());
-        }catch (Exception e){
-            log.error("Error parsing timeStamp {}", e.getMessage());
-        }
+        type.setItems(Arrays.toString(VexComponentType.values()));
+        name.setValue(vexData.getSoftwareComponent().getName());
+        version.setValue(vexData.getSoftwareComponent().getVersion());
+        changeMetaDataValues(vexData, type.getElement().toString());
+
     }
 
     @Subscribe("type")
     public void onTypeComponentValueChange(final AbstractField.ComponentValueChangeEvent<JmixComboBox<VexComponentType>, VexComponentType> event) {
         changeMetaDataValues(vexData, event.getValue().getId());
-
     }
 
     private void changeMetaDataValues(VexData vexData, String type ){

@@ -60,7 +60,6 @@ public class VexData{
     private Integer version;
 
     @Column(name="TIME_STAMP")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private @Nonnull LocalDateTime timeStamp;
 
     @JoinTable(name = "VULNERABILITY_VEX_LINK", joinColumns = @JoinColumn(name = "VEX_DATA_ID", referencedColumnName = "ID"),

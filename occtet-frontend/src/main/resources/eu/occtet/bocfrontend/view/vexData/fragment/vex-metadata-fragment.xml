@@ -32,9 +32,6 @@
     </data>
     <content>
         <vbox>
-            <hbox colspan="2" spacing="true" alignItems="END">
-                <dateTimePicker id="timeStamp" label="TimeStamp"  datatype="localDateTime" readOnly="true" themeNames="small"/>
-            </hbox>
             <comboBox id="type" placeholder="Select type"
                       label="Type"/>
             <textField id="name" property="name" label="ComponentName" dataContainer="softwareComponentDc" readOnly="true"/>

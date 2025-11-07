@@ -18,7 +18,7 @@
  */
 
 package eu.occtet.bocfrontend.view.vexData;
-
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -42,6 +42,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.lang.reflect.InaccessibleObjectException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -62,6 +64,9 @@ public class VexDataDetailView extends StandardDetailView<VexData> {
 
     @ViewComponent
     private TextField bomFormat;
+
+    @ViewComponent
+    private Span timeStamp;
 
     @ViewComponent
     private TextField specVersion;
@@ -114,7 +119,13 @@ public class VexDataDetailView extends StandardDetailView<VexData> {
     public void onBeforeShow(BeforeShowEvent event) {
         VexData vexData= getEditedEntity();
         vexDataFactory.addVexData(vexData,softwareComponent, selectedVulnerabilities);
-        //virtualList.setItems(selectedVulnerabilities);
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+        try {
+            timeStamp.setText(vexData.getTimeStamp().format(fmt));
+        }catch(Exception e){
+            log.error("InaccessibleObjectException when formatting date: "+ e.getMessage());
+        }
+        virtualList.setItems(selectedVulnerabilities);
         bomFormat.setValue(vexData.getBomFormat());
         specVersion.setValue(vexData.getSpecVersion());
         serialNumber.setValue(vexData.getSerialNumber());
