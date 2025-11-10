@@ -46,29 +46,39 @@
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout padding="true">
-        <hbox>
-            <button id="saveButton" text="save" themeNames="primary small" action="saveAction"/>
-            <button id="closeButton" text="close" themeNames="small" action="closeAction"/>
-            <button id="downloadButton" text="download" themeNames="small"/>
-            <span id="timeStamp" themeNames="small" maxHeight="50%" alignSelf="END"/>
+        <hbox width="100%" spacing="true">
+
+                <button id="saveButton" text="saveAndDownload" themeNames="primary small" action="saveAction"/>
+                <button id="closeButton" text="close" themeNames="small" action="closeAction"/>
+                <span/>
+                <nativeLabel text="Timestamp: " alignSelf="END"/>
+                <nativeLabel id="timeStamp" property="timeStamp" dataContainer="vexDataDc" colspan="2" alignSelf="END"/>
+
+
         </hbox>
-        <formLayout id="form" dataContainer="vexDataDc" height="90%" width="100%">
-            <textField id="bomFormat" property="bomFormat" label="msg://BomFormat"/>
-            <textField id="specVersion" property="specVersion" label="msg://SpecVersion" width="30%"/>
-            <textField id="serialNumber" property="serialNumber" label="msg://SerialNumber"/>
-            <integerField id="version" property="version" label="msg://eu.occtet.bocfrontend.view.vexData/version" width="30%"/>
+
+        <vbox>
+            <hbox width="100%">
+            <textField width="50%" id="bomFormat" property="bomFormat" dataContainer="vexDataDc" label="msg://BomFormat"/>
+            <textField width="50%" id="specVersion" property="specVersion" dataContainer="vexDataDc" label="msg://SpecVersion" />
+            <textField  width="50%" id="serialNumber" property="serialNumber" dataContainer="vexDataDc" label="msg://SerialNumber"/>
+            <integerField width="50%" id="version" property="version" dataContainer="vexDataDc" label="msg://eu.occtet.bocfrontend.view.vexData/version"/>
             <htmlObject colspan="2">
                 <hr/>
             </htmlObject>
-            <details id="metaDataDetailsBox" summaryText="Meta Data" classNames="bordered-panel" opened="true"
+            </hbox>
+            <vbox width="100%">
+            <details id="metaDataDetailsBox" summaryText="msg://metaData" classNames="bordered-panel" opened="true"
                      width="100%">
             </details>
+            </vbox>
             <htmlObject colspan="2">
                 <hr/>
             </htmlObject>
-            <virtualList id="virtualList"
-                         itemsContainer="vulnerabilitiesDc"/>
-        </formLayout>
+            <details width="100%" summaryText="msg://vulnerabilities" classNames="bordered-panel" opened="true">
+                <virtualList id="vulnerabilityBox"  itemsContainer="vulnerabilitiesDc" width="100%" />
+            </details>
+    </vbox>
 
     </layout>
 </view>

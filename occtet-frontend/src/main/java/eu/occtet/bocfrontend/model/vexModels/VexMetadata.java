@@ -21,7 +21,7 @@ package eu.occtet.bocfrontend.model.vexModels;
 
 import java.time.LocalDateTime;
 
-public record VexMetadata(LocalDateTime timestamp,
+public record VexMetadata(String time,
         VexComponent component) { }
 
 

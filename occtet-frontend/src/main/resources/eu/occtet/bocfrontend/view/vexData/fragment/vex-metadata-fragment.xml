@@ -23,19 +23,17 @@
         <instance id="softwareComponentDc"
                   class="eu.occtet.bocfrontend.entity.SoftwareComponent">
             <fetchPlan extends="_base"/>
-            <loader id="softwareComponentDl">
-                <query>
-                    <![CDATA[select s from SoftwareComponent s where s.softwareComponent = :softwareComponent]]>
-                </query>
-            </loader>
+            <loader id="softwareComponentDl"/>
         </instance>
     </data>
-    <content>
-        <vbox>
-            <comboBox id="type" placeholder="Select type"
+    <content >
+        <vbox width="100%">
+            <comboBox width="50%" id="type" placeholder="Select type"
                       label="Type"/>
-            <textField id="name" property="name" label="ComponentName" dataContainer="softwareComponentDc" readOnly="true"/>
-            <textField id="version" property="version" label="VersionName" dataContainer="softwareComponentDc" readOnly="true"/>
+            <textField width="50%" id="version" property="version" label="msg://metadata.fragment.componentVersion" dataContainer="softwareComponentDc" readOnly="true"/>
+            <textField id="name" width="100%" property="name" label="msg://metadata.fragment.componentName"
+                       dataContainer="softwareComponentDc" readOnly="true"/>
+
         </vbox>
     </content>
 </fragment>

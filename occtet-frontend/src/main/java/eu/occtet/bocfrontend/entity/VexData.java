@@ -59,7 +59,7 @@ public class VexData{
     @Column(name="VERSION")
     private Integer version;
 
-    @Column(name="TIME_STAMP")
+    @Column(name="TIME_STAMP", updatable = false)
     private @Nonnull LocalDateTime timeStamp;
 
     @JoinTable(name = "VULNERABILITY_VEX_LINK", joinColumns = @JoinColumn(name = "VEX_DATA_ID", referencedColumnName = "ID"),

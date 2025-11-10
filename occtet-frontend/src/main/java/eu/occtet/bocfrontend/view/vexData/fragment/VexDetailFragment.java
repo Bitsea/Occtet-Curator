@@ -20,7 +20,9 @@
 package eu.occtet.bocfrontend.view.vexData.fragment;
 
 import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import eu.occtet.bocfrontend.entity.VexData;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.view.View;

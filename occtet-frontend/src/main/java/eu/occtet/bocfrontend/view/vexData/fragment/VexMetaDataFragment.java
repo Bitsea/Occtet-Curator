@@ -24,22 +24,25 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.textfield.TextField;
+import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.VexData;
 import eu.occtet.bocfrontend.factory.VexDataFactory;
 import eu.occtet.bocfrontend.model.vexModels.VexComponent;
 import eu.occtet.bocfrontend.model.vexModels.VexComponentType;
 import eu.occtet.bocfrontend.model.vexModels.VexMetadata;
+import io.jmix.core.LoadContext;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.fragment.FragmentDescriptor;
-import io.jmix.flowui.view.Subscribe;
-import io.jmix.flowui.view.Target;
-import io.jmix.flowui.view.View;
-import io.jmix.flowui.view.ViewComponent;
+import io.jmix.flowui.model.InstanceContainer;
+import io.jmix.flowui.model.InstanceLoader;
+import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 
 @FragmentDescriptor("vex-metadata-fragment.xml")
@@ -60,22 +63,30 @@ public class VexMetaDataFragment extends VexDetailFragment {
     @Autowired
     private VexDataFactory vexDataFactory;
 
+    @ViewComponent
+    private InstanceContainer<SoftwareComponent> softwareComponentDc;
+
+
     @Subscribe(target = Target.HOST_CONTROLLER)
     public void onHostReady(final View.ReadyEvent event) {
-        type.setItems(Arrays.toString(VexComponentType.values()));
-        name.setValue(vexData.getSoftwareComponent().getName());
-        version.setValue(vexData.getSoftwareComponent().getVersion());
+        log.debug("on host ready metadata");
+        softwareComponentDc.setItem(vexData.getSoftwareComponent());
+        List<String> typeList= new ArrayList<>();
+        for(VexComponentType vt: VexComponentType.values()){
+           typeList.add(vt.name());
+        }
+        type.setItems(typeList);
         changeMetaDataValues(vexData, type.getElement().toString());
 
     }
 
     @Subscribe("type")
-    public void onTypeComponentValueChange(final AbstractField.ComponentValueChangeEvent<JmixComboBox<VexComponentType>, VexComponentType> event) {
-        changeMetaDataValues(vexData, event.getValue().getId());
+    public void onTypeComponentValueChange(final AbstractField.ComponentValueChangeEvent<JmixComboBox<String>, String> event) {
+        changeMetaDataValues(vexData, event.getValue());
     }
 
     private void changeMetaDataValues(VexData vexData, String type ){
-        VexMetadata vexMetadata = new VexMetadata(vexData.getTimeStamp(), new VexComponent(type, name.getValue(), version.getValue()));
+        VexMetadata vexMetadata = new VexMetadata(vexData.getTimeStamp().toLocalTime().toString(), new VexComponent(type, name.getValue(), version.getValue()));
         vexDataFactory.addMetaDataAsJson(vexData, vexMetadata);
     }
 
