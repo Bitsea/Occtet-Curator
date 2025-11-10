@@ -20,53 +20,66 @@
  */
 
 package eu.occtet.boc.fileindexing;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.occtet.boc.fileindexing.service.FileIndexingServiceWorkConsumer;
+import eu.occtet.boc.model.MicroserviceDescriptor;
+import eu.occtet.boc.service.SystemHandler;
 import io.nats.client.Connection;
-import io.nats.client.Message;
-import io.nats.client.Subscription;
 import jakarta.annotation.PostConstruct;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.core.io.ClassPathResource;
 
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 @SpringBootApplication
 public class FileIndexingServiceApp {
 
+
+  private static final Logger log = LogManager.getLogger(FileIndexingServiceApp.class);
+
   @Autowired
   private Connection natsConnection;
 
-  @Value("${nats.subject}")
-  private String subject;
+  @Value("${nats.stream-name}")
+  private String streamName;
+
+  @Value("${nats.work-subject}")
+  private String workSubject;
+
+  @Value("${app.nats.listener.enabled}")
+  private boolean listenerEnabled;
+
+  private MicroserviceDescriptor microserviceDescriptor;
+
+  private SystemHandler systemHandler;
+
+  @Autowired
+  private FileIndexingServiceWorkConsumer fileIndexingServiceWorkConsumer;
 
   public static void main(String[] args) {
-      SpringApplication.run(FileIndexingServiceApp.class, args);
+    SpringApplication.run(FileIndexingServiceApp.class, args);
   }
-
 
   @PostConstruct
-  public void onInit() {
-    subscribeToSubject(subject);
-  }
-
-  public void subscribeToSubject(String subject) {
-    Subscription subscription = natsConnection.subscribe(subject);
-    try {
-      while(true) {
-        Message message = subscription.nextMessage(1000);
-        if (message != null) {
-          String msg = new String(message.getData(), StandardCharsets.UTF_8);
-          System.out.println("Received message: " + msg);
-        }
-      }
-    } catch (InterruptedException e) {
-
+  public void onInit() throws Exception {
+    ClassPathResource resource = new ClassPathResource("microserviceDescriptor.json");
+    String s = new String(Files.readAllBytes(Paths.get(resource.getURI())));
+    microserviceDescriptor = (new ObjectMapper()).readValue(s, MicroserviceDescriptor.class);
+    log.info("Init Microservice: {} (version {})", microserviceDescriptor.getName(), microserviceDescriptor.getVersion());
+    systemHandler = new SystemHandler(natsConnection, microserviceDescriptor, fileIndexingServiceWorkConsumer);
+    systemHandler.subscribeToSystemSubject();
+    if (listenerEnabled) {
+      log.info("Starting listener for work messages on subject: {}", workSubject);
+      log.info("Listening on NATS stream: {}", streamName);
+      fileIndexingServiceWorkConsumer.startHandlingMessages(natsConnection, microserviceDescriptor.getName(),
+              streamName, workSubject);
     }
-
-
-
   }
-
-
 }
+

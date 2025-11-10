@@ -34,7 +34,7 @@
 
     <artifactId>occtet-nats-file-indexing-service</artifactId>
     <name>occtet-nats-file-indexing-service</name>
-    <description>Occtet Service for indexing files using OpenSearch</description>
+    <description>Occtet Service for indexing files for later usage</description>
     <version>2025.11.1</version>
 
     <packaging>jar</packaging>
@@ -91,6 +91,12 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <version>${springboot.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.occtet.boc</groupId>
+            <artifactId>occtet-common</artifactId>
+            <version>2025.10.3</version>
+            <scope>compile</scope>
         </dependency>
 
     </dependencies>
