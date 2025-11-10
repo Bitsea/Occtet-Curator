@@ -28,13 +28,13 @@
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>2025.9.2</version>
+        <version>0.3.1</version>
     </parent>
 
     <artifactId>occtet-nats-copyrightfilter-service</artifactId>
     <name>occtet-nats-copyrightfilter-service</name>
     <description>Occtet Nats CopyrightFilter Microservice</description>
-    <version>2025.9.1</version>
+    <version>0.3.1</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -46,7 +46,7 @@
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-common</artifactId>
-            <version>2025.10.3</version>
+            <version>${common-version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -148,7 +148,7 @@
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-common-jpa</artifactId>
-            <version>2025.10.2</version>
+            <version>${common-jpa-version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
@@ -197,6 +197,12 @@
             <id>dev</id>
             <properties>
                 <spring.profiles.active>dev</spring.profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>local</id>
+            <properties>
+                <spring.profiles.active>local</spring.profiles.active>
             </properties>
         </profile>
         <profile>
