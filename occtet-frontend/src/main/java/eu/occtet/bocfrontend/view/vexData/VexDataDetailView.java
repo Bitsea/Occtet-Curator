@@ -89,15 +89,12 @@ public class VexDataDetailView extends StandardDetailView<VexData> {
 
     @Supply(to = "vulnerabilityBox", subject = "renderer")
     protected Renderer<Vulnerability> dayRenderer() {
-        log.debug("calling renderer");
         vexVulnerabilityFragment= new ArrayList<>();
         return new ComponentRenderer<>(this::createVulnerabilityComponent);
     }
 
     private VerticalLayout createVulnerabilityComponent(Vulnerability v) {
-        log.debug("create uiComponent for vul");
         VexData vexData = getEditedEntity();
-
         VerticalLayout layout = uiComponents.create(VerticalLayout.class);
         VexVulnerabilityFragment vFragment = fragments.create(this, VexVulnerabilityFragment.class);
         vFragment.setVexData(vexData);
