@@ -32,7 +32,7 @@ jmix {
 }
 
 group = 'eu.occtet'
-version = '2025.10.1'
+version = '0.3.1'
 
 repositories {
     mavenLocal()

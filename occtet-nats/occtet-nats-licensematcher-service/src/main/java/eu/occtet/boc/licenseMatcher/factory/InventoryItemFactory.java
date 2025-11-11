@@ -49,7 +49,7 @@ public class InventoryItemFactory {
 
         InventoryItem inventoryItem = new InventoryItem(
                 inventoryName, size, linking, copyrights,  externalNotes,
-                parent, component, wasCombined, false, project, basePath, spdxId);
+                parent, component, wasCombined, false, project, spdxId);
 
         return inventoryItemRepository.save(inventoryItem);
     }

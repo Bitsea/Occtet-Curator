@@ -23,13 +23,26 @@
 package eu.occtet.boc.download.service;
 
 
+import eu.occtet.boc.download.controller.GitRepoController;
 import eu.occtet.boc.model.DownloadServiceWorkData;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 
 @Service
@@ -39,8 +52,11 @@ public class DownloadService extends BaseWorkDataProcessor {
     private static final Logger log = LoggerFactory.getLogger(DownloadService.class);
 
     @Autowired
-    private PackageService packageService;
+    private GitRepoController gitRepoController;
 
+    private String gitUrl;
+
+    private final static Path tmpLocation = Path.of("src","main","resources/TmpFilePackage");
 
     @Override
     public boolean process(DownloadServiceWorkData workData) {
@@ -53,12 +69,11 @@ public class DownloadService extends BaseWorkDataProcessor {
         try{
             String analyzedUrl = analyzingUrl(workData.getUrl());
 
-            if(analyzedUrl.equals("git")){
-                packageService.unpackGitZipRepo(workData.getUrl(),workData.getLocation(),workData.getVersion());
-            }else if(analyzedUrl.equals("gz")){
-                packageService.unpackTarGzFile(workData.getUrl(),workData.getLocation());
+            if(analyzedUrl.equals("git")) {
+                getGitUrl(workData.getUrl(), workData.getVersion());
+                downloadFile(gitUrl,workData.getLocation());
             }else{
-                packageService.unpackZipFile(workData.getUrl(), workData.getLocation());
+                downloadFile(workData.getUrl(), workData.getLocation());
             }
         }catch (Exception e){
             log.error(e.getMessage());
@@ -72,4 +87,124 @@ public class DownloadService extends BaseWorkDataProcessor {
         return url.substring(index+1);
     }
 
+    private void getGitUrl(String url, String version){
+        try{
+            String[] splitUrl = url.split("/");
+            String owner = splitUrl[splitUrl.length-2];
+            String repoGit = splitUrl[splitUrl.length-1];
+            int index = repoGit.lastIndexOf('.');
+            String repo = repoGit.substring(0,index);
+
+            gitUrl = gitRepoController.getGitRepository(owner,repo,version);
+            log.info("Git url: {}",gitUrl);
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void downloadFile(String urlString, String location){
+
+        try{
+            String fileName = urlString.substring(urlString.lastIndexOf('/')+1);
+            if(Files.notExists(tmpLocation)){
+                Files.createDirectories(Path.of(tmpLocation.toFile().getAbsolutePath()));
+            }
+
+            URL url = new URL(urlString);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            InputStream inputStream = connection.getInputStream();
+            File tmpFile = new File(tmpLocation.toFile().getAbsolutePath(),fileName);
+            FileOutputStream outputStream = new FileOutputStream(tmpFile);
+            inputStream.transferTo(outputStream);
+            inputStream.close();
+            outputStream.close();
+
+            Path savePath = Paths.get(location);
+            if(Files.notExists(savePath)){
+                Files.createDirectories(Path.of(savePath.toFile().getAbsolutePath()));
+            }
+            if(fileName.contains(".")){
+                if(fileName.substring(fileName.lastIndexOf('.')).equals(".gz")){
+                    unpackTarFile(tmpFile, savePath, fileName);
+                }else{
+                    unpackZipFile(tmpFile,savePath,fileName);
+                }
+            }else{
+                unpackZipFile(tmpFile,savePath,fileName);
+            }
+            log.info("File downloaded: {}",fileName);
+        }catch(Exception e) {
+            log.error("Error in download file; {}",e.getMessage());
+        }
+    }
+
+    private void unpackZipFile(File tmpFile, Path path, String fileName){
+
+        try{
+            ZipInputStream zis = new ZipInputStream(new FileInputStream(tmpFile));
+            ZipEntry entry = zis.getNextEntry();
+            File folder = new File(path.toFile().getAbsolutePath(),fileName);
+
+            while(entry != null) {
+                File outFile = new File(folder, entry.getName());
+
+                if (entry.isDirectory()) {
+                    outFile.mkdirs();
+                } else {
+                    File parentFile = outFile.getParentFile();
+                    if (parentFile != null && !parentFile.exists()) {
+                        parentFile.mkdirs();
+                    }
+                    try{
+                        OutputStream outStream = new FileOutputStream(outFile);
+                        zis.transferTo(outStream);
+                        outStream.close();
+                    }catch (Exception e){
+                        log.error(e.getMessage());
+                    }
+                }
+                entry = zis.getNextEntry();
+            }zis.close();
+            Files.deleteIfExists(tmpFile.toPath());
+        }catch(Exception e){
+            log.error("Error in unpackZipFile: {}",e.getMessage());
+        }
+    }
+
+    private void unpackTarFile(File tmpFile, Path path, String fileName){
+
+        try {
+
+            GzipCompressorInputStream gz = new GzipCompressorInputStream(new FileInputStream(tmpFile));
+            TarArchiveInputStream tar = new TarArchiveInputStream(gz);
+            TarArchiveEntry entry = tar.getNextTarEntry();
+            File folder = new File(path.toFile().getAbsolutePath(),fileName);
+
+            while(entry != null) {
+                File outFile = new File(folder, entry.getName());
+
+                if (entry.isDirectory()) {
+                    outFile.mkdirs();
+                } else {
+                    File parentFile = outFile.getParentFile();
+                    if (parentFile != null && !parentFile.exists()) {
+                        parentFile.mkdirs();
+                    }
+                    try{
+                        OutputStream outStream = new FileOutputStream(outFile);
+                        tar.transferTo(outStream);
+                        outStream.close();
+                    }catch (Exception e){
+                        log.error(e.getMessage());
+                    }
+                }
+                entry = tar.getNextTarEntry();
+            }tar.close();
+            Files.deleteIfExists(tmpFile.toPath());
+        } catch (Exception e) {
+            log.error("Error in unpackTarFile: {}",e.getMessage());
+        }
+    }
 }

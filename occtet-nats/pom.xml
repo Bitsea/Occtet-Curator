@@ -42,7 +42,7 @@
 
     <groupId>eu.occtet.boc</groupId>
 	<artifactId>occtet-nats-parent</artifactId>
-	<version>2025.9.2</version>
+	<version>0.3.1</version>
 
 	<name>occtet-nats-parent</name>
 
@@ -57,6 +57,8 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springboot.version>3.5.5</springboot.version>
+        <common-version>0.3.1</common-version>
+        <common-jpa-version>0.3.1</common-jpa-version>
 	</properties>
 
 	<dependencies>

@@ -100,8 +100,9 @@ public class SpdxService extends BaseWorkDataProcessor{
      * @param spdxWorkData
      * @return true if the entities where created successfully, false is any error occurred
      */
-    private boolean parseDocument(SpdxWorkData spdxWorkData){
+    public boolean parseDocument(SpdxWorkData spdxWorkData){
         try {
+            // FIXME fetching the json must be done by the caller, as service classes should not know about where this data come from (and have no dependency on nats connection)
             ObjectStore objectStore = natsConnection.objectStore(spdxWorkData.getBucketName());
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             objectStore.get(spdxWorkData.getJsonSpdx(), out);
