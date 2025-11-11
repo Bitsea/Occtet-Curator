@@ -29,13 +29,13 @@
     <artifactId>occtet-nats-licensematcher-service</artifactId>
     <name>occtet-nats-licensematcher-service</name>
     <description>Occtet Nats Service prepare to check licenseText by AI</description>
-    <version>2025.9.1</version>
+    <version>0.3.1</version>
 
     <packaging>jar</packaging>
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>2025.9.2</version>
+        <version>0.3.1</version>
     </parent>
 
     <properties>
@@ -102,12 +102,12 @@
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-common</artifactId>
-            <version>2025.10.3</version>
+            <version>${common-version}</version>
         </dependency>
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-common-jpa</artifactId>
-            <version>2025.10.2</version>
+            <version>${common-jpa-version}</version>
         </dependency>
         <dependency>
             <groupId>io.nats</groupId>
@@ -220,6 +220,12 @@
             <id>dev</id>
             <properties>
                 <spring.profiles.active>dev</spring.profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>local</id>
+            <properties>
+                <spring.profiles.active>local</spring.profiles.active>
             </properties>
         </profile>
         <profile>

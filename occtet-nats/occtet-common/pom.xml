@@ -29,13 +29,13 @@
     <artifactId>occtet-common</artifactId>
     <name>occtet-common</name>
     <description>Occtet Common Library</description>
-    <version>2025.10.3</version>
+    <version>0.3.1</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>2025.9.2</version>
+        <version>0.3.1</version>
     </parent>
 
     <dependencies>
