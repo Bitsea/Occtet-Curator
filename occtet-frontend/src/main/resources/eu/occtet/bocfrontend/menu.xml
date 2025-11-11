@@ -20,6 +20,8 @@
 
 <menu-config xmlns="http://jmix.io/schema/flowui/menu">
     <item view="AuditView" title="msg://eu.occtet.bocfrontend.view.audit/auditView.title" icon="vaadin:compile"/>
+    <item view="VexData.list" title="msg://eu.occtet.bocfrontend/eu.occtet.bocfrontend.view.vexData"
+          icon="vaadin:clipboard-text"/>
     <item view="Vulnerability.list" title="msg://eu.occtet.bocfrontend/eu.occtet.bocfrontend.view.vulnerabilities"
           icon="vaadin:doctor-briefcase"/>
     <item view="InventoryItem.list" title="msg://eu.occtet.bocfrontend.view.inventoryitem/inventoryItemListView.title"

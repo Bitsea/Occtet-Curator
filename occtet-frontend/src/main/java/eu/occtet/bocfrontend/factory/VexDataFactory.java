@@ -23,10 +23,13 @@ import com.google.gson.Gson;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.VexData;
 import eu.occtet.bocfrontend.entity.Vulnerability;
+import eu.occtet.bocfrontend.model.vexModels.VexVulnerability;
+import eu.occtet.bocfrontend.model.vexModels.Vulnerabilites;
 import io.jmix.core.DataManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -84,9 +87,9 @@ public class VexDataFactory {
      * @param data
      * @return
      */
-    public VexData addVulnerabilityDataAsJson(VexData vexData, Object data) {
+    public VexData addVulnerabilityDataAsJson(VexData vexData, List<VexVulnerability> data) {
         Gson gson = new Gson();
-        vexData.setVulnerabilityData(gson.toJson(data));
+        vexData.setVulnerabilities(gson.toJson(data));
         return vexData;
     }
 

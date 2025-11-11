@@ -17,9 +17,20 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.model.vexModels;
+package eu.occtet.bocfrontend.view.vexData;
 
-public record VexMetadata(String timeStamp,
-        VexComponent component) { }
+import com.vaadin.flow.router.Route;
+import eu.occtet.bocfrontend.entity.VexData;
+import eu.occtet.bocfrontend.view.main.MainView;
+import io.jmix.flowui.view.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
+@Route(value = "vex-data", layout = MainView.class)
+@ViewController(id = "VexData.list")
+@ViewDescriptor(path = "vex-data-list-view.xml")
+@LookupComponent("vexDataDataGrid")
+@DialogMode(width = "64em")
+public class VexDataListView extends StandardListView<VexData> {
+
+}

@@ -52,8 +52,8 @@ public class CopyrightService {
     @Autowired
     private InventoryItemService inventoryItemService;
 
-    private static final Path BASEPATH_YML = Paths.get("src", "main", "resources/garbage-Copyrights/garbage-copyrights.yml");
-    private static final Path BASEPATH_JSON = Paths.get("src","main","resources/garbage-Copyrights/garbage-copyrights.json");
+    private static final Path BASEPATH_YML = Paths.get("src", "main", "resources","garbage-Copyrights","garbage-copyrights.yml");
+    private static final Path BASEPATH_JSON = Paths.get("src","main","resources","garbage-Copyrights","garbage-copyrights.json");
     private static final String FILENAME_YML = "garbage-copyrights.yml";
 
     @Autowired
@@ -94,6 +94,7 @@ public class CopyrightService {
             ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             mapper.writeValue(new File(BASEPATH_YML.toFile().getAbsolutePath()), data);
         } catch (IOException e) {
+            log.debug("Error creating YML file: " + e.getMessage());
         }
     }
 

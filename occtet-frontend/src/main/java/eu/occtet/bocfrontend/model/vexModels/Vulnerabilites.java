@@ -19,7 +19,7 @@
 
 package eu.occtet.bocfrontend.model.vexModels;
 
-public record VexMetadata(String timeStamp,
-        VexComponent component) { }
+import java.util.List;
 
-
+public record Vulnerabilites(List<VexVulnerability> vulnerabilities) {
+}

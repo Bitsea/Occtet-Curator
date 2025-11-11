@@ -20,8 +20,8 @@
 package eu.occtet.bocfrontend.entity;
 
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import eu.occtet.bocfrontend.model.vexModels.VexVulnerability;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.annotation.Nonnull;
@@ -39,12 +39,14 @@ public class VexData{
     @JmixGeneratedValue
     @Id
     @Column(name="ID", nullable = false)
+    @JsonIgnore
     private UUID id;
 
     @Column(name="TITLE")
     private String title;
 
     @Column(name="CHECKED")
+    @JsonIgnore
     private Boolean checked;
 
     @Column(name="BOM_FORMAT")
@@ -60,24 +62,25 @@ public class VexData{
     private Integer version;
 
     @Column(name="TIME_STAMP", updatable = false)
+    @JsonIgnore
     private @Nonnull LocalDateTime timeStamp;
 
     @JoinTable(name = "VULNERABILITY_VEX_LINK", joinColumns = @JoinColumn(name = "VEX_DATA_ID", referencedColumnName = "ID"),
             inverseJoinColumns = @JoinColumn(name = "VULNERABILITY_ID", referencedColumnName = "ID"))
     @ManyToMany(cascade = {CascadeType.REFRESH})
+    @JsonIgnore
     private List<Vulnerability> vulnerability;
 
     @Column(name = "META_DATA", columnDefinition = "TEXT")
     private String metaData;
 
-    @Column(name = "ANALYSIS_DATA", columnDefinition = "TEXT")
-    private String analysisData;
 
     @Column(name = "VULNERABILITY_DATA", columnDefinition = "TEXT")
-    private String vulnerabilityData;
+    private String vulnerabilities;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "SOFTWARE_COMPONENT_ID")
+    @JsonIgnore
     private SoftwareComponent softwareComponent;
 
 
@@ -102,20 +105,12 @@ public class VexData{
         this.metaData = metaData;
     }
 
-    public String getAnalysisData() {
-        return analysisData;
+    public String getVulnerabilities() {
+        return vulnerabilities;
     }
 
-    public void setAnalysisData(String analysisData) {
-        this.analysisData = analysisData;
-    }
-
-    public String getVulnerabilityData() {
-        return vulnerabilityData;
-    }
-
-    public void setVulnerabilityData(String vulnerabilityData) {
-        this.vulnerabilityData = vulnerabilityData;
+    public void setVulnerabilities(String vulnerabilities) {
+        this.vulnerabilities = vulnerabilities;
     }
 
 

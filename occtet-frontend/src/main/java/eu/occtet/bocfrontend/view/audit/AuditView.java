@@ -117,7 +117,6 @@ public class AuditView extends StandardView{
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         super.beforeEnter(event);
-        log.debug("BeforeEnterEvent called");
         Optional<String> projectIdParam = event.getRouteParameters().get("projectId");
         initializeProjectContext(projectIdParam);
     }
@@ -244,7 +243,6 @@ public class AuditView extends StandardView{
                 .ifPresentOrElse(checkbox -> {
                     checkbox.addValueChangeListener(event ->
                                     onVulnerabilityFilterToggled(Boolean.TRUE.equals(event.getValue())));
-                    log.debug("Vulnerability filter checkbox found in inventory toolbox");
                 }, () -> log.warn("Unable to find vulnerability filter checkbox in inventory toolbox")
                 );
         toolbarBox.removeAll();

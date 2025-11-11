@@ -170,8 +170,7 @@
             <column name="VERSION" type="INTEGER"/>
             <column name="TIME_STAMP" type="DATE"/>
             <column name="META_DATA" type="TEXT"/>
-            <column name="ANALYSIS_DATA" type="TEXT"/>
-            <column name="VULNERABILITY_DATA" type="TEXT"/>
+            <column name="VULNERABILITIES" type="TEXT"/>
             <column name="SOFTWARE_COMPONENT_ID" type="UUID"/>
         </createTable>
         <createTable tableName="VULNERABILITY_VEX_LINK" ifNotExists="true">
@@ -183,8 +182,8 @@
             </column>
         </createTable>
 
-    </changeSet>
 
+    </changeSet>
 
     <!-- MODIFICATIONS-->
 
