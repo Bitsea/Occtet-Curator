@@ -23,11 +23,13 @@
 package eu.occtet.boc.entity;
 
 import jakarta.persistence.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.UUID;
 
 @Entity
 @Table(name="INFORMATION_FILE",uniqueConstraints = { @UniqueConstraint(columnNames = { "FILE_NAME"}) })
+@EntityListeners(AuditingEntityListener.class)
 public class InformationFile {
 
     @Id

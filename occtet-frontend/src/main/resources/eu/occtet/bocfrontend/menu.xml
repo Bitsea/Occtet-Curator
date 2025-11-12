@@ -40,6 +40,7 @@
         <item view="User.list" title="msg://eu.occtet.bocfrontend.view.user/UserListView.title"/>
         <item view="DBLog.list" title="msg://eu.occtet.bocfrontend.view.DBLog/DBLogListView.title"/>
         <item view="ScannerInitializer.list" title="Scanners"/>
+        <item view="SetupView" title="Setup"/>
     </menu>
 
 </menu-config>

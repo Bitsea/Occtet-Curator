@@ -1,5 +1,9 @@
 {
+  "type": "descriptor",
   "name": "occtet-nats-informationFile",
-    "version": "1.0.0",
-    "description": "A microservice for upload information files"
+  "version": "1.0.0",
+  "description": "A microservice for upload information files",
+  "usageType": "RUNNABLE_BY_UI",
+  "acceptableWorkData": "SampleWorkData"
 }
+

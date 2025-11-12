@@ -65,7 +65,7 @@ public class InformationFileWorkConsumer extends WorkConsumer {
                 public boolean process(InformationFileSendWorkData workData) {
                     try {
                         log.debug("go to upload files");
-                        return informationFileService.uploadFiles(workData.getPath(),"-");
+                        return informationFileService.uploadFiles(workData.getPath(),workData.getContext());
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }

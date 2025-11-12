@@ -22,19 +22,29 @@
 
 package eu.occtet.boc.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.occtet.boc.service.IWorkDataProcessor;
 
 public class InformationFileSendWorkData extends BaseWorkData{
 
     private String path;
+    private String context;
 
-    public InformationFileSendWorkData(String path){
+    @JsonCreator
+    public InformationFileSendWorkData(@JsonProperty("path") String path,
+                                       @JsonProperty("context") String context){
         this.path = path;
+        this.context = context;
     }
 
     public void setPath(String path) {this.path = path;}
 
     public String getPath() {return path;}
+
+    public void setContext(String context) {this.context = context;}
+
+    public String getContext() {return context;}
 
     @Override
     public boolean process(IWorkDataProcessor processor) {return processor.process(this);}
