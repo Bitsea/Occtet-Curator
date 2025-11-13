@@ -22,6 +22,7 @@
 
 package eu.occtet.bocfrontend.view.copyright;
 
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.editor.EditorCloseEvent;
@@ -29,9 +30,13 @@ import com.vaadin.flow.component.grid.editor.EditorSaveEvent;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.CopyrightRepository;
 import eu.occtet.bocfrontend.entity.Copyright;
+import eu.occtet.bocfrontend.entity.InventoryItem;
+import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.service.CopyrightService;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
@@ -53,6 +58,7 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Route(value = "copyrights", layout = MainView.class)
@@ -99,6 +105,28 @@ public class CopyrightListView extends StandardListView<Copyright> {
     public void onBeforeShow(BeforeShowEvent event){
 
         copyrightsList = copyrightRepository.findAll();
+    }
+
+    @Supply(to = "copyrightsDataGrid.softwareComponent", subject = "renderer")
+    private Renderer<Copyright> componentRenderer() {
+        return new TextRenderer<>(copyright -> {
+            SoftwareComponent softwareComponent = copyright.getCodeLocation().getInventoryItem().getSoftwareComponent();
+
+            if (softwareComponent == null || softwareComponent.getName() == null) {
+                return "";
+            }
+            return softwareComponent.getName();
+        });
+    }
+
+    @Supply(to = "copyrightsDataGrid.filePath", subject = "renderer")
+    private Renderer<Copyright> filePathRenderer() {
+        return new TextRenderer<>(copyright -> copyright.getCodeLocation().getFilePath());
+    }
+
+    @Subscribe("immediateCheckbox")
+    public void onImmediateCheckboxComponentValueChange(final AbstractField.ComponentValueChangeEvent<JmixCheckbox, Boolean> event) {
+        saveButton.setEnabled(!event.getValue());
     }
 
     @Supply(to = "copyrightsDataGrid.curated", subject = "renderer")
@@ -166,7 +194,6 @@ public class CopyrightListView extends StandardListView<Copyright> {
 
     @Install(to = "copyrightsDataGrid.@editor", subject = "saveListener")
     private void copyrightsDataGridEditorCloseListener(final EditorSaveEvent<Copyright> editorSaveEvent) {
-        log.debug("Editor closed for copyright: {}", editorSaveEvent.getItem().getCopyrightText());
         saveOrEnqueue(editorSaveEvent.getItem());
     }
 
@@ -191,7 +218,6 @@ public class CopyrightListView extends StandardListView<Copyright> {
     }
 
     private void saveEnqueuedChanges() {
-        log.debug("saved enqueued changes");
         if (!copyrights.isEmpty()) {
             dataManager.saveAll(copyrights);
             copyrights.clear();

@@ -29,7 +29,14 @@
         <collection id="copyrightsDc"
                     class="eu.occtet.bocfrontend.entity.Copyright">
             <fetchPlan extends="_base">
-                <property name="codeLocation"/>
+                <property name="codeLocation" fetchPlan="_base">
+                    <property name="inventoryItem" fetchPlan="_base">
+                        <property name="softwareComponent" fetchPlan="_base"/>
+                    </property>
+                </property>
+            </fetchPlan>
+            <fetchPlan extends="_base">
+                <property name="codeLocation" fetch="AUTO"/>
             </fetchPlan>
             <loader id="copyrightsDl" readOnly="true">
                 <query>
@@ -56,26 +63,29 @@
                     <properties include=".*"/>
                     <conditions> </conditions>
                 </genericFilter>
+                <vbox alignSelf="END">
                 <hbox>
                 <checkbox id="immediateCheckbox" label="msg://saveImmediately" value="true" alignSelf="END"/>
                 <button id="saveButton" text="Save" enabled="false" alignSelf="END"/>
                  </hbox>
-                <htmlObject/>
                 <simplePagination id="pagination" dataLoader="copyrightsDl" alignSelf="END"/>
+                </vbox>
             </hbox>
             <dataGrid id="copyrightsDataGrid"
                       width="100%"
                       minHeight="30em"
                       dataContainer="copyrightsDc"
-                      columnReorderingAllowed="true">
+                      columnReorderingAllowed="true"
+                      editorBuffered="false">
                 <columns resizable="true">
                     <column property="copyrightText" header="Name"/>
                     <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated" editable="true"/>
                     <column property="garbage" header="msg://eu.occtet.bocfrontend.entity/Copyright.garbage" editable="true"/>
-                    <column property="codeLocation.filePath" header="msg://FilePath"/>
+                    <column property="codeLocation.filePath" header="msg://FilePath" key="filePath"/>
+                    <column property="codeLocation.inventoryItem.softwareComponent" header="msg://SoftwareComponent" key="softwareComponent"/>
                     <editorActionsColumn key="nonBufferedEditorColumn">
                         <editButton icon="PENCIL" text="msg:///actions.Edit"/>
-                        <closeButton icon="CHECK"/>
+                        <closeButton icon="CHECK" />
                     </editorActionsColumn>
                 </columns>
                 <actions>
