@@ -54,6 +54,8 @@ public class SpdxWorkData extends BaseWorkData{
 
     boolean useLicenseMatcher;
 
+    private byte[] jsonBytes;
+
     public String getJsonSpdx() {
         return jsonSpdx;
     }
@@ -89,6 +91,10 @@ public class SpdxWorkData extends BaseWorkData{
     public String getBucketName() {return bucketName;}
 
     public void setBucketName(String bucketName) {this.bucketName = bucketName;}
+
+    public byte[] getJsonBytes() {return jsonBytes;}
+
+    public void setJsonBytes(byte[] jsonBytes) {this.jsonBytes = jsonBytes;}
 
     @Override
     public boolean process(IWorkDataProcessor processor) {

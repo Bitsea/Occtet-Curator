@@ -32,11 +32,13 @@ import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.WorkConsumer;
 import io.nats.client.Connection;
 import io.nats.client.Message;
+import io.nats.client.ObjectStore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
 @Service
@@ -66,7 +68,20 @@ public class SpdxWorkConsumer extends WorkConsumer {
                 @Override
                 public boolean process(SpdxWorkData spdxWorkData) {
                     log.debug("extract from spdx json");
-                    return spdxService.process(spdxWorkData);
+                    try{
+                        ObjectStore objectStore = natsConnection.objectStore(spdxWorkData.getBucketName());
+                        ByteArrayOutputStream out = new ByteArrayOutputStream();
+                        objectStore.get(spdxWorkData.getJsonSpdx(), out);
+                        byte[] spdxBytes = out.toByteArray();
+                        //delete the object after we are done
+                        objectStore.delete(spdxWorkData.getJsonSpdx());
+                        spdxWorkData.setJsonBytes(spdxBytes);
+                        return spdxService.process(spdxWorkData);
+                    } catch (java.io.IOException | io.nats.client.JetStreamApiException | java.lang.InterruptedException |
+                             java.security.NoSuchAlgorithmException e) {
+                       log.error("failed to get json from objectStore: {}", e.toString());
+                        return false;
+                    }
                 }
             });
             log.debug("RESULT {}", result);
