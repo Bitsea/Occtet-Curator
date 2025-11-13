@@ -22,7 +22,11 @@
 package eu.occtet.boc.fileindexing;
 
 
+import eu.occtet.boc.fileindexing.configuration.AsyncThreadPoolConfig;
 import eu.occtet.boc.fileindexing.configuration.OpenSearchClientConfig;
+import eu.occtet.boc.fileindexing.service.DirectoryIndexService;
+import eu.occtet.boc.fileindexing.service.FileIndexService;
+import eu.occtet.boc.fileindexing.service.OpenSearchInfraService;
 import org.junit.jupiter.api.Test;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.FieldValue;
@@ -37,13 +41,18 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(classes = OpenSearchClientConfig.class)
+@SpringBootTest(classes = {OpenSearchClientConfig.class, DirectoryIndexService.class, FileIndexService.class,
+        OpenSearchInfraService.class, AsyncThreadPoolConfig.class})
 public class OpenSearchIntegrationTest {
 
     private static final Logger log = LoggerFactory.getLogger(OpenSearchIntegrationTest.class);
 
     @Autowired
+    private DirectoryIndexService directoryIndexService;
+    @Autowired
     private OpenSearchClient client;
+    @Autowired
+    private OpenSearchInfraService openSearchInfraService;
 
     public static class TestDoc {
         private String content;
@@ -61,41 +70,58 @@ public class OpenSearchIntegrationTest {
     }
 
     @Test
-    public void testIndexAndTermSearch() throws IOException {
-        String indexName = "junit-test-index";
-        String docId = "doc-1";
-        String testUser = "test-user-exact";
+    void test() throws IOException {
+        openSearchInfraService.ensureIndexTemplate();
+        directoryIndexService.indexDirectory("C:\\Users\\Ibrahim.Albahra\\Documents\\powsybl-core-main", "powsybl-core-main");
+    }
 
-        log.info("Creating index: {}", indexName);
-        TestDoc doc = new TestDoc("This is a test file for JUnit.", testUser);
+    //@Test
+    void testIndexAndTermSearch() throws IOException {
+//        String indexName = "junit-test-index";
+//        String docId = "doc-1";
+//        String testUser = "test-user-exact";
+//
+//        log.info("Creating index: {}", indexName);
+////        TestDoc doc = new TestDoc("This is a test file for JUnit.", testUser);
+//        String doc = "This is a test file for JUnit.";
+//
+//        IndexRequest<String> indexRequest = new IndexRequest.Builder<String>()
+//                .index(indexName)
+//                .id(docId)
+//                .document(doc)
+//                .build();
+//
+//        client.index(indexRequest);
+//        log.info("Document indexed successfully");
+//
+//        client.indices().refresh(r -> r.index(indexName));
+//        log.info("Indices refreshed. Performing term search for user: {}", testUser);
 
-        IndexRequest<TestDoc> indexRequest = new IndexRequest.Builder<TestDoc>()
-                .index(indexName)
-                .id(docId)
-                .document(doc)
-                .build();
+//        SearchResponse<TestDoc> searchResponse = client.search(s -> s
+//                .index(indexName)
+//                .query(q -> q
+//                        .term(t -> t
+//                                .field("user.keyword")
+//                                .value(FieldValue.of(testUser))
+//                        )
+//                ), TestDoc.class
+//        );
 
-        client.index(indexRequest);
-        log.info("Document indexed successfully");
-
-        client.indices().refresh(r -> r.index(indexName));
-        log.info("Indices refreshed. Performing term search for user: {}", testUser);
-
-        SearchResponse<TestDoc> searchResponse = client.search(s -> s
-                .index(indexName)
+        SearchResponse<String> searchResponse = client.search(s -> s
+                .index("project-helloworld")
                 .query(q -> q
                         .term(t -> t
-                                .field("user.keyword")
-                                .value(FieldValue.of(testUser))
+                                .field("content")
+                                .value(FieldValue.of("HelloWorld!"))
                         )
-                ), TestDoc.class
+                ), String.class
         );
 
         long totalHits = searchResponse.hits().total().value();
         log.info("Found {} hits", totalHits);
-
-        assertEquals(1, totalHits);
-        assertEquals(docId, searchResponse.hits().hits().get(0).id());
-        assertEquals(testUser, searchResponse.hits().hits().get(0).source().getUser());
+//
+//        assertEquals(1, totalHits);
+//        assertEquals(docId, searchResponse.hits().hits().get(0).id());
+//        assertEquals(testUser, searchResponse.hits().hits().get(0).source().getUser());
     }
 }

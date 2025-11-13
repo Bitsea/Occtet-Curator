@@ -29,19 +29,20 @@
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>2025.9.2</version>
+        <version>0.3.1</version>
     </parent>
 
     <artifactId>occtet-nats-file-indexing-service</artifactId>
     <name>occtet-nats-file-indexing-service</name>
     <description>Occtet Service for indexing files for later usage</description>
-    <version>2025.11.1</version>
+    <version>0.3.1</version>
 
     <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <common-version>0.3.1</common-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <start-class>eu.occtet.boc.fileindexing.FileIndexingServiceApp</start-class>
     </properties>
@@ -95,7 +96,7 @@
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-common</artifactId>
-            <version>2025.10.3</version>
+            <version>${common-version}</version>
             <scope>compile</scope>
         </dependency>
 

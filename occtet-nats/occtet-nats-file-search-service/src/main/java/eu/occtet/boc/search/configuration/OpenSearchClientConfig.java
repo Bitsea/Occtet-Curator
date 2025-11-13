@@ -19,7 +19,7 @@
  *
  */
 
-package eu.occtet.boc.termsearch.configuration;
+package eu.occtet.boc.search.configuration;
 
 import org.apache.hc.core5.http.HttpHost;
 import org.opensearch.client.RestClient;

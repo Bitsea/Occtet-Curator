@@ -19,7 +19,7 @@
  *
  */
 
-package eu.occtet.boc.termsearch.configuration;
+package eu.occtet.boc.search.configuration;
 
 import io.nats.client.Connection;
 import io.nats.client.Nats;

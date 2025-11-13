@@ -19,12 +19,12 @@
  *
  */
 
-package eu.occtet.boc.termsearch;
+package eu.occtet.boc.search;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.MicroserviceDescriptor;
 import eu.occtet.boc.service.SystemHandler;
-import eu.occtet.boc.termsearch.service.FileSearchServiceWorkConsumer;
+import eu.occtet.boc.search.service.FileSearchServiceWorkConsumer;
 import io.nats.client.Connection;
 import jakarta.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;

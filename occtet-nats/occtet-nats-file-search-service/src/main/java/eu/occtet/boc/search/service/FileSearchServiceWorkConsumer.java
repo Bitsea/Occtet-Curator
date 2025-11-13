@@ -19,7 +19,7 @@
  *
  */
 
-package eu.occtet.boc.termsearch.service;
+package eu.occtet.boc.search.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.BaseWorkData;
