@@ -108,7 +108,13 @@ public class SpdxService extends BaseWorkDataProcessor{
             SpdxDocument spdxDocument = inputStore.deSerialize(inputStream, false);
 
             UUID projectId = UUID.fromString(spdxWorkData.getProjectId());
-            Project project = projectRepository.findById(projectId).get();
+            Optional<Project> projectOptional = projectRepository.findById(projectId);
+            if(projectOptional.isEmpty()) {
+               log.error("failed to find the project");
+                return false;
+            }
+            Project project = projectOptional.get();
+
 
             List<InventoryItem> inventoryItems = new ArrayList<>();
             List<TypedValue> packageUri = spdxDocument.getModelStore().getAllItems(null, "Package").toList();
@@ -191,6 +197,7 @@ public class SpdxService extends BaseWorkDataProcessor{
         InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, component, project);
         inventoryItem.setWasCombined(isCombined);
         inventoryItem.setSpdxId(spdxPackage.getId());
+        inventoryItem.setCurated(false);
 
         if (inventoryItem.getCopyrights() == null){
             inventoryItem.setCopyrights(copyrights);
