@@ -58,8 +58,8 @@
     </actions>
     <layout>
         <tabSheet width="100%" themeNames="bordered" height="100%">
-            <tab id="generalInformationTab" label="General information">
-                <vbox alignItems="CENTER" justifyContent="START" alignSelf="START" classNames="scanner-layout" height="100%">
+            <tab id="generalInformationTab" label="msg://generalInformationTab.label">
+                <vbox alignItems="CENTER" justifyContent="START" alignSelf="START" height="100%">
                     <formLayout id="form" dataContainer="softwareComponentDc">
                         <textField id="nameField" property="name" label="Name"/>
                         <hbox>
@@ -67,47 +67,52 @@
                         </hbox>
                         <textField id="url" property="detailsUrl" label="URL"/>
                         <checkbox id="curatedField" property="curated" label="Curated"/>
-                        <htmlObject id="spacer" colspan="2">
-                            <hr></hr>
-                        </htmlObject>
-                        <vbox colspan="2" padding="false">
-                            <hbox width="100%">
-                                <vbox>
-                                <vbox>
-                                    <nativeLabel text="msg://Vulnerabilities"/>
-                                    <dataGrid id="copyrightDataContainer" dataContainer="copyrightDc" themeNames="">
-                                        <columns resizable="true" sortable="true">
-                                            <column property="copyrightText" header="id"/>
-                                            <column property="curated"/>
-                                            <column property="garbage"/>
-                                        </columns>
-                                    </dataGrid>
-                                    <nativeLabel text="msg://Vulnerabilities"/>
-                                    <dataGrid id="vulnerabilityDataContainer" dataContainer="vulnerabilityDc" themeNames="">
-                                        <columns resizable="true" sortable="true">
-                                            <column property="vulnerabilityId" header="id"/>
-                                            <column property="aliases" header="aliases" autoWidth="true"/>
-                                            <column property="weightedSeverity" header="weighted severity"/>
-                                            <column property="exploitability" header="exploitability"/>
-                                            <column property="riskScore" header="risk score"/>
-                                            <column property="sourceUrl" header="sourceUrl"/>
-                                            <column property="createdAt" header="last updated"/>
-                                            <column key="actions"
-                                                    sortable="false"
-                                                    autoWidth="true"
-                                                    flexGrow="0"/>
-                                        </columns>
-                                    </dataGrid>
-                                    <button id="updateData" title="update data" icon="REFRESH" text="Update data"/>
-                                </vbox>
-                            </hbox>
-                        </vbox>
+
                     </formLayout>
                     <hbox id="detailActions" justifyContent="CENTER" alignItems="CENTER" alignSelf="CENTER" height="100%">
                         <button id="saveAndCloseButton" action="saveAction" alignSelf="END"/>
                         <button id="closeButton" action="closeAction" alignSelf="END"/>
                     </hbox>
                 </vbox>
+            </tab>
+            <tab id="vulnerabilitiesTab" label="msg://VulnerabilitiesTab.label">
+                <vbox width="100%" alignItems="CENTER" alignSelf="END" height="100%">
+                    <dataGrid id="vulnerabilityDataContainer" dataContainer="vulnerabilityDc" themeNames="">
+                        <columns resizable="true" sortable="true">
+                            <column property="vulnerabilityId" header="id"/>
+                            <column property="aliases" header="aliases" autoWidth="true"/>
+                            <column property="weightedSeverity" header="weighted severity"/>
+                            <column property="exploitability" header="exploitability"/>
+                            <column property="riskScore" header="risk score"/>
+                            <column property="sourceUrl" header="sourceUrl"/>
+                            <column property="createdAt" header="last updated"/>
+                            <column key="actions"
+                                    sortable="false"
+                                    autoWidth="true"
+                                    flexGrow="0"/>
+                        </columns>
+                    </dataGrid>
+                    <button id="updateData" text="msg://updateVulnerabilties" icon="REFRESH" />
+                </vbox>
+            </tab>
+            <tab id="copyrightTab" label="msg://copyrightsTab.label">
+            <vbox width="100%" alignItems="CENTER" alignSelf="END" height="100%">
+                <dataGrid id="copyrightDataContainer" dataContainer="copyrightDc" themeNames="">
+                    <columns resizable="true" sortable="true">
+                        <column property="copyrightText"/>
+                        <column property="curated"/>
+                        <column property="garbage"/>
+                    </columns>
+                    <actions>
+                        <action id="createAction" type="list_create"/>
+                        <action id="addAction" type="list_add"/>
+                    </actions>
+                </dataGrid>
+                <hbox>
+                    <button id="createButton" action="copyrightDataContainer.createAction"/>
+                    <button id="addButton" action="copyrightDataContainer.addAction"/>
+                </hbox>
+            </vbox>
             </tab>
             <tab id="licensestab" label="Licenses">
                 <vbox width="100%" alignItems="CENTER" alignSelf="END" height="100%">

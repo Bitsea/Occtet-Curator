@@ -95,8 +95,9 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
 
         String searchWord = searchField.getValue();
         if(!searchWord.isEmpty() && event != null){
-            List<License> list = licenseRepository.findByLicenseName(searchWord);
-            licenseDc.setItems(list);
+            List<License> listFindings= licenseRepository.findAll().stream().filter(l-> l.getLicenseName().toLowerCase().contains(searchWord.toLowerCase())
+                    || l.getLicenseType().toLowerCase().contains(searchWord.toLowerCase())).toList();
+            licenseDc.setItems(listFindings);
         }else{
             licenseDc.setItems(licenseRepository.findAll());
         }

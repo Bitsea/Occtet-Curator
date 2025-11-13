@@ -71,15 +71,6 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
     private CollectionContainer<License> licenseDc;
 
     @Autowired
-    private SoftwareComponentRepository softwareComponentRepository;
-
-    @Autowired
-    private InventoryItemRepository inventoryItemRepository;
-
-    @Autowired
-    private ViewNavigators viewNavigator;
-
-    @Autowired
     private DialogWindows dialogWindow;
 
     @Autowired
@@ -93,7 +84,6 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
 
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
-        List<Project> projectList = new ArrayList<>();
         SoftwareComponent softwareComponent = getEditedEntity();
         softwareComponent.setCurated(false); // set default value to false
         licenseDc.setItems(softwareComponent.getLicenses());

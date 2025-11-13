@@ -146,8 +146,14 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+
     </changeSet>
 
+    <changeSet id="20" author="db">
+        <addColumn tableName="COPYRIGHT">
+        <column name="SOFTWARECOMPONENT_ID" type="UUID"/>
+    </addColumn>
+    </changeSet>
 
 
 
