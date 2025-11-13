@@ -199,6 +199,9 @@ public class CopyrightListView extends StandardListView<Copyright> {
 
     @Subscribe(id = "saveButton", subject = "clickListener")
     public void onSaveButtonClick(final ClickEvent<JmixButton> event) {
+        saveButton.setThemeName("warning", true);
+        saveButton.setThemeName("error", false);
+        log.debug("get theme {}", saveButton.getThemeName());
         saveEnqueuedChanges();
     }
 
@@ -208,6 +211,8 @@ public class CopyrightListView extends StandardListView<Copyright> {
             saveChanges(copyright);
         } else {
             copyrights.add(copyright);
+            saveButton.setThemeName("warning", false);
+            saveButton.setThemeName("error", true);
         }
     }
 
@@ -215,6 +220,7 @@ public class CopyrightListView extends StandardListView<Copyright> {
         Copyright savedCopyright = dataManager.save(copyright);
         copyrightsDc.replaceItem(savedCopyright);
         notifications.show("Changes saved to the database");
+
     }
 
     private void saveEnqueuedChanges() {
