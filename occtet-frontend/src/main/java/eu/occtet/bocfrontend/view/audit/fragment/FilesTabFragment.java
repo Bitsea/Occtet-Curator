@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.fragment;
+package eu.occtet.bocfrontend.view.audit.fragment;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;

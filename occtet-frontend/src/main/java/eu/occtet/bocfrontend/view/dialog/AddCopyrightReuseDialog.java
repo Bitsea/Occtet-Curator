@@ -33,24 +33,23 @@ import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
-@ViewController("addCopyrightHistoryDialog")
-@ViewDescriptor("add-copyright-history-dialog.xml")
+@ViewController("addCopyrightReuseDialog")
+@ViewDescriptor("add-copyright-reuse-dialog.xml")
 @DialogMode(width = "900px", height = "650px")
-public class AddCopyrightHistoryDialog extends AbstractAddContentDialog<InventoryItem> {
+public class AddCopyrightReuseDialog extends AbstractAddContentDialog<InventoryItem> {
 
     @ViewComponent
-    private CollectionContainer<Copyright> copyrightDcHistory;
+    private CollectionContainer<Copyright> copyrightDcReuse;
     @ViewComponent
-    private DataGrid<Copyright> copyrightHistoryDataGrid;
+    private DataGrid<Copyright> copyrightReuseDataGrid;
     @ViewComponent
     private TextField searchField;
 
     private InventoryItem latestInventoryItem;
 
-    private InventoryItem historyItem;
+    private InventoryItem ReuseItem;
     @Autowired
     private DataManager dataManager;
     @Autowired
@@ -61,8 +60,8 @@ public class AddCopyrightHistoryDialog extends AbstractAddContentDialog<Inventor
     @Override
     @Subscribe
     public void setAvailableContent(InventoryItem content) {
-        this.historyItem = content;
-        copyrightDcHistory.setItems(content.getCopyrights());
+        this.ReuseItem = content;
+        copyrightDcReuse.setItems(content.getCopyrights());
     }
 
     public void setLatestInventoryItem(InventoryItem inventoryItem){
@@ -75,27 +74,27 @@ public class AddCopyrightHistoryDialog extends AbstractAddContentDialog<Inventor
 
         String searchWord = searchField.getValue();
         if(!searchWord.isEmpty() && event != null){
-            List<Copyright> copyrightsFromItem = historyItem.getCopyrights();
+            List<Copyright> copyrightsFromItem = ReuseItem.getCopyrights();
             List<Copyright> searchedCopyrights = new ArrayList<>();
             for(Copyright copyright : copyrightsFromItem){
                 if (copyright.getCopyrightText().equals(searchWord)){
                     searchedCopyrights.add(copyright);
                 }
             }
-            copyrightDcHistory.setItems(searchedCopyrights);
+            copyrightDcReuse.setItems(searchedCopyrights);
         }else{
-            copyrightDcHistory.setItems(historyItem.getCopyrights());
+            copyrightDcReuse.setItems(ReuseItem.getCopyrights());
         }
     }
 
     @Override
-    @Subscribe("MoveCopyrightHistoryButton")
+    @Subscribe("MoveCopyrightReuseButton")
     public void addContentButton(ClickEvent<Button> event) {
 
-        List<Copyright> copyrights = copyrightHistoryDataGrid.getSelectedItems().stream().toList();
+        List<Copyright> copyrights = copyrightReuseDataGrid.getSelectedItems().stream().toList();
         if(copyrights != null && event != null){
-            historyItem.getCopyrights().removeAll(copyrights);
-            dataManager.save(historyItem);
+            ReuseItem.getCopyrights().removeAll(copyrights);
+            dataManager.save(ReuseItem);
             latestInventoryItem.getCopyrights().addAll(copyrights);
             dataManager.save(latestInventoryItem);
         }

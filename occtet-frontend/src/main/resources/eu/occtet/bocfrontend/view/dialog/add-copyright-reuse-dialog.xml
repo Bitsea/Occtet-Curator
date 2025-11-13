@@ -21,7 +21,7 @@
 <view xmlns="http://jmix.io/schema/flowui/view"
       title="msg:// Copyrights">
     <data>
-        <collection id="copyrightDcHistory"
+        <collection id="copyrightDcReuse"
                     class="eu.occtet.bocfrontend.entity.Copyright">
             <fetchPlan extends="_base"/>
             <loader id="copyrightDl">
@@ -37,10 +37,10 @@
                 <textField id="searchField" placeholder="Name..."/>
                 <button id="searchButton" text="Search"/>
             </hbox>
-            <dataGrid id="copyrightHistoryDataGrid"
+            <dataGrid id="copyrightReuseDataGrid"
                       width="100%"
                       height="25em"
-                      dataContainer="copyrightDcHistory"
+                      dataContainer="copyrightDcReuse"
                       columnReorderingAllowed="true"
                       selectionMode="MULTI">
                 <columns resizable="true">
@@ -48,7 +48,7 @@
                 </columns>
             </dataGrid>
             <hbox>
-                <button id="MoveCopyrightHistoryButton" text="Move copyrights"/>
+                <button id="MoveCopyrightReuseButton" text="Move copyrights"/>
                 <button id="cancelButton" text="Cancel"/>
             </hbox>
         </vbox>

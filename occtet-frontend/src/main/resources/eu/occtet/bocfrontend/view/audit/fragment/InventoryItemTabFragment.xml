@@ -54,21 +54,21 @@
                 </query>
             </loader>
         </collection>
-        <collection id="copyrightDcHistory"
+        <collection id="copyrightDcReuse"
                     class="eu.occtet.bocfrontend.entity.Copyright">
             <fetchPlan extends="_base"/>
-            <loader id="copyrightDlHistory">
+            <loader id="copyrightDlReuse">
                 <query>
                     <![CDATA[select e from Copyright e ]]>
                 </query>
             </loader>
         </collection>
-        <collection id="inventoryItemDcHistory"
+        <collection id="inventoryItemDcReuse"
                     class="eu.occtet.bocfrontend.entity.InventoryItem">
             <fetchPlan extends="_local">
                 <property name="parent" fetchPlan="_base"/>
             </fetchPlan>
-            <loader id="inventoryItemDlHistory" readOnly="true">
+            <loader id="inventoryItemDlReuse" readOnly="true">
                 <query>
                     <![CDATA[select i from InventoryItem i]]>
                 </query>
@@ -183,101 +183,97 @@
             </tab>
             <tab id="vulnerabilitiesTab" label="Vulnerabilities">
                 <vbox>
-                    <fragment class="eu.occtet.bocfrontend.fragment.Vulnerabilitytabfragment" id="vulnerabilitytabfragment"/>
+                    <fragment class="eu.occtet.bocfrontend.view.audit.fragment.Vulnerabilitytabfragment" id="vulnerabilitytabfragment"/>
                 </vbox>
             </tab>
             <tab id="filesTab" label="Files">
-                <fragment class="eu.occtet.bocfrontend.fragment.FilesTabFragment"
+                <fragment class="eu.occtet.bocfrontend.view.audit.fragment.FilesTabFragment"
                           id="filesTabFragment"/>
             </tab>
             <tab id="auditNotesTab" label="Audit notes">
                 <richTextEditor id="auditNotesText" label="Notes" width="100%"
                           height="100%" property="externalNotes" dataContainer="inventoryItemDc" themeNames="compact"/>
             </tab>
-            <tab id="historyTab" label="History">
-                <hbox width="100%" height="100%">
-                    <split width="100%" themeNames="small">
-                        <vbox width="30%" height="100%" alignItems="CENTER" >
-                            <dataGrid id="inventoryDataGridHistory"
-                                      width="100%"
-                                      height="100%"
-                                      dataContainer="inventoryItemDcHistory"
-                                      columnReorderingAllowed="true">
-                                <columns resizable="true">
-                                    <column property="inventoryName" header="History-items"/>
-                                    <column property="createdAt" header="Date"/>
-                                </columns>
-                            </dataGrid>
-                        </vbox>
-                        <vbox width="70%" height="100%" classNames="border rounded-m border-contrast-20">
-                            <tabSheet id="historyTabSheet" width="100%" height="100%" >
-                                <tab id="generalInformationHistory" label="General information">
+            <tab id="reuseTab" label="msg://eu.occtet.bocfrontend.view.audit/auditView.reuse">
+                <vbox width="100%" height="100%">
+                    <split width="100%" themeNames="small" orientation="VERTICAL">
+                        <hbox width="100%" height="70%" classNames="border rounded-m border-contrast-20">
+                            <tabSheet id="ReuseTabSheet" width="100%" height="100%" >
+                                <tab id="generalInformationReuse" label="General information">
                                     <vbox>
-                                        <formLayout id="formHistory" dataContainer="inventoryItemDcHistory"
-                                                    alignSelf="CENTER" height="100%" width="100%">
                                             <vbox>
                                                 <hbox>
-                                                    <textField id="inventoryNameHistoryField" property="inventoryName"
+                                                    <textField id="inventoryNameReuseField" property="inventoryName"
                                                                label="Inventory Name" width="25em"/>
-                                                    <textField id="softwareComponentHistoryField" label="Software component"
+                                                    <textField id="softwareComponentReuseField" label="Software component"
                                                                width="25em"/>
-                                                    <textField id="priorityHistoryField" label="Priority" maxWidth="10em"/>
-                                                    <textField id="createdAtIDHistory" property="createdAt" label="Created"/>
+                                                    <textField id="priorityReuseField" label="Priority" maxWidth="10em"/>
+                                                    <textField id="createdAtIDReuse" property="createdAt" label="Created"/>
                                                 </hbox>
                                                 <hbox>
-                                                    <textField id="linkingIDHistory" property="linking" label="Linking"/>
-                                                    <textField id="sizeIDHistory" property="size" label="Size" maxWidth="5em"/>
+                                                    <textField id="linkingIDReuse" property="linking" label="Linking"/>
+                                                    <textField id="sizeIDReuse" property="size" label="Size" maxWidth="5em"/>
                                                 </hbox>
                                                 <hbox>
-                                                    <textField id="parentHistoryID" property="parent.inventoryName"
+                                                    <textField id="parentReuseID" property="parent.inventoryName"
                                                                label="Parent-Inventory item" width="25em"/>
-                                                    <button id="parentHistoryButton" title="Show parent details"
+                                                    <button id="parentReuseButton" title="Show parent details"
                                                             width="5em" alignSelf="END" icon="INFO_CIRCLE_O"/>
                                                 </hbox>
                                                 <hbox>
-                                                    <checkbox id="curatedIDHistory" property="curated" label="Curated"/>
-                                                    <checkbox id="combinedIDHistory" property="wasCombined" label="Combined"/>
+                                                    <checkbox id="curatedIDReuse" property="curated" label="Curated"/>
+                                                    <checkbox id="combinedIDReuse" property="wasCombined" label="Combined"/>
                                                 </hbox>
                                             </vbox>
-                                        </formLayout>
-                                        <vbox width="50%" alignSelf="CENTER" alignItems="CENTER">
-                                            <dataGrid id="copyrightsDataGridHistory"
+
+                                        <vbox width="50%" alignSelf="START" alignItems="CENTER">
+                                            <dataGrid id="copyrightsDataGridReuse"
                                                       minWidth="35em"
                                                       height="15em"
-                                                      dataContainer="copyrightDcHistory"
+                                                      dataContainer="copyrightDcReuse"
                                                       columnReorderingAllowed="true">
                                                 <columns resizable="true">
                                                     <column property="copyrightText" header="Copyright"/>
                                                 </columns>
                                             </dataGrid>
-                                            <button id="copyrightHistoryButton"
+                                            <button id="copyrightReuseButton"
                                                     text="Move copyrights to latest inventory"
-                                                    alignSelf="CENTER" themeNames="small"/>
+                                                    alignSelf="START" themeNames="small"/>
                                         </vbox>
                                     </vbox>
                                 </tab>
-                                <tab id="historyFilesTab" label="Files">
-                                    <vbox width="100%" height="100%">
-                                        <formLayout>
-                                        </formLayout>
-                                    </vbox>
+                                <tab id="ReuseFilesTab" label="Files">
+                                    <fragment class="eu.occtet.bocfrontend.view.audit.fragment.FilesTabFragment"
+                                              id="filesReuseTabFragment"/>
                                 </tab>
-                                <tab id="historyAuditNotes" label="Audit notes">
-                                    <formLayout id="formAuditHistory" dataContainer="inventoryItemDcHistory"
-                                                alignSelf="CENTER" height="100%" width="100%">
+                                <tab id="ReuseAuditNotes" label="Audit notes">
                                         <vbox width="100%" height="100%" alignItems="CENTER" alignSelf="CENTER">
-                                            <textArea id="auditNotesTextHistory" label="Audit notes"
+                                            <textArea id="auditNotesTextReuse" label="Audit notes"
                                                       property="externalNotes" width="100%" height="100%"
-                                                      alignSelf="CENTER"/>
-                                            <button id="auditHistoryButton" text="Add notes to latest inventory"
+                                                      alignSelf="CENTER" />
+                                            <button id="auditReuseButton" text="Add notes to latest inventory"
                                                     alignSelf="CENTER" themeNames="small"/>
                                         </vbox>
-                                    </formLayout>
                                 </tab>
                             </tabSheet>
-                        </vbox>
+                        </hbox>
+                        <hbox width="100%" height="30%" alignItems="CENTER" classNames="border rounded-m border-contrast-20" >
+                           <vbox width="100%" height="100%" >
+                               <nativeLabel text="msg://eu.occtet.bocfrontend.view.audit.fragment.InventoryItemTabFragment/reuseItems"/>
+                            <dataGrid id="inventoryDataGridReuse"
+                                      width="100%"
+                                      height="100%"
+                                      dataContainer="inventoryItemDcReuse"
+                                      columnReorderingAllowed="true">
+                                <columns resizable="true">
+                                    <column property="inventoryName" header="Reuse-items"/>
+                                    <column property="createdAt" header="Date"/>
+                                </columns>
+                            </dataGrid>
+                           </vbox>
+                        </hbox>
                     </split>
-                </hbox>
+                </vbox>
             </tab>
             <suffix>
                 <hbox>
