@@ -70,14 +70,14 @@ public class CopyrightService {
     public List<Copyright> findCopyrightsByProject(Project project){
         List<InventoryItem> inventoryItems = inventoryItemService.findInventoryItemsOfProject(project);
         List<Copyright> copyrights = new ArrayList<>();
-        inventoryItems.forEach(i->copyrights.addAll(i.getCopyrights()));
+        inventoryItems.forEach(i->copyrights.addAll(i.getSoftwareComponent().getCopyrights()));
         return copyrights;
     }
 
     public List<Copyright> findCopyrightsBySoftwareComponent(SoftwareComponent softwareComponent){
         List<InventoryItem> inventoryItems = inventoryItemService.findInventoryItemsOfSoftwareComponent(softwareComponent);
         List<Copyright> copyrights = new ArrayList<>();
-        inventoryItems.forEach(i->copyrights.addAll(i.getCopyrights()));
+        inventoryItems.forEach(i->copyrights.addAll(i.getSoftwareComponent().getCopyrights()));
         return copyrights;
     }
 

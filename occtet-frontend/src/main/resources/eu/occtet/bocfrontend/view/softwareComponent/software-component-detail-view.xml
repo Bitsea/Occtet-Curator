@@ -29,8 +29,15 @@
                   class="eu.occtet.bocfrontend.entity.SoftwareComponent">
             <collection id="vulnerabilityDc" property="vulnerabilities"/>
             <fetchPlan extends="_base">
+                <property name="vulnerabilities" fetchPlan="_base"/>
+                <property name="copyrights" fetchPlan="_base"/>
+            </fetchPlan>
+            <collection id="copyrightDc" property="copyrights"/>
+            <fetchPlan extends="_base">
+                <property name="copyrights" fetchPlan="_base"/>
             </fetchPlan>
             <loader id="softwareComponentDl"/>
+
         </instance>
         <collection id="licenseDc"
                     class="eu.occtet.bocfrontend.entity.License">
@@ -66,6 +73,16 @@
                         <vbox colspan="2" padding="false">
                             <hbox width="100%">
                                 <vbox>
+                                <vbox>
+                                    <nativeLabel text="msg://Vulnerabilities"/>
+                                    <dataGrid id="copyrightDataContainer" dataContainer="copyrightDc" themeNames="">
+                                        <columns resizable="true" sortable="true">
+                                            <column property="copyrightText" header="id"/>
+                                            <column property="curated"/>
+                                            <column property="garbage"/>
+                                        </columns>
+                                    </dataGrid>
+                                    <nativeLabel text="msg://Vulnerabilities"/>
                                     <dataGrid id="vulnerabilityDataContainer" dataContainer="vulnerabilityDc" themeNames="">
                                         <columns resizable="true" sortable="true">
                                             <column property="vulnerabilityId" header="id"/>

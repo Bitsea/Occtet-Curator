@@ -395,7 +395,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         Set<Copyright> selectedCopyrights = copyrightsDataGrid.getSelectedItems();
 
         if (!selectedCopyrights.isEmpty()) {
-            inventoryItem.getCopyrights().removeAll(selectedCopyrights);
+            inventoryItem.getSoftwareComponent().getCopyrights().removeAll(selectedCopyrights);
             inventoryItemRepository.save(inventoryItem);   // or your proper repo
             updateCopyrights(inventoryItem, copyrightDc);
 
@@ -443,7 +443,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     }
 
     private void updateCopyrights(InventoryItem inventoryItem, CollectionContainer<Copyright> container) {
-        container.setItems(inventoryItem.getCopyrights());
+        container.setItems(inventoryItem.getSoftwareComponent().getCopyrights());
     }
 
     private void updateLicenses(SoftwareComponent softwareComponent, CollectionContainer<License> container) {
@@ -464,8 +464,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             } else {
                 auditHistoryButton.setEnabled(false);
             }
-            if (item.getCopyrights() != null) {
-                copyrightDcHistory.setItems(item.getCopyrights());
+            if (item.getSoftwareComponent().getCopyrights() != null) {
+                copyrightDcHistory.setItems(item.getSoftwareComponent().getCopyrights());
             }
             if (item.getSoftwareComponent() != null) {
                 softwareComponentHistoryField.setValue(item.getSoftwareComponent().getName());
@@ -492,24 +492,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         }
     }
 
-    @Subscribe(id = "copyrightHistoryButton")
-    public void addHistoryCopyrights(final ClickEvent<Button> event) {
 
-        InventoryItem historyItem = inventoryDataGridHistory.getSingleSelectedItem();
-        if (historyItem != null) {
-            DialogWindow<AddCopyrightHistoryDialog> window = dialogWindow.view(hostView, AddCopyrightHistoryDialog.class).build();
-            window.getView().setLatestInventoryItem(inventoryItem);
-            window.getView().setAvailableContent(historyItem);
-            window.addAfterOpenListener(e ->
-                    log.debug("Copyrights before: {}", inventoryItem.getCopyrights().size()));
-            window.addAfterCloseListener(e -> {
-                log.debug("Copyrights after: {}", inventoryItem.getCopyrights().size());
-                updateCopyrights(inventoryItem, copyrightDc);
-                updateCopyrights(historyItem, copyrightDcHistory);
-            });
-            window.open();
-        }
-    }
 
     @Supply(to = "inventoryDataGridHistory.createdAt", subject = "renderer")
     private Renderer<InventoryItem> inventoryItemDataGridDateRenderer() {

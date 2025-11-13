@@ -79,6 +79,10 @@ public class SoftwareComponent {
     @Column(name = "DETAILS_URL")
     private String detailsUrl;
 
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name= "SOFTWARECOMPONENT_ID")
+    private List<Copyright> copyrights;
+
     public SoftwareComponent(){}
 
     public SoftwareComponent(String name, String version, String purl,
@@ -152,5 +156,13 @@ public class SoftwareComponent {
 
     public void setVulnerabilities(List<Vulnerability> vulnerabilities) {
         this.vulnerabilities = vulnerabilities;
+    }
+
+    public List<Copyright> getCopyrights() {
+        return copyrights;
+    }
+
+    public void setCopyrights(List<Copyright> copyrights) {
+        this.copyrights = copyrights;
     }
 }

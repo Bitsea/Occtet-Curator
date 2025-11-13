@@ -41,16 +41,13 @@ public class InventoryItemFactory {
     protected DataManager dataManager;
 
 
-    public InventoryItem create(@Nonnull String inventoryName, int size, @Nonnull String linking,
-                                @Nonnull List<Copyright> copyrights, @Nonnull String externalNotes,
+    public InventoryItem create(@Nonnull String inventoryName, int size, @Nonnull String linking, @Nonnull String externalNotes,
                                 @Nonnull InventoryItem parent, @Nonnull SoftwareComponent softwareComponent,
-                                boolean wasCombined, boolean curated, @Nonnull Project project,
-                                @Nonnull String basePath){
+                                boolean wasCombined, boolean curated, @Nonnull Project project){
         InventoryItem inventoryItem = dataManager.create(InventoryItem.class);
         inventoryItem.setInventoryName(inventoryName);
         inventoryItem.setSize(size);
         inventoryItem.setLinking(linking);
-        inventoryItem.setCopyrights(copyrights);
         inventoryItem.setExternalNotes(externalNotes);
         inventoryItem.setParent(parent);
         inventoryItem.setSoftwareComponent(softwareComponent);
@@ -63,8 +60,7 @@ public class InventoryItemFactory {
 
 
     public InventoryItem create(@Nonnull String inventoryName, SoftwareComponent softwareComponent, Project project){
-        return create(inventoryName, 0, "", new ArrayList<>(), "", null, softwareComponent,
-                false, false, project,
-                "");
+        return create(inventoryName, 0, "", "", null, softwareComponent,
+                false, false, project);
     }
 }

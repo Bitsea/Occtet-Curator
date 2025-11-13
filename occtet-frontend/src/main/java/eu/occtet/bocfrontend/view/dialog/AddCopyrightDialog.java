@@ -83,8 +83,8 @@ public class AddCopyrightDialog extends AbstractAddContentDialog<InventoryItem> 
 
         if(event != null & copyrights != null){
             for(Copyright copyright : copyrights){
-                if(!this.inventoryItem.getCopyrights().contains(copyright)){
-                    this.inventoryItem.getCopyrights().add(copyright);
+                if(!this.inventoryItem.getSoftwareComponent().getCopyrights().contains(copyright)){
+                    this.inventoryItem.getSoftwareComponent().getCopyrights().add(copyright);
                 }
             }
             inventoryItemRepository.save(this.inventoryItem);
@@ -98,10 +98,16 @@ public class AddCopyrightDialog extends AbstractAddContentDialog<InventoryItem> 
 
         String searchWord = searchField.getValue();
         if(!searchWord.isEmpty() && event != null){
-            List<Copyright> list = copyrightRepository.findByCopyrightText(searchWord);
-            copyrightDc.setItems(list);
+            List<Copyright> copyrightsFromItem = inventoryItem.getSoftwareComponent().getCopyrights();
+            List<Copyright> searchedCopyrights = new ArrayList<>();
+            for(Copyright copyright : copyrightsFromItem){
+                if (copyright.getCopyrightText().contains(searchWord)){
+                    searchedCopyrights.add(copyright);
+                }
+            }
+            copyrightDc.setItems(searchedCopyrights);
         }else{
-            copyrightDc.setItems(copyrightRepository.findAll());
+            copyrightDc.setItems(inventoryItem.getSoftwareComponent().getCopyrights());
         }
     }
 

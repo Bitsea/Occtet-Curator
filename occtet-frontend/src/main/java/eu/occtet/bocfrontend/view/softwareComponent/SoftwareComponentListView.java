@@ -23,10 +23,16 @@
 package eu.occtet.bocfrontend.view.softwareComponent;
 
 
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
+import eu.occtet.bocfrontend.entity.InventoryItem;
+import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.flowui.view.*;
+
+import java.util.stream.Collectors;
 
 
 @Route(value = "software-components", layout = MainView.class)
@@ -35,5 +41,20 @@ import io.jmix.flowui.view.*;
 @LookupComponent("softwareComponentsDataGrid")
 @DialogMode(width = "64em")
 public class SoftwareComponentListView extends StandardListView<SoftwareComponent> {
+
+    @Supply(to = "softwareComponentsDataGrid.licenses", subject = "renderer")
+    private Renderer<SoftwareComponent> licensesRenderer() {
+        return new TextRenderer<>(component -> {
+
+            if (component.getLicenses() == null) {
+                return "";
+            }
+            return component.getLicenses().stream()
+                    .map(License::getLicenseType)
+                    .collect(Collectors.joining(", "));
+        });
+    }
+
+
 
 }

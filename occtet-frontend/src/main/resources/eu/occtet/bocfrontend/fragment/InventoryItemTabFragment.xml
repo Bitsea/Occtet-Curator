@@ -242,20 +242,6 @@
                                                 </hbox>
                                             </vbox>
                                         </formLayout>
-                                        <vbox width="50%" alignSelf="CENTER" alignItems="CENTER">
-                                            <dataGrid id="copyrightsDataGridHistory"
-                                                      minWidth="35em"
-                                                      height="15em"
-                                                      dataContainer="copyrightDcHistory"
-                                                      columnReorderingAllowed="true">
-                                                <columns resizable="true">
-                                                    <column property="copyrightText" header="Copyright"/>
-                                                </columns>
-                                            </dataGrid>
-                                            <button id="copyrightHistoryButton"
-                                                    text="Move copyrights to latest inventory"
-                                                    alignSelf="CENTER" themeNames="small"/>
-                                        </vbox>
                                     </vbox>
                                 </tab>
                                 <tab id="historyFilesTab" label="Files">
