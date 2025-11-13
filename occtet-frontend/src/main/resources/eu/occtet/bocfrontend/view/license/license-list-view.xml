@@ -48,6 +48,7 @@
     </actions>
     <layout>
         <vbox>
+            <button id="textSearchLicense" text="msg://licenseListView.searchText"/>
             <hbox width="100%">
                 <genericFilter id="genericFilter" dataLoader="licensesDl" themeNames="small"
                                width="80%" alignSelf="START">
