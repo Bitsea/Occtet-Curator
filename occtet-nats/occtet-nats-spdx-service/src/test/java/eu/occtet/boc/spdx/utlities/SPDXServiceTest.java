@@ -90,10 +90,8 @@ public class SPDXServiceTest {
 
            Project project = new Project();
            project.setId(UUID.fromString("31013112-1111-4121-9181-012345678911"));
-           project.setProjectName("test-project");
-           project.setBasePath("home/test/project");
 
-           spdxWorkData.setProjectId(project.getId().toString());
+           spdxWorkData.setProjectId("31013112-1111-4121-9181-012345678911");
            spdxWorkData.setUseCopyrightAi(true);
            spdxWorkData.setUseLicenseMatcher(true);
 
@@ -107,6 +105,11 @@ public class SPDXServiceTest {
            Assertions.assertFalse(inventoryItem.getCurated());
            Assertions.assertEquals(2, inventoryItem.getSize());
            Assertions.assertNull(inventoryItem.getParent());
+
+           //Check Project
+           Assertions.assertNotNull(inventoryItem.getProject());
+           Assertions.assertEquals("example-project",inventoryItem.getProject().getProjectName());
+           Assertions.assertEquals("/home/projects/example",inventoryItem.getProject().getBasePath());
 
            //Check Copyrights
            List<Copyright> copyrights = inventoryItem.getCopyrights();
