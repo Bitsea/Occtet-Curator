@@ -30,7 +30,6 @@ import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.service.InventoryItemService;
-import eu.occtet.bocfrontend.service.SoftwareComponentService;
 import eu.occtet.bocfrontend.view.dialog.AddCopyrightDialog;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.flowui.DialogWindows;

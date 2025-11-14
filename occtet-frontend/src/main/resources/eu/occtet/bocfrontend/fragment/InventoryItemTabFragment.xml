@@ -54,15 +54,6 @@
                 </query>
             </loader>
         </collection>
-        <collection id="copyrightDcHistory"
-                    class="eu.occtet.bocfrontend.entity.Copyright">
-            <fetchPlan extends="_base"/>
-            <loader id="copyrightDlHistory">
-                <query>
-                    <![CDATA[select e from Copyright e ]]>
-                </query>
-            </loader>
-        </collection>
         <collection id="inventoryItemDcHistory"
                     class="eu.occtet.bocfrontend.entity.InventoryItem">
             <fetchPlan extends="_local">

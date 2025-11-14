@@ -24,7 +24,6 @@
     <data>
         <instance id="softwareComponentDc"
                   class="eu.occtet.bocfrontend.entity.SoftwareComponent">
-            <collection id="vulnerabilityDc" property="vulnerabilities"/>
             <fetchPlan extends="_base">
                 <property name="vulnerabilities" fetchPlan="_base"/>
                 <property name="copyrights" fetchPlan="_base"/>

@@ -40,6 +40,7 @@ import eu.occtet.bocfrontend.view.dialog.*;
 import eu.occtet.bocfrontend.view.inventoryitem.InventoryItemDetailView;
 import eu.occtet.bocfrontend.view.license.LicenseDetailView;
 import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
+import io.jmix.core.DataManager;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
@@ -103,6 +104,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private DataGrid<License> licensesDataGrid;
     @ViewComponent
     private DataGrid<Copyright> copyrightsDataGrid;
+
     @ViewComponent
     private JmixButton auditHistoryButton;
     @ViewComponent
@@ -320,6 +322,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         window.setSizeFull();
         window.open();
     }
+
+
 
     /**
      * Handles the addition of a copyright to an inventory item.

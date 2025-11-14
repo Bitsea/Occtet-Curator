@@ -19,14 +19,14 @@
   -->
 
 <view xmlns="http://jmix.io/schema/flowui/view"
-      title="msg:// Copyrights">
+      title="msg:// Available Licenses">
     <data>
-        <collection id="copyrightDcHistory"
-                    class="eu.occtet.bocfrontend.entity.Copyright">
+        <collection id="licenseDc"
+                    class="eu.occtet.bocfrontend.entity.License">
             <fetchPlan extends="_base"/>
-            <loader id="copyrightDl">
+            <loader id="licenseDl">
                 <query>
-                    <![CDATA[select e from Copyright e]]>
+                    <![CDATA[select e from License e]]>
                 </query>
             </loader>
         </collection>
@@ -37,18 +37,20 @@
                 <textField id="searchField" placeholder="Name..."/>
                 <button id="searchButton" text="Search"/>
             </hbox>
-            <dataGrid id="copyrightHistoryDataGrid"
+            <dataGrid id="licensesDataGrid"
                       width="100%"
                       height="25em"
-                      dataContainer="copyrightDcHistory"
+                      dataContainer="licenseDc"
                       columnReorderingAllowed="true"
                       selectionMode="MULTI">
                 <columns resizable="true">
-                    <column property="copyrightText" header="Copyright name"/>
+                    <column property="licenseType" header="Licence type"/>
+                    <column property="licenseText" header="License text"/>
+                    <column property="priority" header="Priority"/>
                 </columns>
             </dataGrid>
             <hbox>
-                <button id="MoveCopyrightHistoryButton" text="Move copyrights"/>
+                <button id="addLicenseButton" text="Add license" themeNames="primary"/>
                 <button id="cancelButton" text="Cancel"/>
             </hbox>
         </vbox>

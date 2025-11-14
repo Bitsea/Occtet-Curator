@@ -29,10 +29,7 @@ import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.boc.model.VulnerabilityServiceWorkData;
 import eu.occtet.boc.model.WorkTask;
-import eu.occtet.bocfrontend.dao.InventoryItemRepository;
-import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
 import eu.occtet.bocfrontend.entity.License;
-import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.Vulnerability;
 import eu.occtet.bocfrontend.service.NatsService;
@@ -42,7 +39,6 @@ import eu.occtet.bocfrontend.view.vulnerability.VulnerabilityDetailView;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
-import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;
@@ -53,8 +49,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
 
 @Route(value = "software-components/:id", layout = MainView.class)
 @ViewController(id = "SoftwareComponent.detail")

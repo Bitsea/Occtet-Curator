@@ -19,37 +19,38 @@
 
 package eu.occtet.bocfrontend.view.dialog;
 
-
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.textfield.TextField;
+import eu.occtet.bocfrontend.dao.CopyrightRepository;
 import eu.occtet.bocfrontend.dao.LicenseRepository;
-import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
 import eu.occtet.bocfrontend.entity.Copyright;
 import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;
-import org.apache.poi.ss.formula.functions.T;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.swing.text.html.parser.Entity;
 import java.util.ArrayList;
 import java.util.List;
 
 
-@ViewController("addLicenseDialog")
-@ViewDescriptor("add-license-dialog.xml")
+@ViewController("addLicenseToCopyrightDialog")
+@ViewDescriptor("add-license-to-copyright-dialog.xml")
 @DialogMode(width = "900px", height = "650px")
-public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent> {
+public class AddLicenseToCopyrightDialog extends AbstractAddContentDialog<Copyright>{
 
-    private SoftwareComponent softwareComponent;
+    private static final Logger log = LogManager.getLogger(AddLicenseToCopyrightDialog.class);
+
 
     private License license;
 
-
+    private Copyright copyright;
 
     @Autowired
     private LicenseRepository licenseRepository;
@@ -60,35 +61,34 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
     @ViewComponent
     private TextField searchField;
     @Autowired
-    private SoftwareComponentRepository softwareComponentRepository;
+    private CopyrightRepository copyrightRepository;
     @ViewComponent
     private DataGrid<License> licensesDataGrid;
-
-    @Override
-    @Subscribe("licenseDc")
-    public void setAvailableContent(SoftwareComponent softwareComponent){
-        this.softwareComponent= softwareComponent;
-        licenseDc.setItems(licenseRepository.findAll());
-    }
-
 
 
     @Subscribe("licensesDataGrid")
     public void selectAvailableContent(final ItemClickEvent<License> event){license = event.getItem();}
+
+    @Subscribe("licenseDc")
+    @Override
+    public void setAvailableContent(Copyright copyright){
+        this.copyright= copyright;
+        licenseDc.setItems(licenseRepository.findAll());
+    }
 
     @Override
     @Subscribe(id = "addLicenseButton")
     public void addContentButton(ClickEvent<Button> event) {
 
         List<License> licenses = new ArrayList<>(licensesDataGrid.getSelectedItems());
-
+        log.debug("adding licenses {}", licenses.size());
         if(event != null & licenses != null){
             for(License license : licenses){
-                if(!this.softwareComponent.getLicenses().contains(license)){
-                    this.softwareComponent.getLicenses().add(license);
+                if(!this.copyright.getLicenses().contains(license)){
+                    this.copyright.getLicenses().add(license);
                 }
             }
-            softwareComponentRepository.save(this.softwareComponent);
+            copyrightRepository.save(this.copyright);
             close(StandardOutcome.CLOSE);
         }
     }
@@ -109,4 +109,5 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
 
     @Subscribe(id = "cancelButton")
     public void cancelLicense(ClickEvent<Button> event){cancelButton(event);}
+
 }
