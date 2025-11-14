@@ -58,7 +58,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springboot.version>3.5.5</springboot.version>
         <common-version>0.3.1</common-version>
-        <common-jpa-version>0.3.1</common-jpa-version>
+        <common-jpa-version>0.3.2</common-jpa-version>
 	</properties>
 
 	<dependencies>

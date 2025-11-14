@@ -28,6 +28,7 @@ import eu.occtet.boc.copyrightFilter.factory.PromptFactory;
 import eu.occtet.boc.copyrightFilter.preprocessor.CopyrightPreprocessor;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.model.AICopyrightFilterWorkData;
 import eu.occtet.boc.model.AIStatusQueryWorkData;
 import eu.occtet.boc.model.ScannerSendWorkData;
@@ -95,13 +96,13 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
         InventoryItem item = inventoryItemRepository.findById(scannerSendWorkData.getInventoryItemId()).get();
         List<String> copyrightTexts = new ArrayList<>();
 
-        if (item.getCopyrights() != null && !item.getCopyrights().isEmpty()) {
-            List<Copyright> copyrights = item.getCopyrights();
+        if (item.getSoftwareComponent().getCopyrights() != null && !item.getSoftwareComponent().getCopyrights().isEmpty()) {
+            List<Copyright> copyrights = item.getSoftwareComponent().getCopyrights();
             //extract the copyright strings from the copyright objects
             for (Copyright copy : copyrights) {
                 copyrightTexts.add(copy.getCopyrightText());
             }
-            List<String> questionableCopyrights = filterFalsCopyrightsWithGarbageFile(copyrightTexts, item);
+            List<String> questionableCopyrights = filterFalsCopyrightsWithGarbageFile(copyrightTexts, item.getSoftwareComponent());
             if (!questionableCopyrights.isEmpty()) {
                 log.info("sending copyrightList to ai for inventory item: {}, copyrights to check: {}", item.getInventoryName(), questionableCopyrights.size());
                 String message= promptFactory.createFalseCopyrightPrompt();
@@ -110,11 +111,11 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
                 return true;
 
             } else return true;
-        } else return item.getCopyrights() == null && item.getCopyrights().isEmpty();
+        } else return item.getSoftwareComponent().getCopyrights() == null && item.getSoftwareComponent().getCopyrights().isEmpty();
     }
 
 
-    public List<String> filterFalsCopyrightsWithGarbageFile(List<String> copyrightTexts, InventoryItem item) {
+    public List<String> filterFalsCopyrightsWithGarbageFile(List<String> copyrightTexts, SoftwareComponent item) {
         List<String> garbageCopyrightTexts= copyrightPreprocessor.readGarbageCopyrightsFromJson(BASEPATH_JSON);
         for(String garbage: garbageCopyrightTexts) {
             if(copyrightTexts.contains(garbage)) {
