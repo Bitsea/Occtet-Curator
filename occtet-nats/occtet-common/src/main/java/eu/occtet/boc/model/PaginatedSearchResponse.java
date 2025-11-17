@@ -28,11 +28,12 @@ import java.util.List;
  * Contains the hits for the current page and tokens for navigating
  * to the next or previous pages.
  */
-public class PaginatedSearchResponse {
+public class PaginatedSearchResponse extends BaseResponseData{
 
     private List<OpenSearchHit> hits;
     private String nextPageToken;
     private String previousPageToken;
+    private String errorMessage;
 
     public PaginatedSearchResponse(List<OpenSearchHit> hits, String nextPageToken, String previousPageToken) {
         this.hits = hits;
@@ -40,7 +41,15 @@ public class PaginatedSearchResponse {
         this.previousPageToken = previousPageToken;
     }
 
+    public PaginatedSearchResponse(List<OpenSearchHit> hits, String nextPageToken, String previousPageToken, String errorMessage) {
+        this.hits = hits;
+        this.nextPageToken = nextPageToken;
+        this.previousPageToken = previousPageToken;
+        this.errorMessage = errorMessage;
+    }
+
     public List<OpenSearchHit> getHits() { return hits; }
     public String getNextPageToken() { return nextPageToken; }
     public String getPreviousPageToken() { return previousPageToken; }
+    public String getErrorMessage() { return errorMessage; }
 }

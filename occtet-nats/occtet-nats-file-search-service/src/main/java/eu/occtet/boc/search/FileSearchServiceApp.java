@@ -23,6 +23,7 @@ package eu.occtet.boc.search;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.MicroserviceDescriptor;
+import eu.occtet.boc.search.service.FileSearchRequestSubscriber;
 import eu.occtet.boc.service.SystemHandler;
 import eu.occtet.boc.search.service.FileSearchServiceWorkConsumer;
 import io.nats.client.Connection;
@@ -56,12 +57,19 @@ public class FileSearchServiceApp {
     @Value("${app.nats.listener.enabled}")
     private boolean listenerEnabled;
 
+    @Autowired
+    private FileSearchRequestSubscriber fileSearchRequestSubscriber;
+
+    @Autowired
+    private FileSearchServiceWorkConsumer termSearchServiceWorkConsumer;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private MicroserviceDescriptor microserviceDescriptor;
 
     private SystemHandler systemHandler;
 
-    @Autowired
-    private FileSearchServiceWorkConsumer termSearchServiceWorkConsumer;
 
     public static void main(String[] args) {
         SpringApplication.run(FileSearchServiceApp.class, args);
@@ -75,11 +83,17 @@ public class FileSearchServiceApp {
         log.info("Init Microservice: {} (version {})", microserviceDescriptor.getName(), microserviceDescriptor.getVersion());
         systemHandler = new SystemHandler(natsConnection, microserviceDescriptor, termSearchServiceWorkConsumer);
         systemHandler.subscribeToSystemSubject();
+
         if (listenerEnabled) {
-            log.info("Starting listener for work messages on subject: {}", workSubject);
+            log.info("Starting ASYNC listener for work messages on subject: {}", workSubject);
             log.info("Listening on NATS stream: {}", streamName);
             termSearchServiceWorkConsumer.startHandlingMessages(natsConnection, microserviceDescriptor.getName(),
                     streamName, workSubject);
         }
+
+        log.info("Starting SYNC listener for request-reply messages on subject: {}",
+                fileSearchRequestSubscriber.getSubject());
+
+        fileSearchRequestSubscriber.startSubscription(natsConnection, objectMapper);
     }
 }

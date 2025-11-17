@@ -23,9 +23,7 @@ package eu.occtet.boc.search.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.BaseWorkData;
-import eu.occtet.boc.model.FileSearchServiceWorkData;
 import eu.occtet.boc.model.WorkTask;
-import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.WorkConsumer;
 import io.nats.client.Message;
 import org.slf4j.Logger;
@@ -54,21 +52,7 @@ public class FileSearchServiceWorkConsumer extends WorkConsumer {
             log.debug("workTask: {}", workTask);
             BaseWorkData workData = workTask.workData();
             log.debug("workData: {}", workData);
-            boolean result = workData.process(new BaseWorkDataProcessor() {
-                @Override
-                public boolean process(FileSearchServiceWorkData workData) {
-                    try {
-                        // TODO
-                        return true;
-                    } catch (Exception e) {
-                        log.error("Could not process workData of type {} with error message: {}", workData.getClass().getName(), e.getMessage());
-                        return false;
-                    }
-                }
-            });
-            if (!result) {
-                log.error("Could not process workData of type {}", workData.getClass().getName());
-            }
+            // add service calls and so here if needed to process the work data (currently no use) ...
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
