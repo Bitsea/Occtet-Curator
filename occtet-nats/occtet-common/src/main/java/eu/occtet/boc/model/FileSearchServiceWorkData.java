@@ -33,40 +33,30 @@ public class FileSearchServiceWorkData extends BaseWorkData {
     private String searchText;
     private int maxNumberOfFindings;
 
+    private PaginationDirection direction;
+    private String paginationToken;
+
     @JsonCreator
-    public FileSearchServiceWorkData(@JsonProperty("projectId") UUID projcetId,
+    public FileSearchServiceWorkData(@JsonProperty("projectId") UUID projectId,
                                      @JsonProperty("searchText") String searchText,
-                                     @JsonProperty("maxNumberOfFindings") int maxNumberOfFindings) {
-        this.projectId = projcetId;
+                                     @JsonProperty("maxNumberOfFindings") int maxNumberOfFindings,
+                                     @JsonProperty("direction") PaginationDirection direction,
+                                     @JsonProperty("paginationToken") String paginationToken) {
+        this.projectId = projectId;
         this.searchText = searchText;
         this.maxNumberOfFindings = maxNumberOfFindings;
+        this.direction = direction != null ? direction : PaginationDirection.NONE;
+        this.paginationToken = paginationToken;
     }
+
     @Override
     public boolean process(IWorkDataProcessor processor) {
-        return false;
+        return processor.process(this);
     }
 
-    public UUID getProjectId() {
-        return projectId;
-    }
-
-    public void setProjectId(UUID projectId) {
-        this.projectId = projectId;
-    }
-
-    public String getSearchText() {
-        return searchText;
-    }
-
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
-    }
-
-    public int getMaxNumberOfFindings() {
-        return maxNumberOfFindings;
-    }
-
-    public void setMaxNumberOfFindings(int maxNumberOfFindings) {
-        this.maxNumberOfFindings = maxNumberOfFindings;
-    }
+    public UUID getProjectId() { return projectId; }
+    public String getSearchText() { return searchText; }
+    public int getMaxNumberOfFindings() { return maxNumberOfFindings; }
+    public PaginationDirection getDirection() { return direction; }
+    public String getPaginationToken() { return paginationToken; }
 }

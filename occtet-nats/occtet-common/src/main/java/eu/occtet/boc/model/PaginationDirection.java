@@ -21,7 +21,8 @@
 
 package eu.occtet.boc.model;
 
-import java.util.List;
-
-public record OpenSearchHit(String projectId, String filePath, int lineNumber, String content, double score,
-                            List<Object> sortValues) {}
+public enum PaginationDirection {
+    NONE,
+    AFTER,
+    PREVIOUS
+}
