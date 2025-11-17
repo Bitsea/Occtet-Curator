@@ -31,9 +31,7 @@ import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
 import eu.occtet.boc.spdx.dao.ProjectRepository;
-import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
-import io.nats.client.ObjectStore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
@@ -50,10 +48,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -81,8 +77,6 @@ public class SpdxService extends BaseWorkDataProcessor{
     private ProjectRepository projectRepository;
     @Autowired
     private AnswerService answerService;
-    @Autowired
-    private Connection natsConnection;
 
 
 
@@ -102,24 +96,25 @@ public class SpdxService extends BaseWorkDataProcessor{
      */
     public boolean parseDocument(SpdxWorkData spdxWorkData){
         try {
-            // FIXME fetching the json must be done by the caller, as service classes should not know about where this data come from (and have no dependency on nats connection)
-            ObjectStore objectStore = natsConnection.objectStore(spdxWorkData.getBucketName());
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            objectStore.get(spdxWorkData.getJsonSpdx(), out);
-            byte[] spdxBytes = out.toByteArray();
-            //delete the object after we are done
-            objectStore.delete(spdxWorkData.getJsonSpdx());
 
             // setup for spdx library need to be called once before any spdx model objects are accessed
             SpdxModelFactory.init();
             InMemSpdxStore modelStore = new InMemSpdxStore();
             MultiFormatStore inputStore = new MultiFormatStore(modelStore, MultiFormatStore.Format.JSON);
 
-            InputStream inputStream = new ByteArrayInputStream(spdxBytes);
+            byte[] spdxJsonBytes = spdxWorkData.getJsonBytes();
+
+            InputStream inputStream = new ByteArrayInputStream(spdxJsonBytes);
             SpdxDocument spdxDocument = inputStore.deSerialize(inputStream, false);
 
             UUID projectId = UUID.fromString(spdxWorkData.getProjectId());
-            Project project = projectRepository.findById(projectId).get();
+            Optional<Project> projectOptional = projectRepository.findById(projectId);
+            if(projectOptional.isEmpty()) {
+               log.error("failed to find the project");
+                return false;
+            }
+            Project project = projectOptional.get();
+
 
             List<InventoryItem> inventoryItems = new ArrayList<>();
             List<TypedValue> packageUri = spdxDocument.getModelStore().getAllItems(null, "Package").toList();
@@ -152,7 +147,7 @@ public class SpdxService extends BaseWorkDataProcessor{
             log.info(("SENT"));
             return sent;
 
-        }catch (InvalidSPDXAnalysisException | IOException | JetStreamApiException | NoSuchAlgorithmException | InterruptedException e ){
+        }catch (InvalidSPDXAnalysisException | IOException | JetStreamApiException e ){
             log.error("An error occurred while trying to deserialize spdx: {}", e.toString());
             return false;
         }
@@ -202,6 +197,7 @@ public class SpdxService extends BaseWorkDataProcessor{
         InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, component, project);
         inventoryItem.setWasCombined(isCombined);
         inventoryItem.setSpdxId(spdxPackage.getId());
+        inventoryItem.setCurated(false);
 
         if (inventoryItem.getCopyrights() == null){
             inventoryItem.setCopyrights(copyrights);
