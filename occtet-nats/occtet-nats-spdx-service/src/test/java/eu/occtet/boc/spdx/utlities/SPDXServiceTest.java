@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -50,6 +51,7 @@ import java.util.List;
 import java.util.UUID;
 
 @DataJpaTest
+@ActiveProfiles("test")
 @ContextConfiguration(classes = {SpdxService.class, SoftwareComponentService.class, SoftwareComponentRepository.class,
         CopyrightService.class, InventoryItemService.class, LicenseService.class, CodeLocationService.class,
         ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class,
