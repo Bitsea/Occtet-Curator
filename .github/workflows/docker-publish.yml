@@ -1,0 +1,243 @@
+name: Build Projects and Publish Docker Images
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}
+
+jobs:
+  # Build occtet-nats Maven modules once
+  build-nats:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v5
+        with:
+          maven-version: '3.9.11'
+
+      - name: Configure Maven settings for GitHub Packages
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<EOF
+          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                                        https://maven.apache.org/xsd/settings-1.0.0.xsd">
+            <servers>
+              <server>
+                <id>github</id>
+                <username>\${env.GITHUB_ACTOR}</username>
+                <password>\${env.GITHUB_TOKEN}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build all occtet-nats modules
+        run: |
+          cd occtet-nats
+          mvn clean package -DskipTests
+
+      - name: Publish to GitHub Packages
+        run: |
+          cd occtet-nats
+          mvn deploy -DskipTests -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/${{ github.repository }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload occtet-nats artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: occtet-nats-artifacts
+          path: occtet-nats/
+          retention-days: 1
+
+  # Build occtet-frontend Gradle project once
+  build-frontend:
+    runs-on: ubuntu-latest
+    needs: [build-nats]
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Make gradlew executable
+        run: chmod +x occtet-frontend/gradlew
+
+      - name: Build with Gradle
+        run: |
+          cd occtet-frontend
+          ./gradlew -Pvaadin.productionMode=true bootJar \
+            -PgithubUsername=${{ github.actor }} \
+            -PgithubToken=${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+      - name: Upload occtet-frontend artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: occtet-frontend-artifacts
+          path: occtet-frontend/build/libs/*.jar
+          retention-days: 1
+
+  # Build and push Docker images
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: [build-nats, build-frontend]
+    permissions:
+      contents: read
+      packages: write
+    
+    strategy:
+      matrix:
+        include:
+          # Frontend service
+          - name: occtet-frontend
+            context: ./occtet-frontend
+            dockerfile: ./occtet-frontend/Dockerfile
+            artifact: occtet-frontend-artifacts
+          
+          # NATS services
+          - name: occtet-nats-ai-copyrightfilter-service
+            context: ./occtet-nats/occtet-nats-ai-copyrightfilter-service
+            dockerfile: ./occtet-nats/occtet-nats-ai-copyrightfilter-service/Dockerfile
+            artifact: occtet-nats-artifacts
+          
+          - name: occtet-nats-ai-licensematcher-service
+            context: ./occtet-nats/occtet-nats-ai-licensematcher-service
+            dockerfile: ./occtet-nats/occtet-nats-ai-licensematcher-service/Dockerfile
+            artifact: occtet-nats-artifacts
+          
+          - name: occtet-nats-copyrightfilter-service
+            context: ./occtet-nats/occtet-nats-copyrightfilter-service
+            dockerfile: ./occtet-nats/occtet-nats-copyrightfilter-service/Dockerfile
+            artifact: occtet-nats-artifacts
+          
+          - name: occtet-nats-foss-report-service
+            context: ./occtet-nats/occtet-nats-foss-report-service
+            dockerfile: ./occtet-nats/occtet-nats-foss-report-service/Dockerfile
+            artifact: occtet-nats-artifacts
+          
+          - name: occtet-nats-licensematcher-service
+            context: ./occtet-nats/occtet-nats-licensematcher-service
+            dockerfile: ./occtet-nats/occtet-nats-licensematcher-service/Dockerfile
+            artifact: occtet-nats-artifacts
+          
+          - name: occtet-nats-spdx-service
+            context: ./occtet-nats/occtet-nats-spdx-service
+            dockerfile: ./occtet-nats/occtet-nats-spdx-service/Dockerfile
+            artifact: occtet-nats-artifacts
+          
+          - name: occtet-nats-template
+            context: ./occtet-nats/occtet-nats-template
+            dockerfile: ./occtet-nats/occtet-nats-template/Dockerfile
+            artifact: occtet-nats-artifacts
+          
+          - name: occtet-nats-vulnerability-service
+            context: ./occtet-nats/occtet-nats-vulnerability-service
+            dockerfile: ./occtet-nats/occtet-nats-vulnerability-service/Dockerfile
+            artifact: occtet-nats-artifacts
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download occtet-frontend artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: occtet-frontend-artifacts
+          path: ./occtet-frontend/build/libs
+
+      - name: Download occtet-nats artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: occtet-nats-artifacts
+          path: occtet-nats
+            
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.name }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+      
+      - name: Debug - Show build context
+        run: |
+          echo "=== Build context: ${{ matrix.context }} ==="
+          ls -la ${{ matrix.context }}/ || echo "Context not found"
+          echo "=== Looking for JARs in context ==="
+          find ${{ matrix.context }} -name "*.jar" -type f || echo "No JARs found"
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+      
+      - name: Image digest
+        run: echo "Image published at ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.name }}"
