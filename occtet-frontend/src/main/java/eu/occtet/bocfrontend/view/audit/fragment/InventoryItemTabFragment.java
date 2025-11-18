@@ -106,8 +106,6 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     @ViewComponent
     private JmixButton auditReuseButton;
     @ViewComponent
-    private CollectionContainer<Copyright> copyrightDcReuse;
-    @ViewComponent
     private TextField softwareComponentReuseField;
     @ViewComponent
     private TextField parentReuseID;

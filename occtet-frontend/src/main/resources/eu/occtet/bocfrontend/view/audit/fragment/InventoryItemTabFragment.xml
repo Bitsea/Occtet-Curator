@@ -198,7 +198,7 @@
                                                                label="Inventory Name" width="25em"/>
                                                     <textField id="softwareComponentReuseField" label="Software component"
                                                                width="25em"/>
-                                                    <textField id="priorityReuseField" label="Priority" dataContainer="inventoryItemDcReuse" maxWidth="10em"/>
+                                                    <textField id="priorityReuseField" label="priority" property="priority" dataContainer="inventoryItemDcReuse" maxWidth="10em"/>
                                                     <textField id="createdAtIDReuse" property="createdAt" dataContainer="inventoryItemDcReuse" label="Created"/>
                                                 </hbox>
                                                 <hbox>
