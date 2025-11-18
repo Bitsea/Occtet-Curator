@@ -23,7 +23,9 @@ package eu.occtet.bocfrontend.view.dialog;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextField;
+import eu.occtet.bocfrontend.dao.InformationFileRepository;
 import eu.occtet.bocfrontend.service.InformationFileService;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.upload.FileUploadField;
@@ -49,9 +51,13 @@ public class UploadInformationFileDialog extends StandardView {
     @Autowired
     private InformationFileService informationFileService;
 
-    private File infoFile;
+    @Autowired
+    private InformationFileRepository informationFileRepository;
+
     @Autowired
     private Notifications notifications;
+
+    private File infoFile;
 
 
     @Subscribe("fileUploadField")
@@ -64,12 +70,20 @@ public class UploadInformationFileDialog extends StandardView {
 
         String context = contextTextField.getValue();
         if(infoFile != null && !context.isEmpty()) {
-            informationFileService.uploadInformationFile(infoFile.getAbsolutePath(),context);
-            notifications.create("reading file...")
-                    .withPosition(Notification.Position.MIDDLE)
-                    .withDuration(3000)
-                    .show();
-            close(StandardOutcome.CLOSE);
+            if(informationFileRepository.findByFileName(infoFile.getName()).isEmpty()){
+                informationFileService.uploadInformationFile(infoFile.getAbsolutePath(),context);
+                notifications.create("Reading file...")
+                        .withPosition(Notification.Position.MIDDLE)
+                        .withDuration(3000)
+                        .show();
+                close(StandardOutcome.CLOSE);
+            }else{
+                notifications.create("This file already exists")
+                        .withPosition(Notification.Position.MIDDLE)
+                        .withThemeVariant(NotificationVariant.LUMO_ERROR)
+                        .withDuration(3000)
+                        .show();
+            }
         }
     }
 }

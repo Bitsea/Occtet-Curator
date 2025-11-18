@@ -22,20 +22,55 @@
 
 package eu.occtet.boc.informationFile.service;
 
+import eu.occtet.boc.entity.InformationFile;
+import eu.occtet.boc.informationFile.dao.InformationFileDao;
+import eu.occtet.boc.informationFile.dao.InformationFileRepository;
+import eu.occtet.boc.informationFile.factory.InformationFileFactory;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+import java.nio.file.Path;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 @DataJpaTest
-@ContextConfiguration()
+@ContextConfiguration(classes = {InformationFileService.class,InformationFileFactory.class,
+        InformationFileRepository.class, InformationFileDao.class})
 @EnableJpaRepositories(basePackages = "eu.occtet.boc.informationFile.dao")
 @EntityScan(basePackages = "eu.occtet.boc.entity")
 @ExtendWith(MockitoExtension.class)
 public class InformationFileServiceTest {
 
+    @MockitoBean
+    private VectorStore vectorStore;
 
+    @Autowired
+    private InformationFileService informationFileService;
+
+    @Autowired
+    private InformationFileRepository informationFileRepository;
+
+
+    @Test
+    void testUploadFiles(){
+
+        Path path = Path.of("src","test","resources/testData/bad-copyrights.txt");
+        String context = "copyright";
+
+        assertTrue(informationFileService.uploadFiles(path.toFile().getAbsolutePath(),context));
+        InformationFile informationFile = informationFileRepository.findByFileName("bad-copyrights.txt").getFirst();
+
+        assertEquals("bad-copyrights.txt",informationFile.getFileName());
+        assertEquals("copyright",informationFile.getContext());
+    }
 }

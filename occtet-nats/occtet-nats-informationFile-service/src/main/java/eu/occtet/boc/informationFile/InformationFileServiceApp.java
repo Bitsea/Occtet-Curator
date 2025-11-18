@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
@@ -47,6 +48,7 @@ import java.util.concurrent.Executor;
 @SpringBootApplication
 @EntityScan("eu.occtet.boc.entity")
 @EnableJpaRepositories("eu.occtet.boc.informationFile.dao")
+@Profile({"!test"})
 public class InformationFileServiceApp {
 
     @Autowired

@@ -87,10 +87,10 @@ public class InformationFileService {
             if(fileContent != null) {
                 fos.write(fileContent);
             }
+            fos.close();
             return file;
         } catch (Exception e) {
             throw new RuntimeException();
         }
     }
-
 }
