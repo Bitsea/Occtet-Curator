@@ -28,13 +28,13 @@
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>2025.9.2</version>
+        <version>0.3.1</version>
     </parent>
 
     <artifactId>occtet-nats-ort-run-starter-service</artifactId>
     <name>occtet-nats-ort-run-starter-service</name>
     <description>Occtet Nats ORT Run Starter Microservice</description>
-    <version>2025.9.1</version>
+    <version>0.3.1</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -46,7 +46,7 @@
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-common</artifactId>
-            <version>2025.10.3</version>
+            <version>${common-version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -73,6 +73,12 @@
             <groupId>com.squareup.okhttp</groupId>
             <artifactId>okhttp</artifactId>
             <version>2.7.5</version>
+            <exclusions>
+                <exclusion><!-- because we want okio-jvm, not the kotlin version which would cause an error -->
+                    <groupId>com.squareup.okio</groupId>
+                    <artifactId>okio</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -113,16 +119,54 @@
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-common-jpa</artifactId>
-            <version>2025.10.2</version>
+            <version>${common-jpa-version}</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-ort-client</artifactId>
-            <version>2025.10.1</version>
+            <version>${ort-client-version}</version>
+        </dependency>-->
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>2.2.20</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-serialization-runtime</artifactId>
+            <version>1.0-M1-1.4.0-rc</version>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-client-okhttp-jvm</artifactId>
+            <version>3.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-serialization-kotlinx-json-jvm</artifactId>
+            <version>3.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-client-content-negotiation-jvm</artifactId>
+            <version>3.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-client-auth-jvm</artifactId>
+            <version>3.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.apoapsis.ortserver.api.v1</groupId>
+            <artifactId>api-v1-client</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/api-v1-client-jvm-0.38.0-RC.050.sha.c64c4fd.jar</systemPath>
         </dependency>
     </dependencies>
 
     <build>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -157,6 +201,11 @@
                     </buildArgs>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+            </plugin>
         </plugins>
     </build>
 
@@ -164,7 +213,6 @@
     <profiles>
         <profile>
             <id>dev</id>
-
             <properties>
                 <spring.profiles.active>dev</spring.profiles.active>
             </properties>

@@ -62,6 +62,7 @@
         <springboot.version>3.5.5</springboot.version>
         <common-version>0.3.1</common-version>
         <common-jpa-version>0.3.1</common-jpa-version>
+        <ort-client-version>0.3.1</ort-client-version>
 	</properties>
 
 	<dependencies>

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.Async;
@@ -26,6 +27,7 @@ import java.util.concurrent.Executor;
 @EnableAsync
 @EntityScan(basePackages = "eu.occtet.boc.entity")
 @EnableJpaRepositories(basePackages = "eu.occtet.boc.ortrunstarter.dao")
+@Profile("!test")
 public class ORTRunStarterApp {
 
     @Autowired

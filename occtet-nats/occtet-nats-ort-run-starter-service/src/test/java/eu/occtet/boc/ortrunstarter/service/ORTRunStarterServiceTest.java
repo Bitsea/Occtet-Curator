@@ -1,8 +1,10 @@
 package eu.occtet.boc.ortrunstarter.service;
 
 import junit.framework.TestCase;
-import org.openapitools.client.ApiException;
-import org.openapitools.client.model.Organization;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
 
@@ -28,19 +30,21 @@ import java.util.List;
  *
  */
 
-
+@SpringBootTest
+@ContextConfiguration(classes = {ORTRunStarterService.class})
 public class ORTRunStarterServiceTest extends TestCase {
 
+//    @Autowired
+    private ORTRunStarterService ortRunStarterService = new ORTRunStarterService();
 
 
-    public void testGetOrganizations() throws ApiException {
-
-        ORTRunStarterService service = new ORTRunStarterService();
-        List<Organization> organizations = service.getOrganizations();
+    @Test
+    // NOTICE this is actually demo code at the moment.
+    public void testGetOrganizations()/* throws ApiException*/ {
+        ortRunStarterService.startOrtRun(1);
+        /*List<Organization> organizations = ortRunStarterService.getOrganizations();
         for(Organization o : organizations) {
             System.out.println(o.toString());
-        }
-
-
+        }*/
     }
 }
