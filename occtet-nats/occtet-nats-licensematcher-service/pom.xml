@@ -29,13 +29,13 @@
     <artifactId>occtet-nats-licensematcher-service</artifactId>
     <name>occtet-nats-licensematcher-service</name>
     <description>Occtet Nats Service prepare to check licenseText by AI</description>
-    <version>0.3.1</version>
+    <version>0.3.1-SNAPSHOT</version>
 
     <packaging>jar</packaging>
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>0.3.1</version>
+        <version>0.3.1-SNAPSHOT</version>
     </parent>
 
     <properties>
