@@ -199,11 +199,11 @@ public class SpdxService extends BaseWorkDataProcessor{
         inventoryItem.setSpdxId(spdxPackage.getId());
         inventoryItem.setCurated(false);
 
-        if (inventoryItem.getCopyrights() == null){
-            inventoryItem.setCopyrights(copyrights);
+        if (component.getCopyrights() == null){
+            component.setCopyrights(copyrights);
         }else{
 
-            inventoryItem.getCopyrights().stream().filter(c -> !inventoryItem.getCopyrights().contains(c)).forEach(inventoryItem.getCopyrights()::add);
+            component.getCopyrights().stream().filter(c -> !component.getCopyrights().contains(c)).forEach(component.getCopyrights()::add);
         }
 
 

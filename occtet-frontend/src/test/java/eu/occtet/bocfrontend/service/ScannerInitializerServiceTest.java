@@ -54,8 +54,6 @@ public class ScannerInitializerServiceTest {
 
         this.scannerInitializer1.setScanner("TestScanner1");
         this.scannerInitializer2.setScanner("TestScanner2");
-        this.scannerInitializer1.setInventoryItem(inventoryItem);
-        this.scannerInitializer2.setInventoryItem(inventoryItem);
         inventoryItem.setProject(project);
 
         dataManager.save(project);

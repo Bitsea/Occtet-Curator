@@ -28,7 +28,6 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
-import eu.occtet.bocfrontend.dao.CodeLocationRepository;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
 import eu.occtet.bocfrontend.entity.Copyright;
@@ -107,8 +106,6 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     @ViewComponent
     private JmixButton auditReuseButton;
     @ViewComponent
-    private CollectionContainer<Copyright> copyrightDcReuse;
-    @ViewComponent
     private TextField softwareComponentReuseField;
     @ViewComponent
     private TextField parentReuseID;
@@ -120,8 +117,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private DataGrid<InventoryItem> inventoryDataGridReuse;
     @ViewComponent
     private CollectionContainer<InventoryItem> inventoryItemDcReuse;
-    @Autowired
-    private CodeLocationRepository codeLocationRepository;
+
 
     // Tab fragments
     @ViewComponent
@@ -399,7 +395,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         Set<Copyright> selectedCopyrights = copyrightsDataGrid.getSelectedItems();
 
         if (!selectedCopyrights.isEmpty()) {
-            inventoryItem.getCopyrights().removeAll(selectedCopyrights);
+            inventoryItem.getSoftwareComponent().getCopyrights().removeAll(selectedCopyrights);
             inventoryItemRepository.save(inventoryItem);   // or your proper repo
             updateCopyrights(inventoryItem, copyrightDc);
 
@@ -447,7 +443,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     }
 
     private void updateCopyrights(InventoryItem inventoryItem, CollectionContainer<Copyright> container) {
-        container.setItems(inventoryItem.getCopyrights());
+        container.setItems(inventoryItem.getSoftwareComponent().getCopyrights());
     }
 
     private void updateLicenses(SoftwareComponent softwareComponent, CollectionContainer<License> container) {
@@ -467,9 +463,6 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                 auditReuseButton.setEnabled(true);
             } else {
                 auditReuseButton.setEnabled(false);
-            }
-            if (item.getCopyrights() != null) {
-                copyrightDcReuse.setItems(item.getCopyrights());
             }
             if (item.getSoftwareComponent() != null) {
                 softwareComponentReuseField.setValue(item.getSoftwareComponent().getName());
@@ -498,24 +491,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         }
     }
 
-    @Subscribe(id = "copyrightReuseButton")
-    public void addReuseCopyrights(final ClickEvent<Button> event) {
 
-        InventoryItem ReuseItem = inventoryDataGridReuse.getSingleSelectedItem();
-        if (ReuseItem != null) {
-            DialogWindow<AddCopyrightReuseDialog> window = dialogWindow.view(hostView, AddCopyrightReuseDialog.class).build();
-            window.getView().setLatestInventoryItem(inventoryItem);
-            window.getView().setAvailableContent(ReuseItem);
-            window.addAfterOpenListener(e ->
-                    log.debug("Copyrights before: {}", inventoryItem.getCopyrights().size()));
-            window.addAfterCloseListener(e -> {
-                log.debug("Copyrights after: {}", inventoryItem.getCopyrights().size());
-                updateCopyrights(inventoryItem, copyrightDc);
-                updateCopyrights(ReuseItem, copyrightDcReuse);
-            });
-            window.open();
-        }
-    }
 
     @Supply(to = "inventoryDataGridReuse.createdAt", subject = "renderer")
     private Renderer<InventoryItem> inventoryItemDataGridDateRenderer() {
