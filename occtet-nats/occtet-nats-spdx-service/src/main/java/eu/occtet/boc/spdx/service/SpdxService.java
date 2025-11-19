@@ -199,15 +199,6 @@ public class SpdxService extends BaseWorkDataProcessor{
         inventoryItem.setSpdxId(spdxPackage.getId());
         inventoryItem.setCurated(false);
 
-        if (component.getCopyrights() == null){
-            component.setCopyrights(copyrights);
-        }else{
-
-            component.getCopyrights().stream().filter(c -> !component.getCopyrights().contains(c)).forEach(component.getCopyrights()::add);
-        }
-
-
-
         inventoryItem.setSize(spdxPackage.getFiles().size());
 
         spdxPackage.getFiles().forEach(f -> {
@@ -217,6 +208,15 @@ public class SpdxService extends BaseWorkDataProcessor{
                 throw new RuntimeException(e);
             }
         });
+
+
+        if (component.getCopyrights() == null){
+            component.setCopyrights(copyrights);
+        }else{
+
+            component.getCopyrights().stream().filter(c -> !component.getCopyrights().contains(c)).forEach(component.getCopyrights()::add);
+        }
+
 
         String downloadLocation = spdxPackage.getDownloadLocation().orElse("");
         component.setDetailsUrl(downloadLocation);
