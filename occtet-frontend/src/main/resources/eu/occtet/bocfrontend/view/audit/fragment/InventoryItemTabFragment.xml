@@ -54,15 +54,6 @@
                 </query>
             </loader>
         </collection>
-        <collection id="copyrightDcReuse"
-                    class="eu.occtet.bocfrontend.entity.Copyright">
-            <fetchPlan extends="_base"/>
-            <loader id="copyrightDlReuse">
-                <query>
-                    <![CDATA[select e from Copyright e ]]>
-                </query>
-            </loader>
-        </collection>
         <collection id="inventoryItemDcReuse"
                     class="eu.occtet.bocfrontend.entity.InventoryItem">
             <fetchPlan extends="_local">
@@ -203,43 +194,28 @@
                                     <vbox>
                                             <vbox>
                                                 <hbox>
-                                                    <textField id="inventoryNameReuseField" property="inventoryName"
+                                                    <textField id="inventoryNameReuseField" property="inventoryName" dataContainer="inventoryItemDcReuse"
                                                                label="Inventory Name" width="25em"/>
                                                     <textField id="softwareComponentReuseField" label="Software component"
                                                                width="25em"/>
-                                                    <textField id="priorityReuseField" label="Priority" maxWidth="10em"/>
-                                                    <textField id="createdAtIDReuse" property="createdAt" label="Created"/>
+                                                    <textField id="priorityReuseField" label="priority" property="priority" dataContainer="inventoryItemDcReuse" maxWidth="10em"/>
+                                                    <textField id="createdAtIDReuse" property="createdAt" dataContainer="inventoryItemDcReuse" label="Created"/>
                                                 </hbox>
                                                 <hbox>
-                                                    <textField id="linkingIDReuse" property="linking" label="Linking"/>
-                                                    <textField id="sizeIDReuse" property="size" label="Size" maxWidth="5em"/>
+                                                    <textField id="linkingIDReuse" property="linking" dataContainer="inventoryItemDcReuse" label="Linking"/>
+                                                    <textField id="sizeIDReuse" property="size" dataContainer="inventoryItemDcReuse" label="Size" maxWidth="5em"/>
                                                 </hbox>
                                                 <hbox>
-                                                    <textField id="parentReuseID" property="parent.inventoryName"
+                                                    <textField id="parentReuseID" property="parent.inventoryName" dataContainer="inventoryItemDcReuse"
                                                                label="Parent-Inventory item" width="25em"/>
                                                     <button id="parentReuseButton" title="Show parent details"
                                                             width="5em" alignSelf="END" icon="INFO_CIRCLE_O"/>
                                                 </hbox>
                                                 <hbox>
-                                                    <checkbox id="curatedIDReuse" property="curated" label="Curated"/>
-                                                    <checkbox id="combinedIDReuse" property="wasCombined" label="Combined"/>
+                                                    <checkbox id="curatedIDReuse" property="curated" dataContainer="inventoryItemDcReuse" label="Curated"/>
+                                                    <checkbox id="combinedIDReuse" property="wasCombined" dataContainer="inventoryItemDcReuse" label="Combined"/>
                                                 </hbox>
                                             </vbox>
-
-                                        <vbox width="50%" alignSelf="START" alignItems="CENTER">
-                                            <dataGrid id="copyrightsDataGridReuse"
-                                                      minWidth="35em"
-                                                      height="15em"
-                                                      dataContainer="copyrightDcReuse"
-                                                      columnReorderingAllowed="true">
-                                                <columns resizable="true">
-                                                    <column property="copyrightText" header="Copyright"/>
-                                                </columns>
-                                            </dataGrid>
-                                            <button id="copyrightReuseButton"
-                                                    text="Move copyrights to latest inventory"
-                                                    alignSelf="START" themeNames="small"/>
-                                        </vbox>
                                     </vbox>
                                 </tab>
                                 <tab id="ReuseFilesTab" label="Files">
@@ -249,7 +225,7 @@
                                 <tab id="ReuseAuditNotes" label="Audit notes">
                                         <vbox width="100%" height="100%" alignItems="CENTER" alignSelf="CENTER">
                                             <textArea id="auditNotesTextReuse" label="Audit notes"
-                                                      property="externalNotes" width="100%" height="100%"
+                                                      property="externalNotes" dataContainer="inventoryItemDcReuse" width="100%" height="100%"
                                                       alignSelf="CENTER" />
                                             <button id="auditReuseButton" text="Add notes to latest inventory"
                                                     alignSelf="CENTER" themeNames="small"/>

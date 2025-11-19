@@ -97,9 +97,9 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
             Copyright copyright = copyrightService.createCopyright(copyrightName,location,
                     isCuratedField.getValue(),isGarbageField.getValue());
 
-            this.inventoryItem.getCopyrights().add(copyright);
-            dataManager.save(inventoryItem);
-            log.debug("Created and added copyright {} to inventoryItem",copyright.getCopyrightText());
+            this.inventoryItem.getSoftwareComponent().getCopyrights().add(copyright);
+            dataManager.save(inventoryItem.getSoftwareComponent());
+            log.debug("Created and added copyright {} to softwareComponent {}",copyright.getCopyrightText(), inventoryItem.getSoftwareComponent().getName());
             close(StandardOutcome.CLOSE);
         }else{
             notifications.create("Something went wrong, please check your input")

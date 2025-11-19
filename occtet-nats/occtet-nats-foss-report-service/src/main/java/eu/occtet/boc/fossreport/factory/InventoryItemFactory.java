@@ -61,7 +61,7 @@ public class InventoryItemFactory {
         inventoryItem.setParent(parent);
         inventoryItem.setSoftwareComponent(component);
         inventoryItem.setWasCombined(wasCombined);
-        inventoryItem.setCopyrights(copyrights);
+        inventoryItem.getSoftwareComponent().setCopyrights(copyrights);
         inventoryItem.setProject(project);
         inventoryItem.setPriority(priority);
 

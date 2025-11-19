@@ -19,26 +19,43 @@
 
 package eu.occtet.bocfrontend.view.copyright;
 
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.grid.editor.EditorCloseEvent;
+import com.vaadin.flow.component.grid.editor.EditorSaveEvent;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.CopyrightRepository;
 import eu.occtet.bocfrontend.entity.Copyright;
+import eu.occtet.bocfrontend.entity.InventoryItem;
+import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.service.CopyrightService;
 import eu.occtet.bocfrontend.view.main.MainView;
+import io.jmix.core.DataManager;
 import io.jmix.flowui.Notifications;
+import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.component.checkbox.JmixCheckbox;
 import io.jmix.flowui.component.upload.FileUploadField;
 import io.jmix.flowui.download.Downloader;
+import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.component.upload.event.FileUploadSucceededEvent;
 import io.jmix.flowui.model.CollectionContainer;
+import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Route(value = "copyrights", layout = MainView.class)
@@ -52,6 +69,8 @@ public class CopyrightListView extends StandardListView<Copyright> {
 
     @ViewComponent
     private CollectionContainer<Copyright> copyrightsDc;
+    @ViewComponent
+    private CollectionLoader<Copyright> copyrightsDl;
 
     @Autowired
     private CopyrightService copyrightService;
@@ -64,13 +83,71 @@ public class CopyrightListView extends StandardListView<Copyright> {
 
     @Autowired
     private CopyrightRepository copyrightRepository;
+    @Autowired
+    protected UiComponents uiComponents;
 
     private List<Copyright> copyrightsList;
+
+    @Autowired
+    private DataManager dataManager;
+
+    @ViewComponent
+    private JmixCheckbox immediateCheckbox;
+    @ViewComponent
+    private JmixButton saveButton;
+
+    private final Set<Copyright> copyrights = new HashSet<>();
 
     @Subscribe
     public void onBeforeShow(BeforeShowEvent event){
 
         copyrightsList = copyrightRepository.findAll();
+    }
+
+    @Supply(to = "copyrightsDataGrid.softwareComponent", subject = "renderer")
+    private Renderer<Copyright> componentRenderer() {
+        return new TextRenderer<>(copyright -> {
+            SoftwareComponent softwareComponent = copyright.getCodeLocation().getInventoryItem().getSoftwareComponent();
+
+            if (softwareComponent == null || softwareComponent.getName() == null) {
+                return "";
+            }
+            return softwareComponent.getName();
+        });
+    }
+
+    @Supply(to = "copyrightsDataGrid.filePath", subject = "renderer")
+    private Renderer<Copyright> filePathRenderer() {
+        return new TextRenderer<>(copyright -> copyright.getCodeLocation().getFilePath());
+    }
+
+    @Subscribe("immediateCheckbox")
+    public void onImmediateCheckboxComponentValueChange(final AbstractField.ComponentValueChangeEvent<JmixCheckbox, Boolean> event) {
+        saveButton.setEnabled(!event.getValue());
+    }
+
+    @Supply(to = "copyrightsDataGrid.curated", subject = "renderer")
+    protected Renderer<Copyright> curatedComponentRenderer() {
+        return new ComponentRenderer<>(
+                () -> {
+                    JmixCheckbox checkbox = uiComponents.create(JmixCheckbox.class);
+                    checkbox.setReadOnly(true);
+                    return checkbox;
+                },
+                (checkbox, copyright) -> checkbox.setValue(copyright.isCurated())
+        );
+    }
+
+    @Supply(to = "copyrightsDataGrid.garbage", subject = "renderer")
+    protected Renderer<Copyright> garbageComponentRenderer() {
+        return new ComponentRenderer<>(this::createCheckbox);
+    }
+
+    private JmixCheckbox createCheckbox(Copyright copyright){
+        JmixCheckbox checkbox = uiComponents.create(JmixCheckbox.class);
+        checkbox.setReadOnly(true);
+        checkbox.setValue(copyright.isGarbage());
+        return checkbox;
     }
 
     @Subscribe("downloadButton")
@@ -106,10 +183,52 @@ public class CopyrightListView extends StandardListView<Copyright> {
     }
 
     private void getInfoMessage(String message){
-
         notifications.create(message)
                 .withPosition(Notification.Position.TOP_CENTER)
                 .withDuration(3000)
                 .show();
     }
+
+    @Install(to = "copyrightsDataGrid.@editor", subject = "saveListener")
+    private void copyrightsDataGridEditorCloseListener(final EditorSaveEvent<Copyright> editorSaveEvent) {
+        saveOrEnqueue(editorSaveEvent.getItem());
+    }
+
+    @Subscribe(id = "saveButton", subject = "clickListener")
+    public void onSaveButtonClick(final ClickEvent<JmixButton> event) {
+        saveButton.setThemeName("warning", true);
+        saveButton.setThemeName("error", false);
+        log.debug("get theme {}", saveButton.getThemeName());
+        saveEnqueuedChanges();
+    }
+
+    private void saveOrEnqueue(Copyright copyright) {
+        log.debug("save or enqueue");
+        if (immediateCheckbox.getValue()) {
+            saveChanges(copyright);
+        } else {
+            copyrights.add(copyright);
+            saveButton.setThemeName("warning", false);
+            saveButton.setThemeName("error", true);
+        }
+    }
+
+    private void saveChanges(Copyright copyright) {
+        Copyright savedCopyright = dataManager.save(copyright);
+        copyrightsDc.replaceItem(savedCopyright);
+        notifications.show("Changes saved to the database");
+
+    }
+
+    private void saveEnqueuedChanges() {
+        if (!copyrights.isEmpty()) {
+            dataManager.saveAll(copyrights);
+            copyrights.clear();
+            notifications.show("Changes saved to the database");
+            copyrightsDl.load();
+        }
+    }
+    
+    
+    
 }
