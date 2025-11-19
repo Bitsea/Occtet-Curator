@@ -114,7 +114,7 @@ public class SPDXServiceTest {
            Assertions.assertEquals("/home/projects/example",inventoryItem.getProject().getBasePath());
 
            //Check Copyrights
-           List<Copyright> copyrights = inventoryItem.getCopyrights();
+           List<Copyright> copyrights = inventoryItem.getSoftwareComponent().getCopyrights();
            Assertions.assertFalse(copyrights.isEmpty());
            Assertions.assertEquals(1, copyrights.size());
            Copyright sampleCopyright = copyrights.getFirst();
