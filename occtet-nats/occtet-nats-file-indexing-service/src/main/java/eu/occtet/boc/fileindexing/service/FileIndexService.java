@@ -51,7 +51,6 @@ public class FileIndexService {
 
     private final OpenSearchClient client;
 
-
     /**
      * Represents the doc structure for each indexed line.
      */
@@ -125,7 +124,9 @@ public class FileIndexService {
             String docId = generateDocumentId(doc);
             bulkBuilder.operations(op -> op.index(idx -> idx.index(indexName).id(docId).document(doc)));
         }
+        log.debug("Sending {} documents to index: {}", documents.size(), indexName);
         BulkResponse res = client.bulk(bulkBuilder.build());
+        log.debug("Bulk request response: {}", res.toJsonString());
         if (res.errors()){
             log.error("Bulk request failed with errors: {}", res.toJsonString());
             for (BulkResponseItem item : res.items()){

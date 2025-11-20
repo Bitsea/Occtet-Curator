@@ -57,7 +57,7 @@ public class DirectoryIndexService {
      */
     public void indexDirectory(String basePath, String projectId) {
         Path startPath = Paths.get(basePath);
-        log.info("Starting file walk for directory: {}", startPath.toString());
+        log.info("Starting file walk for directory: {}", startPath);
 
         List<CompletableFuture<Void>> indexingTasks = new ArrayList<>();
 
@@ -68,7 +68,7 @@ public class DirectoryIndexService {
         } catch (Exception e) {
             log.error("Error occurred while waiting for indexing jobs to complete: {}", e.getMessage(), e);
         }
-        log.info("Finished file walk for directory: {}", startPath.toString());
+        log.info("Finished file walk for directory: {}", startPath);
     }
 
     private void processPath(Path path, String projectId, List<CompletableFuture<Void>> tasks) {
@@ -88,10 +88,10 @@ public class DirectoryIndexService {
                 tasks.add(fileIndexService.indexFileByLines(path.toString(), projectId));
             }
 
-    } catch (IOException e) {
-        log.warn("Failed to process path {}: {}. Skipping.", path, e.getMessage());
-    } catch (Exception e) {
-        log.error("Unexpected error processing path {}: {}. Skipping.", path, e.getMessage(), e);
-    }
+        } catch (IOException e) {
+            log.warn("Failed to process path {}: {}. Skipping.", path, e.getMessage());
+        } catch (Exception e) {
+            log.error("Unexpected error processing path {}: {}. Skipping.", path, e.getMessage(), e);
+        }
     }
 }

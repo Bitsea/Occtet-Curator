@@ -22,6 +22,7 @@
 package eu.occtet.boc.fileindexing;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.fileindexing.service.FileIndexingServiceWorkConsumer;
+import eu.occtet.boc.fileindexing.service.OpenSearchInfraService;
 import eu.occtet.boc.model.MicroserviceDescriptor;
 import eu.occtet.boc.service.SystemHandler;
 import io.nats.client.Connection;
@@ -62,6 +63,9 @@ public class FileIndexingServiceApp {
   @Autowired
   private FileIndexingServiceWorkConsumer fileIndexingServiceWorkConsumer;
 
+  @Autowired
+  private OpenSearchInfraService openSearchInfraService;
+
   public static void main(String[] args) {
     SpringApplication.run(FileIndexingServiceApp.class, args);
   }
@@ -74,6 +78,13 @@ public class FileIndexingServiceApp {
     log.info("Init Microservice: {} (version {})", microserviceDescriptor.getName(), microserviceDescriptor.getVersion());
     systemHandler = new SystemHandler(natsConnection, microserviceDescriptor, fileIndexingServiceWorkConsumer);
     systemHandler.subscribeToSystemSubject();
+    try {
+      log.info("Ensuring OpenSearch index templates exist...");
+      openSearchInfraService.ensureIndexTemplate();
+    } catch (Exception e) {
+      log.error("Failed to initialize OpenSearch with error message: {}", e.getMessage());
+      throw e;
+    }
     if (listenerEnabled) {
       log.info("Starting listener for work messages on subject: {}", workSubject);
       log.info("Listening on NATS stream: {}", streamName);
