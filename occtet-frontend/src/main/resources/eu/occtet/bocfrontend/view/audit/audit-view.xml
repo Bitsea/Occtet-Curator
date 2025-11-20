@@ -88,7 +88,7 @@
                                       themeNames="small no-padding">
                             </tabSheet>
                         </tab>
-                        <tab id="filesSection" label="Files" visible="false">
+                        <tab id="filesSection" label="Files">
                             <tabSheet id="filesTabSheet" width="100%" height="100%" themeNames="no-padding small">
                             </tabSheet>
                         </tab>
