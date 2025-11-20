@@ -22,10 +22,8 @@
 
 package eu.occtet.boc.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import eu.occtet.boc.service.IWorkDataProcessor;
 
 /**
@@ -49,7 +47,6 @@ import eu.occtet.boc.service.IWorkDataProcessor;
         @JsonSubTypes.Type(value = VulnerabilityServiceWorkData.class, name = "vulnerability_task"),
         @JsonSubTypes.Type(value = DownloadServiceWorkData.class, name = "download_task"),
         @JsonSubTypes.Type(value = FileIndexingServiceWorkData.class, name = "file_indexing_task"),
-        @JsonSubTypes.Type(value = FileSearchServiceWorkData.class, name = "file_searching_task")
 })
 public abstract class BaseWorkData {
     public abstract boolean process(IWorkDataProcessor processor);

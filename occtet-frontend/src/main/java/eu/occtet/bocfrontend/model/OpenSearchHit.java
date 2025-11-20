@@ -19,10 +19,9 @@
  *
  */
 
-package eu.occtet.boc.model;
+package eu.occtet.bocfrontend.model;
 
-public enum PaginationDirection {
-    NONE,
-    AFTER,
-    PREVIOUS
-}
+import java.util.List;
+
+public record OpenSearchHit(String projectId, String filePath, int lineNumber, String content, double score,
+                            List<Object> sortValues) {}

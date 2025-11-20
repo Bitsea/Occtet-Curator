@@ -19,9 +19,14 @@
  *
  */
 
-package eu.occtet.boc.model;
+package eu.occtet.bocfrontend.model;
 
 import java.util.List;
 
-public record OpenSearchHit(String projectId, String filePath, int lineNumber, String content, double score,
-                            List<Object> sortValues) {}
+/**
+ * Represents a single page of search results.
+ * Contains the hits for the current page and tokens for navigating
+ * to the next or previous pages.
+ */
+public record PaginatedSearchResponse (List<OpenSearchHit> hits, String nextPageToken, String previousPageToken)  {
+}

@@ -19,14 +19,14 @@
  *
  */
 
-package eu.occtet.boc.search.service;
+package eu.occtet.bocfrontend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.model.OpenSearchHit;
-import eu.occtet.boc.model.PaginatedSearchResponse;
-import eu.occtet.boc.model.PaginationDirection;
+import eu.occtet.bocfrontend.model.OpenSearchHit;
+import eu.occtet.bocfrontend.model.PaginatedSearchResponse;
+import eu.occtet.bocfrontend.model.PaginationDirection;
 import org.opensearch.client.json.JsonData;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.FieldValue;

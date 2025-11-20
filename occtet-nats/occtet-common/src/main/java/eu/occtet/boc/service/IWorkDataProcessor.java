@@ -37,6 +37,4 @@ public interface IWorkDataProcessor {
     boolean process(AICopyrightFilterWorkData workData);
     boolean process(DownloadServiceWorkData workData);
     boolean process(FileIndexingServiceWorkData workData);
-    boolean process(FileSearchServiceWorkData workData);
-
 }

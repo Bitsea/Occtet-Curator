@@ -77,7 +77,4 @@ public abstract class BaseWorkDataProcessor implements IWorkDataProcessor {
 
     @Override
     public boolean process(FileIndexingServiceWorkData workData){return false;}
-
-    @Override
-    public boolean process(FileSearchServiceWorkData workData){return false;}
 }

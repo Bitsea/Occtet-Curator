@@ -49,7 +49,7 @@ dependencies {
     // if Gradle fails because this does not exist, please get and build the occtet-nats project
     // and install the nats-common library into your local maven repository using 'mvn install' as explained
     // in the README of the occtet-nats project
-    implementation 'eu.occtet.boc:occtet-common:2025.10.3'
+    implementation 'eu.occtet.boc:occtet-common:0.3.1'
 
     implementation 'io.jmix.core:jmix-core-starter'
     implementation 'io.jmix.data:jmix-eclipselink-starter'
@@ -76,6 +76,9 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.2'
 
     implementation 'io.nats:jnats:2.22.0'
+
+    implementation("org.opensearch.client:opensearch-java:3.2.0")
+    implementation("org.opensearch.client:opensearch-rest-client:3.2.0")
 
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'

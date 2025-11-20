@@ -1,8 +1,0 @@
-{
-  "type": "descriptor",
-  "name": "occtet-nats-file-search-service",
-  "version": "0.3.1",
-  "description": "This service is responsible for term search across files",
-  "usageType": "RUNNABLE_BY_SERVICE",
-  "acceptableWorkData": "FileSearchServiceWorkData"
-}
