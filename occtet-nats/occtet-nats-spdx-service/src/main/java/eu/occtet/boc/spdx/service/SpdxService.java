@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -213,8 +214,7 @@ public class SpdxService extends BaseWorkDataProcessor{
         if (component.getCopyrights() == null){
             component.setCopyrights(copyrights);
         }else{
-
-            component.getCopyrights().stream().filter(c -> !component.getCopyrights().contains(c)).forEach(component.getCopyrights()::add);
+            component.getCopyrights().addAll(copyrights);
         }
 
 

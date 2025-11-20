@@ -78,7 +78,7 @@ public class SPDXServiceTest {
     private static final Logger log = LoggerFactory.getLogger(SPDXServiceTest.class);
 
 
-   //@Test // commented out because of failure loading the copyrights
+   @Test
     public void parseDocumentTest() {
        try {
            Mockito.when(answerService.sendToDownload(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
