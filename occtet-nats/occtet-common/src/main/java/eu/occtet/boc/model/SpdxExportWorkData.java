@@ -26,14 +26,25 @@ public class SpdxExportWorkData extends BaseWorkData{
 
     @JsonCreator
     public SpdxExportWorkData(
-            @JsonProperty("spdxDocumentId")String spdxDocumentId
+            @JsonProperty("spdxDocumentId")String spdxDocumentId,
+            @JsonProperty("projectId")String projectId
     ){
         this.spdxDocumentId = spdxDocumentId;
+        this.projectId = projectId;
     }
 
     public SpdxExportWorkData(){}
 
     private String spdxDocumentId;
+    private String projectId;
+
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
+    }
 
     public String getSpdxDocumentId() {
         return spdxDocumentId;
