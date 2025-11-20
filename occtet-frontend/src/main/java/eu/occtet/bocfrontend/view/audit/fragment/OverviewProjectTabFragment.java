@@ -92,17 +92,18 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
             for(InventoryItem item : items){
                 components.add(item.getSoftwareComponent());
             }
-            setCopyrights(items);
+
         }
+        setCopyrights(components);
         setLicenses(components);
         setVulnerabailities(components);
     }
 
-    private void setCopyrights(List<InventoryItem> items){
+    private void setCopyrights(List<SoftwareComponent> components){
         Set<Copyright> setCopyrights = new HashSet<>();
-        for(InventoryItem item : items){
-            if(item != null){
-                List<Copyright> copyrights = item.getCopyrights();
+        for(SoftwareComponent component : components){
+            if(component != null){
+                List<Copyright> copyrights = component.getCopyrights();
                 if(copyrights != null){
                     setCopyrights.addAll(copyrights);
                 }
