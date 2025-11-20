@@ -27,6 +27,7 @@ import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
 
+import java.util.List;
 import java.util.UUID;
 
 @JmixEntity
@@ -52,6 +53,10 @@ public class Copyright {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name= "CODE_LOCATION_ID")
     private CodeLocation codeLocation;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name= "COPYRIGHT_ID")
+    private List<License> licenses;
 
     public UUID getId() {return id;}
 
@@ -83,6 +88,14 @@ public class Copyright {
 
     public Boolean getGarbage() {
         return garbage;
+    }
+
+    public List<License> getLicenses() {
+        return licenses;
+    }
+
+    public void setLicenses(List<License> licenses) {
+        this.licenses = licenses;
     }
 }
 

@@ -57,6 +57,10 @@ public class SoftwareComponent {
     @Column(name= "DETAILS_URL")
     private String detailsUrl;
 
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name= "SOFTWARECOMPONENT_ID")
+    private List<Copyright> copyrights;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "SOFTWARE_COMPONENT_LICENSE_LINK",
@@ -192,5 +196,13 @@ public class SoftwareComponent {
 
     public void setVulnerabilities(List<Vulnerability> vulnerabilities) {
         this.vulnerabilities = vulnerabilities;
+    }
+
+    public List<Copyright> getCopyrights() {
+        return copyrights;
+    }
+
+    public void setCopyrights(List<Copyright> copyrights) {
+        this.copyrights = copyrights;
     }
 }
