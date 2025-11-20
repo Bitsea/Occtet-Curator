@@ -213,7 +213,10 @@ public class SpdxService extends BaseWorkDataProcessor{
         if (component.getCopyrights() == null){
             component.setCopyrights(copyrights);
         }else{
-            component.getCopyrights().addAll(copyrights);
+            Set<Copyright> uniqueCopyrights = new HashSet<>();
+            uniqueCopyrights.addAll(component.getCopyrights());
+            uniqueCopyrights.addAll(copyrights);
+            component.setCopyrights(new ArrayList<>(uniqueCopyrights));
         }
 
 
