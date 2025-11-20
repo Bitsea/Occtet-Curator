@@ -16,78 +16,67 @@
  *  License-Filename: LICENSE
  */
 
-package eu.occtet.boc.entity.spdx2_3;
+package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
 
 @Entity
-public class Relationship {
-
+public class ExternalDocumentRef {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "spdx_document_id")
+    @JoinColumn(name = "spdx_document_id", nullable = false)
     private SpdxDocumentRoot spdxDocument;
 
     @Column(nullable = false)
-    private String spdxElementId;
+    private String externalDocumentId;
 
     @Column(nullable = false)
-    private String relatedSpdxElement;
+    private String spdxDocumentExternal;
 
-    @Column(nullable = false)
-    private String relationshipType;
+    @OneToOne(cascade = CascadeType.ALL, optional = false)
+    @JoinColumn(name = "checksum_id", referencedColumnName = "id", nullable = false)
+    private Checksum checksum;
 
-    @Lob
-    private String comment;
-
-    public SpdxDocumentRoot getSpdxDocument() {
-        return spdxDocument;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Long getId() {
         return id;
     }
 
-    public String getComment() {
-        return comment;
+    public SpdxDocumentRoot getSpdxDocument() {
+        return spdxDocument;
     }
 
-    public String getSpdxElementId() {
-        return spdxElementId;
+    public String getExternalDocumentId() {
+        return externalDocumentId;
     }
 
-    public String getRelationshipType() {
-        return relationshipType;
+    public String getSpdxDocumentExternal() {
+        return spdxDocumentExternal;
     }
 
-    public String getRelatedSpdxElement() {
-        return relatedSpdxElement;
+    public void setExternalDocumentId(String externalDocumentId) {
+        this.externalDocumentId = externalDocumentId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public Checksum getChecksum() {
+        return checksum;
     }
 
-    public void setComment(String comment) {
-        this.comment = comment;
+    public void setChecksum(Checksum checksum) {
+        this.checksum = checksum;
     }
 
-    public void setSpdxElementId(String spdxElementId) {
-        this.spdxElementId = spdxElementId;
+    public void setSpdxDocumentExternal(String spdxDocumentExternal) {
+        this.spdxDocumentExternal = spdxDocumentExternal;
     }
 
     public void setSpdxDocument(SpdxDocumentRoot spdxDocument) {
         this.spdxDocument = spdxDocument;
-    }
-
-    public void setRelatedSpdxElement(String relatedSpdxElement) {
-        this.relatedSpdxElement = relatedSpdxElement;
-    }
-
-    public void setRelationshipType(String relationshipType) {
-        this.relationshipType = relationshipType;
     }
 }

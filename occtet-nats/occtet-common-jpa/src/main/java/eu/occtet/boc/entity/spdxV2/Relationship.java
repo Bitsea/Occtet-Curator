@@ -16,32 +16,36 @@
  *  License-Filename: LICENSE
  */
 
-package eu.occtet.boc.entity.spdx2_3;
+package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
 
 @Entity
-public class ExternalRef {
+public class Relationship {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "package_id", nullable = false)
-    private Package pkg;
+    @JoinColumn(name = "spdx_document_id")
+    private SpdxDocumentRoot spdxDocument;
 
     @Column(nullable = false)
-    private String referenceCategory;
+    private String spdxElementId;
 
     @Column(nullable = false)
-    private String referenceLocator;
+    private String relatedSpdxElement;
 
     @Column(nullable = false)
-    private String referenceType;
+    private String relationshipType;
 
     @Lob
     private String comment;
+
+    public SpdxDocumentRoot getSpdxDocument() {
+        return spdxDocument;
+    }
 
     public Long getId() {
         return id;
@@ -51,20 +55,16 @@ public class ExternalRef {
         return comment;
     }
 
-    public Package getPkg() {
-        return pkg;
+    public String getSpdxElementId() {
+        return spdxElementId;
     }
 
-    public String getReferenceCategory() {
-        return referenceCategory;
+    public String getRelationshipType() {
+        return relationshipType;
     }
 
-    public String getReferenceLocator() {
-        return referenceLocator;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
+    public String getRelatedSpdxElement() {
+        return relatedSpdxElement;
     }
 
     public void setId(Long id) {
@@ -75,19 +75,19 @@ public class ExternalRef {
         this.comment = comment;
     }
 
-    public void setPkg(Package pkg) {
-        this.pkg = pkg;
+    public void setSpdxElementId(String spdxElementId) {
+        this.spdxElementId = spdxElementId;
     }
 
-    public void setReferenceCategory(String referenceCategory) {
-        this.referenceCategory = referenceCategory;
+    public void setSpdxDocument(SpdxDocumentRoot spdxDocument) {
+        this.spdxDocument = spdxDocument;
     }
 
-    public void setReferenceLocator(String referenceLocator) {
-        this.referenceLocator = referenceLocator;
+    public void setRelatedSpdxElement(String relatedSpdxElement) {
+        this.relatedSpdxElement = relatedSpdxElement;
     }
 
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
+    public void setRelationshipType(String relationshipType) {
+        this.relationshipType = relationshipType;
     }
 }

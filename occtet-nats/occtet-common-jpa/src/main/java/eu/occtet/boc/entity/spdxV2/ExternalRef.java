@@ -16,68 +16,78 @@
  *  License-Filename: LICENSE
  */
 
-package eu.occtet.boc.entity.spdx2_3;
+package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
 
 @Entity
-public class Checksum {
+public class ExternalRef {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "package_id")
+    @JoinColumn(name = "package_id", nullable = false)
     private Package pkg;
 
-    @ManyToOne
-    @JoinColumn(name = "file_id")
-    private SpdxFile spdxFile;
+    @Column(nullable = false)
+    private String referenceCategory;
 
     @Column(nullable = false)
-    private String algorithm;
+    private String referenceLocator;
 
     @Column(nullable = false)
-    private String checksumValue;
+    private String referenceType;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Lob
+    private String comment;
 
     public Long getId() {
         return id;
+    }
+
+    public String getComment() {
+        return comment;
     }
 
     public Package getPkg() {
         return pkg;
     }
 
-    public SpdxFile getSpdxFile() {
-        return spdxFile;
+    public String getReferenceCategory() {
+        return referenceCategory;
     }
 
-    public String getAlgorithm() {
-        return algorithm;
+    public String getReferenceLocator() {
+        return referenceLocator;
     }
 
-    public String getChecksumValue() {
-        return checksumValue;
+    public String getReferenceType() {
+        return referenceType;
     }
 
-    public void setAlgorithm(String algorithm) {
-        this.algorithm = algorithm;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public void setChecksumValue(String checksumValue) {
-        this.checksumValue = checksumValue;
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
     public void setPkg(Package pkg) {
         this.pkg = pkg;
     }
 
-    public void setSpdxFile(SpdxFile spdxFile) {
-        this.spdxFile = spdxFile;
+    public void setReferenceCategory(String referenceCategory) {
+        this.referenceCategory = referenceCategory;
+    }
+
+    public void setReferenceLocator(String referenceLocator) {
+        this.referenceLocator = referenceLocator;
+    }
+
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
     }
 }

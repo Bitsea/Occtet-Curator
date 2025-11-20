@@ -16,7 +16,7 @@
  *  License-Filename: LICENSE
  */
 
-package eu.occtet.boc.entity.spdx2_3;
+package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
 import jdk.jshell.Snippet;
