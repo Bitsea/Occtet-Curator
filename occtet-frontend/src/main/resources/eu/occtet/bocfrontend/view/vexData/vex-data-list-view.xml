@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ Copyright (C) 2025 Bitsea GmbH 
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https:www.apache.orglicensesLICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  ~ License-Filename: LICENSE
+  -->
+
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://title"
+    focusComponent="vexDataDataGrid">
+    <data>
+        <collection id="vexDataDc"
+                    class="eu.occtet.bocfrontend.entity.VexData">
+            <fetchPlan extends="_base">
+            </fetchPlan>
+            <loader id="vexDataDl" readOnly="true">
+                <query>
+                    <![CDATA[select e from VexData e]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+        <urlQueryParameters>
+            <pagination component="pagination"/>
+        </urlQueryParameters>
+    </facets>
+    <actions>
+        <action id="selectAction" type="lookup_select"/>
+        <action id="discardAction" type="lookup_discard"/>
+    </actions>
+    <layout>
+        <vbox width="100%">
+            <hbox width="100%">
+                <genericFilter id="genericFilter" dataLoader="vexDataDl" themeNames="small"
+                               width="80%" alignSelf="START">
+                    <properties include=".*"/>
+                    <conditions> </conditions>
+                </genericFilter>
+                <simplePagination id="pagination" dataLoader="vexDataDl" alignSelf="END"/>
+            </hbox>
+            <dataGrid id="vexDataDataGrid"
+                      width="100%"
+                      height="30em"
+                      maxHeight="100%"
+                      dataContainer="vexDataDc"
+                      columnReorderingAllowed="true">
+                <actions>
+                    <action id="createAction" type="list_create"/>
+                    <action id="read" type="list_read"/>
+                    <action id="removeAction" type="list_remove"/>
+                    <action id="refreshAction" type="list_refresh"/>
+                </actions>
+                <columns resizable="true">
+                    <column property="bomFormat" header="Name"/>
+                    <column property="version" header="Version"/>
+                    <column property="specVersion" header="Purl"/>
+                    <column property="serialNumber" header="Curated"/>
+                    <column property="softwareComponent.name"
+                            header="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.name"/>
+                </columns>
+            </dataGrid>
+            <hbox id="lookupActions" visible="false">
+                <button id="selectButton" action="selectAction"/>
+                <button id="discardButton" action="discardAction"/>
+            </hbox>
+            <hbox id="buttonsPanel" classNames="buttons-panel">
+                <button id="createButton" action="vexDataDataGrid.createAction"/>
+                <button id="readButton" action="vexDataDataGrid.read"/>
+                <button id="removeButton" action="vexDataDataGrid.removeAction"/>
+            </hbox>
+        </vbox>
+    </layout>
+</view>

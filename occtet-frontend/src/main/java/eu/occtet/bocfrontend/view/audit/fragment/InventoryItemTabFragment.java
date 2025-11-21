@@ -1,25 +1,23 @@
 /*
- *  Copyright (C) 2025 Bitsea GmbH
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https:www.apache.orglicensesLICENSE-2.0
+ *     https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
- *  SPDX-License-Identifier: Apache-2.0
- *  License-Filename: LICENSE
- *
- *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.fragment;
+package eu.occtet.bocfrontend.view.audit.fragment;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
@@ -106,27 +104,29 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     @ViewComponent
     private DataGrid<Copyright> copyrightsDataGrid;
     @ViewComponent
-    private JmixButton auditHistoryButton;
+    private JmixButton auditReuseButton;
     @ViewComponent
-    private CollectionContainer<Copyright> copyrightDcHistory;
+    private TextField softwareComponentReuseField;
     @ViewComponent
-    private TextField softwareComponentHistoryField;
+    private TextField parentReuseID;
     @ViewComponent
-    private TextField parentHistoryID;
-    @ViewComponent
-    private JmixButton parentHistoryButton;
+    private JmixButton parentReuseButton;
     @ViewComponent
     private RichTextEditor auditNotesText;
     @ViewComponent
-    private DataGrid<InventoryItem> inventoryDataGridHistory;
+    private DataGrid<InventoryItem> inventoryDataGridReuse;
     @ViewComponent
-    private CollectionContainer<InventoryItem> inventoryItemDcHistory;
+    private CollectionContainer<InventoryItem> inventoryItemDcReuse;
+
 
     // Tab fragments
     @ViewComponent
     private FilesTabFragment filesTabFragment;
     @ViewComponent
     private Vulnerabilitytabfragment vulnerabilitytabfragment;
+
+    @ViewComponent
+    private FilesTabFragment filesReuseTabFragment;
 
     @Autowired
     private DialogWindows dialogWindow;
@@ -159,8 +159,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         updateCopyrights(this.inventoryItem, copyrightDc);
         updateLicenses(this.softwareComponent, licenseDc);
 
-        //History of inventory
-        setHistoryOfInventory(inventoryItem);
+        //Reuse of inventory
+        setReuseOfInventory(inventoryItem);
 
         filesTabFragment.setInventoryItemId(this.inventoryItem);
         vulnerabilitytabfragment.setSoftwareComponent(this.softwareComponent);
@@ -395,7 +395,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         Set<Copyright> selectedCopyrights = copyrightsDataGrid.getSelectedItems();
 
         if (!selectedCopyrights.isEmpty()) {
-            inventoryItem.getCopyrights().removeAll(selectedCopyrights);
+            inventoryItem.getSoftwareComponent().getCopyrights().removeAll(selectedCopyrights);
             inventoryItemRepository.save(inventoryItem);   // or your proper repo
             updateCopyrights(inventoryItem, copyrightDc);
 
@@ -443,7 +443,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     }
 
     private void updateCopyrights(InventoryItem inventoryItem, CollectionContainer<Copyright> container) {
-        container.setItems(inventoryItem.getCopyrights());
+        container.setItems(inventoryItem.getSoftwareComponent().getCopyrights());
     }
 
     private void updateLicenses(SoftwareComponent softwareComponent, CollectionContainer<License> container) {
@@ -454,80 +454,62 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         }
     }
 
-    @Subscribe(id = "inventoryDataGridHistory")
-    public void showHistoryfromInventoryItem(final ItemClickEvent<InventoryItem> event) {
+    @Subscribe(id = "inventoryDataGridReuse")
+    public void showReusefromInventoryItem(final ItemClickEvent<InventoryItem> event) {
 
         InventoryItem item = event.getItem();
         if (item != null) {
             if (item.getExternalNotes() != null && !item.getExternalNotes().isEmpty()) {
-                auditHistoryButton.setEnabled(true);
+                auditReuseButton.setEnabled(true);
             } else {
-                auditHistoryButton.setEnabled(false);
-            }
-            if (item.getCopyrights() != null) {
-                copyrightDcHistory.setItems(item.getCopyrights());
+                auditReuseButton.setEnabled(false);
             }
             if (item.getSoftwareComponent() != null) {
-                softwareComponentHistoryField.setValue(item.getSoftwareComponent().getName());
+                softwareComponentReuseField.setValue(item.getSoftwareComponent().getName());
             }
             if (item.getParent() != null) {
-                parentHistoryID.setValue(item.getParent().getInventoryName());
-                parentHistoryButton.setEnabled(true);
+                parentReuseID.setValue(item.getParent().getInventoryName());
+                parentReuseButton.setEnabled(true);
             }
+            filesReuseTabFragment.setInventoryItemId(item);
+            filesReuseTabFragment.setHostView(hostView);
         }
     }
 
-    @Subscribe(id = "auditHistoryButton")
-    public void addAuditHistoryToInventory(final ClickEvent<Button> event) {
-        InventoryItem historyItem = inventoryDataGridHistory.getSingleSelectedItem();
-        if (historyItem != null) {
+    @Subscribe(id = "auditReuseButton")
+    public void addAuditReuseToInventory(final ClickEvent<Button> event) {
+        InventoryItem ReuseItem = inventoryDataGridReuse.getSingleSelectedItem();
+        if (ReuseItem != null) {
             String notes = this.inventoryItem.getExternalNotes();
             if (notes == null) {
-                this.inventoryItem.setExternalNotes(getTimeStampSeperator() + "<br>" + historyItem.getExternalNotes());
+                this.inventoryItem.setExternalNotes(getTimeStampSeperator() + "<br>" + ReuseItem.getExternalNotes());
             } else {
-                this.inventoryItem.setExternalNotes(notes + "<br>" + getTimeStampSeperator() + "<br>" + historyItem.getExternalNotes());
+                this.inventoryItem.setExternalNotes(notes + "<br>" + getTimeStampSeperator() + "<br>" + ReuseItem.getExternalNotes());
             }
             inventoryItemRepository.save(this.inventoryItem);
             auditNotesText.setValue(this.inventoryItem.getExternalNotes());
         }
     }
 
-    @Subscribe(id = "copyrightHistoryButton")
-    public void addHistoryCopyrights(final ClickEvent<Button> event) {
 
-        InventoryItem historyItem = inventoryDataGridHistory.getSingleSelectedItem();
-        if (historyItem != null) {
-            DialogWindow<AddCopyrightHistoryDialog> window = dialogWindow.view(hostView, AddCopyrightHistoryDialog.class).build();
-            window.getView().setLatestInventoryItem(inventoryItem);
-            window.getView().setAvailableContent(historyItem);
-            window.addAfterOpenListener(e ->
-                    log.debug("Copyrights before: {}", inventoryItem.getCopyrights().size()));
-            window.addAfterCloseListener(e -> {
-                log.debug("Copyrights after: {}", inventoryItem.getCopyrights().size());
-                updateCopyrights(inventoryItem, copyrightDc);
-                updateCopyrights(historyItem, copyrightDcHistory);
-            });
-            window.open();
-        }
-    }
 
-    @Supply(to = "inventoryDataGridHistory.createdAt", subject = "renderer")
+    @Supply(to = "inventoryDataGridReuse.createdAt", subject = "renderer")
     private Renderer<InventoryItem> inventoryItemDataGridDateRenderer() {
         return new TextRenderer<>(item -> item.getCreatedAt().toLocalDate().toString());
     }
 
-    private void setHistoryOfInventory(InventoryItem inventoryItem) {
+    private void setReuseOfInventory(InventoryItem inventoryItem) {
 
-        List<InventoryItem> historyItems;
+        List<InventoryItem> ReuseItems;
         SoftwareComponent softwareComponent = inventoryItem.getSoftwareComponent();
 
         if (softwareComponent != null) {
-            historyItems = inventoryItemRepository.findBySoftwareComponent(softwareComponent);
-            historyItems.remove(inventoryItem);
+            ReuseItems = inventoryItemRepository.findBySoftwareComponent(softwareComponent);
+            ReuseItems.remove(inventoryItem);
         } else {
-            historyItems = new ArrayList<>();
+            ReuseItems = new ArrayList<>();
         }
-        inventoryItemDcHistory.setItems(historyItems);
+        inventoryItemDcReuse.setItems(ReuseItems);
     }
 
     private String getTimeStampSeperator() {

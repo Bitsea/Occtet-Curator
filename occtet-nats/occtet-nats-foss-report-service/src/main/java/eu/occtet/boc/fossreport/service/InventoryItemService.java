@@ -27,6 +27,7 @@ import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.fossreport.dao.InventoryItemRepository;
+import eu.occtet.boc.fossreport.dao.SoftwareComponentRepository;
 import eu.occtet.boc.fossreport.factory.InventoryItemFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,9 @@ public class InventoryItemService {
 
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
+
+    @Autowired
+    private SoftwareComponentRepository softwareComponentRepository;
 
     public InventoryItem getOrCreateInventoryItem(String inventoryName, SoftwareComponent sc,
                                                   Project project) {
@@ -112,9 +116,10 @@ public class InventoryItemService {
         }if(wasCombined != null) {
             inventoryItem.setWasCombined(wasCombined);
         }if(copyrights != null && !copyrights.isEmpty()){
-            HashSet<Copyright> updatedCopyrights = new HashSet<>(inventoryItem.getCopyrights());
+            HashSet<Copyright> updatedCopyrights = new HashSet<>(inventoryItem.getSoftwareComponent().getCopyrights());
             updatedCopyrights.addAll(copyrights);
-            inventoryItem.setCopyrights(List.copyOf(updatedCopyrights));
+            inventoryItem.getSoftwareComponent().setCopyrights(List.copyOf(updatedCopyrights));
+            softwareComponentRepository.save(inventoryItem.getSoftwareComponent());
         }
 
         inventoryItemRepository.save(inventoryItem);

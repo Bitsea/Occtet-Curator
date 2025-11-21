@@ -26,6 +26,7 @@ package eu.occtet.boc.entity;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -51,6 +52,10 @@ public class Copyright {
     @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "CODE_LOCATION_ID", columnDefinition = "TEXT")
     private CodeLocation codeLocation;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name= "COPYRIGHT_ID")
+    private List<License> licenses;
 
     public Copyright(String copyrightText, CodeLocation cl) {
         this.copyrightText = copyrightText;
@@ -102,6 +107,30 @@ public class Copyright {
     }
 
     public void setGarbage(boolean garbage) {
+        this.garbage = garbage;
+    }
+
+    public Boolean getCurated() {
+        return curated;
+    }
+
+    public void setCurated(Boolean curated) {
+        this.curated = curated;
+    }
+
+    public List<License> getLicenses() {
+        return licenses;
+    }
+
+    public void setLicenses(List<License> licenses) {
+        this.licenses = licenses;
+    }
+
+    public Boolean getGarbage() {
+        return garbage;
+    }
+
+    public void setGarbage(Boolean garbage) {
         this.garbage = garbage;
     }
 }

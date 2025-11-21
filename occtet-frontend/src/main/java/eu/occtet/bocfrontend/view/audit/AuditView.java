@@ -1,23 +1,20 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *     https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
- *  SPDX-License-Identifier: Apache-2.0
- *  License-Filename: LICENSE
- * /
- *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
  */
 
 package eu.occtet.bocfrontend.view.audit;
@@ -42,6 +39,7 @@ import eu.occtet.bocfrontend.factory.FileTreeGridFactory;
 import eu.occtet.bocfrontend.factory.RendererFactory;
 import eu.occtet.bocfrontend.model.FileTreeNode;
 import eu.occtet.bocfrontend.service.*;
+import eu.occtet.bocfrontend.view.audit.fragment.OverviewProjectTabFragment;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
 import io.jmix.core.ValueLoadContext;
@@ -106,6 +104,8 @@ public class AuditView extends StandardView{
     @ViewComponent private VerticalLayout fileTreeGridLayout;
     @ViewComponent private CollectionLoader<InventoryItem> inventoryItemDl;
     @ViewComponent HorizontalLayout toolbarBox;
+    @ViewComponent OverviewProjectTabFragment overviewProjectTabFragment;
+
 
     private TabManager tabManager;
     private Map<UUID, Long> fileCounts = new HashMap<>();
@@ -120,7 +120,6 @@ public class AuditView extends StandardView{
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         super.beforeEnter(event);
-        log.debug("BeforeEnterEvent called");
         Optional<String> projectIdParam = event.getRouteParameters().get("projectId");
         initializeProjectContext(projectIdParam);
     }
@@ -137,6 +136,7 @@ public class AuditView extends StandardView{
         initializeInventoryDataGrid();
         initializeTabManager();
         addTabSelectionListeners();
+        overviewProjectTabFragment.setBasicAccordionValues();
     }
 
     @Subscribe
@@ -247,7 +247,6 @@ public class AuditView extends StandardView{
                 .ifPresentOrElse(checkbox -> {
                     checkbox.addValueChangeListener(event ->
                                     onVulnerabilityFilterToggled(Boolean.TRUE.equals(event.getValue())));
-                    log.debug("Vulnerability filter checkbox found in inventory toolbox");
                 }, () -> log.warn("Unable to find vulnerability filter checkbox in inventory toolbox")
                 );
         toolbarBox.removeAll();
@@ -477,6 +476,7 @@ public class AuditView extends StandardView{
         } else {
             switchProject(event.getValue());
         }
+        overviewProjectTabFragment.setProject(event.getValue());
     }
 
     private void switchProject(Project project) {
