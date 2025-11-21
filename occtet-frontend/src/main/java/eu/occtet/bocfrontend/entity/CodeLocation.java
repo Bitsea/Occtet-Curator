@@ -45,10 +45,10 @@ public class CodeLocation {
     private String filePath;
 
     @Column(name= "LINE_NUMBER")
-    private Integer lineNumberOne;
+    private Integer lineNumber;
 
     @Column(name= "LINE_NUMBER_TO")
-    private Integer lineNumberTwo;
+    private Integer lineNumberTo;
 
     public CodeLocation(){}
 
@@ -68,20 +68,20 @@ public class CodeLocation {
         this.id = id;
     }
 
-    public Integer getLineNumberOne() {
-        return lineNumberOne;
+    public Integer getLineNumber() {
+        return lineNumber;
     }
 
-    public void setLineNumberOne(Integer lineNumberOne) {
-        this.lineNumberOne = lineNumberOne;
+    public void setLineNumber(Integer lineNumber) {
+        this.lineNumber = lineNumber;
     }
 
-    public Integer getLineNumberTwo() {
-        return lineNumberTwo;
+    public Integer getLineNumberTo() {
+        return lineNumberTo;
     }
 
-    public void setLineNumberTwo(Integer lineNumberTwo) {
-        this.lineNumberTwo = lineNumberTwo;
+    public void setLineNumberTo(Integer lineNumberTo) {
+        this.lineNumberTo = lineNumberTo;
     }
 
     public InventoryItem getInventoryItem() {
