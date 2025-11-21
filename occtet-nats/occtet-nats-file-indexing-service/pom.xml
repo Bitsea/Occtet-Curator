@@ -29,20 +29,20 @@
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>0.3.1</version>
+        <version>0.3.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>occtet-nats-file-indexing-service</artifactId>
     <name>occtet-nats-file-indexing-service</name>
     <description>Occtet Service for indexing files for later usage</description>
-    <version>0.3.1</version>
+    <version>0.3.1-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <common-version>0.3.1</common-version>
+        <common-version>0.3.1-SNAPSHOT</common-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <start-class>eu.occtet.boc.fileindexing.FileIndexingServiceApp</start-class>
     </properties>
