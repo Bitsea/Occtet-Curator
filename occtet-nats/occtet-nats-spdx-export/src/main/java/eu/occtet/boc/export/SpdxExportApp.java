@@ -18,17 +18,11 @@
 
 package eu.occtet.boc.export;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.model.BaseWorkData;
+import eu.occtet.boc.export.service.SpdxExportWorkConsumer;
 import eu.occtet.boc.model.MicroserviceDescriptor;
-import eu.occtet.boc.model.SampleWorkData;
-import eu.occtet.boc.model.WorkTask;
-import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.SystemHandler;
-import eu.occtet.boc.service.WorkConsumer;
 import io.nats.client.Connection;
-import io.nats.client.Message;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
@@ -40,7 +34,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.Executor;
@@ -66,7 +59,8 @@ public class SpdxExportApp {
 
     private static final Logger log = LoggerFactory.getLogger(SpdxExportApp.class);
 
-    private WorkConsumer sampleConsumer;
+    @Autowired
+    private SpdxExportWorkConsumer spdxExportWorkConsumer;
 
     public static void main(String[] args) {
         SpringApplication.run(SpdxExportApp.class, args);
@@ -82,42 +76,13 @@ public class SpdxExportApp {
         log.info("Occtet Microservice INIT: {} (version {}), listening on NATS stream '{}'",
                 microserviceDescriptor.getName(), microserviceDescriptor.getVersion(), streamName );
 
-        // implement your own WorkConsumer by extending the abstract WorkConsumer class. You want to do this in another file and make it a Spring Bean, this is just a quick example
-        sampleConsumer = new WorkConsumer() {
-            @Override
-            protected void handleMessage(Message msg) {
-                try {
-                    String jsonData = new String(msg.getData(), StandardCharsets.UTF_8);
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    WorkTask workTask = objectMapper.readValue(jsonData, WorkTask.class);
-                    BaseWorkData workData = workTask.workData();
-                    // this will actually be an instance of SampleWorkData (or another class you defined that extends BaseWorkData)
-                    // now you can process the data by passing a BaseWorkDataProcessor implementation to the process() method
-                    // you should implement your own BaseWorkDataProcessor in another file and make it a Spring Bean, this is just a quick example
-                    boolean result = workData.process(new BaseWorkDataProcessor() {
-                        @Override
-                        // notice that the type of the parameter defines which kind of data you want to process. You can also implement multiple process() methods for different data types
-                        public boolean process(SampleWorkData data) {
-                            // do something with the data
-                            return true; // return true if processing was successful, false otherwise
-                        }
-                    });
-                    if(!result){
-                        //log.error("Could not process workData of type {}", workData.getClass().getName());
-                    }
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-
         // create the systemhandler to respond to "hello", "status" and "exit" messages
-        systemHandler = new SystemHandler(natsConnection, microserviceDescriptor, sampleConsumer);
+        systemHandler = new SystemHandler(natsConnection, microserviceDescriptor, spdxExportWorkConsumer);
         systemHandler.subscribeToSystemSubject();
         // start listening for work
         executor.execute(()->{
             try {
-                sampleConsumer.startHandlingMessages(natsConnection,microserviceDescriptor.getName(), streamName, streamSubject);
+                spdxExportWorkConsumer.startHandlingMessages(natsConnection,microserviceDescriptor.getName(), streamName, streamSubject);
             } catch (Exception e) {
                 log.error("Could not start handling messages: ", e);
             }
