@@ -18,10 +18,10 @@
 
 package eu.occtet.boc.spdx.dao.spdxV2;
 
-import eu.occtet.boc.entity.spdxV2.ExternalRef;
+import eu.occtet.boc.entity.spdxV2.ExternalRefEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ExternalRefRepository extends JpaRepository<ExternalRef, Long> {
+public interface ExternalRefRepository extends JpaRepository<ExternalRefEntity, Long> {
 }

@@ -21,73 +21,63 @@ package eu.occtet.boc.entity.spdxV2;
 import jakarta.persistence.*;
 
 @Entity
-public class ExternalRef {
+public class ChecksumEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "package_id", nullable = false)
+    @JoinColumn(name = "package_id")
     private Package pkg;
 
-    @Column(nullable = false)
-    private String referenceCategory;
+    @ManyToOne
+    @JoinColumn(name = "file_id")
+    private SpdxFileEntity spdxFileEntity;
 
     @Column(nullable = false)
-    private String referenceLocator;
+    private String algorithm;
 
     @Column(nullable = false)
-    private String referenceType;
+    private String checksumValue;
 
-    @Lob
-    private String comment;
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Long getId() {
         return id;
-    }
-
-    public String getComment() {
-        return comment;
     }
 
     public Package getPkg() {
         return pkg;
     }
 
-    public String getReferenceCategory() {
-        return referenceCategory;
+    public SpdxFileEntity getSpdxFile() {
+        return spdxFileEntity;
     }
 
-    public String getReferenceLocator() {
-        return referenceLocator;
+    public String getAlgorithm() {
+        return algorithm;
     }
 
-    public String getReferenceType() {
-        return referenceType;
+    public String getChecksumValue() {
+        return checksumValue;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setAlgorithm(String algorithm) {
+        this.algorithm = algorithm;
     }
 
-    public void setComment(String comment) {
-        this.comment = comment;
+    public void setChecksumValue(String checksumValue) {
+        this.checksumValue = checksumValue;
     }
 
     public void setPkg(Package pkg) {
         this.pkg = pkg;
     }
 
-    public void setReferenceCategory(String referenceCategory) {
-        this.referenceCategory = referenceCategory;
-    }
-
-    public void setReferenceLocator(String referenceLocator) {
-        this.referenceLocator = referenceLocator;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
+    public void setSpdxFile(SpdxFileEntity spdxFileEntity) {
+        this.spdxFileEntity = spdxFileEntity;
     }
 }

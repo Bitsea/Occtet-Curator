@@ -38,31 +38,28 @@ public class SpdxDocumentRoot {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private String documentNamespace;
-
     @Lob
     private String comment;
 
     @OneToOne(cascade = CascadeType.ALL, optional = false)
     @JoinColumn(name = "creation_info_id", referencedColumnName = "id")
-    private CreationInfo creationInfo;
+    private CreationInfoEntity creationInfoEntity;
 
     @OneToMany(mappedBy = "spdxDocument", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ExternalDocumentRef> externalDocumentRefs;
+    private List<ExternalDocumentRefEntity> externalDocumentRefEntities;
 
     @OneToMany(mappedBy = "spdxDocument", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ExtractedLicensingInfo> hasExtractedLicensingInfos;
+    private List<ExtractedLicensingInfoEntity> hasExtractedLicensingInfoEntities;
 
     @OneToMany(mappedBy = "spdxDocument", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Relationship> relationships;
+    private List<RelationshipEntity> relationshipEntities;
 
     // Other elements stored in the document
     @OneToMany(mappedBy = "spdxDocument", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Package> packages;
 
     @OneToMany(mappedBy = "spdxDocument", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SpdxFile> files;
+    private List<SpdxFileEntity> files;
 
     @OneToMany(mappedBy = "spdxDocument", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Snippet> snippets;
@@ -79,35 +76,31 @@ public class SpdxDocumentRoot {
         return comment;
     }
 
-    public CreationInfo getCreationInfo() {
-        return creationInfo;
+    public CreationInfoEntity getCreationInfo() {
+        return creationInfoEntity;
     }
 
     public String getDataLicense() {
         return dataLicense;
     }
 
-    public List<ExternalDocumentRef> getExternalDocumentRefs() {
-        return externalDocumentRefs;
+    public List<ExternalDocumentRefEntity> getExternalDocumentRefs() {
+        return externalDocumentRefEntities;
     }
 
-    public List<ExtractedLicensingInfo> getHasExtractedLicensingInfos() {
-        return hasExtractedLicensingInfos;
+    public List<ExtractedLicensingInfoEntity> getHasExtractedLicensingInfos() {
+        return hasExtractedLicensingInfoEntities;
     }
 
     public List<Package> getPackages() {
         return packages;
     }
 
-    public String getDocumentNamespace() {
-        return documentNamespace;
+    public List<RelationshipEntity> getRelationships() {
+        return relationshipEntities;
     }
 
-    public List<Relationship> getRelationships() {
-        return relationships;
-    }
-
-    public List<SpdxFile> getFiles() {
+    public List<SpdxFileEntity> getFiles() {
         return files;
     }
 
@@ -119,12 +112,8 @@ public class SpdxDocumentRoot {
         return spdxVersion;
     }
 
-    public void setCreationInfo(CreationInfo creationInfo) {
-        this.creationInfo = creationInfo;
-    }
-
-    public void setDocumentNamespace(String documentNamespace) {
-        this.documentNamespace = documentNamespace;
+    public void setCreationInfo(CreationInfoEntity creationInfoEntity) {
+        this.creationInfoEntity = creationInfoEntity;
     }
 
     public void setDataLicense(String dataLicense) {
@@ -135,27 +124,27 @@ public class SpdxDocumentRoot {
         this.spdxVersion = spdxVersion;
     }
 
-    public void setExternalDocumentRefs(List<ExternalDocumentRef> externalDocumentRefs) {
-        this.externalDocumentRefs = externalDocumentRefs;
+    public void setExternalDocumentRefs(List<ExternalDocumentRefEntity> externalDocumentRefEntities) {
+        this.externalDocumentRefEntities = externalDocumentRefEntities;
     }
 
-    public void setHasExtractedLicensingInfos(List<ExtractedLicensingInfo> hasExtractedLicensingInfos) {
-        this.hasExtractedLicensingInfos = hasExtractedLicensingInfos;
+    public void setHasExtractedLicensingInfos(List<ExtractedLicensingInfoEntity> hasExtractedLicensingInfoEntities) {
+        this.hasExtractedLicensingInfoEntities = hasExtractedLicensingInfoEntities;
     }
 
     public void setPackages(List<Package> packages) {
         this.packages = packages;
     }
 
-    public void setRelationships(List<Relationship> relationships) {
-        this.relationships = relationships;
+    public void setRelationships(List<RelationshipEntity> relationshipEntities) {
+        this.relationshipEntities = relationshipEntities;
     }
 
     public void setSnippets(List<Snippet> snippets) {
         this.snippets = snippets;
     }
 
-    public void setFiles(List<SpdxFile> files) {
+    public void setFiles(List<SpdxFileEntity> files) {
         this.files = files;
     }
 

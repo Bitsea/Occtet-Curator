@@ -21,31 +21,27 @@ package eu.occtet.boc.entity.spdxV2;
 import jakarta.persistence.*;
 
 @Entity
-public class Relationship {
+public class ExternalRefEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "spdx_document_id")
-    private SpdxDocumentRoot spdxDocument;
+    @JoinColumn(name = "package_id", nullable = false)
+    private Package pkg;
 
     @Column(nullable = false)
-    private String spdxElementId;
+    private String referenceCategory;
 
     @Column(nullable = false)
-    private String relatedSpdxElement;
+    private String referenceLocator;
 
     @Column(nullable = false)
-    private String relationshipType;
+    private String referenceType;
 
     @Lob
     private String comment;
-
-    public SpdxDocumentRoot getSpdxDocument() {
-        return spdxDocument;
-    }
 
     public Long getId() {
         return id;
@@ -55,16 +51,20 @@ public class Relationship {
         return comment;
     }
 
-    public String getSpdxElementId() {
-        return spdxElementId;
+    public Package getPkg() {
+        return pkg;
     }
 
-    public String getRelationshipType() {
-        return relationshipType;
+    public String getReferenceCategory() {
+        return referenceCategory;
     }
 
-    public String getRelatedSpdxElement() {
-        return relatedSpdxElement;
+    public String getReferenceLocator() {
+        return referenceLocator;
+    }
+
+    public String getReferenceType() {
+        return referenceType;
     }
 
     public void setId(Long id) {
@@ -75,19 +75,19 @@ public class Relationship {
         this.comment = comment;
     }
 
-    public void setSpdxElementId(String spdxElementId) {
-        this.spdxElementId = spdxElementId;
+    public void setPkg(Package pkg) {
+        this.pkg = pkg;
     }
 
-    public void setSpdxDocument(SpdxDocumentRoot spdxDocument) {
-        this.spdxDocument = spdxDocument;
+    public void setReferenceCategory(String referenceCategory) {
+        this.referenceCategory = referenceCategory;
     }
 
-    public void setRelatedSpdxElement(String relatedSpdxElement) {
-        this.relatedSpdxElement = relatedSpdxElement;
+    public void setReferenceLocator(String referenceLocator) {
+        this.referenceLocator = referenceLocator;
     }
 
-    public void setRelationshipType(String relationshipType) {
-        this.relationshipType = relationshipType;
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
     }
 }

@@ -26,8 +26,10 @@ package eu.occtet.boc.spdx.service;
 
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.License;
+import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
+import eu.occtet.boc.spdx.coverter.SpdxConverter;
 import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
 import eu.occtet.boc.spdx.dao.ProjectRepository;
@@ -63,6 +65,8 @@ public class SpdxService extends BaseWorkDataProcessor{
 
     private static final Logger log = LogManager.getLogger(SpdxService.class);
 
+    @Autowired
+    SpdxConverter spdxConverter;
     @Autowired
     private SoftwareComponentService softwareComponentService;
     @Autowired
@@ -118,6 +122,8 @@ public class SpdxService extends BaseWorkDataProcessor{
             InputStream inputStream = new ByteArrayInputStream(spdxBytes);
             SpdxDocument spdxDocument = inputStore.deSerialize(inputStream, false);
 
+            SpdxDocumentRoot spdxDocumentRoot = spdxConverter.convertSpdxV2DocumentInformation(spdxDocument);
+
             UUID projectId = UUID.fromString(spdxWorkData.getProjectId());
             Project project = projectRepository.findById(projectId).get();
 
@@ -133,7 +139,7 @@ public class SpdxService extends BaseWorkDataProcessor{
                         spdxPackage -> {
                             try {
                                 if (!seenPackages.contains(spdxPackage.toString())) {
-                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project));
+                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project, spdxDocumentRoot));
                                     spdxPackages.add((SpdxPackage) spdxPackage);
                                     seenPackages.add((spdxPackage).toString());
                                 }
@@ -158,10 +164,13 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
     }
 
-    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project)
+    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project, SpdxDocumentRoot spdxDocumentRoot)
             throws Exception {
 
         log.info("Looking at package: {}", spdxPackage.getId());
+
+        //Convert to enteties
+        spdxConverter.convertPackage(spdxPackage, spdxDocumentRoot);
 
         String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
         List<CodeLocation> codeLocations = new ArrayList<>();
@@ -216,6 +225,7 @@ public class SpdxService extends BaseWorkDataProcessor{
 
         spdxPackage.getFiles().forEach(f -> {
             try {
+                spdxConverter.convertFile(f, spdxDocumentRoot);
                 parseFiles(f, inventoryItem, codeLocations, copyrights);
             } catch (InvalidSPDXAnalysisException e) {
                 throw new RuntimeException(e);

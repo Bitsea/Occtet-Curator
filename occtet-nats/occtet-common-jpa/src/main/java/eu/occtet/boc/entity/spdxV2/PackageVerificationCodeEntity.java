@@ -22,7 +22,7 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Embeddable
-public class PackageVerificationCode {
+public class PackageVerificationCodeEntity {
 
     @Column(nullable = false)
     private String packageVerificationCodeValue;

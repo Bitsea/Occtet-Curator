@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.zip.Checksum;
 
 @Entity
-public class SpdxFile {
+public class SpdxFileEntity {
 
     @Id
     private String SPDXID;
@@ -37,7 +37,7 @@ public class SpdxFile {
     private String fileName;
 
     @OneToMany(mappedBy = "spdxFile", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Checksum> checksums;
+    private List<ChecksumEntity> checksums;
 
     @ElementCollection
     @CollectionTable(name = "file_types", joinColumns = @JoinColumn(name = "spdx_file_id"))
@@ -70,7 +70,7 @@ public class SpdxFile {
         return spdxDocument;
     }
 
-    public List<Checksum> getChecksums() {
+    public List<ChecksumEntity> getChecksums() {
         return checksums;
     }
 
@@ -102,7 +102,7 @@ public class SpdxFile {
         this.spdxDocument = spdxDocument;
     }
 
-    public void setChecksums(List<Checksum> checksums) {
+    public void setChecksums(List<ChecksumEntity> checksums) {
         this.checksums = checksums;
     }
 

@@ -18,9 +18,10 @@
 
 package eu.occtet.boc.spdx.dao.spdxV2;
 
+import eu.occtet.boc.entity.spdxV2.ExtractedLicensingInfoEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ExtractedLicensingInfoRepository extends JpaRepository<ExtractedLicensingInfoRepository, Long> {
+public interface ExtractedLicensingInfoRepository extends JpaRepository<ExtractedLicensingInfoEntity, Long> {
 }

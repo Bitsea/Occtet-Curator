@@ -18,55 +18,294 @@
 
 package eu.occtet.boc.spdx.coverter;
 
+import eu.occtet.boc.entity.spdxV2.*;
 import eu.occtet.boc.entity.spdxV2.Package;
-import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
+import eu.occtet.boc.spdx.dao.spdxV2.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.library.model.v2.*;
+import org.spdx.library.model.v2.Annotation;
+import org.spdx.library.model.v2.ExternalRef;
 import org.spdx.library.model.v2.Relationship;
-import org.spdx.library.model.v2.SpdxDocument;
 import org.spdx.library.model.v2.SpdxFile;
-import org.spdx.library.model.v2.SpdxPackage;
+import org.spdx.library.model.v2.enumerations.FileType;
+import org.spdx.library.model.v2.license.AnyLicenseInfo;
+import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class SpdxConverter {
 
+    @Autowired
+    ExternalDocumentRefRepository externalDocumentRefRepro;
+    @Autowired
+    ChecksumRepository checksumRepository;
+    @Autowired
+    CreationInfoRepository creationInfoRepository;
+    @Autowired
+    ExtractedLicensingInfoRepository extractedLicensingInfoRepository;
+    @Autowired
+    SpdxDocumentRootRepository spdxDocumentRootRepository;
+    @Autowired
+    ExternalRefRepository externalRefRepository;
+    @Autowired
+    AnnotationRepository annotationRepository;
+    @Autowired
+    PackageRepository packageRepository;
+    @Autowired
+    PackageVerificationCodeRepository packageVerificationCodeRepository;
+    @Autowired
+    SpdxFileRepository spdxFileRepository;
+    @Autowired
+    RelationshipRepository relationshipRepository;
+
+    private static final Logger log = LogManager.getLogger(SpdxConverter.class);
+
     /**
-     * Takes an spdxDocument and creates all entities directly relevant to the document as a whole.
-     * Does not cover package, file and relationship information.
-     * @param spdxDocument
-     * @return true if the process was successful, false otherwise
+     * Converts the top-level metadata of an {@link SpdxDocument} into a persistent {@link SpdxDocumentRoot}.
+     * <p>
+     * This method initializes the document root entity and processes global document attributes, including:
+     * <ul>
+     * <li><strong>Creation Information:</strong> Creators, timestamps, and tool versions.</li>
+     * <li><strong>External Document References:</strong> Links to other SPDX documents and their checksums.</li>
+     * <li><strong>Extracted Licensing Info:</strong> Non-standard licenses found within the document.</li>
+     * </ul>
+     * <p>
+     * <strong>Note:</strong> This method focuses solely on document-level metadata. It does <em>not</em> convert
+     * Package, File, or Relationship data; those must be handled by subsequent calls to specific conversion methods.
+     * </p>
+     *
+     * @param spdxDocument The source SPDX document model to convert.
+     * @return The newly created and persisted {@link SpdxDocumentRoot} entity.
      */
-    public boolean convertSpdxV2DocumentInformation(SpdxDocument spdxDocument){
-        SpdxDocumentRoot  spdxDocumentRoot = new SpdxDocumentRoot();
-        return true;
+    public SpdxDocumentRoot convertSpdxV2DocumentInformation(SpdxDocument spdxDocument){
+        SpdxDocumentRoot spdxDocumentRoot = new SpdxDocumentRoot();
+        try {
+            spdxDocumentRoot.setSpdxVersion(spdxDocument.getSpecVersion());
+            spdxDocumentRoot.setSPDXID(spdxDocument.getId());
+            spdxDocumentRoot.setName(spdxDocumentRoot.getName());
+            spdxDocumentRoot.setDataLicense(spdxDocument.getDataLicense().toString());
+            spdxDocumentRoot.setComment(spdxDocument.getComment().orElse(""));
+
+            List<ExternalDocumentRefEntity> refList = new ArrayList<>();
+
+            for(ExternalDocumentRef ref: spdxDocument.getExternalDocumentRefs()){
+                ExternalDocumentRefEntity refEntity = new ExternalDocumentRefEntity();
+                refEntity.setId(Long.valueOf(ref.getId()));
+                refEntity.setSpdxDocument(spdxDocumentRoot);
+                refEntity.setExternalDocumentId(ref.getDocumentUri());
+                refEntity.setSpdxDocumentExternal( ref.getSpdxDocument().toString());
+                if(ref.getChecksum().isPresent()) {
+                    ChecksumEntity checksumEntity = new ChecksumEntity();
+                    checksumEntity.setAlgorithm(ref.getChecksum().get().getAlgorithm().toString());
+                    checksumEntity.setChecksumValue(ref.getChecksum().get().getValue());
+                    refEntity.setChecksum(checksumEntity);
+                    checksumRepository.save(checksumEntity);
+                }
+                refList.add(refEntity);
+                externalDocumentRefRepro.save(refEntity);
+            }
+            spdxDocumentRoot.setExternalDocumentRefs(refList);
+
+            CreationInfoEntity creationInfoEntity = new CreationInfoEntity();
+            SpdxCreatorInformation creationInfo = spdxDocument.getCreationInfo();
+            creationInfoEntity.setComment(creationInfo.getComment().orElse(""));
+            creationInfoEntity.setCreators(creationInfo.getCreators().stream().toList());
+            creationInfoEntity.setLicenseListVersion(creationInfo.getLicenseListVersion().orElse(""));
+            creationInfoEntity.setCreated(creationInfo.getCreated());
+            spdxDocumentRoot.setCreationInfo(creationInfoEntity);
+            creationInfoRepository.save(creationInfoEntity);
+
+            List<ExtractedLicensingInfoEntity> infoEntities = new ArrayList<>();
+            for(ExtractedLicenseInfo extractedLicenseInfo: spdxDocument.getExtractedLicenseInfos()){
+                ExtractedLicensingInfoEntity infoEntity = new ExtractedLicensingInfoEntity();
+                infoEntity.setComment(extractedLicenseInfo.getComment());
+                infoEntity.setSpdxDocument(spdxDocumentRoot);
+                infoEntity.setName(extractedLicenseInfo.getName());
+                infoEntity.setExtractedText(extractedLicenseInfo.getExtractedText());
+                infoEntity.setSeeAlsos(extractedLicenseInfo.getSeeAlso().stream().toList());
+                //TODO implement this
+                //infoEntity.setCrossRefs();
+                infoEntities.add(infoEntity);
+                extractedLicensingInfoRepository.save(infoEntity);
+            }
+            spdxDocumentRoot.setHasExtractedLicensingInfos(infoEntities);
+
+            //TODO implement this
+            //spdxDocumentRoot.setSnippets();
+
+        } catch (InvalidSPDXAnalysisException e) {
+            log.error("error while converting spdx document to entity: {}", e.toString());
+        }
+        spdxDocumentRootRepository.save(spdxDocumentRoot);
+        return spdxDocumentRoot;
     }
 
     /**
+     * Converts an {@link SpdxPackage} model into a persistent {@link Package} entity.
+     * <p>
+     * This method maps core package attributes (Name, ID, Version, License) and persists
+     * associated child entities including External References, Annotations, Checksums,
+     * and Verification Codes. It also triggers the conversion of associated relationships.
+     * </p>
      *
-     * @param spdxPackage
-     * @return
+     * @param spdxPackage      The source SPDX package model to convert.
+     * @param spdxDocumentRoot The parent database entity representing the SPDX document
+     * that this package belongs to.
      */
-    public boolean convertPackage(SpdxPackage spdxPackage){
+    public void convertPackage(SpdxPackage spdxPackage, SpdxDocumentRoot spdxDocumentRoot){
         Package spdxPackageEntity = new Package();
-        return true;
+        try {
+            spdxPackageEntity.setSpdxDocument(spdxDocumentRoot);
+            spdxPackageEntity.setName(spdxPackage.getName().orElse(""));
+            spdxPackageEntity.setSPDXID(spdxPackage.getId());
+            spdxPackageEntity.setVersionInfo(spdxPackage.getVersionInfo().orElse(""));
+            spdxPackageEntity.setCopyrightText(spdxPackage.getCopyrightText());
+            spdxPackageEntity.setDownloadLocation(spdxPackage.getDownloadLocation().orElse(""));
+            spdxPackageEntity.setLicenseConcluded(spdxPackage.getLicenseConcluded().toString());
+            spdxPackageEntity.setLicenseDeclared(spdxPackage.getLicenseDeclared().toString());
+
+            List<ExternalRefEntity> externalRefEntities = new ArrayList<>();
+            for(ExternalRef externalRef: spdxPackage.getExternalRefs()){
+                ExternalRefEntity externalRefEntity = new ExternalRefEntity();
+                externalRefEntity.setComment(externalRef.getComment().orElse(""));
+                externalRefEntity.setPkg(spdxPackageEntity);
+                externalRefEntity.setReferenceCategory(externalRef.getReferenceCategory().toString());
+                externalRefEntity.setReferenceType(externalRef.getReferenceType().toString());
+                externalRefEntity.setReferenceLocator(externalRef.getReferenceLocator());
+                externalRefEntities.add(externalRefEntity);
+                externalRefRepository.save(externalRefEntity);
+            }
+            spdxPackageEntity.setExternalRefs(externalRefEntities);
+
+            List<AnnotationEntity> annotationEntities = new ArrayList<>();
+            for(Annotation annotation: spdxPackage.getAnnotations()){
+                AnnotationEntity annotationEntity = new AnnotationEntity();
+                annotationEntity.setAnnotationDate(annotation.getAnnotationDate());
+                annotationEntity.setComment(annotation.getComment());
+                annotationEntity.setAnnotationType(annotation.getType());
+                annotationEntity.setAnnotator(annotation.getAnnotator());
+                annotationEntity.setSpdxElementId(annotation.getId());
+                annotationEntities.add(annotationEntity);
+                annotationRepository.save(annotationEntity);
+            }
+            spdxPackageEntity.setAnnotations(annotationEntities);
+
+            List<ChecksumEntity> checksumEntities = new ArrayList<>();
+            for(Checksum checksum: spdxPackage.getChecksums()){
+                ChecksumEntity checksumEntity = new ChecksumEntity();
+                checksumEntity.setAlgorithm(checksum.getAlgorithm().toString());
+                checksumEntity.setChecksumValue(checksum.getValue());
+                checksumEntities.add(checksumEntity);
+                checksumRepository.save(checksumEntity);
+            }
+            spdxPackageEntity.setChecksums(checksumEntities);
+
+            List<String> licenseInfoFiles = new ArrayList<>();
+            for(AnyLicenseInfo anyLicenseInfo: spdxPackage.getLicenseInfoFromFiles()){
+                licenseInfoFiles.add(anyLicenseInfo.toString());
+            }
+            spdxPackageEntity.setLicenseInfoFromFiles(licenseInfoFiles);
+
+            if(spdxPackage.getPackageVerificationCode().isPresent()) {
+                PackageVerificationCodeEntity packageVerificationCodeEntity = new PackageVerificationCodeEntity();
+                packageVerificationCodeEntity.setPackageVerificationCodeValue(spdxPackage.getPackageVerificationCode().get().getValue());
+                packageVerificationCodeEntity.setPackageVerificationCodeExcludedFiles(spdxPackage.getPackageVerificationCode().get().getExcludedFileNames().stream().toList());
+                spdxPackageEntity.setPackageVerificationCode(packageVerificationCodeEntity);
+                packageVerificationCodeRepository.save(packageVerificationCodeEntity);
+            }
+
+            spdxPackage.getRelationships().forEach(
+                    r -> convertRelationShip(r, spdxDocumentRoot)
+            );
+
+            packageRepository.save(spdxPackageEntity);
+
+        } catch (InvalidSPDXAnalysisException e) {
+            log.error("error while converting spdx package to entity: {}", e.toString());
+        }
     }
 
     /**
+     * Converts an {@link SpdxFile} model into a persistent {@link SpdxFileEntity}.
+     * <p>
+     * This method extracts file metadata, including checksums, file types, and
+     * license information found within the file. The resulting entity is saved
+     * to the repository and linked to the provided document root.
+     * </p>
      *
-     * @param spdxFile
-     * @return
+     * @param spdxFile         The source SPDX file model to convert.
+     * @param spdxDocumentRoot The parent database entity representing the SPDX document
+     * that this file belongs to.
      */
-    public boolean convertFile(SpdxFile spdxFile){
-        eu.occtet.boc.entity.spdxV2.SpdxFile spdxFileEntity = new eu.occtet.boc.entity.spdxV2.SpdxFile();
-        return true;
+    public void convertFile(SpdxFile spdxFile, SpdxDocumentRoot spdxDocumentRoot){
+        SpdxFileEntity spdxFileEntity = new SpdxFileEntity();
+        try {
+            spdxFileEntity.setFileName(spdxFile.getName().orElse(""));
+            spdxFileEntity.setSpdxDocument(spdxDocumentRoot);
+            spdxFileEntity.setSPDXID(spdxFile.getId());
+            spdxFileEntity.setCopyrightText(spdxFile.getCopyrightText());
+            spdxFileEntity.setLicenseConcluded(spdxFileEntity.getLicenseConcluded());
+
+            List<ChecksumEntity> checksumEntities = new ArrayList<>();
+            for(Checksum checksum: spdxFile.getChecksums()){
+                ChecksumEntity checksumEntity = new ChecksumEntity();
+                checksumEntity.setAlgorithm(checksum.getAlgorithm().toString());
+                checksumEntity.setChecksumValue(checksum.getValue());
+                checksumEntities.add(checksumEntity);
+                checksumRepository.save(checksumEntity);
+            }
+            spdxFileEntity.setChecksums(checksumEntities);
+
+            List<String> fileTypes = new ArrayList<>();
+            for(FileType fileType: spdxFile.getFileTypes()){
+                fileTypes.add(fileType.getLongName());
+            }
+            spdxFileEntity.setFileTypes(fileTypes);
+
+            List<String> licenseInfoFromFiles = new ArrayList<>();
+            for(AnyLicenseInfo licenseInfo: spdxFile.getLicenseInfoFromFiles()){
+                licenseInfoFromFiles.add(licenseInfo.toString());
+            }
+            spdxFileEntity.setLicenseInfoInFiles(licenseInfoFromFiles);
+
+            spdxFileRepository.save(spdxFileEntity);
+
+        } catch (InvalidSPDXAnalysisException e) {
+            log.error("error while converting spdx file to entity: {}", e.toString());
+        }
+
     }
 
     /**
+     * Converts an SPDX {@link Relationship} model into a persistent {@link RelationshipEntity}.
+     * <p>
+     * This method captures the relationship type (e.g., DESCRIBES, CONTAINS), the
+     * related element IDs, and any associated comments, persisting them to the
+     * relationship repository.
+     * </p>
      *
-     * @param relationship
-     * @return
+     * @param relationship     The source relationship model defining the link between SPDX elements.
+     * @param spdxDocumentRoot The parent database entity representing the SPDX document
+     * context for this relationship.
      */
-    public boolean convertRelationShip(Relationship relationship){
-        eu.occtet.boc.entity.spdxV2.Relationship relationshipEntity = new eu.occtet.boc.entity.spdxV2.Relationship();
-        return true;
+    public void convertRelationShip(Relationship relationship, SpdxDocumentRoot spdxDocumentRoot){
+        RelationshipEntity relationshipEntity = new RelationshipEntity();
+        try {
+            relationshipEntity.setSpdxDocument(spdxDocumentRoot);
+            relationshipEntity.setComment(relationship.getComment().orElse(""));
+            relationshipEntity.setSpdxElementId(relationship.getId());
+            if(relationship.getRelatedSpdxElement().isPresent())
+                relationshipEntity.setRelatedSpdxElement(relationship.getRelatedSpdxElement().get().toString());
+            relationshipEntity.setRelationshipType(relationship.getType());
+            relationshipRepository.save(relationshipEntity);
+        } catch (InvalidSPDXAnalysisException e) {
+            log.error("error while converting spdx relationship to entity: {}", e.toString());
+        }
     }
 }

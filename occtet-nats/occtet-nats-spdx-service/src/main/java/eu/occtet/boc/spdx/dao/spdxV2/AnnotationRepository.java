@@ -18,10 +18,10 @@
 
 package eu.occtet.boc.spdx.dao.spdxV2;
 
-import eu.occtet.boc.entity.spdxV2.Annotation;
+import eu.occtet.boc.entity.spdxV2.AnnotationEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface AnnotationRepository extends JpaRepository<Annotation, Long> {
+public interface AnnotationRepository extends JpaRepository<AnnotationEntity, Long> {
 }

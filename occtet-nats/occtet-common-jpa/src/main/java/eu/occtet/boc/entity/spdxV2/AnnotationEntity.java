@@ -21,7 +21,7 @@ package eu.occtet.boc.entity.spdxV2;
 import jakarta.persistence.*;
 
 @Entity
-public class Annotation {
+public class AnnotationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -18,10 +18,10 @@
 
 package eu.occtet.boc.spdx.dao.spdxV2;
 
-import org.spdx.library.model.v2.SpdxFile;
+import eu.occtet.boc.entity.spdxV2.SpdxFileEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SpdxFileRepository extends JpaRepository<SpdxFile, Long> {
+public interface SpdxFileRepository extends JpaRepository<SpdxFileEntity, Long> {
 }

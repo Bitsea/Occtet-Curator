@@ -54,16 +54,16 @@ public class Package {
     private List<String> licenseInfoFromFiles;
 
     @Embedded
-    private PackageVerificationCode packageVerificationCode;
+    private PackageVerificationCodeEntity packageVerificationCodeEntity;
 
     @OneToMany(mappedBy = "spdxElementId", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Annotation> annotations;
+    private List<AnnotationEntity> annotationEntities;
 
     @OneToMany(mappedBy = "package", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ExternalRef> externalRefs;
+    private List<ExternalRefEntity> externalRefEntities;
 
     @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Checksum> checksums;
+    private List<ChecksumEntity> checksumEntities;
 
     public String getName() {
         return name;
@@ -73,20 +73,20 @@ public class Package {
         return spdxDocument;
     }
 
-    public List<Annotation> getAnnotations() {
-        return annotations;
+    public List<AnnotationEntity> getAnnotations() {
+        return annotationEntities;
     }
 
-    public List<Checksum> getChecksums() {
-        return checksums;
+    public List<ChecksumEntity> getChecksums() {
+        return checksumEntities;
     }
 
-    public List<ExternalRef> getExternalRefs() {
-        return externalRefs;
+    public List<ExternalRefEntity> getExternalRefs() {
+        return externalRefEntities;
     }
 
-    public PackageVerificationCode getPackageVerificationCode() {
-        return packageVerificationCode;
+    public PackageVerificationCodeEntity getPackageVerificationCode() {
+        return packageVerificationCodeEntity;
     }
 
     public List<String> getLicenseInfoFromFiles() {
@@ -125,12 +125,12 @@ public class Package {
         this.name = name;
     }
 
-    public void setAnnotations(List<Annotation> annotations) {
-        this.annotations = annotations;
+    public void setAnnotations(List<AnnotationEntity> annotationEntities) {
+        this.annotationEntities = annotationEntities;
     }
 
-    public void setChecksums(List<Checksum> checksums) {
-        this.checksums = checksums;
+    public void setChecksums(List<ChecksumEntity> checksumEntities) {
+        this.checksumEntities = checksumEntities;
     }
 
     public void setCopyrightText(String copyrightText) {
@@ -141,8 +141,8 @@ public class Package {
         this.downloadLocation = downloadLocation;
     }
 
-    public void setExternalRefs(List<ExternalRef> externalRefs) {
-        this.externalRefs = externalRefs;
+    public void setExternalRefs(List<ExternalRefEntity> externalRefEntities) {
+        this.externalRefEntities = externalRefEntities;
     }
 
     public void setLicenseConcluded(String licenseConcluded) {
@@ -157,8 +157,8 @@ public class Package {
         this.licenseInfoFromFiles = licenseInfoFromFiles;
     }
 
-    public void setPackageVerificationCode(PackageVerificationCode packageVerificationCode) {
-        this.packageVerificationCode = packageVerificationCode;
+    public void setPackageVerificationCode(PackageVerificationCodeEntity packageVerificationCodeEntity) {
+        this.packageVerificationCodeEntity = packageVerificationCodeEntity;
     }
 
     public void setSPDXID(String SPDXID) {

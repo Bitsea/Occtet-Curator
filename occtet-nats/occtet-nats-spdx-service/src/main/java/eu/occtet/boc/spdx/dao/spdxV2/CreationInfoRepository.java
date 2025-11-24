@@ -18,10 +18,10 @@
 
 package eu.occtet.boc.spdx.dao.spdxV2;
 
-import eu.occtet.boc.entity.spdxV2.CreationInfo;
+import eu.occtet.boc.entity.spdxV2.CreationInfoEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CreationInfoRepository extends JpaRepository<CreationInfo, Long> {
+public interface CreationInfoRepository extends JpaRepository<CreationInfoEntity, Long> {
 }

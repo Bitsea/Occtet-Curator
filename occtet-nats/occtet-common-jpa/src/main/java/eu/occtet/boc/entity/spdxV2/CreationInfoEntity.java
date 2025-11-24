@@ -22,7 +22,7 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-public class CreationInfo {
+public class CreationInfoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
