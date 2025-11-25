@@ -122,7 +122,7 @@ public class NatsService {
             String message = new String(msg.getData(), StandardCharsets.UTF_8);
             log.debug("Received message on 'system': " + message);
             if(Arrays.asList(MESSAGES_TO_IGNORE).contains(message.toLowerCase())) {
-                log.debug("Ignoring message on 'system' subject: " + message);
+                log.trace("Ignoring message on 'system' subject: " + message);
                 return;
             }
             ObjectMapper objectMapper = new ObjectMapper();

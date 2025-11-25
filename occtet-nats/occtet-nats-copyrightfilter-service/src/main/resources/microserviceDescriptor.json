@@ -1,8 +1,7 @@
 {
   "type": "descriptor",
   "name": "occtet-nats-copyrightFilter",
-  "version": "2025.09.1",
+  "usesAI": false,
   "description": "A microservice for preparing filtering copyrights by ai",
-  "usageType": "RUNNABLE_BY_SERVICE",
   "acceptableWorkData": "ScannerSendWorkData"
 }
