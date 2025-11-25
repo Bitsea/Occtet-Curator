@@ -62,6 +62,9 @@ public class SpdxServiceApp {
     @Autowired
     private SpdxWorkConsumer spdxWorkConsumer;
 
+    @Value("${application.version}")
+    private String applicationVersion;
+
     @Value("${nats.stream-name}")
     private String streamName;
 
@@ -84,7 +87,7 @@ public class SpdxServiceApp {
         ClassPathResource resource = new ClassPathResource("microserviceDescriptor.json");
         String s = new String(Files.readAllBytes(Paths.get(resource.getURI())));
         microserviceDescriptor = (new ObjectMapper()).readValue(s, MicroserviceDescriptor.class);
-
+        microserviceDescriptor.setVersion(applicationVersion);
         System.out.println("Init Microservice: " + microserviceDescriptor.getName() + " (version " + microserviceDescriptor.getVersion() + ")");
         // create the systemhandler to respond to "hello", "status" and "exit" messages
         systemHandler = new SystemHandler(natsConnection, microserviceDescriptor, spdxWorkConsumer);
