@@ -28,14 +28,14 @@
     <artifactId>occtet-nats-ai-copyrightfilter-service</artifactId>
     <name>occtet-nats-ai-copyrightfilter-service</name>
     <description>A microservice for questioning an AI model in copyrightFilter context.</description>
-    <version>0.3.1-SNAPSHOT</version>
+    <version>0.3.2-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>0.3.1-SNAPSHOT</version>
+        <version>0.3.2-SNAPSHOT</version>
     </parent>
 
     <properties>
