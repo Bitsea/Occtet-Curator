@@ -21,9 +21,13 @@ package eu.occtet.bocfrontend.view.audit.fragment;
 
 import com.vaadin.flow.component.accordion.AccordionPanel;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import eu.occtet.bocfrontend.dao.CodeLocationRepository;
 import eu.occtet.bocfrontend.dao.CopyrightRepository;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.LicenseRepository;
+import eu.occtet.bocfrontend.dto.AuditCopyrightDTO;
+import eu.occtet.bocfrontend.dto.AuditLicenseDTO;
+import eu.occtet.bocfrontend.dto.AuditVulnerabilityDTO;
 import eu.occtet.bocfrontend.entity.*;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentDescriptor;
@@ -35,10 +39,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @FragmentDescriptor("OverviewProjectTabFragment.xml")
 public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
@@ -60,13 +62,13 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
     private DataContext dataContext;
 
     @ViewComponent
-    private CollectionContainer<Copyright> copyrightsDc;
+    private CollectionContainer<AuditCopyrightDTO> auditCopyrightDc;
 
     @ViewComponent
-    private CollectionContainer<License> licensesDc;
+    private CollectionContainer<AuditLicenseDTO> auditLicensesDc;
 
     @ViewComponent
-    private CollectionContainer<Vulnerability> vulnerabilitiesDc;
+    private CollectionContainer<AuditVulnerabilityDTO> auditVulnerabilitiesDc;
 
     @Autowired
     private CopyrightRepository copyrightRepository;
@@ -77,68 +79,105 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
 
+    @Autowired
+    private CodeLocationRepository codeLocationRepository;
 
-    public void setBasicAccordionValues(){
-        copyrightAccordion.setSummaryText("Copyright (0)");
+
+    public void setDefaultAccordionValues(){
+        copyrightAccordion.setSummaryText("Copyrights (0)");
         licensesAccordion.setSummaryText("Licenses (0)");
         vulnerabilityAccordion.setSummaryText("Vulnerabilities (0)");
     }
 
-    public void setProject(@Nonnull Project project){
+    public void setProjectOverview(@Nonnull Project project){
         this.project = dataContext.merge(project);
         List<InventoryItem> items = inventoryItemRepository.findByProject(project);
+        List<CodeLocation> codeLocations = new ArrayList<>();
         List<SoftwareComponent> components = new ArrayList<>();
         if(items != null){
             for(InventoryItem item : items){
-                components.add(item.getSoftwareComponent());
+                if(item.getSoftwareComponent() != null){
+                    components.add(item.getSoftwareComponent());
+                }
+                codeLocations.addAll(codeLocationRepository.findByInventoryItem(item));
             }
-
         }
-        setCopyrights(components);
+        setCopyrights(components,codeLocations);
         setLicenses(components);
-        setVulnerabailities(components);
+        setVulnerabilities(components);
     }
 
-    private void setCopyrights(List<SoftwareComponent> components){
-        Set<Copyright> setCopyrights = new HashSet<>();
-        for(SoftwareComponent component : components){
-            if(component != null){
-                List<Copyright> copyrights = component.getCopyrights();
-                if(copyrights != null){
-                    setCopyrights.addAll(copyrights);
+    private void setCopyrights(List<SoftwareComponent> softwareComponents, List<CodeLocation> locations){
+
+        List<AuditCopyrightDTO> auditCopyrightDTOs = new ArrayList<>();
+        Set<Copyright> allCopyrights = new HashSet<>();
+
+        allCopyrights.addAll(softwareComponents.stream().map(SoftwareComponent::getCopyrights)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .collect(Collectors.toSet()));
+
+        for(Copyright copyright : allCopyrights){
+            int count = 0;
+            for(CodeLocation location : locations){
+                List<Copyright> copyrightsFromLocation = location.getCopyrights();
+                if(copyrightsFromLocation != null){
+                   for(Copyright copyright1 : copyrightsFromLocation){
+                       if(copyright.getCopyrightText().equals(copyright1.getCopyrightText())){
+                           count++;
+                       }
+                   }
                 }
             }
+            auditCopyrightDTOs.add(new AuditCopyrightDTO(copyright.getCopyrightText(),count));
         }
-        copyrightsDc.setItems(setCopyrights);
-        copyrightAccordion.setSummaryText("Copyrights ("+setCopyrights.size()+")");
+
+        auditCopyrightDc.setItems(auditCopyrightDTOs);
+        copyrightAccordion.setSummaryText("Copyrights ("+auditCopyrightDTOs.size()+")");
+
     }
 
     private void setLicenses(List<SoftwareComponent> softwareComponents){
-        Set<License> setLicenses = new HashSet<>();
-        for(SoftwareComponent s : softwareComponents){
-            if(s != null){
-                List<License> licenses = s.getLicenses();
-                if(licenses != null){
-                    setLicenses.addAll(licenses);
-                }
+
+        List<AuditLicenseDTO> licensesDTOs = new ArrayList<>();
+        Set<License> allLicenses = new HashSet<>();
+
+        allLicenses.addAll(softwareComponents.stream().map(SoftwareComponent::getLicenses)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .collect(Collectors.toSet()));
+
+        allLicenses.forEach(license -> {
+            int count = 0;
+            for(SoftwareComponent sc : softwareComponents){
+                List<License> licenses = sc.getLicenses();
+                if(licenses != null){count += Collections.frequency(licenses,license);}
             }
-        }
-        licensesDc.setItems(setLicenses);
-        licensesAccordion.setSummaryText("Licenses ("+setLicenses.size()+")");
+            licensesDTOs.add(new AuditLicenseDTO(license.getLicenseName(),count));
+        });
+        auditLicensesDc.setItems(licensesDTOs);
+        licensesAccordion.setSummaryText("Licenses ("+licensesDTOs.size()+")");
     }
 
-    private void setVulnerabailities(List<SoftwareComponent> softwareComponents){
-        Set<Vulnerability> setVulnerabilities = new HashSet<>();
-        for(SoftwareComponent s : softwareComponents){
-            if(s != null){
-                List<Vulnerability> vulnerabilities = s.getVulnerabilities();
-                if(vulnerabilities != null){
-                    setVulnerabilities.addAll(vulnerabilities);
-                }
-            }
-        }
-        vulnerabilitiesDc.setItems(setVulnerabilities);
-        vulnerabilityAccordion.setSummaryText("Vulnerabilities ("+setVulnerabilities.size()+")");
+    private void setVulnerabilities(List<SoftwareComponent> softwareComponents){
 
+        List<AuditVulnerabilityDTO> vulnerabilityDTOs = new ArrayList<>();
+        Set<Vulnerability> allVulnerabilities = new HashSet<>();
+
+        allVulnerabilities.addAll(softwareComponents.stream().map(SoftwareComponent::getVulnerabilities)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .collect(Collectors.toSet()));
+
+        allVulnerabilities.forEach(vulnerability -> {
+            int count = 0;
+            for(SoftwareComponent sc : softwareComponents){
+                List<Vulnerability> vulnerabilities = sc.getVulnerabilities();
+                if(vulnerabilities != null){count += Collections.frequency(vulnerabilities,vulnerability);}
+            }
+            vulnerabilityDTOs.add(new AuditVulnerabilityDTO(vulnerability.getVulnerabilityId(),vulnerability.getRiskScore(),count));
+        });
+        auditVulnerabilitiesDc.setItems(vulnerabilityDTOs);
+        vulnerabilityAccordion.setSummaryText("Vulnerabilities ("+vulnerabilityDTOs.size()+")");
     }
 }

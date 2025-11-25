@@ -136,7 +136,7 @@ public class AuditView extends StandardView{
         initializeInventoryDataGrid();
         initializeTabManager();
         addTabSelectionListeners();
-        overviewProjectTabFragment.setBasicAccordionValues();
+        overviewProjectTabFragment.setDefaultAccordionValues();
     }
 
     @Subscribe
@@ -476,7 +476,7 @@ public class AuditView extends StandardView{
         } else {
             switchProject(event.getValue());
         }
-        overviewProjectTabFragment.setProject(event.getValue());
+        overviewProjectTabFragment.setProjectOverview(event.getValue());
     }
 
     private void switchProject(Project project) {
