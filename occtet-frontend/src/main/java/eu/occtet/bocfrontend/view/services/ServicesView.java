@@ -21,7 +21,6 @@ package eu.occtet.bocfrontend.view.services;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -32,7 +31,6 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.boc.model.MicroserviceDescriptor;
 import eu.occtet.boc.model.StatusDescriptor;
-import eu.occtet.boc.model.UsageType;
 import eu.occtet.bocfrontend.service.NatsService;
 import eu.occtet.bocfrontend.view.dialog.servicesDialog.SpdxServicesDialog;
 import eu.occtet.bocfrontend.view.main.MainView;
@@ -50,8 +48,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -165,7 +161,9 @@ public class ServicesView extends StandardView {
             if(optionalMicroserviceDescriptor.isPresent()) {
                 MicroserviceDescriptor microserviceDescriptor = optionalMicroserviceDescriptor.get();
                 Span descriptionAndVersion = new Span(microserviceDescriptor.getDescription()
-                        + ", version " + microserviceDescriptor.getVersion());
+                        + ", version " + microserviceDescriptor.getVersion()
+                        + (microserviceDescriptor.isUsesAI()?" (AI)":"")
+                );
                 column.add(descriptionAndVersion);
             }
             column.setPadding(false);
