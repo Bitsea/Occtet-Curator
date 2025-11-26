@@ -42,7 +42,7 @@
                     <dataGrid id="auditCopyrightDataGrid"
                               dataContainer="auditCopyrightDc"
                               width="100%">
-                        <columns>
+                        <columns resizable="true">
                             <column property="copyrightName" header="Copyright"/>
                             <column property="numFiles" header="Number in files"/>
                         </columns>
@@ -52,17 +52,17 @@
                     <dataGrid id="auditLicensesDataGrid"
                               dataContainer="auditLicensesDc"
                               width="100%">
-                        <columns>
+                        <columns resizable="true">
                             <column property="licenseName" header="License"/>
                             <column property="numSc" header="Number in software components"/>
                         </columns>
                     </dataGrid>
                 </accordionPanel>
                 <accordionPanel id="vulnerabilityAccordion" opened="false">
-                    <dataGrid id="vulnerabilityDataGrid"
+                    <dataGrid id="auditVulnerabilityDataGrid"
                               dataContainer="auditVulnerabilitiesDc"
                               width="100%">
-                        <columns>
+                        <columns resizable="true">
                             <column property="vulnerabilityName" header="Vulnerability"/>
                             <column property="riskScore" header="Risk score of vulnerability"/>
                             <column property="numSc" header="Number in software components"/>
