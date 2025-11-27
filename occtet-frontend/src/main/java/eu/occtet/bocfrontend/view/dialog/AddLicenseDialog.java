@@ -26,16 +26,15 @@ import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.textfield.TextField;
 import eu.occtet.bocfrontend.dao.LicenseRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
-import eu.occtet.bocfrontend.entity.Copyright;
 import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;
-import org.apache.poi.ss.formula.functions.T;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.swing.text.html.parser.Entity;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,11 +44,11 @@ import java.util.List;
 @DialogMode(width = "900px", height = "650px")
 public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent> {
 
+    private static final Logger log = LogManager.getLogger(AddLicenseDialog.class);
+
     private SoftwareComponent softwareComponent;
 
     private License license;
-
-
 
     @Autowired
     private LicenseRepository licenseRepository;
@@ -68,10 +67,9 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
     @Subscribe("licenseDc")
     public void setAvailableContent(SoftwareComponent softwareComponent){
         this.softwareComponent= softwareComponent;
+        log.debug("setAvailableContent called with SoftwareComponent: {}", softwareComponent);
         licenseDc.setItems(licenseRepository.findAll());
     }
-
-
 
     @Subscribe("licensesDataGrid")
     public void selectAvailableContent(final ItemClickEvent<License> event){license = event.getItem();}
