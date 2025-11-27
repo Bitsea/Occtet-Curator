@@ -24,6 +24,8 @@ package eu.occtet.boc.download.service;
 
 
 import eu.occtet.boc.download.controller.GitRepoController;
+import eu.occtet.boc.download.dao.ProjectRepository;
+import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.model.DownloadServiceWorkData;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -41,6 +43,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -53,6 +56,10 @@ public class DownloadService extends BaseWorkDataProcessor {
 
     @Autowired
     private GitRepoController gitRepoController;
+    @Autowired
+    private FileService fileService;
+    @Autowired
+    private ProjectRepository projectRepository;
 
     private String gitUrl;
 
@@ -61,7 +68,16 @@ public class DownloadService extends BaseWorkDataProcessor {
     @Override
     public boolean process(DownloadServiceWorkData workData) {
         log.debug("DownloadService: downloading data from {} to {}", workData.getUrl(),workData.getLocation());
-        return storeData(workData);
+        boolean success = storeData(workData);
+        if(success){
+            Path projectRoot = Path.of(workData.getLocation());
+            Project project = projectRepository.findById(UUID.fromString(workData.getProjectId()))
+                    .orElse(null);
+            if (project != null) {
+                fileService.createEntitiesFromPath(project, projectRoot);
+            }
+        }
+        return success;
     }
 
     public boolean storeData(DownloadServiceWorkData workData){
