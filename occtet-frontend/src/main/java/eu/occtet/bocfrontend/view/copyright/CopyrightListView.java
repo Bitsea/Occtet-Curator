@@ -69,6 +69,7 @@ public class CopyrightListView extends StandardListView<Copyright> {
 
     @ViewComponent
     private CollectionContainer<Copyright> copyrightsDc;
+
     @ViewComponent
     private CollectionLoader<Copyright> copyrightsDl;
 
@@ -82,27 +83,18 @@ public class CopyrightListView extends StandardListView<Copyright> {
     private Notifications notifications;
 
     @Autowired
-    private CopyrightRepository copyrightRepository;
-    @Autowired
     protected UiComponents uiComponents;
-
-    private List<Copyright> copyrightsList;
 
     @Autowired
     private DataManager dataManager;
 
     @ViewComponent
     private JmixCheckbox immediateCheckbox;
+
     @ViewComponent
     private JmixButton saveButton;
 
     private final Set<Copyright> copyrights = new HashSet<>();
-
-    @Subscribe
-    public void onBeforeShow(BeforeShowEvent event){
-
-        copyrightsList = copyrightRepository.findAll();
-    }
 
     @Supply(to = "copyrightsDataGrid.softwareComponent", subject = "renderer")
     private Renderer<Copyright> componentRenderer() {
