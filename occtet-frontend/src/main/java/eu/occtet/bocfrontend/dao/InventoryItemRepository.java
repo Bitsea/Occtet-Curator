@@ -32,6 +32,7 @@ public interface InventoryItemRepository extends JmixDataRepository<InventoryIte
 
     List<InventoryItem> findAll();
     List<InventoryItem> findBySoftwareComponent(SoftwareComponent softwareComponent);
+    List<InventoryItem> findBySoftwareComponentIn(List<SoftwareComponent> softwareComponents);
     List<InventoryItem> findInventoryItemBySoftwareComponentOrderByCreatedAtDesc(SoftwareComponent softwareComponent);
     List<InventoryItem> findByProject(Project project);
     List<InventoryItem> findInventoryItemsByCurated(Boolean curated);
