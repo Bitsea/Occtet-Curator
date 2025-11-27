@@ -39,8 +39,8 @@ public class CodeLocationFactory {
         CodeLocation codeLocation = dataManager.create(CodeLocation.class);
         codeLocation.setInventoryItem(inventoryItem);
         codeLocation.setFilePath(filePath);
-        codeLocation.setLineNumberOne(lineNumber);
-        codeLocation.setLineNumberTwo(lineNumberTo);
+        codeLocation.setLineNumber(lineNumber);
+        codeLocation.setLineNumberTo(lineNumberTo);
         return dataManager.save(codeLocation);
     }
 

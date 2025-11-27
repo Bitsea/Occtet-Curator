@@ -56,10 +56,6 @@ public class InventoryItem {
     @Column(name= "CONSPICUOUS")
     private Boolean conspicuous;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "INVENTORY_ITEM_ID")
-    private List<Copyright> copyrights;
-
     @Column(name= "EXTERNAL_NOTES", columnDefinition = "TEXT")
     private String externalNotes;
 
@@ -225,14 +221,6 @@ public class InventoryItem {
 
     public Boolean getConspicuous() {
         return conspicuous;
-    }
-
-    public List<Copyright> getCopyrights() {
-        return copyrights;
-    }
-
-    public void setCopyrights(List<Copyright> copyrights) {
-        this.copyrights = copyrights;
     }
 
     public Boolean getCurated() {

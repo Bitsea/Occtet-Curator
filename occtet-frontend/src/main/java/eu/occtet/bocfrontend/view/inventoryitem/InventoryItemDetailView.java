@@ -30,7 +30,6 @@ import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.service.InventoryItemService;
-import eu.occtet.bocfrontend.service.SoftwareComponentService;
 import eu.occtet.bocfrontend.view.dialog.AddCopyrightDialog;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.flowui.DialogWindows;
@@ -81,7 +80,7 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
         softwareComponentField.setItems(softwareComponentRepository.findAll());
         softwareComponentField.setValue(inventoryItem.getSoftwareComponent());
         softwareComponentField.setItemLabelGenerator(sc -> sc.getName()+" "+sc.getVersion());
-        copyrightsDc.setItems(inventoryItem.getCopyrights());
+        copyrightsDc.setItems(inventoryItem.getSoftwareComponent().getCopyrights());
     }
 
     @Subscribe("projectField")
@@ -125,7 +124,7 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
     private void afterAddContentAction(DialogWindow<?> window, InventoryItem item) {
         window.addAfterCloseListener(close -> {
             if (close.closedWith(StandardOutcome.CLOSE)) {
-                copyrightsDc.setItems(item.getCopyrights());
+                copyrightsDc.setItems(item.getSoftwareComponent().getCopyrights());
             }
         });
     }

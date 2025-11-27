@@ -26,6 +26,7 @@
         <collection id="softwareComponentsDc"
                     class="eu.occtet.bocfrontend.entity.SoftwareComponent">
             <fetchPlan extends="_base">
+                <property name="licenses" fetchPlan="_base"/>
             </fetchPlan>
             <loader id="softwareComponentsDl" readOnly="true">
                 <query>
@@ -70,6 +71,7 @@
                     <column property="name" header="Name"/>
                     <column property="version" header="Version"/>
                     <column property="purl" header="Purl"/>
+                    <column property="licenses" header="msg://Licenses"/>
                     <column property="curated" header="Curated"/>
                 </columns>
             </dataGrid>

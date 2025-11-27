@@ -27,6 +27,7 @@ import eu.occtet.boc.entity.*;
 import eu.occtet.boc.fossreport.dao.InventoryItemRepository;
 import eu.occtet.boc.fossreport.dao.ProjectRepository;
 import eu.occtet.boc.fossreport.dao.ScannerInitializerRepository;
+import eu.occtet.boc.fossreport.dao.SoftwareComponentRepository;
 import eu.occtet.boc.model.*;
 import eu.occtet.boc.model.FossReportServiceWorkData;
 import eu.occtet.boc.model.RowDto;
@@ -79,6 +80,8 @@ public class FossReportService extends BaseWorkDataProcessor {
     private ScannerInitializerService scannerInitializerService;
     @Autowired
     private ProjectRepository projectRepository;
+    @Autowired
+    private SoftwareComponentRepository softwareComponentRepository;
 
     @Autowired
     private Connection natsConnection;
@@ -192,8 +195,9 @@ public class FossReportService extends BaseWorkDataProcessor {
                     //as we have no specific codeLocation for the copyrights here, we just use the basepath
                     copyrights = prepareCopyrights(rowDto, basePathCodeLocation);
 
-                    inventoryItem.setCopyrights(copyrights);
+                    inventoryItem.getSoftwareComponent().setCopyrights(copyrights);
                     inventoryItemRepository.save(inventoryItem);
+                    softwareComponentRepository.save(inventoryItem.getSoftwareComponent());
 
                     log.info("Finished generating data.");
 

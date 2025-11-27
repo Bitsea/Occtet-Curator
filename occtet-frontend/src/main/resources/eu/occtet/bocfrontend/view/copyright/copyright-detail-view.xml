@@ -26,9 +26,23 @@
                   class="eu.occtet.bocfrontend.entity.Copyright">
             <fetchPlan extends="_base">
                 <property name="codeLocation" fetchPlan="_base"/>
+                <property name="licenses" fetchPlan="_base"/>
             </fetchPlan>
-            <loader id="copyrightDl"/>
+            <loader id="copyrightDl">
+                <query>
+                    <![CDATA[select e from Copyright e]]>
+                </query>
+
+            </loader>
+            <collection id="licenseDataGrid" property="licenses"/>
         </instance>
+
+        <collection id="licenseDc"
+                    class="eu.occtet.bocfrontend.entity.License">
+            <fetchPlan extends="_base"/>
+        </collection>
+
+
     </data>
     <facets>
         <dataLoadCoordinator auto="true"/>
@@ -37,18 +51,31 @@
         <action id="saveAction" type="detail_saveClose"/>
         <action id="closeAction" type="detail_close"/>
     </actions>
-    <layout>
-        <formLayout id="form" dataContainer="copyrightDc">
+    <layout width="100%">
+        <vbox id="form" width="100%">
             <vbox >
-                <textField id="copyrightTextField" property="copyrightText" label="Name" minWidth="100%"/>
-                <textField id="filePathField" property="codeLocation.filePath" label="File Path" width="100%"/>
-                <checkbox id="curatedField" property="curated" label="Curated"/>
-                <checkbox id="garbageField" property="garbage" label="Garbage"/>
+                <textField id="copyrightTextField" property="copyrightText" dataContainer="copyrightDc" label="Name" minWidth="100%"/>
+                <textField id="filePathField" property="codeLocation.filePath" dataContainer="copyrightDc" label="File Path" width="100%"/>
+            </vbox>
+            <hbox>
+                <checkbox id="curatedField" dataContainer="copyrightDc" property="curated" label="Curated"/>
+                <checkbox id="garbageField" dataContainer="copyrightDc" property="garbage" label="Garbage"/>
+            </hbox>
+                <dataGrid dataContainer="licenseDc"  id="licensesDataGrid" width="100%" >
+                    <columns resizable="true">
+                        <column header="msg://eu.occtet.bocfrontend.entity/License.licenseName" property="licenseName"> </column>
+                        <column header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseId" property="licenseType"/>
+                        <column header="msg://eu.occtet.bocfrontend.entity/LicenseType.detailsUrl" property="detailsUrl"/>
+                        <column header="msg://licensetype.isSpdx" property="isSpdx"/>
+                    </columns>
+                </dataGrid>
                 <hbox id="detailActions">
                     <button id="saveAndCloseButton" action="saveAction"/>
                     <button id="closeButton" action="closeAction"/>
+                    <button id="addLicense" text="msg://addLicense"/>
+                    <button id="removeLicenseButton" icon="TRASH" themeNames="error small"/>
                 </hbox>
-            </vbox>
-        </formLayout>
+
+        </vbox>
     </layout>
 </view>

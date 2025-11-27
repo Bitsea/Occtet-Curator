@@ -79,12 +79,16 @@
                         </vbox>
                     </vbox>
                     <tabSheet id="mainTabSheet" width="84%" height="100%" themeNames="no-padding" >
+                        <tab id="overviewProjectSection" label="Overview">
+                            <fragment class="eu.occtet.bocfrontend.view.audit.fragment.OverviewProjectTabFragment"
+                                      id="overviewProjectTabFragment"/>
+                        </tab>
                         <tab id="inventoryItemSection" label="Inventory Items">
                             <tabSheet id="inventoryItemTabSheet" width="100%" height="100%"
                                       themeNames="small no-padding">
                             </tabSheet>
                         </tab>
-                        <tab id="filesSection" label="Files">
+                        <tab id="filesSection" label="Files" visible="false">
                             <tabSheet id="filesTabSheet" width="100%" height="100%" themeNames="no-padding small">
                             </tabSheet>
                         </tab>

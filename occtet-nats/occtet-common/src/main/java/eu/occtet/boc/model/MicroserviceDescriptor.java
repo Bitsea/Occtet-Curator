@@ -23,18 +23,17 @@
 package eu.occtet.boc.model;
 
 public class MicroserviceDescriptor  extends BaseSystemMessage {
-    private String name, description,version,acceptableWorkData;
-    private UsageType usageType;
+    private String name, description, version="", acceptableWorkData;
+    private boolean usesAI;
 
     public MicroserviceDescriptor() {
     }
 
-    public MicroserviceDescriptor(String name, String description, String version, String acceptableWorkData, UsageType usageType) {
+    public MicroserviceDescriptor(String name, String description, String acceptableWorkData, boolean usesAI) {
         this.name = name;
         this.description = description;
-        this.version = version;
         this.acceptableWorkData = acceptableWorkData;
-        this.usageType = usageType;
+        this.usesAI = usesAI;
     }
 
     public String getName() {
@@ -45,20 +44,20 @@ public class MicroserviceDescriptor  extends BaseSystemMessage {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public String getVersion() {
         return version;
     }
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getAcceptableWorkData() {
@@ -69,11 +68,11 @@ public class MicroserviceDescriptor  extends BaseSystemMessage {
         this.acceptableWorkData = acceptableWorkData;
     }
 
-    public UsageType getUsageType() {
-        return usageType;
+    public boolean isUsesAI() {
+        return usesAI;
     }
 
-    public void setUsageType(UsageType usageType) {
-        this.usageType = usageType;
+    public void setUsesAI(boolean usesAI) {
+        this.usesAI = usesAI;
     }
 }

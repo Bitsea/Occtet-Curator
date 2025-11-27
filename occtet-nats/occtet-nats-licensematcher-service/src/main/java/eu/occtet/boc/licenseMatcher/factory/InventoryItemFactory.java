@@ -44,11 +44,11 @@ public class InventoryItemFactory {
     }
 
     public InventoryItem create(String inventoryName, int size, String linking,String externalNotes, InventoryItem parent,
-                                SoftwareComponent component, boolean wasCombined, List<Copyright> copyrights,
+                                SoftwareComponent component, boolean wasCombined,
                                 Project project, String basePath, String spdxId) {
 
         InventoryItem inventoryItem = new InventoryItem(
-                inventoryName, size, linking, copyrights,  externalNotes,
+                inventoryName, size, linking,   externalNotes,
                 parent, component, wasCombined, false, project, spdxId);
 
         return inventoryItemRepository.save(inventoryItem);
