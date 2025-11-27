@@ -40,7 +40,6 @@ public class CodeLocation {
     @JoinColumn(name = "INVENTORYITEM_ID")
     private InventoryItem inventoryItem;
 
-
     @Column(name = "FILE_PATH", columnDefinition = "Text")
     private String filePath;
 
