@@ -23,7 +23,9 @@
 package eu.occtet.boc.spdx.utlities;
 
 import eu.occtet.boc.entity.*;
+import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.model.SpdxWorkData;
+import eu.occtet.boc.spdx.coverter.SpdxConverter;
 import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
 import eu.occtet.boc.spdx.dao.ProjectRepository;
@@ -56,15 +58,24 @@ import java.util.UUID;
         CopyrightService.class, InventoryItemService.class, LicenseService.class, CodeLocationService.class,
         ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class,
         CopyrightFactory.class, CodeLocationFactory.class, InventoryItemFactory.class,
-        LicenseFactory.class
+        LicenseFactory.class, SpdxConverter.class
 })
-@EnableJpaRepositories(basePackages = "eu.occtet.boc.spdx.dao")
-@EntityScan(basePackages = "eu.occtet.boc.entity")
+@EnableJpaRepositories(basePackages = {
+        "eu.occtet.boc.spdx.dao",
+        "eu.occtet.boc.spdx.doa.spdxV2"
+} )
+@EntityScan(basePackages = {
+        "eu.occtet.boc.entity",
+        "eu.occtet.boc.entity.spdxV2"
+})
 @ExtendWith(MockitoExtension.class)
 public class SPDXServiceTest {
 
     @MockitoBean
     private AnswerService answerService;
+
+    @MockitoBean
+    private SpdxConverter spdxConverter;
 
     @Autowired
     private SpdxService spdxService;
@@ -85,6 +96,21 @@ public class SPDXServiceTest {
                    .thenReturn(true);
            Mockito.when(answerService.prepareAnswers(Mockito.anyList(), Mockito.eq(true), Mockito.eq(true)))
                    .thenReturn(true);
+
+           Mockito.when(spdxConverter.convertSpdxV2DocumentInformation(Mockito.any()))
+                   .thenReturn(new SpdxDocumentRoot());
+
+           Mockito.doNothing()
+                   .when(spdxConverter)
+                   .convertPackage(Mockito.any(), Mockito.any());
+
+           Mockito.doNothing()
+                   .when(spdxConverter)
+                   .convertFile(Mockito.any(), Mockito.any());
+
+           Mockito.doNothing()
+                   .when(spdxConverter)
+                   .convertRelationShip(Mockito.any(), Mockito.any());
 
            SpdxWorkData spdxWorkData = new SpdxWorkData();
            byte[] bytes = Thread.currentThread().getContextClassLoader().getResourceAsStream("synthetic-scan-result-expected-output.spdx.json").readAllBytes();

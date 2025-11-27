@@ -39,7 +39,7 @@
     </parent>
 
     <properties>
-        <start-class>eu.occtet.boc.ai.AIServiceApp</start-class>
+        <start-class>eu.occtet.boc.spdx.SpdxServiceApp</start-class>
     </properties>
 
 

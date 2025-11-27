@@ -58,8 +58,6 @@ public class SpdxConverter {
     @Autowired
     PackageRepository packageRepository;
     @Autowired
-    PackageVerificationCodeRepository packageVerificationCodeRepository;
-    @Autowired
     SpdxFileRepository spdxFileRepository;
     @Autowired
     RelationshipRepository relationshipRepository;
@@ -217,7 +215,6 @@ public class SpdxConverter {
                 packageVerificationCodeEntity.setPackageVerificationCodeValue(spdxPackage.getPackageVerificationCode().get().getValue());
                 packageVerificationCodeEntity.setPackageVerificationCodeExcludedFiles(spdxPackage.getPackageVerificationCode().get().getExcludedFileNames().stream().toList());
                 spdxPackageEntity.setPackageVerificationCode(packageVerificationCodeEntity);
-                packageVerificationCodeRepository.save(packageVerificationCodeEntity);
             }
 
             spdxPackage.getRelationships().forEach(

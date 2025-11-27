@@ -19,7 +19,6 @@
 package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
-import jdk.jshell.Snippet;
 
 import java.util.List;
 

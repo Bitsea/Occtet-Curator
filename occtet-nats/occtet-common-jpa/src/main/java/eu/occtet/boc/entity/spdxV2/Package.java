@@ -59,7 +59,7 @@ public class Package {
     @OneToMany(mappedBy = "spdxElementId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AnnotationEntity> annotationEntities;
 
-    @OneToMany(mappedBy = "package", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExternalRefEntity> externalRefEntities;
 
     @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL, orphanRemoval = true)

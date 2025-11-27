@@ -36,7 +36,7 @@ public class SpdxFileEntity {
     @Column(nullable = false)
     private String fileName;
 
-    @OneToMany(mappedBy = "spdxFile", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "spdxFileEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChecksumEntity> checksums;
 
     @ElementCollection
