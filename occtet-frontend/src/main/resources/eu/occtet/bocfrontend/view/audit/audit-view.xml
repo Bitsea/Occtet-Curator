@@ -43,26 +43,8 @@
             <fetchPlan extends="_local">
                 <property name="parent" fetchPlan="_base"/>
             </fetchPlan>
+        </collection>
 
-        </collection>
-        <collection id="licenseDc"
-                    class="eu.occtet.bocfrontend.entity.License">
-            <fetchPlan extends="_base"/>
-            <loader id="licenseDl">
-                <query>
-                    <![CDATA[select e from License e]]>
-                </query>
-            </loader>
-        </collection>
-        <collection id="copyrightDc"
-                    class="eu.occtet.bocfrontend.entity.Copyright">
-            <fetchPlan extends="_base"/>
-            <loader id="copyrightDl">
-                <query>
-                    <![CDATA[select e from Copyright e]]>
-                </query>
-            </loader>
-        </collection>
     </data>
     <facets>
         <dataLoadCoordinator auto="true"/>

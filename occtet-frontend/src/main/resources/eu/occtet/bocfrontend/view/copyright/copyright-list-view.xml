@@ -35,7 +35,7 @@
             <fetchPlan extends="_base">
                 <property name="codeLocation" fetch="AUTO"/>
             </fetchPlan>
-            <loader id="copyrightsDl" readOnly="true">
+            <loader id="copyrightsDl" >
                 <query>
                     <![CDATA[select e from Copyright e]]>
                 </query>
@@ -60,13 +60,9 @@
                     <properties include=".*"/>
                     <conditions> </conditions>
                 </genericFilter>
-                <vbox alignSelf="END">
-                <hbox>
                 <checkbox id="immediateCheckbox" label="msg://saveImmediately" value="true" alignSelf="END"/>
                 <button id="saveButton" text="Save" enabled="false" alignSelf="END" themeNames="warning" icon="vaadin:safe"/>
-                 </hbox>
-                <simplePagination id="pagination" dataLoader="copyrightsDl" alignSelf="END"/>
-                </vbox>
+                <simplePagination id="pagination" dataLoader="copyrightsDl" alignSelf="END" />
             </hbox>
             <dataGrid id="copyrightsDataGrid"
                       width="100%"
