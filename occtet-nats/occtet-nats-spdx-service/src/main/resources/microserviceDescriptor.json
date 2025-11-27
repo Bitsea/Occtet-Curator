@@ -1,8 +1,7 @@
 {
   "type": "descriptor",
   "name": "occtet-nats-spdx-service",
-  "version": "2025.9.1",
   "description": "A microservice for turning spdx json into entities",
-  "usageType": "RUNNABLE_BY_SERVICE",
+  "usesAI": false,
   "acceptableWorkData": "SpdxWorkData"
 }

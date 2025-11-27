@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.Async;
@@ -59,6 +60,9 @@ public class AICopyrightFilterServiceApp {
     private Connection natsConnection;
 
     private MicroserviceDescriptor microserviceDescriptor;
+
+    @Value("${application.version}")
+    private String applicationVersion;
 
     @Autowired
     private AICopyrightFilterWorkConsumer aiCopyrightFilterWorkConsumer;
@@ -85,13 +89,14 @@ public class AICopyrightFilterServiceApp {
         ClassPathResource resource = new ClassPathResource("microserviceDescriptor.json");
         String s = new String(Files.readAllBytes(Paths.get(resource.getURI())));
         microserviceDescriptor = (new ObjectMapper()).readValue(s, MicroserviceDescriptor.class);
+        microserviceDescriptor.setVersion(applicationVersion);
 
-        log.info("Init Microservice: {} (version {})", microserviceDescriptor.getName(), microserviceDescriptor.getVersion());
+        log.info("Init Microservice: {} (version {})", microserviceDescriptor.getName(), applicationVersion);
         systemHandler = new SystemHandler(natsConnection, microserviceDescriptor, aiCopyrightFilterWorkConsumer);
         systemHandler.subscribeToSystemSubject();
         executor.execute(()->{
             try {
-                aiCopyrightFilterWorkConsumer.startHandlingMessages(natsConnection,microserviceDescriptor.getName(), streamName, workSubject);
+                aiCopyrightFilterWorkConsumer.startHandlingMessages(natsConnection, microserviceDescriptor.getName(), streamName, workSubject);
             } catch (Exception e) {
                 log.error("Could not start handling messages: ", e);
             }

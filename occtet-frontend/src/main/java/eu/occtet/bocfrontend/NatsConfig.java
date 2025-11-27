@@ -22,6 +22,8 @@ package eu.occtet.bocfrontend;
 import io.nats.client.Connection;
 import io.nats.client.Nats;
 import io.nats.client.Options;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,12 +33,21 @@ import java.io.IOException;
 @Configuration
 public class NatsConfig {
 
-  @Value("${nats.url}")
+    private static final Logger log = LogManager.getLogger(NatsConfig.class);
+
+
+    @Value("${nats.url}")
   private String natsUrl;
 
   @Bean
   public Connection natsConnection() throws IOException, InterruptedException {
-    Options options = new Options.Builder().server(natsUrl).build();
+    Options options = new Options.Builder().server(natsUrl)
+            // add a listener for logging connection events
+            .connectionListener((conn, type) -> {
+                log.debug("NATS Connection event: {}", type);
+            })
+            .maxReconnects(-1) // always try to reconnect (default is only 60). Will try to reconnect every 2 seconds.
+            .build();
     return Nats.connect(options);
   }
 }
