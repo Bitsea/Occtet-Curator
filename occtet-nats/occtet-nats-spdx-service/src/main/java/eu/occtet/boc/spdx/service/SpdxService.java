@@ -231,7 +231,7 @@ public class SpdxService extends BaseWorkDataProcessor{
 
         String version = spdxPackage.getVersionInfo().orElse("");
         if (!version.isEmpty() && !downloadLocation.isEmpty()) {
-            if(answerService.sendToDownload(downloadLocation ,project.getBasePath(), version)){
+            if(answerService.sendToDownload(downloadLocation ,project.getBasePath(), version, project.getId().toString())){
                 log.info("sending to DownloadService was successful");
             }else{
                 log.error("failed to send to Downloadservice");

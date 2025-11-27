@@ -136,9 +136,9 @@ public class AnswerService {
      * @param version version of the component to be downloaded
      * @return true if sending was successful otherwise false
      */
-    public boolean sendToDownload(String url, String location, String version){
+    public boolean sendToDownload(String url, String location, String version, String projectId){
         try {
-            DownloadServiceWorkData payload = new DownloadServiceWorkData(url, location, version);
+            DownloadServiceWorkData payload = new DownloadServiceWorkData(url, location, version, projectId);
             LocalDateTime now = LocalDateTime.now();
             long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
             WorkTask workTask = new WorkTask("download_task", "information about a component to be downloaded to a specific location", actualTimestamp, payload);

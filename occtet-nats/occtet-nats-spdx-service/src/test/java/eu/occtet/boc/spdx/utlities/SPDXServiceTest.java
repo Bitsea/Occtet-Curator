@@ -81,7 +81,8 @@ public class SPDXServiceTest {
    //@Test // commented out because of failure loading the copyrights
     public void parseDocumentTest() {
        try {
-           Mockito.when(answerService.sendToDownload(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
+           Mockito.when(answerService.sendToDownload(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
+                           Mockito.anyString()))
                    .thenReturn(true);
            Mockito.when(answerService.prepareAnswers(Mockito.anyList(), Mockito.eq(true), Mockito.eq(true)))
                    .thenReturn(true);
