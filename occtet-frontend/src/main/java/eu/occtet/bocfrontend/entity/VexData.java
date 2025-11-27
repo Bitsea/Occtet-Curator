@@ -74,8 +74,7 @@ public class VexData{
     @Column(name = "META_DATA", columnDefinition = "TEXT")
     private String metaData;
 
-
-    @Column(name = "VULNERABILITY_DATA", columnDefinition = "TEXT")
+    @Column(name = "VULNERABILITIES", columnDefinition = "TEXT")
     private String vulnerabilities;
 
     @ManyToOne(fetch = FetchType.LAZY)
