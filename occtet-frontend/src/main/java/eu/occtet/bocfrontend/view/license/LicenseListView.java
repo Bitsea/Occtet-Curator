@@ -124,6 +124,7 @@ public class LicenseListView extends StandardListView<License> {
             }
             licensesDc.setItems(licenseTypes.stream().map(Pair::getKey).collect(Collectors.toList()));
         } else {
+            log.debug("empty search, loading all licenses");
             licensesDc.setItems( licenseRepository.findAll());
         }
     }

@@ -31,6 +31,8 @@ import eu.occtet.bocfrontend.entity.InventoryItem;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -41,6 +43,8 @@ import java.util.List;
 @ViewDescriptor("add-copyright-dialog.xml")
 @DialogMode(width = "900px", height = "650px")
 public class AddCopyrightDialog extends AbstractAddContentDialog<InventoryItem> {
+
+    private static final Logger log = LogManager.getLogger(AddCopyrightDialog.class);
 
     private InventoryItem inventoryItem;
 
@@ -69,6 +73,7 @@ public class AddCopyrightDialog extends AbstractAddContentDialog<InventoryItem> 
     @Subscribe("copyrightDc")
     public void setAvailableContent(InventoryItem inventoryItem) {
         this.inventoryItem = inventoryItem;
+        log.debug("setAvailableContent");
         copyrightDc.setItems(copyrightRepository.findAll());
     }
 
