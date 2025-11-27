@@ -146,6 +146,9 @@ public class SpdxService extends BaseWorkDataProcessor{
             }
             for (SpdxPackage spdxPackage : spdxPackages) {
                 parseRelationships(spdxPackage, spdxPackage.getRelationships().stream().toList(), project);
+                for(Relationship relationship: spdxPackage.getRelationships()) {
+                    spdxConverter.convertRelationShip(relationship, spdxDocumentRoot, spdxPackage);
+                }
             }
 
             log.info("processed spdx with {} items", inventoryItems.size());

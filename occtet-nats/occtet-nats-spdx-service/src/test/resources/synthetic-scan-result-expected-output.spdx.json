@@ -28,7 +28,8 @@
     "licenseConcluded" : "NOASSERTION",
     "licenseDeclared" : "MIT",
     "name" : "proj1",
-    "versionInfo" : "0.0.1"
+    "versionInfo" : "0.0.1",
+    "hasFiles" : [ "SPDXRef-File-4", "SPDXRef-File-5" ]
   }, {
     "SPDXID" : "SPDXRef-Package-Go-gopkg.in.yaml.v3-3.0.1",
     "copyrightText" : "Copyright (c) 2006-2010 Kirill Simonov",

@@ -20,6 +20,7 @@ package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -62,6 +63,15 @@ public class SpdxDocumentRoot {
 
     @OneToMany(mappedBy = "spdxDocument", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Snippet> snippets;
+
+    public SpdxDocumentRoot(){
+        externalDocumentRefEntities = new ArrayList<>();
+        hasExtractedLicensingInfoEntities = new ArrayList<>();
+        relationshipEntities = new ArrayList<>();
+        packages = new ArrayList<>();
+        files = new ArrayList<>();
+        snippets = new ArrayList<>();
+    }
 
     public String getSPDXID() {
         return SPDXID;
