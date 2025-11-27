@@ -44,11 +44,14 @@ public class SpdxExportApp {
     @Autowired
     private Connection natsConnection;
 
+    @Value("${application.version}")
+    private String applicationVersion;
+
     @Value("${nats.stream-name}")
     private String streamName;
 
-    @Value("${nats.stream-subject}")
-    private String streamSubject;
+    @Value("${nats.work-subject}")
+    private String workSubject;
 
     private MicroserviceDescriptor microserviceDescriptor;
 
@@ -82,7 +85,7 @@ public class SpdxExportApp {
         // start listening for work
         executor.execute(()->{
             try {
-                spdxExportWorkConsumer.startHandlingMessages(natsConnection,microserviceDescriptor.getName(), streamName, streamSubject);
+                spdxExportWorkConsumer.startHandlingMessages(natsConnection,microserviceDescriptor.getName(), streamName, workSubject);
             } catch (Exception e) {
                 log.error("Could not start handling messages: ", e);
             }

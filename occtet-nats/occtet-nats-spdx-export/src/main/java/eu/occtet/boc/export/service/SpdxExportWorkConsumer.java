@@ -30,9 +30,11 @@ import io.nats.client.Message;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 
+@Service
 public class SpdxExportWorkConsumer extends WorkConsumer {
 
     private static final Logger log = LogManager.getLogger(SpdxExportWorkConsumer.class);
