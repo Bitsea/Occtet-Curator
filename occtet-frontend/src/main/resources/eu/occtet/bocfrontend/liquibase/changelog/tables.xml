@@ -81,6 +81,7 @@
             <column name="COPYRIGHT_TEXT" type="TEXT"/>
             <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
             <column name="GARBAGE" type="BOOLEAN"/>
+            <column name="CODE_LOCATION_ID" type="UUID"/>
         </createTable>
 
         <createTable tableName="LICENSE" ifNotExists="true">
@@ -188,8 +189,53 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-
-
+        <createTable tableName="FILE" ifNotExists="true">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_FILE"/>
+            </column>
+            <column name="PROJECT_ID" type="UUID">
+                <constraints nullable="false"
+                             foreignKeyName="FK_FILE_PROJECT"
+                             references="PROJECT(ID)"
+                             deleteCascade="true"/>
+            </column>
+            <column name="PARENT_ID" type="UUID">
+                <constraints nullable="true"
+                             foreignKeyName="FK_FILE_PARENT"
+                             references="FILE(ID)"
+                             deleteCascade="true"/>
+            </column>
+            <column name="CODELOCATION_ID" type="UUID">
+                <constraints nullable="true"
+                             foreignKeyName="FK_FILE_CODELOCATION"
+                             references="CODE_LOCATION(ID)"/>
+            </column>
+            <column name="FILENAME" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ABSOLUTE_PATH" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="RELATIVE_PATH" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="IS_DIRECTORY" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="REVIEWED" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CREATED_DATE" type="DATETIME"/>
+            <column name="LAST_MODIFIED_DATE" type="DATETIME"/>
+            <column name="CREATED_BY" type="VARCHAR(255)"/>
+            <column name="LAST_MODIFIED_BY" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="3" author="OcctetFrontend">
+        <sql>
+            CREATE INDEX IF NOT EXISTS IDX_FILE_PARENT ON public.FILE (PARENT_ID);
+            CREATE INDEX IF NOT EXISTS IDX_FILE_PROJECT_PARENT ON public.FILE (PROJECT_ID, PARENT_ID);
+        </sql>
     </changeSet>
 
     <!-- MODIFICATIONS-->
