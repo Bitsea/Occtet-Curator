@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -61,7 +62,7 @@ public class AuthService {
             @Nonnull String username,
             @Nonnull String password,
             @Nullable  String scope
-    ) throws Exception {
+    ) throws IOException,InterruptedException {
         HttpClient client = HttpClient.newHttpClient();
 
         String form = buildForm(

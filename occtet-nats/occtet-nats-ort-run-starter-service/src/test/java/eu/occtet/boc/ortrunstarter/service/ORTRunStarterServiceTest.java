@@ -2,11 +2,11 @@ package eu.occtet.boc.ortrunstarter.service;
 
 import junit.framework.TestCase;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.openapitools.client.ApiException;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.util.List;
+import java.io.IOException;
 
 /*
  *
@@ -34,17 +34,12 @@ import java.util.List;
 @ContextConfiguration(classes = {ORTRunStarterService.class})
 public class ORTRunStarterServiceTest extends TestCase {
 
-//    @Autowired
     private ORTRunStarterService ortRunStarterService = new ORTRunStarterService();
 
 
-    @Test
-    // NOTICE this is actually demo code at the moment.
-    public void testGetOrganizations()/* throws ApiException*/ {
+    //@Test // commented out because it requires a running ORT server and Keycloak instance on localhost.
+    public void testStartOrtRun() throws IOException, InterruptedException, ApiException/* throws ApiException*/ {
         ortRunStarterService.startOrtRun(1);
-        /*List<Organization> organizations = ortRunStarterService.getOrganizations();
-        for(Organization o : organizations) {
-            System.out.println(o.toString());
-        }*/
+
     }
 }

@@ -28,13 +28,13 @@
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>0.3.1</version>
+        <version>0.3.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>occtet-nats-ort-run-starter-service</artifactId>
     <name>occtet-nats-ort-run-starter-service</name>
     <description>Occtet Nats ORT Run Starter Microservice</description>
-    <version>0.3.1</version>
+    <version>0.3.2-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -121,47 +121,10 @@
             <artifactId>occtet-common-jpa</artifactId>
             <version>${common-jpa-version}</version>
         </dependency>
-        <!--<dependency>
+        <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-ort-client</artifactId>
-            <version>${ort-client-version}</version>
-        </dependency>-->
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib</artifactId>
-            <version>2.2.20</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlinx</groupId>
-            <artifactId>kotlinx-serialization-runtime</artifactId>
-            <version>1.0-M1-1.4.0-rc</version>
-        </dependency>
-        <dependency>
-            <groupId>io.ktor</groupId>
-            <artifactId>ktor-client-okhttp-jvm</artifactId>
-            <version>3.3.2</version>
-        </dependency>
-        <dependency>
-            <groupId>io.ktor</groupId>
-            <artifactId>ktor-serialization-kotlinx-json-jvm</artifactId>
-            <version>3.3.2</version>
-        </dependency>
-        <dependency>
-            <groupId>io.ktor</groupId>
-            <artifactId>ktor-client-content-negotiation-jvm</artifactId>
-            <version>3.3.2</version>
-        </dependency>
-        <dependency>
-            <groupId>io.ktor</groupId>
-            <artifactId>ktor-client-auth-jvm</artifactId>
-            <version>3.3.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.apoapsis.ortserver.api.v1</groupId>
-            <artifactId>api-v1-client</artifactId>
-            <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/libs/api-v1-client-jvm-0.38.0-RC.050.sha.c64c4fd.jar</systemPath>
+            <version>0.3.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
