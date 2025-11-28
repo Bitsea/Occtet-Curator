@@ -26,10 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Manages the UI state of the AuditView within the user's session.
@@ -57,7 +54,7 @@ public class AuditViewStateService {
         log.debug("Saved state to session: project={}, openInventoryTabs={}, openFileTabs={}",
                 state.projectId(),
                 state.openInventoryTabsIds().size(),
-                state.openFileTabsPaths().size());
+                state.openFileTabsIds().size());
     }
 
     /**
@@ -69,27 +66,23 @@ public class AuditViewStateService {
     }
 
     /**
-     * A data record to hold the serializable state of the AuditView.
-     *
-     * @param projectId            The ID of the currently selected project
-     * @param openInventoryTabsIds List of UUIDs for all open inventory item tabs
-     * @param openFileTabsPaths    List of file paths (Strings) for all open file tabs
-     * @param activeTabIdentifier  Identifier for the currently focused tab (UUID for inventory, String path for file)
+     * Represents the state of the AuditView, capturing information about the current project,
+     * active tabs, expanded nodes, and other session-level UI data. This class is immutable
+     * and is used to persist and transfer the UI state within the application.
      */
     public record AuditViewState(
             UUID projectId,
             List<UUID> openInventoryTabsIds,
-            List<String> openFileTabsPaths,
-            Serializable activeTabIdentifier
-    ) implements Serializable {
+            List<UUID> openFileTabsIds,
+            Serializable activeTabIdentifier,
+            Set<UUID> expandedNodeIds
+            ) implements Serializable {
 
-        /**
-         * Compact constructor with validation
-         */
         public AuditViewState {
             Objects.requireNonNull(projectId, "Project ID cannot be null");
             openInventoryTabsIds = List.copyOf(openInventoryTabsIds);
-            openFileTabsPaths = List.copyOf(openFileTabsPaths);
+            openFileTabsIds = List.copyOf(openFileTabsIds);
+            expandedNodeIds = expandedNodeIds != null ? Set.copyOf(expandedNodeIds) : Collections.emptySet();
         }
     }
 }

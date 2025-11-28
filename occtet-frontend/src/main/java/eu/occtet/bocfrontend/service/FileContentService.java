@@ -19,11 +19,14 @@
 
 package eu.occtet.bocfrontend.service;
 
+import eu.occtet.bocfrontend.dao.FileRepository;
 import eu.occtet.bocfrontend.entity.CodeLocation;
+import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.model.FileResult;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -31,73 +34,76 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
+/**
+ * Service class for managing file contents and resolving file paths.
+ * This service provides methods to retrieve the content of files and
+ * to locate files either locally or through a database lookup.
+ */
 @Service
 public class FileContentService {
 
     private static final Logger log = LogManager.getLogger(FileContentService.class);
 
+    @Autowired
+    private FileRepository fileRepository;
+
     /**
-     * Retrieves the content of a file.
-     * If file path is not absolute, it is resolved relative to the root of the inventory item.
+     * Attempts to retrieve the content of a file based on the given {@link CodeLocation} and {@link InventoryItem}.
+     * The method first checks if the resolved file path exists locally. If not, it attempts to resolve the file through
+     * a database lookup using the associated inventory item.
      *
-     * @param codeLocation the object containing the file path and associated metadata
-     * @param inventoryItem the inventory item of the code location
+     * @param codeLocation the code location entity containing file path and other metadata
+     * @param inventoryItem the inventory item associated with the project for database lookup
+     * @return a {@link FileResult} containing the content and file path in case of success,
+     *         or an error message in case of failure
      */
     public FileResult getFileContentOfCodeLocation(CodeLocation codeLocation, InventoryItem inventoryItem) {
-        String pathToView = codeLocation.getFilePath();
-        log.debug("Attempting to view content for path to view: {}", pathToView);
+        String relativePathStr = codeLocation.getFilePath();
 
-        Path finalPath;
-
-        try {
-            Path relativeOrAbsolutePath = Paths.get(pathToView);
-
-            if (relativeOrAbsolutePath.isAbsolute()) {
-                finalPath = relativeOrAbsolutePath;
-                log.debug("Path to view is absolute. Using as is: {}", finalPath);
-            } else {
-                log.debug("Path is relative. Looking for absolute path...");
-                InventoryItem root = inventoryItem;
-                while( root != null && root.getParent() != null){
-                    root = root.getParent();
-                }
-
-                if (root == null || root.getProject().getBasePath() == null || root.getProject().getBasePath().isBlank()) {
-                    log.error("No root base path found for relative path {}. Cannot view file.", pathToView);
-                    return new FileResult.Failure("Cannot view file: The root project directory path is not set.");
-                }
-
-                Path rootBasePath = Paths.get(root.getProject().getBasePath());
-
-                if (!rootBasePath.isAbsolute()) {
-                    log.warn("Aborting: The root base path '{}' is not an absolute path.", rootBasePath);
-                    return new FileResult.Failure("Configuration Error: Please ensure that the root base path is set " +
-                            "correctly and that it is an absolute path.");
-                }
-
-                finalPath = rootBasePath.resolve(relativeOrAbsolutePath);
-                log.debug("Resolved relative path '{}' against root '{}' to get final path '{}'", relativeOrAbsolutePath, rootBasePath, finalPath);
+        Path pathCheck = Paths.get(relativePathStr);
+        if (pathCheck.isAbsolute() && Files.exists(pathCheck)) {
+            try {
+                return new FileResult.Success(Files.readString(pathCheck), pathCheck.toString());
+            } catch (IOException e) {
+                log.error("File exists but unreadable: {}", pathCheck, e);
+                return new FileResult.Failure("Access Denied or File Locked: " + e.getMessage());
             }
-            if (!Files.exists(finalPath) || !Files.isRegularFile(finalPath)) {
-                log.warn("Aborting: File path '{}' does not exist or is not a regular file.", finalPath);
-                return new FileResult.Failure("File Not Found: Please ensure that the file paths are correct and that" +
-                        " the file exists locally");
-            }
-
-            log.info("Viewing file at path '{}'", finalPath);
-            String content = Files.readString(finalPath);
-            return new FileResult.Success(content, finalPath.toString());
-
-        } catch (IOException e) {
-            log.error("Error while viewing file at path '{}'", pathToView, e);
-            return new FileResult.Failure("Error Reading File<br>Could not read the content of the file. Please check file permissions.");
-        } catch (InvalidPathException e){
-            log.error("Invalid path while viewing file at path '{}'", pathToView, e);
-            return new FileResult.Failure("Invalid Path. The file path provided is not valid: pathToView");
         }
+
+        String searchSuffix = relativePathStr.replace("\\", "/");
+
+        List<File> candidates = fileRepository.findRawMatches(inventoryItem.getProject(), Path.of(relativePathStr).getFileName().toString());
+
+        for (File candidate : candidates) {
+            String absPath = candidate.getAbsolutePath();
+            if (absPath.replace("\\", "/").endsWith(searchSuffix)) {
+                try {
+                    Path p = Paths.get(absPath);
+                    if (Files.exists(p)) {
+                        log.info("Resolved via DB: {}", p);
+                        return new FileResult.Success(Files.readString(p), absPath);
+                    }
+                } catch (IOException e) {
+                    log.error("Found inside DB but could not read: {}", absPath, e);
+                    return new FileResult.Failure("Access Denied or File Locked: " + e.getMessage());
+                }
+            }
+        }
+
+        return new FileResult.Failure("File not found via Database lookup.");
     }
 
+    /**
+     * Reads the content of a file located at the given absolute path and returns
+     * the result as a {@link FileResult}. This includes handling file read errors
+     * or invalid paths.
+     *
+     * @param absolutePath the absolute path of the file to be read
+     * @return a {@link FileResult} containing the file content and its path in case of success,
+     *         or an error message in case of failure
+     */
     public FileResult getFileContent(String absolutePath) {
         try {
             Path path = Paths.get(absolutePath);

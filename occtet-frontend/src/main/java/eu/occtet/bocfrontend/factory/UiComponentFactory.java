@@ -30,8 +30,9 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.popover.PopoverVariant;
+import com.vaadin.flow.component.textfield.TextField;
+import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.model.FileTreeNode;
 import eu.occtet.bocfrontend.service.TreeGridHelper;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.TreeDataGrid;
@@ -41,17 +42,18 @@ import org.springframework.stereotype.Component;
 
 
 /**
- * Factory class for creating UI components for the Audit View.
- * This class generates reusable UI components aimed to simplify interactions within grids
- * and enhance user experience.
+ * Factory class responsible for creating various UI components such as toolboxes, headers,
+ * and other elements for utilization in user interface construction and customization.
  */
 @Component
-public class ComponentFactory {
+public class UiComponentFactory {
 
     @Autowired
     private TreeGridHelper treeGridHelper;
     @Autowired
     private UiComponents uiComponents;
+
+    public static final String SEARCH_FIELD_ID = "search-field";
 
     private final String vulnerabilityFilterId = "vulnerability-filter";
 
@@ -128,8 +130,8 @@ public class ComponentFactory {
     public <T> HorizontalLayout createToolBox(TreeDataGrid<T> grid, Class<T> entityClass) {
         if (entityClass.equals(InventoryItem.class)) {
             return createToolBoxForInventoryItemGrid(grid);
-        } else if (entityClass.equals(FileTreeNode.class)) {
-            return createToolBoxForFileTreeNodeGrid(grid);
+        } else if (entityClass.equals(File.class)) {
+            return createFileTreeToolbox((TreeDataGrid<File>) grid);
         }
         return null;
     }
@@ -156,21 +158,37 @@ public class ComponentFactory {
         return toolbox;
     }
 
-    private <T> HorizontalLayout createToolBoxForFileTreeNodeGrid(TreeDataGrid<T> grid) {
-        HorizontalLayout toolbox = uiComponents.create(HorizontalLayout.class);
+    /**
+     * Creates a toolbox layout for a TreeDataGrid containing File entities.
+     * The toolbox includes a search field and expand/collapse buttons for
+     * managing the grid's content display.
+     *
+     * @param grid The TreeDataGrid instance that will interact with the toolbox.
+     * @return A HorizontalLayout representing the toolbox with search and
+     *         expand/collapse functionalities for the file tree.
+     */
+    public HorizontalLayout createFileTreeToolbox(TreeDataGrid<File> grid) {
+        HorizontalLayout layout = uiComponents.create(HorizontalLayout.class);
+        layout.setSpacing(true);
+        layout.setPadding(true);
+        layout.setWidthFull();
+        layout.setClassName("toolbox-audit-view");
+        layout.setAlignItems(FlexComponent.Alignment.START);
 
-        toolbox.setSpacing(true);
-        toolbox.setPadding(true);
-        toolbox.setAlignItems(FlexComponent.Alignment.CENTER);
-        toolbox.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
+        // Search Field
+        TextField searchField = uiComponents.create(TextField.class);
+        searchField.setPrefixComponent(VaadinIcon.SEARCH.create());
+        searchField.setId(SEARCH_FIELD_ID);
+        searchField.setPlaceholder("Search files...");
+        searchField.setClearButtonVisible(true);
+        searchField.setWidth("300px");
 
-        toolbox.setClassName("toolbox-audit-view");
-        toolbox.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
-        toolbox.setAlignItems(FlexComponent.Alignment.START);
-        toolbox.setWidthFull();
-        toolbox.add(createExpandAndCollapseToolBar(grid));
+        // Expand/Collapse buttons
+        HorizontalLayout expandCollapse = createExpandAndCollapseToolBar(grid);
 
-        return toolbox;
+        layout.add(searchField, expandCollapse);
+
+        return layout;
     }
 
     /**

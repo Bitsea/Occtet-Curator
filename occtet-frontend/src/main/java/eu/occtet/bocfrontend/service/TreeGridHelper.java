@@ -21,12 +21,19 @@
 
 package eu.occtet.bocfrontend.service;
 
+import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
 import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
+import eu.occtet.bocfrontend.dao.FileRepository;
+import eu.occtet.bocfrontend.engine.TabManager;
+import eu.occtet.bocfrontend.entity.File;
+import eu.occtet.bocfrontend.view.audit.FileHierarchyProvider;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.UiComponentUtils;
 import io.jmix.flowui.component.grid.TreeDataGrid;
@@ -40,29 +47,24 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
- * A helper class for managing the expansion and collapsing of nodes in a tree grid.
- * Provides methods to perform operations like expanding all child nodes of root items,
- * collapsing all child nodes of root items, and toggling the expansion state of a specific item.
+ * A helper class to facilitate operations and interactions with tree grid components, focusing on tasks
+ * such as expanding/collapsing nodes, applying filters, configuring context menus, and managing nodes'
+ * expansion states.
  */
 @Service
 public class TreeGridHelper {
 
     @Autowired
     private Notifications notifications;
+    @Autowired
+    private FileRepository fileRepository;
 
     public <T> void expandChildrenOfRoots(JmixTreeGrid<T> grid) {
-        if (grid == null)
-            return;
-
+        if (grid == null) return;
         DataProvider<T, ?> dataProvider = grid.getDataProvider();
-        if (dataProvider instanceof TreeDataProvider) {
-            grid.expandRecursively(grid.getTreeData().getRootItems(), Integer.MAX_VALUE);
-        } else {
-            try (Stream<T> stream = dataProvider.fetch(new Query<>())) {
-                stream.forEach(item -> {
-                    grid.expandRecursively(List.of(item), Integer.MAX_VALUE);
-                });
-            }
+        if (dataProvider instanceof HierarchicalDataProvider<T,?> hierarchicalDataProvider) {
+            Stream<T> rootStream = hierarchicalDataProvider.fetch(new HierarchicalQuery<>(null,null));
+            rootStream.forEach(root -> grid.expandRecursively(List.of(root), Integer.MAX_VALUE));
         }
     }
 
@@ -186,5 +188,71 @@ public class TreeGridHelper {
                                 .withPosition(Notification.Position.BOTTOM_END)
                                 .withThemeVariant(NotificationVariant.LUMO_ERROR)
                                 .show());
+    }
+
+    /**
+     * Sets up a context menu for a file grid. The context menu dynamically provides options
+     * based on the selected file, such as opening the file, copying its details, or accessing related inventory items.
+     *
+     * @param grid       the file grid component to which the context menu is attached
+     * @param tabManager the tab manager responsible for managing and opening tabs for files and related items
+     */
+    public void setupFileGridContextMenu(TreeDataGrid<File> grid, TabManager tabManager) {
+        GridContextMenu<File> contextMenu = grid.getContextMenu();
+
+        contextMenu.setDynamicContentHandler(file -> {
+            if (file == null) return false;
+
+            contextMenu.removeAll();
+
+            if (Boolean.FALSE.equals(file.getIsDirectory())) {
+                contextMenu.addItem("Open", event -> tabManager.openFileTab(file, true));
+            }
+            contextMenu.addItem("Copy name", event -> copyToClipboard(file.getFileName()));
+            contextMenu.addItem("Copy Absolute Path", event -> copyToClipboard(file.getAbsolutePath()));
+            contextMenu.addItem("Open Inventory", event -> {
+                notifications.show("Under development...");
+                // TODO determine where to set the associated codeLocation of a file (in backend or frontend?)
+                if (file.getCodeLocation() != null && file.getCodeLocation().getInventoryItem() != null) {
+                    tabManager.openInventoryItemTab(file.getCodeLocation().getInventoryItem(), true);
+                }
+            });
+            return true;
+        });
+    }
+
+    /**
+     * Expands the paths in the file tree grid based on the provided file hierarchy data.
+     * This method determines nodes that need expansion and invokes the grid to expand them.
+     * Note: The provider could contain a search/filter-term which will effect the expansion of nodes etc..
+     *
+     * @param provider the file hierarchy provider containing path IDs and exact match IDs for calculation
+     * @param fileTreeGrid the tree data grid displaying the file hierarchy to be updated
+     */
+    public void expandPathOnly(FileHierarchyProvider provider, TreeDataGrid<File> fileTreeGrid) {
+        Set<UUID> allIdsToShow = provider.getPathIds();
+        Set<UUID> exactMatches = provider.getExactMatchIds();
+
+        Set<UUID> idsToExpand = new HashSet<>(allIdsToShow);
+        idsToExpand.removeAll(exactMatches);
+
+        if (!idsToExpand.isEmpty()) {
+            List<File> nodesToExpand = fileRepository.findByIdIn(idsToExpand);
+            fileTreeGrid.expand(nodesToExpand);
+        }
+    }
+
+    /**
+     * Restores the expansion state in a TreeDataGrid by expanding the nodes corresponding to the provided set of IDs.
+     *
+     * @param idsToExpand a set of UUIDs representing the IDs of nodes to expand; if null or empty, no action is performed
+     * @param fileTreeGrid the TreeDataGrid containing file nodes that will be expanded based on the provided IDs
+     */
+    public void restoreExpansionState(Set<UUID> idsToExpand, TreeDataGrid<File> fileTreeGrid) {
+        if (idsToExpand == null || idsToExpand.isEmpty()) return;
+        List<File> nodesToExpand = fileRepository.findByIdIn(idsToExpand);
+        if (!nodesToExpand.isEmpty()){
+            fileTreeGrid.expand(nodesToExpand);
+        }
     }
 }

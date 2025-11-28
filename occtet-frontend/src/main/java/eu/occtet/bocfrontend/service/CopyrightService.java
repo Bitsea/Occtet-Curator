@@ -35,6 +35,7 @@ import io.jmix.flowui.upload.TemporaryStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.List;
 import java.io.*;
 import java.nio.file.Path;
