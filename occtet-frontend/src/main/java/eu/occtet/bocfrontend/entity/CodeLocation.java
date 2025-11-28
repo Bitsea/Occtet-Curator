@@ -1,23 +1,20 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *     https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
- *  SPDX-License-Identifier: Apache-2.0
- *  License-Filename: LICENSE
- * /
- *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
  */
 
 package eu.occtet.bocfrontend.entity;
@@ -48,10 +45,10 @@ public class CodeLocation {
     private String filePath;
 
     @Column(name= "LINE_NUMBER")
-    private Integer lineNumberOne;
+    private Integer lineNumber;
 
     @Column(name= "LINE_NUMBER_TO")
-    private Integer lineNumberTwo;
+    private Integer lineNumberTo;
 
     public CodeLocation(){}
 
@@ -71,20 +68,20 @@ public class CodeLocation {
         this.id = id;
     }
 
-    public Integer getLineNumberOne() {
-        return lineNumberOne;
+    public Integer getLineNumber() {
+        return lineNumber;
     }
 
-    public void setLineNumberOne(Integer lineNumberOne) {
-        this.lineNumberOne = lineNumberOne;
+    public void setLineNumber(Integer lineNumber) {
+        this.lineNumber = lineNumber;
     }
 
-    public Integer getLineNumberTwo() {
-        return lineNumberTwo;
+    public Integer getLineNumberTo() {
+        return lineNumberTo;
     }
 
-    public void setLineNumberTwo(Integer lineNumberTwo) {
-        this.lineNumberTwo = lineNumberTwo;
+    public void setLineNumberTo(Integer lineNumberTo) {
+        this.lineNumberTo = lineNumberTo;
     }
 
     public InventoryItem getInventoryItem() {

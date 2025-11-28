@@ -62,10 +62,6 @@ public class InventoryItem {
     @Column(name= "CONSPICUOUS")
     private Boolean conspicuous;
 
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "INVENTORY_ITEM_ID")
-    private List<Copyright> copyrights;
-
     @Column(name= "EXTERNAL_NOTES", columnDefinition = "TEXT")
     private String externalNotes;
 
@@ -98,7 +94,6 @@ public class InventoryItem {
             String inventoryName,
             int size,
             String linking,
-            List<Copyright> copyrights,
             String externalNotes,
             InventoryItem parent,
             SoftwareComponent softwareComponent,
@@ -110,7 +105,6 @@ public class InventoryItem {
         this.inventoryName = inventoryName;
         this.size = size;
         this.linking = linking;
-        this.copyrights = copyrights;
         this.externalNotes = externalNotes;
         this.parent = parent;
         this.softwareComponent = softwareComponent;
@@ -201,14 +195,6 @@ public class InventoryItem {
         this.curated = curated;
     }
 
-
-    public List<Copyright> getCopyrights() {
-        return copyrights;
-    }
-
-    public void setCopyrights(List<Copyright> copyrights) {
-        this.copyrights = copyrights;
-    }
 
     public Project getProject() {
         return project;

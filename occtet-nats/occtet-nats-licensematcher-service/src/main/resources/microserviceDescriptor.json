@@ -1,8 +1,7 @@
 {
   "type": "descriptor",
   "name": "occtet-nats-licenseMatcher",
-  "version": "2025.9.1",
-  "description": "A template microservice for preparing license data for spdx-matching and giving to AI",
-  "usageType": "RUNNABLE_BY_SERVICE",
+  "description": "A microservice for preparing license data for spdx-matching and giving to AI",
+  "usesAI": false,
   "acceptableWorkData": "ScannerSendWorkData"
 }

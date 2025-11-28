@@ -1,25 +1,23 @@
 /*
- *  Copyright (C) 2025 Bitsea GmbH
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https:www.apache.orglicensesLICENSE-2.0
+ *     https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
- *  SPDX-License-Identifier: Apache-2.0
- *  License-Filename: LICENSE
- *
- *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.fragment;
+package eu.occtet.bocfrontend.view.audit.fragment;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
@@ -198,8 +196,8 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
                 .withHeader("Enter values")
                 .withParameters(
                         InputParameter.stringParameter("filePath").withLabel("File Path").withDefaultValue(codeLocation.getFilePath()),
-                        InputParameter.intParameter("from").withRequired(false).withLabel("From").withDefaultValue(codeLocation.getLineNumberOne()),
-                        InputParameter.intParameter("to").withRequired(false).withLabel("To").withDefaultValue(codeLocation.getLineNumberTwo())
+                        InputParameter.intParameter("from").withRequired(false).withLabel("From").withDefaultValue(codeLocation.getLineNumber()),
+                        InputParameter.intParameter("to").withRequired(false).withLabel("To").withDefaultValue(codeLocation.getLineNumberTo())
                 ).withActions(DialogActions.OK_CANCEL)
                 .withCloseListener( closeEvent ->{
                     if (!closeEvent.closedWith(DialogOutcome.OK)){
@@ -209,8 +207,8 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
                     Integer from = closeEvent.getValue("from");
                     Integer to = closeEvent.getValue("to");
                     codeLocation.setFilePath(filePath);
-                    codeLocation.setLineNumberOne(from);
-                    codeLocation.setLineNumberTwo(to);
+                    codeLocation.setLineNumber(from);
+                    codeLocation.setLineNumberTo(to);
                     codeLocationRepository.save(codeLocation);
                     log.debug("Code location {} edited.", codeLocation.getId());
                 }).open();

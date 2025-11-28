@@ -1,4 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2025 Bitsea GmbH
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https:www.apache.orglicensesLICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  ~ License-Filename: LICENSE
+  -->
+
 <databaseChangeLog
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -16,54 +35,14 @@
             <column name="COMPONENT" type="VARCHAR(50)"/>
             <column name="MESSAGE" type="TEXT"/>
         </createTable>
-        <createTable tableName="COPYRIGHT" ifNotExists="true">
-            <column name="ID" type="UUID">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_COPYRIGHT"/>
-            </column>
-            <column name="CODE_LOCATION_ID" type="UUID"/>
-            <column name="COPYRIGHT_TEXT" type="TEXT"/>
-            <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
-            <column name="GARBAGE" type="BOOLEAN"/>
-        </createTable>
-        <createTable tableName="CODE_LOCATION" ifNotExists="true">
-            <column name="ID" type="UUID">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_CODE_LOCATION" />
-            </column>
-            <column name="FILE_PATH" type="TEXT"/>
-            <column name="INVENTORY_ITEM_ID" type="uuid"/>
-            <column name="COPYRIGHT_ID" type="uuid"/>
-            <column name="LINE_NUMBER" type="INTEGER"/>
-            <column name="LINE_NUMBER_TO" type="INTEGER"/>
-        </createTable>
-        <createTable tableName="LICENSE" ifNotExists="true">
-            <column name="ID" type="UUID">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_LICENSE"/>
-            </column>
-            <column name="PRIORITY" type="INTEGER"/>
-            <column name="LICENSE_TYPE" type="VARCHAR(255)"/>
-            <column name="LICENSE_TEXT" type="TEXT"/>
-            <column name="LICENSE_NAME" type="VARCHAR(255)"/>
-            <column name="DETAILS_URL" type="VARCHAR(255)"/>
-            <column name="MODIFIED" type="BOOLEAN"/>
-            <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
-            <column name="IS_SPDX" type="BOOLEAN"/>
-        </createTable>
+
+
         <createTable tableName="PROJECT" ifNotExists="true">
             <column name="ID" type="UUID">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="PK_PROJECT"/>
             </column>
             <column name="PROJECT_NAME" type="VARCHAR(255)"/>
             <column name="BASEPATH" type="text"/>
-        </createTable>
-        <createTable tableName="SOFTWARE_COMPONENT" ifNotExists="true">
-            <column name="ID" type="UUID">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SOFTWARE_COMPONENT"/>
-            </column>
-            <column name="SOFTWARE_COMPONENT_NAME" type="VARCHAR(255)"/>
-            <column name="VERSION" type="varchar(255)"/>
-            <column name="PURL" type="varchar(255)"/>
-            <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
-            <column name="DETAILS_URL" type="TEXT"/>
         </createTable>
         <createTable tableName="SCANNER_INITIALIZER" ifNotExists="true">
             <column name="ID" type="UUID">
@@ -92,6 +71,53 @@
             <column name="SPDX_ID" type="varchar(255)"/>
             <column name="PRIORITY" type="INTEGER"/>
             <column name="CONSPICUOUS" type="BOOLEAN"/>
+        </createTable>
+
+        <createTable tableName="COPYRIGHT" ifNotExists="true">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_COPYRIGHT"/>
+            </column>
+            <column name="SOFTWARE_COMPONENT_ID" type="UUID"/>
+            <column name="COPYRIGHT_TEXT" type="TEXT"/>
+            <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
+            <column name="GARBAGE" type="BOOLEAN"/>
+        </createTable>
+
+        <createTable tableName="LICENSE" ifNotExists="true">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_LICENSE"/>
+            </column>
+            <column name="PRIORITY" type="INTEGER"/>
+            <column name="LICENSE_TYPE" type="VARCHAR(255)"/>
+            <column name="LICENSE_TEXT" type="TEXT"/>
+            <column name="LICENSE_NAME" type="VARCHAR(255)"/>
+            <column name="DETAILS_URL" type="VARCHAR(255)"/>
+            <column name="MODIFIED" type="BOOLEAN"/>
+            <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
+            <column name="IS_SPDX" type="BOOLEAN"/>
+            <column name="COPYRIGHT_ID" type="UUID"/>
+        </createTable>
+
+        <createTable tableName="SOFTWARE_COMPONENT" ifNotExists="true">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SOFTWARE_COMPONENT"/>
+            </column>
+            <column name="SOFTWARE_COMPONENT_NAME" type="VARCHAR(255)"/>
+            <column name="VERSION" type="varchar(255)"/>
+            <column name="PURL" type="varchar(255)"/>
+            <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
+            <column name="DETAILS_URL" type="TEXT"/>
+        </createTable>
+
+        <createTable tableName="CODE_LOCATION" ifNotExists="true">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_CODE_LOCATION" />
+            </column>
+            <column name="FILE_PATH" type="TEXT"/>
+            <column name="INVENTORY_ITEM_ID" type="uuid"/>
+            <column name="COPYRIGHT_ID" type="uuid"/>
+            <column name="LINE_NUMBER" type="INTEGER"/>
+            <column name="LINE_NUMBER_TO" type="INTEGER"/>
         </createTable>
         <createTable tableName="CONFIGURATION" ifNotExists="true">
             <column name="ID" type="UUID">
@@ -139,9 +165,32 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <createTable tableName="VEX_DATA" ifNotExists="true">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_VEX_DATA" />
+            </column>
+            <column name="TITLE" type="TEXT"/>
+            <column name="CHECKED" type="BOOLEAN"/>
+            <column name="BOM_FORMAT" type="TEXT"/>
+            <column name="SPEC_VERSION" type="TEXT"/>
+            <column name="SERIAL_NUMBER" type="TEXT"/>
+            <column name="VERSION" type="INTEGER"/>
+            <column name="TIME_STAMP" type="DATE"/>
+            <column name="META_DATA" type="TEXT"/>
+            <column name="VULNERABILITIES" type="TEXT"/>
+            <column name="SOFTWARE_COMPONENT_ID" type="UUID"/>
+        </createTable>
+        <createTable tableName="VULNERABILITY_VEX_LINK" ifNotExists="true">
+            <column name="VEX_DATA_ID" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="VULNERABILITY_ID" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+
     </changeSet>
-
-
 
     <!-- MODIFICATIONS-->
 

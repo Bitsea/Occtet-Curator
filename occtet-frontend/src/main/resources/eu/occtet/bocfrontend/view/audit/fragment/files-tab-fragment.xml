@@ -57,7 +57,7 @@
                 </hbox>
             </vbox>
             <vbox id="codeViewerBox" width="100%" height="100%" visible="false" margin="false" padding="false">
-                <fragment class="eu.occtet.bocfrontend.fragment.CodeViewerFragment"
+                <fragment class="eu.occtet.bocfrontend.view.audit.fragment.CodeViewerFragment"
                           id="codeViewer"/>
             </vbox>
             <button id="switchButton" text="switch to code viewer" icon="vaadin:code"

@@ -35,6 +35,5 @@ import java.util.UUID;
 @Repository
 public interface ScannerInitializerRepository extends JpaRepository<ScannerInitializer, Long> {
 
-    List<ScannerInitializer> findByInventoryItemOrderByLastUpdateDesc(InventoryItem inventoryItem);
     Optional<ScannerInitializer> findById(UUID id);
 }

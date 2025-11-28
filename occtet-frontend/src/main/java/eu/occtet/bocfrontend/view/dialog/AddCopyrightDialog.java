@@ -1,23 +1,20 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *     https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
- *  SPDX-License-Identifier: Apache-2.0
- *  License-Filename: LICENSE
- * /
- *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
  */
 
 package eu.occtet.bocfrontend.view.dialog;
@@ -34,6 +31,8 @@ import eu.occtet.bocfrontend.entity.InventoryItem;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -44,6 +43,8 @@ import java.util.List;
 @ViewDescriptor("add-copyright-dialog.xml")
 @DialogMode(width = "900px", height = "650px")
 public class AddCopyrightDialog extends AbstractAddContentDialog<InventoryItem> {
+
+    private static final Logger log = LogManager.getLogger(AddCopyrightDialog.class);
 
     private InventoryItem inventoryItem;
 
@@ -72,6 +73,7 @@ public class AddCopyrightDialog extends AbstractAddContentDialog<InventoryItem> 
     @Subscribe("copyrightDc")
     public void setAvailableContent(InventoryItem inventoryItem) {
         this.inventoryItem = inventoryItem;
+        log.debug("setAvailableContent");
         copyrightDc.setItems(copyrightRepository.findAll());
     }
 
@@ -83,8 +85,8 @@ public class AddCopyrightDialog extends AbstractAddContentDialog<InventoryItem> 
 
         if(event != null & copyrights != null){
             for(Copyright copyright : copyrights){
-                if(!this.inventoryItem.getCopyrights().contains(copyright)){
-                    this.inventoryItem.getCopyrights().add(copyright);
+                if(!this.inventoryItem.getSoftwareComponent().getCopyrights().contains(copyright)){
+                    this.inventoryItem.getSoftwareComponent().getCopyrights().add(copyright);
                 }
             }
             inventoryItemRepository.save(this.inventoryItem);
@@ -98,10 +100,16 @@ public class AddCopyrightDialog extends AbstractAddContentDialog<InventoryItem> 
 
         String searchWord = searchField.getValue();
         if(!searchWord.isEmpty() && event != null){
-            List<Copyright> list = copyrightRepository.findByCopyrightText(searchWord);
-            copyrightDc.setItems(list);
+            List<Copyright> copyrightsFromItem = inventoryItem.getSoftwareComponent().getCopyrights();
+            List<Copyright> searchedCopyrights = new ArrayList<>();
+            for(Copyright copyright : copyrightsFromItem){
+                if (copyright.getCopyrightText().contains(searchWord)){
+                    searchedCopyrights.add(copyright);
+                }
+            }
+            copyrightDc.setItems(searchedCopyrights);
         }else{
-            copyrightDc.setItems(copyrightRepository.findAll());
+            copyrightDc.setItems(inventoryItem.getSoftwareComponent().getCopyrights());
         }
     }
 

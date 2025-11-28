@@ -25,6 +25,7 @@ package eu.occtet.boc.copyrightFilter.service;
 import eu.occtet.boc.copyrightFilter.preprocessor.CopyrightPreprocessor;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.entity.SoftwareComponent;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
@@ -43,7 +44,7 @@ public class FilterFalseCopyrightServiceTest {
     //@Test
     void filterFalsCopyrightsWithGarbageFile() {
         CopyrightFilterService filterFalseCopyrightService= new CopyrightFilterService();
-        InventoryItem item = new InventoryItem();
+        SoftwareComponent item = new SoftwareComponent();
         Copyright copyright1 = new Copyright();
         copyright1.setCopyrightText("valid copyright");
         Copyright copyright2 = new Copyright();

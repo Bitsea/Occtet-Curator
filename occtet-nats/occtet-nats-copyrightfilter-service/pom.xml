@@ -28,13 +28,13 @@
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>0.3.1</version>
+        <version>0.3.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>occtet-nats-copyrightfilter-service</artifactId>
     <name>occtet-nats-copyrightfilter-service</name>
     <description>Occtet Nats CopyrightFilter Microservice</description>
-    <version>0.3.1</version>
+    <version>0.3.2-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -56,7 +56,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>1.5.16</version>
+            <version>1.5.19</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback.db</groupId>
