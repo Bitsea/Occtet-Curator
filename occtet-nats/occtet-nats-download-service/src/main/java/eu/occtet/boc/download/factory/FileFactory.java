@@ -32,6 +32,9 @@ import java.util.Optional;
 @Component
 public class FileFactory {
 
+    @Autowired
+    private FileRepository fileRepository;
+
     public File create(Project project,
                        String fileName,
                        String absolutePath,
@@ -39,16 +42,23 @@ public class FileFactory {
                        boolean isDirectory,
                        File parentEntity
     ) {
+        Optional<File> existing = fileRepository.findByProjectAndAbsolutePath(project, absolutePath);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+
         File file = new File();
+
         file.setProject(project);
         file.setFileName(fileName);
         file.setAbsolutePath(absolutePath);
         file.setRelativePath(relativePath);
         file.setIsDirectory(isDirectory);
         file.setParent(parentEntity);
+
         file.setCodeLocation(null);
         file.setReviewed(false);
 
-        return file;
+        return fileRepository.save(file);
     }
 }

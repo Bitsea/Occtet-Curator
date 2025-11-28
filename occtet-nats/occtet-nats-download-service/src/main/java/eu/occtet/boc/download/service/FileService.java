@@ -34,8 +34,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Service for handling operations related to File entities, such as scanning directories
@@ -48,33 +46,31 @@ public class FileService {
 
     @Autowired
     private FileFactory fileFactory;
-    @Autowired
-    private FileRepository fileRepository;
 
     /**
-     * Scans the specified path for files and directories within the context of a given project,
-     * creates corresponding File entities, and saves them to the database. Any existing File
-     * entities starting with the specified path are deleted prior to the scan to avoid duplicates.
+     * Scans a directory located at the given path and creates corresponding File entities
+     * within the provided project. All discovered files and directories are stored as entities.
+     * <p>
+     * The method ensures that symbolic links are skipped during the scan to prevent processing
+     * invalid or redundant paths. It also persists the created entities using the associated repository.
      *
-     * @param project the Project entity to which the files and directories belong
-     * @param specificPathToScan the root path to scan for files and directories
+     * @param project the Project entity to which the scanned files and directories belong
+     * @param rootPath the root path of the directory to be scanned and processed
      */
     @Transactional
-    public void createEntitiesFromPath(Project project, Path specificPathToScan) {
+    public void createEntitiesFromPath(Project project, Path rootPath) {
         try {
-            log.info("Starting scan for project {} in path {}", project.getId(), specificPathToScan);
-            // just in case delete pre-existing files in this path to avoid duplicates
-            fileRepository.deleteByProjectAndAbsolutePathStartingWith(project, specificPathToScan.toString());
-            List<File> buffer = new ArrayList<>();
-            scanDir(project, specificPathToScan.toFile(), null, buffer);
-            if (!buffer.isEmpty()) {
-                log.info("Saving {} files to database...", buffer.size());
-                fileRepository.saveAll(buffer);
-                log.info("Save complete.");
-            }
+            log.info("Starting scan for project {} in path {}", project.getId(), rootPath);
+            java.io.File rootDirectory = rootPath.toFile();
 
-        } catch (Exception e){
-            log.error("Could not scan directory {}", specificPathToScan, e);
+            File rootEntity = fileFactory.create(project, rootDirectory.getName(),
+                    rootDirectory.getAbsolutePath(), getRelativePath(project, rootDirectory),
+                    true, null);
+
+
+            scanDir(project, rootDirectory, rootEntity);
+        } catch (Exception e) {
+            log.error("Could not scan directory {}", rootPath, e);
         }
     }
 
@@ -85,7 +81,7 @@ public class FileService {
      *
      * @param project the Project entity associated with the directory being scanned
      */
-    private void scanDir(Project project, java.io.File directory, File parentEntity, List<File> buffer) {
+    private void scanDir(Project project, java.io.File directory, File parentEntity) {
         java.io.File[] files = directory.listFiles();
         if (files == null) return;
 
@@ -101,10 +97,8 @@ public class FileService {
                     parentEntity
             );
 
-            buffer.add(fileEntity);
-
             if (file.isDirectory()) {
-                scanDir(project, file, fileEntity, buffer);
+                scanDir(project, file, fileEntity);
             }
         }
     }
