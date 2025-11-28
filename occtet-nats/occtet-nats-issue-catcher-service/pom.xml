@@ -28,13 +28,13 @@
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>2025.9.2</version>
+        <version>0.3.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>occtet-nats-issue-catcher-service</artifactId>
     <name>occtet-nats-issue-catcher-service</name>
     <description>Occtet Nats Issue Catcher Microservice</description>
-    <version>2025.9.1</version>
+    <version>0.3.2-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -46,12 +46,17 @@
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-common</artifactId>
-            <version>2025.10.3</version>
+            <version>${common-version}</version>
         </dependency>
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-ort-client</artifactId>
-            <version>2025.10.1</version>
+            <version>0.3.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-authz-client</artifactId>
+            <version>26.0.7</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

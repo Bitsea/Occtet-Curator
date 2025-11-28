@@ -43,6 +43,9 @@ public class IssueCatcherServiceApp {
     @Value("${nats.work-subject}")
     private String workSubject;
 
+    @Value("${application.version}")
+    private String applicationVersion;
+
     private SystemHandler systemHandler;
 
     private Executor executor = new SimpleAsyncTaskScheduler();
@@ -59,6 +62,7 @@ public class IssueCatcherServiceApp {
         ClassPathResource resource = new ClassPathResource("microserviceDescriptor.json");
         String s = new String(Files.readAllBytes(Paths.get(resource.getURI())));
         microserviceDescriptor = (new ObjectMapper()).readValue(s, MicroserviceDescriptor.class);
+        microserviceDescriptor.setVersion(applicationVersion);
         log.info("Init Microservice: {} (version {})", microserviceDescriptor.getName(), microserviceDescriptor.getVersion());
         systemHandler = new SystemHandler(natsConnection, microserviceDescriptor, issueCatcherWorkConsumer);
         systemHandler.subscribeToSystemSubject();

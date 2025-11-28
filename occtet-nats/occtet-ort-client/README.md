@@ -35,35 +35,24 @@ To use the library in your project, add the dependency to your pom.xml:
 <dependency>
     <groupId>eu.occtet.boc</groupId>
     <artifactId>occtet-ort-client</artifactId>
-    <version>2025.10.1</version>
+    <version>...</version>
 </dependency>
 ``` 
 
 Then you can use the generated API classes to interact with the ORT Server.
-For example, to get a list of product vulnerabilities (add authentification as needed):
+For example, to get a list of versions of the ORT Server, you can do the following:
 
 ```java
-import eu.occtet.boc.ort.client.ApiClient;
-import eu.occtet.boc.ort.client.ApiException;
-import eu.occtet.boc.ort.client.api.ProjectsApi;
-import eu.occtet.boc.ort.client.model.ProjectList;  
+OrtClientService ortClientService = new OrtClientService("http://localhost:8080");
+AuthService authService = new AuthService("http://localhost:8081/realms/master/protocol/openid-connect/token");
 
-public class OrtClientExample {
-    public static void main(String[] args) {
-        ApiClient apiClient = new ApiClient();
-        apiClient.setBasePath("http://localhost:8082/api"); // Set the base path to your ORT server
+TokenResponse tokenResponse = authService.requestToken("ort-server","ort-admin","password","offline_access");
 
-        ProductsApi api = new ProductsApi(apiClient);
+ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
 
-        try {
-            PagedSearchResponseProductVulnerabilityVulnerabilityForRunsFilters result = api.getProductVulnerabilities(...);
-            ...
-        } catch (ApiException e) {
-            
-            e.printStackTrace();    
-        }
-    }
-}
+VersionsApi versionsApi = new VersionsApi(apiClient);
+Map<String, String> versions = versionsApi.getVersions();
 ```
-
-Please note that the above example is untested.
+See OrtClientServiceTest.java from which this code is.
+Note that the tokenResponse has a validity for (by default) 600 seconds only, so you need to get a new one when it is expired.
+Just use tokenResponse.isValid() to check.
