@@ -33,4 +33,5 @@ import java.util.UUID;
 public interface FileRepository extends JpaRepository<File, UUID> {
     Optional<File> findByProjectAndAbsolutePath(Project project, String absolutePath);
     long countByProject(Project project);
+    void deleteByProjectAndAbsolutePathStartingWith(Project project, String path);
 }

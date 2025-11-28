@@ -87,7 +87,7 @@ public class FileServiceTest {
         File subFolderEntity = childFile.getParent();
 
         assertNull(subFolderEntity.getParent());
-        assertTrue(subFolderEntity.getDirectory());
+        assertTrue(subFolderEntity.getIsDirectory());
         assertEquals("subFolder", subFolderEntity.getRelativePath());
 
         File rootFile = allFiles.stream()

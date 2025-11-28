@@ -68,34 +68,34 @@ public class DownloadService extends BaseWorkDataProcessor {
     @Override
     public boolean process(DownloadServiceWorkData workData) {
         log.debug("DownloadService: downloading data from {} to {}", workData.getUrl(),workData.getLocation());
-        boolean success = storeData(workData);
-        if(success){
-            Path projectRoot = Path.of(workData.getLocation());
+        Path downloadedPath = storeData(workData);
+        if (downloadedPath != null) {
             Project project = projectRepository.findById(UUID.fromString(workData.getProjectId()))
                     .orElse(null);
+
             if (project != null) {
-                fileService.createEntitiesFromPath(project, projectRoot);
+                fileService.createEntitiesFromPath(project, downloadedPath);
+                return true;
             }
         }
-        return success;
+        return false;
     }
 
-    public boolean storeData(DownloadServiceWorkData workData){
+    public Path storeData(DownloadServiceWorkData workData){
 
         try{
             String analyzedUrl = analyzingUrl(workData.getUrl());
 
             if(analyzedUrl.equals("git")) {
                 getGitUrl(workData.getUrl(), workData.getVersion());
-                downloadFile(gitUrl,workData.getLocation());
+                return downloadFile(gitUrl,workData.getLocation());
             }else{
-                downloadFile(workData.getUrl(), workData.getLocation());
+                return downloadFile(workData.getUrl(), workData.getLocation());
             }
         }catch (Exception e){
             log.error(e.getMessage());
-            return false;
+            return null;
         }
-        return true;
     }
 
     private String analyzingUrl(String url){
@@ -119,7 +119,7 @@ public class DownloadService extends BaseWorkDataProcessor {
         }
     }
 
-    private void downloadFile(String urlString, String location){
+    private Path downloadFile(String urlString, String location){
 
         try{
             String fileName = urlString.substring(urlString.lastIndexOf('/')+1);
@@ -141,6 +141,9 @@ public class DownloadService extends BaseWorkDataProcessor {
             if(Files.notExists(savePath)){
                 Files.createDirectories(Path.of(savePath.toFile().getAbsolutePath()));
             }
+
+            File targetFolder = new File(savePath.toFile().getAbsolutePath(),fileName);
+
             if(fileName.contains(".")){
                 if(fileName.substring(fileName.lastIndexOf('.')).equals(".gz")){
                     unpackTarFile(tmpFile, savePath, fileName);
@@ -151,8 +154,11 @@ public class DownloadService extends BaseWorkDataProcessor {
                 unpackZipFile(tmpFile,savePath,fileName);
             }
             log.info("File downloaded: {}",fileName);
+            log.info("File downloaded and unpacked to: {}", targetFolder.getAbsolutePath());
+            return targetFolder.toPath();
         }catch(Exception e) {
             log.error("Error in download file; {}",e.getMessage());
+            return null;
         }
     }
 

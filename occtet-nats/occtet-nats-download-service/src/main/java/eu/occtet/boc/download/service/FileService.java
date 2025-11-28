@@ -34,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service for handling operations related to File entities, such as scanning directories
@@ -49,41 +51,60 @@ public class FileService {
     @Autowired
     private FileRepository fileRepository;
 
-
-    public void createEntitiesFromPath(Project project, Path rootPath) {
+    /**
+     * Scans the specified path for files and directories within the context of a given project,
+     * creates corresponding File entities, and saves them to the database. Any existing File
+     * entities starting with the specified path are deleted prior to the scan to avoid duplicates.
+     *
+     * @param project the Project entity to which the files and directories belong
+     * @param specificPathToScan the root path to scan for files and directories
+     */
+    @Transactional
+    public void createEntitiesFromPath(Project project, Path specificPathToScan) {
         try {
-            log.debug("createEntitiesFromPath called with rootPath: {}", rootPath);
-            // fileRepository.deleteByProject(project); determine whether if this is needed?
-            log.debug("Starting the scan.");
-            scanDir(project, rootPath.toFile(),null);
-            log.debug("Scan of directory {} completed", rootPath);
-            log.debug("Number of files created: {}", (int) fileRepository.countByProject(project));
+            log.info("Starting scan for project {} in path {}", project.getId(), specificPathToScan);
+            // just in case delete pre-existing files in this path to avoid duplicates
+            fileRepository.deleteByProjectAndAbsolutePathStartingWith(project, specificPathToScan.toString());
+            List<File> buffer = new ArrayList<>();
+            scanDir(project, specificPathToScan.toFile(), null, buffer);
+            if (!buffer.isEmpty()) {
+                log.info("Saving {} files to database...", buffer.size());
+                fileRepository.saveAll(buffer);
+                log.info("Save complete.");
+            }
+
         } catch (Exception e){
-            log.error("Could not scan directory {} with error message: {}", rootPath, e.getMessage());
+            log.error("Could not scan directory {}", specificPathToScan, e);
         }
     }
 
-    // FIXME runs endlessly; check consumer it could be that the process method in downloadService is being called
-    //  endlessly
     /**
-     * This method recursively scans a directory and creates File entities for each file found.
+     * Recursively scans a given directory and populates the provided buffer with File entities
+     * representing the files and subdirectories found. Skips symbolic links to avoid processing
+     * invalid or redundant paths.
+     *
+     * @param project the Project entity associated with the directory being scanned
      */
-    private void scanDir(Project project, java.io.File directory, File parentEntity){
+    private void scanDir(Project project, java.io.File directory, File parentEntity, List<File> buffer) {
         java.io.File[] files = directory.listFiles();
         if (files == null) return;
 
         for (java.io.File file : files) {
-            if (Files.isSymbolicLink(file.toPath())) {
-                log.debug("Skipping symbolic link: {}", file.getAbsolutePath());
-                continue;
-            }
+            if (Files.isSymbolicLink(file.toPath())) continue;
 
             File fileEntity = fileFactory.create(
-                    project, file.getName(), file.getAbsolutePath(),
-                    getRelativePath(project, file), file.isDirectory(), parentEntity);
+                    project,
+                    file.getName(),
+                    file.getAbsolutePath(),
+                    getRelativePath(project, file),
+                    file.isDirectory(),
+                    parentEntity
+            );
+
+            buffer.add(fileEntity);
 
             if (file.isDirectory()) {
-                scanDir(project, file, fileEntity);
+                scanDir(project, file, fileEntity, buffer);
             }
         }
     }
