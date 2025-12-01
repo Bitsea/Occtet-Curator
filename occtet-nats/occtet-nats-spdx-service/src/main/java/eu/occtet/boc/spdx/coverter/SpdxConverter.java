@@ -226,6 +226,7 @@ public class SpdxConverter {
             spdxPackageEntity.setPackageVerificationCode(packageVerificationCodeEntity);
 
             spdxDocumentRoot.getPackages().add(spdxPackageEntity);
+            spdxDocumentRootRepository.save(spdxDocumentRoot);
             packageRepository.save(spdxPackageEntity);
             return spdxPackageEntity;
 
@@ -280,6 +281,7 @@ public class SpdxConverter {
             spdxFileEntity.setLicenseInfoInFiles(licenseInfoFromFiles);
 
             spdxDocumentRoot.getFiles().add(spdxFileEntity);
+            spdxDocumentRootRepository.save(spdxDocumentRoot);
             spdxFileRepository.save(spdxFileEntity);
             return spdxFileEntity;
 
@@ -314,6 +316,7 @@ public class SpdxConverter {
             relationshipEntity.setRelationshipType(relationship.getRelationshipType().toString());
 
             spdxDocumentRoot.getRelationships().add(relationshipEntity);
+            spdxDocumentRootRepository.save(spdxDocumentRoot);
             relationshipRepository.save(relationshipEntity);
             return relationshipEntity;
         } catch (InvalidSPDXAnalysisException e) {
