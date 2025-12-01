@@ -21,6 +21,7 @@ package eu.occtet.boc.export.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.BaseWorkData;
+import eu.occtet.boc.model.SpdxExportWorkData;
 import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
@@ -59,8 +60,8 @@ public class SpdxExportWorkConsumer extends WorkConsumer {
 
             boolean result = workData.process(new BaseWorkDataProcessor() {
                 @Override
-                public boolean process(SpdxWorkData spdxWorkData) {
-                    return exportService.process(spdxWorkData);
+                public boolean process(SpdxExportWorkData spdxExportWorkData) {
+                    return exportService.process(spdxExportWorkData);
                 }
             });
             log.debug("RESULT {}", result);
