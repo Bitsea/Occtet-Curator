@@ -90,6 +90,7 @@ public class SpdxConverter {
             spdxDocumentRoot.setName(spdxDocument.getName().orElse(""));
             spdxDocumentRoot.setDataLicense(spdxDocument.getDataLicense().toString());
             spdxDocumentRoot.setComment(spdxDocument.getComment().orElse(""));
+            spdxDocumentRoot.setDocumentUri(spdxDocument.getDocumentUri());
 
             List<ExternalDocumentRefEntity> refList = new ArrayList<>();
 

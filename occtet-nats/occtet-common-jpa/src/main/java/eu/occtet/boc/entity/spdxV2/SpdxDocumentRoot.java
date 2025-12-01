@@ -41,6 +41,9 @@ public class SpdxDocumentRoot {
     @Lob
     private String comment;
 
+    @Column(nullable = false)
+    private String documentUri;
+
     @OneToOne(cascade = CascadeType.ALL, optional = false)
     @JoinColumn(name = "creation_info_id", referencedColumnName = "id")
     private CreationInfoEntity creationInfoEntity;
@@ -168,4 +171,8 @@ public class SpdxDocumentRoot {
     public void setSPDXID(String SPDXID) {
         this.SPDXID = SPDXID;
     }
+
+    public String getDocumentUri() {return documentUri;}
+
+    public void setDocumentUri(String documentUri) {this.documentUri = documentUri;}
 }

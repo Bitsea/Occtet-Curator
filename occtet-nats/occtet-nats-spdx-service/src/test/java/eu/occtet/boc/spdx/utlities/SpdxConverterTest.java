@@ -105,6 +105,7 @@ public class SpdxConverterTest {
         Assertions.assertEquals("some document name", spdxDocumentRoot.getName());
         Assertions.assertEquals("CC0-1.0" ,spdxDocumentRoot.getDataLicense());
         Assertions.assertEquals("some document comment", spdxDocumentRoot.getComment());
+        Assertions.assertEquals("<REPLACE_DOCUMENT_NAMESPACE>", spdxDocumentRoot.getDocumentUri());
 
         //Check externalDocumentRefs
         Assertions.assertTrue(spdxDocumentRoot.getExternalDocumentRefs().isEmpty());
