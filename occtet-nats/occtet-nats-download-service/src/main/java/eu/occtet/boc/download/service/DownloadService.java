@@ -88,7 +88,10 @@ public class DownloadService extends BaseWorkDataProcessor {
 
             if(analyzedUrl.equals("git")) {
                 getGitUrl(workData.getUrl(), workData.getVersion());
-                return downloadFile(gitUrl,workData.getLocation());
+                if(!gitUrl.isEmpty()){
+                    return downloadFile(gitUrl,workData.getLocation());
+                }
+                return null;
             }else{
                 return downloadFile(workData.getUrl(), workData.getLocation());
             }

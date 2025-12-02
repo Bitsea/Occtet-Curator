@@ -40,31 +40,79 @@ public class GitRepoController {
 
     private final static String GIT_API = "https://api.github.com/repos/";
 
+    private final static int CORRECT_STATUSCODE = 200;
+
     private static final Logger log = LoggerFactory.getLogger(GitRepoController.class);
 
     public String getGitRepository(String owner, String repo, String version) throws IOException, InterruptedException {
 
         String url;
+        HttpResponse<InputStream> response;
         StringBuilder apiUrl = new StringBuilder();
         apiUrl.append(GIT_API).append(owner).append("/").append(repo).append("/zipball");
 
-        if(version!=null){
-            apiUrl.append("/").append(version);
+        if(version != null){
+            char firstCharacter = version.charAt(0);
+            if(firstCharacter == 'v' || firstCharacter == 'V'){
+                apiUrl.append("/").append(version);
+                log.info("API-Url: {}",apiUrl);
+                response = getHttpResponse(apiUrl.toString());
+
+                log.info("Response: {}",response.statusCode());
+                if(response.statusCode() == CORRECT_STATUSCODE){
+                    url = response.uri().toString();
+                    return url;
+                }else{
+                    int index = apiUrl.lastIndexOf("/");
+                    apiUrl.deleteCharAt(index+1);
+                    response = getHttpResponse(apiUrl.toString());
+                    log.info("Modified api-url: {}",apiUrl);
+
+                    log.info("Response: {}",response.statusCode());
+                    if(response.statusCode() == CORRECT_STATUSCODE){
+                        url = response.uri().toString();
+                        return url;
+                    }else{
+                        return "";
+                    }
+                }
+            }else{
+                apiUrl.append("/").append(version);
+                log.info("API-Url: {}",apiUrl);
+                response = getHttpResponse(apiUrl.toString());
+
+                log.info("Response: {}",response.statusCode());
+                if(response.statusCode() == CORRECT_STATUSCODE){
+                    url = response.uri().toString();
+                    return url;
+                }else{
+                    int index = apiUrl.lastIndexOf("/");
+                    apiUrl.insert(index+1,"v");
+                    response = getHttpResponse(apiUrl.toString());
+                    log.info("Modified api-url: {}",apiUrl);
+
+                    log.info("Response: {}",response.statusCode());
+                    if(response.statusCode() == CORRECT_STATUSCODE){
+                        url = response.uri().toString();
+                        return url;
+                    }else{
+                        return "";
+                    }
+                }
+            }
         }
+        return "";
+    }
+
+    private HttpResponse getHttpResponse(String apiUrl) throws IOException, InterruptedException {
 
         HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(apiUrl.toString()))
+                .uri(URI.create(apiUrl))
                 .GET()
                 .header("Accept", "application/vnd.github+json").build();
 
-        HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-        url = response.uri().toString();
-
-        if(url != null){
-            return url;
-        }
-        return "";
+        return client.send(request, HttpResponse.BodyHandlers.ofInputStream());
     }
 }
