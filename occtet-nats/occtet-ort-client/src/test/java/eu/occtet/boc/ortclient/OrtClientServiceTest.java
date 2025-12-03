@@ -5,6 +5,13 @@ import org.openapitools.client.ApiClient;
 import org.openapitools.client.api.*;
 import org.openapitools.client.model.*;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509ExtendedTrustManager;
+import java.net.Socket;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.Map;
 
 /*
@@ -38,10 +45,11 @@ public class OrtClientServiceTest extends TestCase {
      */
     public void testOrtClientAccess() throws Exception {
 
-        OrtClientService ortClientService = new OrtClientService("http://localhost:8080");
-        //OrtClientService ortClientService = new OrtClientService("https://ort.bitsea.de");
-        AuthService authService = new AuthService("http://localhost:8081/realms/master/protocol/openid-connect/token");
-        //AuthService authService = new AuthService("https://keycloak.bitsea.de/realms/master/protocol/openid-connect/token");
+
+        //OrtClientService ortClientService = new OrtClientService("http://localhost:8080");
+        OrtClientService ortClientService = new OrtClientService("https://dev.bitsea.de");
+        //AuthService authService = new AuthService("http://localhost:8081/realms/master/protocol/openid-connect/token");
+        AuthService authService = new AuthService("https://keycloak.bitsea.de/realms/master/protocol/openid-connect/token");
         TokenResponse tokenResponse = authService.requestToken("ort-server","ort-admin","password","offline_access");
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
 
