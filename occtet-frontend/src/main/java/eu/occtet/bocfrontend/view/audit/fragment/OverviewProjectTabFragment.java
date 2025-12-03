@@ -23,15 +23,13 @@ import com.vaadin.flow.component.accordion.AccordionPanel;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import eu.occtet.bocfrontend.dao.CodeLocationRepository;
-import eu.occtet.bocfrontend.dao.CopyrightRepository;
-import eu.occtet.bocfrontend.dao.InventoryItemRepository;
-import eu.occtet.bocfrontend.dao.LicenseRepository;
+import eu.occtet.bocfrontend.dao.*;
 import eu.occtet.bocfrontend.dto.AuditCopyrightDTO;
 import eu.occtet.bocfrontend.dto.AuditLicenseDTO;
 import eu.occtet.bocfrontend.dto.AuditVulnerabilityDTO;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.view.dialog.OverviewLicenseInfoDialog;
+import eu.occtet.bocfrontend.view.dialog.OverviewVulnerabilityInfoDialog;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
@@ -89,6 +87,9 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
     private DataGrid<AuditVulnerabilityDTO> auditVulnerabilityDataGrid;
 
     @Autowired
+    private VulnerabilityRepository vulnerabilityRepository;
+
+    @Autowired
     private CopyrightRepository copyrightRepository;
 
     @Autowired
@@ -140,6 +141,15 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
                 showLicensesInformation(licenses.getFirst());
             });
         return showButton;
+        });
+        auditVulnerabilityDataGrid.addComponentColumn(auditVulnerabilityDTO -> {
+            JmixButton showButton = createShowButton();
+            showButton.addClickListener(click->{
+                List<Vulnerability> vulnerabilities = vulnerabilityRepository
+                        .findByVulnerabilityId(auditVulnerabilityDTO.getVulnerabilityName());
+                showVulnerabilitiesInformation(vulnerabilities.getFirst());
+            });
+            return showButton;
         });
     }
 
@@ -228,7 +238,14 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
     private void showLicensesInformation(License license){
         DialogWindow<OverviewLicenseInfoDialog> window =
                 dialogWindows.view(hostView, OverviewLicenseInfoDialog.class).build();
-        window.getView().setLicenseType(license);
+        window.getView().setContent(license);
+        window.open();
+    }
+
+    private void showVulnerabilitiesInformation(Vulnerability vulnerability){
+        DialogWindow<OverviewVulnerabilityInfoDialog> window =
+                dialogWindows.view(hostView, OverviewVulnerabilityInfoDialog.class).build();
+        window.getView().setContent(vulnerability);
         window.open();
     }
 

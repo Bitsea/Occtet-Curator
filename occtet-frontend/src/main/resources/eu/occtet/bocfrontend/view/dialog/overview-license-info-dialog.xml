@@ -33,7 +33,7 @@
         </collection>
     </data>
     <layout width="100%" height="100%">
-        <h2 id="title"/>
+        <h3 id="title"/>
         <vbox width="100%">
             <dataGrid id="inventoryItemsDataGrid"
                       width="100%"
