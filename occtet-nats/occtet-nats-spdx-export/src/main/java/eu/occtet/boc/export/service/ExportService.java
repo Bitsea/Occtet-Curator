@@ -30,20 +30,23 @@ import eu.occtet.boc.service.BaseWorkDataProcessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.library.LicenseInfoFactory;
 import org.spdx.library.SpdxModelFactory;
 import org.spdx.library.model.v2.*;
 import org.spdx.library.model.v2.enumerations.ChecksumAlgorithm;
 import org.spdx.library.model.v2.enumerations.ReferenceCategory;
 import org.spdx.library.model.v2.enumerations.RelationshipType;
+import org.spdx.library.model.v2.license.AnyLicenseInfo;
 import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
 import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
-import java.util.stream.Stream;
 
 @Service
 public class ExportService extends BaseWorkDataProcessor {
@@ -69,6 +72,7 @@ public class ExportService extends BaseWorkDataProcessor {
             // setup for spdx library need to be called once before any spdx model objects are accessed
             SpdxModelFactory.init();
             InMemSpdxStore modelStore = new InMemSpdxStore();
+            MultiFormatStore jsonStore = new MultiFormatStore(modelStore, MultiFormatStore.Format.JSON_PRETTY);
 
             Optional<Project> project = projectRepository.findById(UUID.fromString(spdxExportWorkData.getProjectId()));
             if (project.isEmpty()) {
@@ -125,11 +129,7 @@ public class ExportService extends BaseWorkDataProcessor {
                     }
             );
 
-            //TODO finish creating spdxObjects from these: add info from audit
             List<SpdxPackage> packages = createSpdxPackages(spdxDocumentRoot.getPackages() , spdxDocumentRoot.getFiles(), spdxDocument, modelStore, documentUri);
-
-            //TODO add files and relationship to packages
-
 
             spdxDocumentRoot.getRelationships().forEach(
                     relationship ->
@@ -147,8 +147,15 @@ public class ExportService extends BaseWorkDataProcessor {
                         }
                     }
             );
-
             spdxDocument.setExternalDocumentRefs(externalRefs);
+
+            try (FileOutputStream out = new FileOutputStream("sbom.spdx.json")) {
+                // The store serializes the specific document URI to the output stream
+                jsonStore.serialize(out, spdxDocument);
+                log.info("JSON SBOM created successfully!");
+            } catch (IOException e) {
+                log.error("unexpected error occurred while trying to create spdx json file: {}", e.toString());
+            }
 
             return true;
         } catch (Exception e) {
@@ -176,16 +183,14 @@ public class ExportService extends BaseWorkDataProcessor {
                                     checksumEntity.getChecksumValue()));
                 }
                 for (ExternalRefEntity externalRefEntity : pkgEntity.getExternalRefs()) {
-                    //TODO fix id if needed
-                    ExternalRef externalRef = new ExternalRef(modelStore, documentUri, "", null, true);
+                    ExternalRef externalRef = new ExternalRef(modelStore, documentUri, SpdxConstantsCompatV2.CLASS_SPDX_EXTERNAL_REFERENCE + externalRefEntity.getReferenceLocator(), null, true);
                     externalRef.setReferenceLocator(externalRefEntity.getReferenceLocator());
                     externalRef.setReferenceType(new ReferenceType(externalRef.getReferenceType()));
                     externalRef.setReferenceCategory(ReferenceCategory.valueOf(externalRefEntity.getReferenceCategory()));
                     externalRef.setComment(externalRefEntity.getComment());
                     spdxPackage.addExternalRef(externalRef);
                 }
-                //TODO fix id if needed
-                SpdxPackageVerificationCode pkgVerificationCode = new SpdxPackageVerificationCode(modelStore, documentUri, "", null, true);
+                SpdxPackageVerificationCode pkgVerificationCode = new SpdxPackageVerificationCode(modelStore, documentUri, SpdxConstantsCompatV2.CLASS_SPDX_VERIFICATIONCODE + pkgEntity.getPackageVerificationCode().getPackageVerificationCodeValue(), null, true);
                 pkgVerificationCode.setValue(pkgEntity.getPackageVerificationCode().getPackageVerificationCodeValue());
                 pkgVerificationCode.getExcludedFileNames().addAll(pkgEntity.getPackageVerificationCode().getPackageVerificationCodeExcludedFiles());
                 spdxPackage.setPackageVerificationCode(new SpdxPackageVerificationCode());
@@ -195,7 +200,15 @@ public class ExportService extends BaseWorkDataProcessor {
                     //TODO incorporate more of the audit notes
                     spdxPackage.setComment(inventoryItem.get().getExternalNotes());
                 }
-
+                fileEntities.forEach(
+                        fileEntity -> {
+                            try {
+                                spdxPackage.addFile(createSpdxFile(fileEntity, spdxDocument));
+                            } catch (InvalidSPDXAnalysisException e) {
+                                log.error("Unexpected error while trying to add files to spdx packages: {}", e.toString());
+                            }
+                        }
+                );
                 packages.add(spdxPackage);
             }
         }catch (Exception e){
@@ -205,9 +218,28 @@ public class ExportService extends BaseWorkDataProcessor {
 
     }
 
-    private SpdxFile createSpdxFile(SpdxFileEntity fileEnteties, SpdxDocument spdxDocument , IModelStore modelStore, String documentUri){
-        //SpdxFile spdxFile = spdxDocument.createSpdxFile();
-        return null;
+    private SpdxFile createSpdxFile(SpdxFileEntity fileEntity, SpdxDocument spdxDocument){
+        try {
+            List<AnyLicenseInfo> seenLicenses = new ArrayList<>();
+            for (String license : fileEntity.getLicenseInfoInFiles()) {
+                seenLicenses.add(LicenseInfoFactory.parseSPDXLicenseStringCompatV2(license));
+            }
+
+            return spdxDocument.createSpdxFile(
+                    fileEntity.getSPDXID(),
+                    fileEntity.getFileName(),
+                    LicenseInfoFactory.parseSPDXLicenseStringCompatV2(fileEntity.getLicenseConcluded()),
+                    seenLicenses,
+                    fileEntity.getCopyrightText(),
+                    spdxDocument.createChecksum(
+                            ChecksumAlgorithm.valueOf(fileEntity.getChecksums().getFirst().getAlgorithm()),
+                            fileEntity.getChecksums().getFirst().getChecksumValue())
+                    )
+                    .build();
+        } catch (Exception e) {
+            log.error("unexpected error occurred while trying to create spdxFile: {}", e.toString());
+            return null;
+        }
     }
 
     private SpdxElement findRelatedElement(String id, List<SpdxPackage> pkgs){
@@ -218,5 +250,6 @@ public class ExportService extends BaseWorkDataProcessor {
                 }
             }
         }
+        return null;
     }
 }
