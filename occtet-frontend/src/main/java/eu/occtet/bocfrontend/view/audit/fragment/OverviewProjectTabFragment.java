@@ -28,8 +28,7 @@ import eu.occtet.bocfrontend.dto.AuditCopyrightDTO;
 import eu.occtet.bocfrontend.dto.AuditLicenseDTO;
 import eu.occtet.bocfrontend.dto.AuditVulnerabilityDTO;
 import eu.occtet.bocfrontend.entity.*;
-import eu.occtet.bocfrontend.view.dialog.OverviewLicenseInfoDialog;
-import eu.occtet.bocfrontend.view.dialog.OverviewVulnerabilityInfoDialog;
+import eu.occtet.bocfrontend.view.dialog.OverviewContentInfoDialog;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
@@ -138,7 +137,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
             JmixButton showButton = createShowButton();
             showButton.addClickListener(click -> {
                 List<License> licenses = licenseRepository.findLicensesByLicenseName(auditLicenseDTO.getLicenseName());
-                showLicensesInformation(licenses.getFirst());
+                showContentInformationDialog(licenses.getFirst());
             });
         return showButton;
         });
@@ -147,7 +146,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
             showButton.addClickListener(click->{
                 List<Vulnerability> vulnerabilities = vulnerabilityRepository
                         .findByVulnerabilityId(auditVulnerabilityDTO.getVulnerabilityName());
-                showVulnerabilitiesInformation(vulnerabilities.getFirst());
+                showContentInformationDialog(vulnerabilities.getFirst());
             });
             return showButton;
         });
@@ -235,17 +234,10 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
         vulnerabilityAccordion.setSummaryText("Vulnerabilities ("+vulnerabilityDTOs.size()+")");
     }
 
-    private void showLicensesInformation(License license){
-        DialogWindow<OverviewLicenseInfoDialog> window =
-                dialogWindows.view(hostView, OverviewLicenseInfoDialog.class).build();
-        window.getView().setContent(license);
-        window.open();
-    }
-
-    private void showVulnerabilitiesInformation(Vulnerability vulnerability){
-        DialogWindow<OverviewVulnerabilityInfoDialog> window =
-                dialogWindows.view(hostView, OverviewVulnerabilityInfoDialog.class).build();
-        window.getView().setContent(vulnerability);
+    private void showContentInformationDialog(Object content){
+        DialogWindow<OverviewContentInfoDialog> window =
+                dialogWindows.view(hostView, OverviewContentInfoDialog.class).build();
+        window.getView().setInformationContent(content);
         window.open();
     }
 

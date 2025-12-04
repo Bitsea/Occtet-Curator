@@ -16,8 +16,8 @@
  * SPDX-License-Identifier: Apache-2.0
  * License-Filename: LICENSE
  */
-
 package eu.occtet.bocfrontend.view.dialog;
+
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
@@ -28,26 +28,21 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
-import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.License;
-import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.entity.*;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
-@ViewController("overviewLicenseInfoDialog")
-@ViewDescriptor("overview-license-info-dialog.xml")
+@ViewController("overviewContentInfoDialog")
+@ViewDescriptor("overview-content-info-dialog.xml")
 @DialogMode(width = "1500px", height = "700px")
-public class OverviewLicenseInfoDialog extends AbstractOverviewDialog<License> {
+public class OverviewContentInfoDialog extends StandardView {
 
     @ViewComponent
     private CollectionContainer<InventoryItem> inventoryItemsDc;
@@ -64,29 +59,41 @@ public class OverviewLicenseInfoDialog extends AbstractOverviewDialog<License> {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
 
-    @Override
-    public void setContent(License license){
-        List<SoftwareComponent> allComponents = softwareComponentRepository.findAll();
-        List<SoftwareComponent> licenseComponents = new ArrayList<>();
+
+    public void setInformationContent(Object content){
+        List<SoftwareComponent> components = softwareComponentRepository.findAll();
+        Set<SoftwareComponent> softwareComponents = new HashSet<>();
         Set<InventoryItem> items = new HashSet<>();
 
-        allComponents.forEach(softwareComponent -> {
-            List<License> licenses = softwareComponent.getLicenses();
-            if(licenses != null){
-                if(licenses.contains(license)){
-                    licenseComponents.add(softwareComponent);
+        if(content instanceof License license){
+            components.forEach(softwareComponent -> {
+                List<License> licenses = softwareComponent.getLicenses();
+                if(licenses != null){
+                    if(licenses.contains(license)){
+                        softwareComponents.add(softwareComponent);
+                    }
                 }
-            }
-        });
-        licenseComponents.forEach(softwareComponent -> {
+            });
+            title.setText("License: "+license.getLicenseName());
+        }else if(content instanceof Vulnerability vulnerability){
+            components.forEach(softwareComponent -> {
+                List<Vulnerability> vulnerabilities = softwareComponent.getVulnerabilities();
+                if(vulnerabilities != null){
+                    if(vulnerabilities.contains(vulnerability)){
+                        softwareComponents.add(softwareComponent);
+                    }
+                }
+            });
+            title.setText("Vulnerability: "+vulnerability.getVulnerabilityId());
+        }
+        softwareComponents.forEach(softwareComponent -> {
             items.addAll(inventoryItemRepository.findBySoftwareComponent(softwareComponent));
         });
-        title.setText("License: "+license.getLicenseName());
         inventoryItemsDc.setItems(items);
     }
 
     @Subscribe("cancelButton")
-    public void closeDialog(ClickEvent<Button> event){cancelButton(event);}
+    public void closeDialog(ClickEvent<Button> event){close(StandardOutcome.CLOSE);}
 
     @Supply(to = "inventoryItemsDataGrid.showInventoryBtn", subject = "renderer")
     private Renderer<Project> auditVulnerabilityDataGridShowBtnRenderer() {
@@ -95,9 +102,8 @@ public class OverviewLicenseInfoDialog extends AbstractOverviewDialog<License> {
 
     private JmixButton showInventoryItemButton(){
         JmixButton itemButton = uiComponents.create(JmixButton.class);
-        itemButton .setIcon(VaadinIcon.CHEVRON_CIRCLE_RIGHT.create());
-        itemButton .addThemeVariants(ButtonVariant.LUMO_SMALL);
+        itemButton.setIcon(VaadinIcon.CHEVRON_CIRCLE_RIGHT.create());
+        itemButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         return itemButton;
     }
-
 }
