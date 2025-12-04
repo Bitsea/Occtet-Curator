@@ -152,6 +152,7 @@ public class SpdxConverterTest {
             Assertions.assertEquals("NOASSERTION", pkg.getLicenseConcluded());
             Assertions.assertEquals("MIT", pkg.getLicenseDeclared());
             Assertions.assertEquals(spdxDocumentRoot, pkg.getSpdxDocument());
+            Assertions.assertEquals("SPDXRef-File-4", pkg.getFileNames().getFirst());
             Assertions.assertFalse(spdxDocumentRoot.getPackages().isEmpty());
 
         } catch (Exception e) {

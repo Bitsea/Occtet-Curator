@@ -65,6 +65,8 @@ public class Package {
     @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChecksumEntity> checksumEntities;
 
+    private List<String> fileNames;
+
     public String getName() {
         return name;
     }
@@ -92,6 +94,10 @@ public class Package {
     public List<String> getLicenseInfoFromFiles() {
         return licenseInfoFromFiles;
     }
+
+    public List<String> getFileNames() {return fileNames;}
+
+    public void setFileNames(List<String> fileNames) {this.fileNames = fileNames;}
 
     public String getDownloadLocation() {
         return downloadLocation;

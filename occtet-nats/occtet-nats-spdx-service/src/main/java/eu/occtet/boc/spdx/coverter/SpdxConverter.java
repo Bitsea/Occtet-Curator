@@ -226,6 +226,12 @@ public class SpdxConverter {
             }
             spdxPackageEntity.setPackageVerificationCode(packageVerificationCodeEntity);
 
+            List<String> fileNames = new ArrayList<>();
+            spdxPackage.getFiles().forEach(
+                    spdxFile -> fileNames.add(spdxFile.getId())
+            );
+            spdxPackageEntity.setFileNames(fileNames);
+
             spdxDocumentRoot.getPackages().add(spdxPackageEntity);
             spdxDocumentRootRepository.save(spdxDocumentRoot);
             packageRepository.save(spdxPackageEntity);
