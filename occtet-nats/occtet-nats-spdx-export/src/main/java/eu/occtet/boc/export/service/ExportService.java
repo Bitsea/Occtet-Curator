@@ -18,11 +18,11 @@
 
 package eu.occtet.boc.export.service;
 
+import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
-import eu.occtet.boc.entity.spdxV2.CreationInfoEntity;
+import eu.occtet.boc.entity.spdxV2.*;
 import eu.occtet.boc.entity.spdxV2.Package;
-import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
-import eu.occtet.boc.entity.spdxV2.SpdxFileEntity;
+import eu.occtet.boc.export.dao.InventoryItemRepository;
 import eu.occtet.boc.export.dao.ProjectRepository;
 import eu.occtet.boc.export.dao.spdxV2.SpdxDocumentRootRepository;
 import eu.occtet.boc.model.SpdxExportWorkData;
@@ -33,13 +33,17 @@ import org.spdx.core.InvalidSPDXAnalysisException;
 import org.spdx.library.LicenseInfoFactory;
 import org.spdx.library.SpdxModelFactory;
 import org.spdx.library.model.v2.*;
+import org.spdx.library.model.v2.enumerations.ChecksumAlgorithm;
+import org.spdx.library.model.v2.enumerations.ReferenceCategory;
 import org.spdx.library.model.v2.enumerations.RelationshipType;
 import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
+import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 public class ExportService extends BaseWorkDataProcessor {
@@ -50,6 +54,8 @@ public class ExportService extends BaseWorkDataProcessor {
     ProjectRepository projectRepository;
     @Autowired
     SpdxDocumentRootRepository spdxDocumentRootRepository;
+    @Autowired
+    InventoryItemRepository inventoryItemRepository;
 
     @Override
     public boolean process(SpdxExportWorkData spdxExportWorkData){
@@ -120,17 +126,19 @@ public class ExportService extends BaseWorkDataProcessor {
             );
 
             //TODO finish creating spdxObjects from these: add info from audit
-            List<SpdxPackage> packages = createSpdxPackages(spdxDocumentRoot.getPackages());
-            List<SpdxFile> files = createSpdxFiles(spdxDocumentRoot.getFiles());
+            List<SpdxPackage> packages = createSpdxPackages(spdxDocumentRoot.getPackages() , spdxDocumentRoot.getFiles(), spdxDocument, modelStore, documentUri);
 
-            //TODO fix setting relationship target: has to be done after creating all the other spdx objects
+            //TODO add files and relationship to packages
+
+
             spdxDocumentRoot.getRelationships().forEach(
                     relationship ->
                     {
                         try {
                             Relationship spdxRelationship = new Relationship(modelStore, documentUri, relationship.getSpdxElementId(), null, true);
                             spdxRelationship.setRelationshipType(RelationshipType.valueOf(relationship.getRelationshipType()));
-                            //spdxRelationship.setRelatedSpdxElement(relationship.getRelatedSpdxElement());
+                            spdxRelationship.setRelatedSpdxElement(
+                                    findRelatedElement(relationship.getRelatedSpdxElement(), packages));
                             spdxRelationship.setComment(relationship.getComment());
                             spdxDocument.addRelationship(spdxRelationship);
                         } catch (InvalidSPDXAnalysisException e) {
@@ -149,13 +157,66 @@ public class ExportService extends BaseWorkDataProcessor {
         }
     }
 
-    private List<SpdxPackage> createSpdxPackages(List<Package> pkgEnteties){
+    private List<SpdxPackage> createSpdxPackages(List<Package> pkgEntities,List<SpdxFileEntity> fileEntities, SpdxDocument spdxDocument, IModelStore modelStore, String documentUri) {
         List<SpdxPackage> packages = new ArrayList<>();
+        try {
+            for (Package pkgEntity : pkgEntities) {
+                SpdxPackage spdxPackage = spdxDocument.createPackage(
+                        pkgEntity.getSPDXID(),
+                        pkgEntity.getName(),
+                        LicenseInfoFactory.parseSPDXLicenseStringCompatV2(pkgEntity.getLicenseConcluded()),
+                        pkgEntity.getCopyrightText(),
+                        LicenseInfoFactory.parseSPDXLicenseStringCompatV2(pkgEntity.getLicenseDeclared())
+                ).build();
+                spdxPackage.setDownloadLocation(pkgEntity.getDownloadLocation());
+                spdxPackage.setFilesAnalyzed(pkgEntity.getFileNames().isEmpty());
+                for (ChecksumEntity checksumEntity : pkgEntity.getChecksums()) {
+                    spdxPackage.addChecksum(
+                            spdxPackage.createChecksum(ChecksumAlgorithm.valueOf(checksumEntity.getAlgorithm()),
+                                    checksumEntity.getChecksumValue()));
+                }
+                for (ExternalRefEntity externalRefEntity : pkgEntity.getExternalRefs()) {
+                    //TODO fix id if needed
+                    ExternalRef externalRef = new ExternalRef(modelStore, documentUri, "", null, true);
+                    externalRef.setReferenceLocator(externalRefEntity.getReferenceLocator());
+                    externalRef.setReferenceType(new ReferenceType(externalRef.getReferenceType()));
+                    externalRef.setReferenceCategory(ReferenceCategory.valueOf(externalRefEntity.getReferenceCategory()));
+                    externalRef.setComment(externalRefEntity.getComment());
+                    spdxPackage.addExternalRef(externalRef);
+                }
+                //TODO fix id if needed
+                SpdxPackageVerificationCode pkgVerificationCode = new SpdxPackageVerificationCode(modelStore, documentUri, "", null, true);
+                pkgVerificationCode.setValue(pkgEntity.getPackageVerificationCode().getPackageVerificationCodeValue());
+                pkgVerificationCode.getExcludedFileNames().addAll(pkgEntity.getPackageVerificationCode().getPackageVerificationCodeExcludedFiles());
+                spdxPackage.setPackageVerificationCode(new SpdxPackageVerificationCode());
+
+                Optional<InventoryItem> inventoryItem = inventoryItemRepository.findBySpdxId(pkgEntity.getSPDXID());
+                if(inventoryItem.isPresent()){
+                    //TODO incorporate more of the audit notes
+                    spdxPackage.setComment(inventoryItem.get().getExternalNotes());
+                }
+
+                packages.add(spdxPackage);
+            }
+        }catch (Exception e){
+            log.error("Unexpected error while trying to create spdx packages: {}", e.toString());
+        }
         return packages;
+
     }
 
-    private List<SpdxFile> createSpdxFiles(List<SpdxFileEntity> fileEnteties){
-        List<SpdxFile> files = new ArrayList<>();
-        return files;
+    private SpdxFile createSpdxFile(SpdxFileEntity fileEnteties, SpdxDocument spdxDocument , IModelStore modelStore, String documentUri){
+        //SpdxFile spdxFile = spdxDocument.createSpdxFile();
+        return null;
+    }
+
+    private SpdxElement findRelatedElement(String id, List<SpdxPackage> pkgs){
+        if (pkgs != null) {
+            for (SpdxPackage pkg : pkgs) {
+                if (id.equals(pkg.getId())) {
+                    return pkg;
+                }
+            }
+        }
     }
 }

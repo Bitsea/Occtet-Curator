@@ -37,19 +37,5 @@ import java.util.UUID;
 @Repository
 public interface InventoryItemRepository extends JpaRepository<InventoryItem, Long> {
 
-    List<InventoryItem> findByInventoryNameAndSoftwareComponent(String inventoryName, SoftwareComponent sc);
-
-    List<InventoryItem> findBySoftwareComponentAndProject(SoftwareComponent softwareComponent, Project project);
-
-
-    List<InventoryItem> findBySoftwareComponent(SoftwareComponent sc);
-
-    List<InventoryItem> findByProjectAndSoftwareComponent(Project project, SoftwareComponent sc);
-
-    List<InventoryItem> findByProjectAndInventoryName(Project project, String inventoryName);
-
-    List<InventoryItem> findByProjectAndSoftwareComponentAndInventoryName(Project project, SoftwareComponent sc, String inventoryName);
-
-    List<InventoryItem> findBySpdxIdAndProject(String spdxID, Project project);
-    Optional<InventoryItem> findById(UUID uid);
+    Optional<InventoryItem> findBySpdxId(String spdxID);
 }
