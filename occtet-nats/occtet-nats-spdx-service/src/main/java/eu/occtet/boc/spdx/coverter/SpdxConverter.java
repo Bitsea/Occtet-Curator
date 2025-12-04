@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class SpdxConverter {
@@ -184,7 +185,6 @@ public class SpdxConverter {
                 externalRefRepository.save(externalRefEntity);
             }
             spdxPackageEntity.setExternalRefs(externalRefEntities);
-
             List<AnnotationEntity> annotationEntities = new ArrayList<>();
             for(Annotation annotation: spdxPackage.getAnnotations()){
                 AnnotationEntity annotationEntity = new AnnotationEntity();
@@ -197,7 +197,6 @@ public class SpdxConverter {
                 annotationRepository.save(annotationEntity);
             }
             spdxPackageEntity.setAnnotations(annotationEntities);
-
             List<ChecksumEntity> checksumEntities = new ArrayList<>();
             for(Checksum checksum: spdxPackage.getChecksums()){
                 ChecksumEntity checksumEntity = new ChecksumEntity();

@@ -25,7 +25,8 @@ import java.util.List;
 public class CreationInfoEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "creation_info_gen")
+    @SequenceGenerator(name = "creation_info_gen", sequenceName = "creation_info_entity_id_seq", allocationSize = 1)
     private Long id;
 
     @Column(nullable = false)

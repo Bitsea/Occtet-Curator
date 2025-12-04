@@ -167,7 +167,7 @@ public class SpdxService extends BaseWorkDataProcessor{
 
         log.info("Looking at package: {}", spdxPackage.getId());
 
-        //Convert to enteties
+        //Convert to entities
         spdxConverter.convertPackage(spdxPackage, spdxDocumentRoot);
 
         String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
