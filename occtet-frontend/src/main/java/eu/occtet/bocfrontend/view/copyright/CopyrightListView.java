@@ -96,15 +96,10 @@ public class CopyrightListView extends StandardListView<Copyright> {
     @ViewComponent
     private JmixCheckbox immediateCheckbox;
 
-
     @ViewComponent
     private JmixButton saveButton;
 
     private final Set<Copyright> copyrights = new HashSet<>();
-
-
-
-
 
     @Supply(to = "copyrightsDataGrid.softwareComponent", subject = "renderer")
     private Renderer<Copyright> componentRenderer() {

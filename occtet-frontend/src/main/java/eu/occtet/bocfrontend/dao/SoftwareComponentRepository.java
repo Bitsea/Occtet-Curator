@@ -36,9 +36,7 @@ public interface SoftwareComponentRepository extends JmixDataRepository<Software
     SoftwareComponent findByName(String softwareComponentName);
     List<SoftwareComponent> findAll();
     List<SoftwareComponent> findSoftwareComponentsByCurated(Boolean curated);
-    List<SoftwareComponent> findDistinctByCopyrightsIn(List<Copyright> copyright);
 
     @Query("select sc from SoftwareComponent sc join sc.vulnerabilities v where v = :vuln")
     List<SoftwareComponent> findByVulnerability(Vulnerability vuln);
-
 }
