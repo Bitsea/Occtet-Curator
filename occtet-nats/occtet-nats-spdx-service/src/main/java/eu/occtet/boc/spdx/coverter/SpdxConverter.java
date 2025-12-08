@@ -64,6 +64,7 @@ public class SpdxConverter {
      * @return The newly created and persisted {@link SpdxDocumentRoot} entity.
      */
     public SpdxDocumentRoot convertSpdxV2DocumentInformation(SpdxDocument spdxDocument){
+       log.info("converting document");
         SpdxDocumentRoot spdxDocumentRoot = new SpdxDocumentRoot();
         try {
             spdxDocumentRoot.setSpdxVersion(spdxDocument.getSpecVersion());
@@ -201,14 +202,12 @@ public class SpdxConverter {
             );
             spdxPackageEntity.setFileNames(fileNames);
 
-            log.info("final persistence");
             spdxPackageEntity.setSpdxDocument(spdxDocumentRoot);
             if (spdxDocumentRoot.getPackages() == null) {
                 spdxDocumentRoot.setPackages(new ArrayList<>());
             }
             spdxDocumentRoot.getPackages().add(spdxPackageEntity);
             spdxDocumentRootRepository.save(spdxDocumentRoot);
-            log.info("finished package entity");
             return spdxPackageEntity;
 
         } catch (Exception e) {
