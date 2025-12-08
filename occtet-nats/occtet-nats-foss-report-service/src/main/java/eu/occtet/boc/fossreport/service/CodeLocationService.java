@@ -70,9 +70,9 @@ public class CodeLocationService {
         toBeDeletedCls.remove(basePathCodeLocation);
 
         for (CodeLocation cl : toBeDeletedCls) {
-            List<Copyright> copyrights = copyrightRepository.findByCodeLocation(cl);
+            List<Copyright> copyrights = copyrightRepository.findByCodeLocationsIn(List.of(cl));
             for (Copyright c : copyrights) {
-                c.setCodeLocation(null);
+                c.getCodeLocations().remove(cl);
                 log.debug("CodeLocation {} has been removed from copyright {}", cl.getFilePath(), c.getCopyrightText());
             }
             copyrightRepository.saveAll(copyrights);

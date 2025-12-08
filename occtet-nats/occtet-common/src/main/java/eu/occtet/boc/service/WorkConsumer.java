@@ -67,7 +67,6 @@ public abstract class WorkConsumer implements InformativeService {
                     msg.ack();
 
                     workerStatus=WorkerStatus.WORKING;
-
                     handleMessage(msg);
                 }
             } catch (Exception e) {

@@ -30,9 +30,10 @@ import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.CopyrightRepository;
+import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
+import eu.occtet.bocfrontend.entity.CodeLocation;
 import eu.occtet.bocfrontend.entity.Copyright;
 import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.service.CopyrightService;
 import eu.occtet.bocfrontend.view.main.MainView;
@@ -40,6 +41,8 @@ import io.jmix.core.DataManager;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.checkbox.JmixCheckbox;
+import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.component.grid.DataGridColumn;
 import io.jmix.flowui.component.upload.FileUploadField;
 import io.jmix.flowui.download.Downloader;
 import io.jmix.flowui.kit.component.button.JmixButton;
@@ -54,8 +57,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Route(value = "copyrights", layout = MainView.class)
@@ -98,19 +103,30 @@ public class CopyrightListView extends StandardListView<Copyright> {
 
     @Supply(to = "copyrightsDataGrid.softwareComponent", subject = "renderer")
     private Renderer<Copyright> componentRenderer() {
-        return new TextRenderer<>(copyright -> {
-            SoftwareComponent softwareComponent = copyright.getCodeLocation().getInventoryItem().getSoftwareComponent();
-
-            if (softwareComponent == null || softwareComponent.getName() == null) {
-                return "";
-            }
-            return softwareComponent.getName();
-        });
+        return new TextRenderer<>(copyright ->
+                copyright.getCodeLocations().stream()
+                        .map(CodeLocation::getInventoryItem)
+                        .filter(Objects::nonNull)
+                        .map(InventoryItem::getSoftwareComponent)
+                        .filter(Objects::nonNull)
+                        .map(SoftwareComponent::getName)
+                        .filter(Objects::nonNull)
+                        .distinct()
+                        .collect(Collectors.joining(", "))
+        );
     }
+
+
 
     @Supply(to = "copyrightsDataGrid.filePath", subject = "renderer")
     private Renderer<Copyright> filePathRenderer() {
-        return new TextRenderer<>(copyright -> copyright.getCodeLocation().getFilePath());
+        return new TextRenderer<>(copyright ->
+                copyright.getCodeLocations().stream()
+                        .map(CodeLocation::getFilePath)
+                        .filter(Objects::nonNull)
+                        .distinct()
+                        .collect(Collectors.joining(", "))
+        );
     }
 
     @Subscribe("immediateCheckbox")
@@ -185,6 +201,8 @@ public class CopyrightListView extends StandardListView<Copyright> {
     private void copyrightsDataGridEditorCloseListener(final EditorSaveEvent<Copyright> editorSaveEvent) {
         saveOrEnqueue(editorSaveEvent.getItem());
     }
+
+
 
     @Subscribe(id = "saveButton", subject = "clickListener")
     public void onSaveButtonClick(final ClickEvent<JmixButton> event) {

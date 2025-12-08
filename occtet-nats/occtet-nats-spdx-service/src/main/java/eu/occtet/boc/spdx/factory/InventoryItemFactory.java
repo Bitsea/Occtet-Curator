@@ -34,12 +34,9 @@ import java.util.List;
 @Component
 public class InventoryItemFactory {
 
-    private final InventoryItemRepository inventoryItemRepository;
-
     @Autowired
-    public InventoryItemFactory(InventoryItemRepository inventoryItemRepository) {
-        this.inventoryItemRepository = inventoryItemRepository;
-    }
+    private InventoryItemRepository inventoryItemRepository;
+
 
     public InventoryItem create(String inventoryName, int size, String linking, String externalNotes, InventoryItem parent,
                                 SoftwareComponent component, boolean wasCombined,
