@@ -63,7 +63,7 @@
                           dataContainer="codeLocationsDc"
                           width="100%">
                     <columns>
-                        <column property="filePath"/>
+                        <column property="filePath" header="msg://eu.occtet.bocfrontend.entity/CodeLocation.filePath"/>
                     </columns>
                 </dataGrid>
             </vbox>
