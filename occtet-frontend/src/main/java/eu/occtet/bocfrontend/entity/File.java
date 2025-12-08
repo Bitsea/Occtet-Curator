@@ -68,10 +68,10 @@ public class File {
     @OnDelete(DeletePolicy.UNLINK)
     private CodeLocation codeLocation;
 
-    @Column(name = "ABSOLUTE_PATH", nullable = false)
+    @Column(name = "ABSOLUTE_PATH", nullable = false, columnDefinition = "TEXT")
     private String absolutePath;
 
-    @Column(name = "RELATIVE_PATH", nullable = false)
+    @Column(name = "RELATIVE_PATH", nullable = false, columnDefinition = "TEXT")
     private String relativePath;
 
     @Column(name = "IS_DIRECTORY", nullable = false)

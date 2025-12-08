@@ -62,10 +62,10 @@ public class File {
     @Column(name = "FILENAME", nullable = false)
     private String fileName;
 
-    @Column(name = "ABSOLUTE_PATH", nullable = false)
+    @Column(name = "ABSOLUTE_PATH", nullable = false, columnDefinition = "TEXT")
     private String absolutePath;
 
-    @Column(name = "RELATIVE_PATH", nullable = false)
+    @Column(name = "RELATIVE_PATH", nullable = false, columnDefinition = "TEXT")
     private String relativePath;
 
     @Column(name = "IS_DIRECTORY", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")

@@ -35,6 +35,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.io.IOException;
@@ -50,6 +51,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @EnableJpaRepositories(basePackages = "eu.occtet.boc.download.dao")
 @EntityScan(basePackages = "eu.occtet.boc.entity")
 @EnableJpaAuditing
+@ActiveProfiles("test")
 public class FileServiceTest {
 
     @Autowired
@@ -67,6 +69,9 @@ public class FileServiceTest {
         Files.createFile(parent1.resolve("rootFile.txt"));
         Files.createFile(subFolder.resolve("childFile.txt"));
 
+        // Parent   -> subFolder      -> childFile.txt
+        //          -> rootFile.txt
+
         Project project = new Project();
         project.setProjectName("TestProject");
         project.setBasePath(parent1.toAbsolutePath().toString());
@@ -74,7 +79,7 @@ public class FileServiceTest {
 
         fileService.createEntitiesFromPath(project, parent1);
         List<File> allFiles = fileRepository.findAll();
-        assertEquals(3, allFiles.size());
+        assertEquals(4, allFiles.size());
 
         // test hierarchy
         File childFile = allFiles.stream()
@@ -86,7 +91,6 @@ public class FileServiceTest {
 
         File subFolderEntity = childFile.getParent();
 
-        assertNull(subFolderEntity.getParent());
         assertTrue(subFolderEntity.getIsDirectory());
         assertEquals("subFolder", subFolderEntity.getRelativePath());
 
@@ -94,9 +98,10 @@ public class FileServiceTest {
                 .filter(f -> f.getFileName().equals("rootFile.txt"))
                 .findFirst().orElseThrow();
 
-        assertNull(rootFile.getParent());
         assertEquals("rootFile.txt", rootFile.getRelativePath());
         assertEquals(project.getId(), rootFile.getProject().getId());
+
+        assertNotNull(rootFile.getParent());
     }
 }
 
