@@ -22,8 +22,11 @@ package eu.occtet.bocfrontend.view.copyright;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.CopyrightRepository;
+import eu.occtet.bocfrontend.entity.CodeLocation;
 import eu.occtet.bocfrontend.entity.Copyright;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.License;
@@ -46,7 +49,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.awt.*;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Route(value = "copyrights/:id", layout = MainView.class)
 @ViewController(id = "Copyright.detail")
@@ -66,21 +72,16 @@ public class CopyrightDetailView extends StandardDetailView<Copyright> {
     private CollectionContainer<License> licenseDc;
 
     @ViewComponent
-    private JmixButton removeLicenseButton;
-    @ViewComponent
     private DataGrid<License> licensesDataGrid;
 
     @Autowired
     private CopyrightRepository copyrightRepository;
 
+
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
         updateLicenseGrid();
     }
-
-
-
-
 
 
     @Subscribe(id = "addLicense", subject = "clickListener")

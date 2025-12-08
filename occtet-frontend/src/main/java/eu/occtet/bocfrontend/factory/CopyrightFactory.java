@@ -26,17 +26,19 @@ import io.jmix.core.DataManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class CopyrightFactory {
 
     @Autowired
     private DataManager dataManager;
 
-    public Copyright create(String copyrightName, CodeLocation codeLocation, boolean isCurated, boolean isGarbage){
+    public Copyright create(String copyrightName, List<CodeLocation> codeLocation, boolean isCurated, boolean isGarbage){
 
         Copyright copyright = dataManager.create(Copyright.class);
         copyright.setCopyrightText(copyrightName);
-        copyright.setCodeLocation(codeLocation);
+        copyright.setCodeLocations(codeLocation);
         copyright.setCurated(isCurated);
         copyright.setGarbage(isGarbage);
 

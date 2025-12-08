@@ -157,15 +157,12 @@ public class SpdxService extends BaseWorkDataProcessor{
             throws Exception {
 
         log.info("Looking at package: {}", spdxPackage.getId());
-
         String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
         List<CodeLocation> codeLocations = new ArrayList<>();
         List<Copyright> copyrights = new ArrayList<>();
-
         // Creation
         // Use the method from service instead of factory to avoid duplicated software components
         SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(packageName, spdxPackage.getVersionInfo().orElse(""));
-
         //get License from package
         AnyLicenseInfo spdxPkgLicense = spdxPackage.getLicenseConcluded();
         if (spdxPkgLicense.isNoAssertion(spdxPkgLicense)) {
@@ -183,7 +180,6 @@ public class SpdxService extends BaseWorkDataProcessor{
         } else {
             component.setLicenses(pkgLicenses);
         }
-
         String packageLicenseString = spdxPkgLicense != null ? spdxPkgLicense.toString() : "";
 
         String inventoryName = spdxPackage.getId().replaceAll("(?i)^SPDXRef-[^-]+-[^-]+-", "");
@@ -198,9 +194,7 @@ public class SpdxService extends BaseWorkDataProcessor{
         inventoryItem.setWasCombined(isCombined);
         inventoryItem.setSpdxId(spdxPackage.getId());
         inventoryItem.setCurated(false);
-
         inventoryItem.setSize(spdxPackage.getFiles().size());
-
         spdxPackage.getFiles().forEach(f -> {
             try {
                 parseFiles(f, inventoryItem, codeLocations, copyrights);
@@ -208,7 +202,6 @@ public class SpdxService extends BaseWorkDataProcessor{
                 throw new RuntimeException(e);
             }
         });
-
 
         if (component.getCopyrights() == null){
             component.setCopyrights(copyrights);
@@ -218,7 +211,6 @@ public class SpdxService extends BaseWorkDataProcessor{
             uniqueCopyrights.addAll(copyrights);
             component.setCopyrights(new ArrayList<>(uniqueCopyrights));
         }
-
 
         String downloadLocation = spdxPackage.getDownloadLocation().orElse("");
         component.setDetailsUrl(downloadLocation);
@@ -230,7 +222,6 @@ public class SpdxService extends BaseWorkDataProcessor{
                 log.info("Found purl: {} for Component: {}", externalRef.getReferenceLocator(), component.getName());
             }
         }
-
         String version = spdxPackage.getVersionInfo().orElse("");
         if (!version.isEmpty() && !downloadLocation.isEmpty()) {
             if(answerService.sendToDownload(downloadLocation ,project.getBasePath(), version)){
@@ -261,12 +252,13 @@ public class SpdxService extends BaseWorkDataProcessor{
                 if(licenseId.isEmpty()){
                     licenseId= "Unknown";
                 }
-                log.debug("adding license {}", licenseId);
+
                 String licenseText = license.getLicenseText();
                 License licenseEntity = licenseService.findOrCreateLicense(licenseId, licenseText, licenseId);
                 licenseEntity.setSpdx(true);
                 //save changes to spdx status
                 licenseRepository.save(licenseEntity);
+                log.debug("adding license {}", licenseId);
                 allLicenses.add(licenseEntity);
             } else if (individualLicenseInfo instanceof ExtractedLicenseInfo) {
                 Optional<ExtractedLicenseInfo> extractedLicense = licenseInfosExtractedSpdxDoc.stream().filter(s -> s.getLicenseId().equals(individualLicenseInfo.getId())).findFirst();
@@ -275,7 +267,6 @@ public class SpdxService extends BaseWorkDataProcessor{
                     if(licenseId.isEmpty()){
                         licenseId= "Unknown";
                     }
-                    log.debug("adding license {}", licenseId);
                     String licenseText = extractedLicense.get().getExtractedText();
                     allLicenses.add(licenseService.findOrCreateLicense(licenseId, licenseText, licenseId));
                 }
@@ -315,7 +306,8 @@ public class SpdxService extends BaseWorkDataProcessor{
             if (!codeLocations.contains(fileLocation)) {
                 codeLocations.add(fileLocation);
             }
-            Copyright fileCopyright = copyrightService.findOrCreateCopyright(copyrightText, fileLocation);
+
+            Copyright fileCopyright = copyrightService.findOrCreateCopyright(copyrightText, codeLocations);
             if (!copyrights.contains(fileCopyright)) {
                 copyrights.add(fileCopyright);
                 log.info("Created codeLocation: {} for Copyright: {}", fileLocation.getFilePath(), copyrightText);

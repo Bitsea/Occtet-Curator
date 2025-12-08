@@ -49,7 +49,9 @@ public class LicenseService {
 
 
     public License findOrCreateLicense(String licenseId, String licenseText, String licenseName ) {
+        log.debug("before getting licenses");
         List<License> license = licenseRepository.findByLicenseTypeAndLicenseText(licenseId, licenseText);
+        log.debug("after getting licenses {}", license.size());
         if (!license.isEmpty()) {
             return license.getFirst();
         } else {
