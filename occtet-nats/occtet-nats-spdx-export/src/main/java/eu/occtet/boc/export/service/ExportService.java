@@ -27,6 +27,7 @@ import eu.occtet.boc.export.dao.ProjectRepository;
 import eu.occtet.boc.export.dao.spdxV2.SpdxDocumentRootRepository;
 import eu.occtet.boc.model.SpdxExportWorkData;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
+import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
@@ -46,8 +47,11 @@ import org.springframework.stereotype.Service;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+@Transactional
 @Service
 public class ExportService extends BaseWorkDataProcessor {
 
@@ -93,7 +97,7 @@ public class ExportService extends BaseWorkDataProcessor {
             spdxDocument.setCreationInfo(
                     spdxDocument.createCreationInfo(
                             Arrays.asList("Tool: Occtet-Curator", "<Insert User>"),
-                            new Date().toString())
+                            Instant.now().truncatedTo(ChronoUnit.SECONDS).toString())
             );
             spdxDocument.getCreationInfo().setComment(creationInfoEntity.getComment());
             spdxDocument.setSpecVersion(Version.CURRENT_SPDX_VERSION);
@@ -175,7 +179,7 @@ public class ExportService extends BaseWorkDataProcessor {
                         pkgEntity.getName(),
                         LicenseInfoFactory.parseSPDXLicenseStringCompatV2(pkgEntity.getLicenseConcluded()),
                         pkgEntity.getCopyrightText(),
-                        LicenseInfoFactory.parseSPDXLicenseStringCompatV2(pkgEntity.getLicenseDeclared())
+                        LicenseInfoFactory.parseSPDXLicenseStringCompatV2(pkgEntity.getLicenseDeclared(), modelStore, documentUri, null)
                 ).build();
                 spdxPackage.setDownloadLocation(pkgEntity.getDownloadLocation());
                 spdxPackage.setFilesAnalyzed(pkgEntity.getFileNames().isEmpty());
@@ -195,7 +199,7 @@ public class ExportService extends BaseWorkDataProcessor {
                 SpdxPackageVerificationCode pkgVerificationCode = new SpdxPackageVerificationCode(modelStore, documentUri, SpdxConstantsCompatV2.CLASS_SPDX_VERIFICATIONCODE + pkgEntity.getPackageVerificationCode().getPackageVerificationCodeValue(), null, true);
                 pkgVerificationCode.setValue(pkgEntity.getPackageVerificationCode().getPackageVerificationCodeValue());
                 pkgVerificationCode.getExcludedFileNames().addAll(pkgEntity.getPackageVerificationCode().getPackageVerificationCodeExcludedFiles());
-                spdxPackage.setPackageVerificationCode(new SpdxPackageVerificationCode());
+                spdxPackage.setPackageVerificationCode(pkgVerificationCode);
 
                 Optional<InventoryItem> inventoryItem = inventoryItemRepository.findBySpdxId(pkgEntity.getSpdxId());
                 if(inventoryItem.isPresent()){
@@ -221,21 +225,24 @@ public class ExportService extends BaseWorkDataProcessor {
     }
 
     private SpdxFile createSpdxFile(SpdxFileEntity fileEntity, SpdxDocument spdxDocument){
+        IModelStore modelStore = spdxDocument.getModelStore();
+        String documentUri = spdxDocument.getDocumentUri();
+
         try {
             List<AnyLicenseInfo> seenLicenses = new ArrayList<>();
             for (String license : fileEntity.getLicenseInfoInFiles()) {
-                seenLicenses.add(LicenseInfoFactory.parseSPDXLicenseStringCompatV2(license));
+                seenLicenses.add(LicenseInfoFactory.parseSPDXLicenseStringCompatV2(license, modelStore, documentUri, null));
             }
 
             return spdxDocument.createSpdxFile(
-                    fileEntity.getSpdxId(),
-                    fileEntity.getFileName(),
-                    LicenseInfoFactory.parseSPDXLicenseStringCompatV2(fileEntity.getLicenseConcluded()),
-                    seenLicenses,
-                    fileEntity.getCopyrightText(),
-                    spdxDocument.createChecksum(
-                            ChecksumAlgorithm.valueOf(fileEntity.getChecksums().getFirst().getAlgorithm()),
-                            fileEntity.getChecksums().getFirst().getChecksumValue())
+                            fileEntity.getSpdxId(),
+                            fileEntity.getFileName(),
+                            LicenseInfoFactory.parseSPDXLicenseStringCompatV2(fileEntity.getLicenseConcluded(), modelStore, documentUri, null),
+                            seenLicenses,
+                            fileEntity.getCopyrightText(),
+                            spdxDocument.createChecksum(
+                                    ChecksumAlgorithm.valueOf(fileEntity.getChecksums().getFirst().getAlgorithm()),
+                                    fileEntity.getChecksums().getFirst().getChecksumValue())
                     )
                     .build();
         } catch (Exception e) {
