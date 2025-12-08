@@ -134,11 +134,14 @@ public class AnswerService {
      * @param url url where the component is located
      * @param location location path where the component will be downloaded into
      * @param version version of the component to be downloaded
+     * @param projectId id of the project where the component belongs to
+     * @param isMainPackage weather the component is a main package of the project or not -> important for
+     *                      differntiating between them and dependencies
      * @return true if sending was successful otherwise false
      */
-    public boolean sendToDownload(String url, String location, String version, String projectId){
+    public boolean sendToDownload(String url, String location, String version, String projectId, Boolean isMainPackage){
         try {
-            DownloadServiceWorkData payload = new DownloadServiceWorkData(url, location, version, projectId);
+            DownloadServiceWorkData payload = new DownloadServiceWorkData(url, location, version, projectId, isMainPackage);
             LocalDateTime now = LocalDateTime.now();
             long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
             WorkTask workTask = new WorkTask("download_task", "information about a component to be downloaded to a specific location", actualTimestamp, payload);

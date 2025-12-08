@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -123,12 +124,23 @@ public class SpdxService extends BaseWorkDataProcessor{
             HashSet<String> seenPackages = new HashSet<>();
             licenseInfosExtractedSpdxDoc = spdxDocument.getExtractedLicenseInfos();
 
+            //get the list of described packages for the download-service to differentiate between them and dependencies
+            Set<String> mainPackageIds = new HashSet<>();
+            try {
+                Set<String> ids = spdxDocument.getDocumentDescribes().stream()
+                        .map(SpdxElement::getId)
+                        .collect(Collectors.toSet());
+                mainPackageIds.addAll(ids);
+            } catch (InvalidSPDXAnalysisException e) {
+                log.warn("Could not read DocumentDescribes: {}", e.getMessage());
+            }
+
             for (TypedValue uri : packageUri) {
                 SpdxModelFactory.getSpdxObjects(spdxDocument.getModelStore(), null, "Package", uri.getObjectUri(), null).forEach(
                         spdxPackage -> {
                             try {
                                 if (!seenPackages.contains(spdxPackage.toString())) {
-                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project));
+                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project, mainPackageIds));
                                     spdxPackages.add((SpdxPackage) spdxPackage);
                                     seenPackages.add((spdxPackage).toString());
                                 }
@@ -153,7 +165,7 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
     }
 
-    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project)
+    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project, Set<String> mainPackageIds)
             throws Exception {
 
         log.info("Looking at package: {}", spdxPackage.getId());
@@ -233,7 +245,8 @@ public class SpdxService extends BaseWorkDataProcessor{
 
         String version = spdxPackage.getVersionInfo().orElse("");
         if (!version.isEmpty() && !downloadLocation.isEmpty()) {
-            if(answerService.sendToDownload(downloadLocation ,project.getBasePath(), version, project.getId().toString())){
+            if(answerService.sendToDownload(downloadLocation ,project.getBasePath(), version,
+                    project.getId().toString(), mainPackageIds.contains(spdxPackage.getId()))){
                 log.info("sending to DownloadService was successful");
             }else{
                 log.error("failed to send to Downloadservice");

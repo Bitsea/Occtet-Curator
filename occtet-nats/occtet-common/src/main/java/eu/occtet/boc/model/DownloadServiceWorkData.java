@@ -33,25 +33,30 @@ public class DownloadServiceWorkData extends BaseWorkData{
     private String location;
     private String version;
     private String projectId;
+    private Boolean isMainPackage;
 
     @JsonCreator
     public DownloadServiceWorkData(@JsonProperty("url") String url,@JsonProperty("location") String location
-            ,@JsonProperty("version") String version, @JsonProperty("projectId") String projectId) {
+            ,@JsonProperty("version") String version, @JsonProperty("projectId") String projectId,
+                                   @JsonProperty("isMainPackage") Boolean isMainPackage) {
 
         this.url = url;
         this.location = location;
         this.version = version;
         this.projectId = projectId;
+        this.isMainPackage = isMainPackage;
     }
 
     public void setUrl(String url){this.url = url;}
     public void setLocation(String location){this.location = location;}
     public void setVersion(String version){this.version = version;}
     public void setProjectId(String projectId){this.projectId = projectId;}
+    public void setIsMainPackage(Boolean isMainPackage){this.isMainPackage = isMainPackage;}
     public String getUrl(){return this.url;}
     public String getLocation(){return this.location;}
     public String getVersion(){return this.version;}
     public String getProjectId(){return this.projectId;}
+    public Boolean getIsMainPackage(){return this.isMainPackage;}
 
     @Override
     public boolean process(IWorkDataProcessor processor) {return processor.process(this);}

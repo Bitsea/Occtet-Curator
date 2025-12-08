@@ -34,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
 /**
  * Service for handling operations related to File entities, such as scanning directories
@@ -44,6 +46,8 @@ public class FileService {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
+    @Autowired
+    private FileRepository fileRepository;
     @Autowired
     private FileFactory fileFactory;
 
@@ -58,17 +62,44 @@ public class FileService {
      * @param rootPath the root path of the directory to be scanned and processed
      */
     @Transactional
-    public void createEntitiesFromPath(Project project, Path rootPath) {
+    public void createEntitiesFromPath(Project project, Path rootPath, Boolean isMainPackage) {
+        long start = System.currentTimeMillis();
         try {
             log.info("Starting scan for project {} in path {}", project.getId(), rootPath);
+
+            Map<String, File> existingFilesMap = new HashMap<>();
+            List<File> existingFiles = fileRepository.findAllByProject(project);
+
+            for (File f : existingFiles) {
+                existingFilesMap.put(f.getAbsolutePath(), f);
+            }
+
+            List<File> filesToSave = new ArrayList<>();
             java.io.File rootDirectory = rootPath.toFile();
+            File rootEntity;
 
-            File rootEntity = fileFactory.create(project, rootDirectory.getName(),
-                    rootDirectory.getAbsolutePath(), getRelativePath(project, rootDirectory),
-                    true, null);
+            File parentForRoot = getOrCreateDependencyFolder(project, isMainPackage, existingFilesMap, filesToSave);
 
+            if (!existingFilesMap.containsKey(rootDirectory.getAbsolutePath())) {
+                rootEntity = fileFactory.create(project, rootDirectory.getName(),
+                        rootDirectory.getAbsolutePath(), getRelativePath(project, rootDirectory),
+                        true, parentForRoot);
 
-            scanDir(project, rootDirectory, rootEntity);
+                filesToSave.add(rootEntity);
+            } else {
+                rootEntity = existingFilesMap.get(rootDirectory.getAbsolutePath());
+            }
+
+            scanDir(project, rootDirectory, rootEntity, filesToSave, existingFilesMap);
+
+            if (!filesToSave.isEmpty()) {
+                fileRepository.saveAll(filesToSave);
+                fileRepository.flush();
+            }
+
+            log.info("Scan completed. Processed {} new files in {} ms",
+                    filesToSave.size(), System.currentTimeMillis() - start);
+
         } catch (Exception e) {
             log.error("Could not scan directory {}", rootPath, e);
         }
@@ -81,12 +112,24 @@ public class FileService {
      *
      * @param project the Project entity associated with the directory being scanned
      */
-    private void scanDir(Project project, java.io.File directory, File parentEntity) {
+    private void scanDir(Project project, java.io.File directory, File parentEntity,
+                         List<File> filesToSave, Map<String, File> existingFilesMap) {
+
         java.io.File[] files = directory.listFiles();
         if (files == null) return;
 
         for (java.io.File file : files) {
-            if (Files.isSymbolicLink(file.toPath())) continue;
+            if (Files.isSymbolicLink(file.toPath())
+                    || file.getName().equals(".git")
+                    || file.getName().equals(".idea")
+                    || file.getName().equals("target")
+                    //... add more exclusions if familiar with them
+            )
+                continue;
+
+            if (existingFilesMap.containsKey(file.getAbsolutePath())) {
+                continue;
+            }
 
             File fileEntity = fileFactory.create(
                     project,
@@ -97,20 +140,41 @@ public class FileService {
                     parentEntity
             );
 
+            filesToSave.add(fileEntity);
+
             if (file.isDirectory()) {
-                scanDir(project, file, fileEntity);
+                scanDir(project, file, fileEntity, filesToSave, existingFilesMap);
             }
         }
     }
 
     private String getRelativePath(Project project, java.io.File file){
-        Path basePath = Path.of(project.getBasePath());
-        Path filePath = file.toPath();
         try {
-            Path relativePath = basePath.relativize(filePath);
-            return FilenameUtils.separatorsToUnix(relativePath.toString());
+            return FilenameUtils.separatorsToUnix(Path.of(project.getBasePath()).relativize(file.toPath()).toString());
         } catch (IllegalArgumentException e) {
             return file.getName();
         }
+    }
+
+    private File getOrCreateDependencyFolder(Project project, Boolean isMainPackage,
+                                             Map<String, File> existingFilesMap, List<File> filesToSave) {
+        if (Boolean.TRUE.equals(isMainPackage)) {
+            return null;
+        }
+        String depFolderPath = Paths.get(project.getBasePath(), "dependencies").toString();
+        if (existingFilesMap.containsKey(depFolderPath)) {
+            return existingFilesMap.get(depFolderPath);
+        }
+        for (File f : filesToSave) {
+            if (f.getAbsolutePath().equals(depFolderPath)) {
+                return f;
+            }
+        }
+        File depFolderEntity = fileFactory.create(project, "dependencies", depFolderPath,
+                "dependencies", true, null);
+        existingFilesMap.put(depFolderPath, depFolderEntity);
+        filesToSave.add(depFolderEntity);
+        log.debug("Created dependencies folder entity");
+        return depFolderEntity;
     }
 }

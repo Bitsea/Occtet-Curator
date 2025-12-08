@@ -21,19 +21,13 @@
 
 package eu.occtet.boc.download.factory;
 
-import eu.occtet.boc.download.dao.FileRepository;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.Project;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 
 @Component
 public class FileFactory {
-
-    @Autowired
-    private FileRepository fileRepository;
 
     public File create(Project project,
                        String fileName,
@@ -42,11 +36,6 @@ public class FileFactory {
                        boolean isDirectory,
                        File parentEntity
     ) {
-        Optional<File> existing = fileRepository.findByProjectAndAbsolutePath(project, absolutePath);
-        if (existing.isPresent()) {
-            return existing.get();
-        }
-
         File file = new File();
 
         file.setProject(project);
@@ -59,6 +48,6 @@ public class FileFactory {
         file.setCodeLocation(null);
         file.setReviewed(false);
 
-        return fileRepository.save(file);
+        return file;
     }
 }
