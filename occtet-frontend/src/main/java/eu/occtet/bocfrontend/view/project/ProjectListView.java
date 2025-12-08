@@ -81,8 +81,7 @@ public class ProjectListView extends StandardListView<Project> {
     }
 
     private void handleExport(Project project){
-        //TODO replace project.getProjectName with the corresponding spdxDocumentID
-        SpdxExportWorkData spdxExportWorkData = new SpdxExportWorkData(project.getProjectName(), String.valueOf(project.getId()));
+        SpdxExportWorkData spdxExportWorkData = new SpdxExportWorkData(project.getDocumentID(), String.valueOf(project.getId()));
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
         WorkTask workTask = new WorkTask("processing_spdx", "send project data to microservice to create new spdx", actualTimestamp, spdxExportWorkData);
