@@ -26,5 +26,5 @@ import java.util.Optional;
 
 @Repository
 public interface SpdxDocumentRootRepository extends JpaRepository<SpdxDocumentRoot, Long> {
-    Optional<SpdxDocumentRoot> findBySPDXID(String SPDXID);
+    Optional<SpdxDocumentRoot> findBySpdxId(String spdxId);
 }

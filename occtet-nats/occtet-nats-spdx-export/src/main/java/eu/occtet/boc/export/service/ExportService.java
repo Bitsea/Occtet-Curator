@@ -76,10 +76,12 @@ public class ExportService extends BaseWorkDataProcessor {
 
             Optional<Project> project = projectRepository.findById(UUID.fromString(spdxExportWorkData.getProjectId()));
             if (project.isEmpty()) {
+                log.error("failed to find project");
                 return false;
             }
-            Optional<SpdxDocumentRoot> spdxDocumentRootOpt = spdxDocumentRootRepository.findBySPDXID(spdxExportWorkData.getSpdxDocumentId());
+            Optional<SpdxDocumentRoot> spdxDocumentRootOpt = spdxDocumentRootRepository.findBySpdxId(spdxExportWorkData.getSpdxDocumentId());
             if (spdxDocumentRootOpt.isEmpty()) {
+                log.error("failed to find spdxDocumentRoot with id: {}", spdxExportWorkData.getSpdxDocumentId());
                 return false;
             }
             SpdxDocumentRoot spdxDocumentRoot = spdxDocumentRootOpt.get();

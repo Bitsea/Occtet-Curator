@@ -120,6 +120,8 @@ public class SpdxService extends BaseWorkDataProcessor{
                 return false;
             }
             Project project = projectOptional.get();
+            project.setDocumentID(spdxDocument.getId());
+            projectRepository.save(project);
 
 
             List<InventoryItem> inventoryItems = new ArrayList<>();
