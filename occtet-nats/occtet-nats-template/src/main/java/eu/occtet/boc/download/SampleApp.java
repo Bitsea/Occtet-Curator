@@ -55,6 +55,9 @@ public class SampleApp {
     @Autowired
     private Connection natsConnection;
 
+    @Value("${application.version}")
+    private String applicationVersion;
+
     @Value("${nats.stream-name}")
     private String streamName;
 
