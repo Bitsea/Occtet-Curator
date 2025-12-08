@@ -36,29 +36,9 @@ import java.util.List;
 @Component
 public class InventoryItemFactory {
 
-    private final InventoryItemRepository inventoryItemRepository;
-
     @Autowired
-    public InventoryItemFactory(InventoryItemRepository inventoryItemRepository) {
-        this.inventoryItemRepository = inventoryItemRepository;
-    }
+    private InventoryItemRepository inventoryItemRepository;
 
-    public InventoryItem create(String inventoryName, int size, String linking,String externalNotes, InventoryItem parent,
-                                SoftwareComponent component, boolean wasCombined,
-                                Project project, String basePath, String spdxId) {
-
-        InventoryItem inventoryItem = new InventoryItem(
-                inventoryName, size, linking,   externalNotes,
-                parent, component, wasCombined, false, project, spdxId);
-
-        return inventoryItemRepository.save(inventoryItem);
-    }
-
-
-    public InventoryItem create(String inventoryName, Project project, SoftwareComponent sc) {
-        InventoryItem inventoryItem = new InventoryItem(inventoryName, project, sc);
-        return inventoryItemRepository.save(inventoryItem);
-    }
 
     public void update(InventoryItem item) {
         inventoryItemRepository.save(item);

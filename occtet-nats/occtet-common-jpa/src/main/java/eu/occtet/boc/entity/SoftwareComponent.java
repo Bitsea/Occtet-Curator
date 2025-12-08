@@ -57,7 +57,7 @@ public class SoftwareComponent {
     @Column(name= "DETAILS_URL")
     private String detailsUrl;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name= "SOFTWARECOMPONENT_ID")
     private List<Copyright> copyrights;
 

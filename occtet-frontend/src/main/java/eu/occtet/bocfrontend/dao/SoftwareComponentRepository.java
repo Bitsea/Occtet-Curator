@@ -20,6 +20,8 @@
 package eu.occtet.bocfrontend.dao;
 
 
+import eu.occtet.bocfrontend.entity.Copyright;
+import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.Vulnerability;
 import io.jmix.core.repository.JmixDataRepository;
@@ -34,7 +36,9 @@ public interface SoftwareComponentRepository extends JmixDataRepository<Software
     SoftwareComponent findByName(String softwareComponentName);
     List<SoftwareComponent> findAll();
     List<SoftwareComponent> findSoftwareComponentsByCurated(Boolean curated);
+    List<SoftwareComponent> findDistinctByCopyrightsIn(List<Copyright> copyright);
 
     @Query("select sc from SoftwareComponent sc join sc.vulnerabilities v where v = :vuln")
     List<SoftwareComponent> findByVulnerability(Vulnerability vuln);
+
 }

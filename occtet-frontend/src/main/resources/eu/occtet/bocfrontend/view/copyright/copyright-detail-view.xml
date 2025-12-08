@@ -25,16 +25,20 @@
         <instance id="copyrightDc"
                   class="eu.occtet.bocfrontend.entity.Copyright">
             <fetchPlan extends="_base">
-                <property name="codeLocation" fetchPlan="_base"/>
+                <property name="codeLocations" fetchPlan="_base"/>
                 <property name="licenses" fetchPlan="_base"/>
             </fetchPlan>
             <loader id="copyrightDl">
                 <query>
-                    <![CDATA[select e from Copyright e]]>
+                    <![CDATA[
+                    select distinct c
+                    from Copyright c
+                    left join c.codeLocations cl]]>
                 </query>
 
             </loader>
             <collection id="licenseDataGrid" property="licenses"/>
+            <collection id="codeLocationsDc" property="codeLocations"/>
         </instance>
 
         <collection id="licenseDc"
@@ -55,7 +59,13 @@
         <vbox id="form" width="100%">
             <vbox >
                 <textField id="copyrightTextField" property="copyrightText" dataContainer="copyrightDc" label="Name" minWidth="100%"/>
-                <textField id="filePathField" property="codeLocation.filePath" dataContainer="copyrightDc" label="File Path" width="100%"/>
+                <dataGrid id="codeLocationsGrid"
+                          dataContainer="codeLocationsDc"
+                          width="100%">
+                    <columns>
+                        <column property="filePath"/>
+                    </columns>
+                </dataGrid>
             </vbox>
             <hbox>
                 <checkbox id="curatedField" dataContainer="copyrightDc" property="curated" label="Curated"/>
