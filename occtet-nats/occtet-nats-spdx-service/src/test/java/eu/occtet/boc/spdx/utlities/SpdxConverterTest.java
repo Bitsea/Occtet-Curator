@@ -19,7 +19,7 @@
 package eu.occtet.boc.spdx.utlities;
 
 import eu.occtet.boc.entity.spdxV2.*;
-import eu.occtet.boc.entity.spdxV2.Package;
+import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.spdx.coverter.SpdxConverter;
 import eu.occtet.boc.spdx.dao.spdxV2.*;
 import org.apache.logging.log4j.LogManager;
@@ -54,7 +54,7 @@ import java.util.List;
 @ContextConfiguration(classes = {
         SpdxConverter.class, ExternalDocumentRefRepository.class, ChecksumRepository.class, CreationInfoRepository.class,
         ExtractedLicensingInfoRepository.class, SpdxDocumentRootRepository.class, ExternalRefRepository.class,
-        AnnotationRepository.class, PackageRepository.class, SpdxFileRepository.class, RelationshipRepository.class
+        AnnotationRepository.class, SpdxPackageRepository.class, SpdxFileRepository.class, RelationshipRepository.class
 
 })
 @EnableJpaRepositories(basePackages = {
@@ -101,7 +101,7 @@ public class SpdxConverterTest {
         SpdxDocumentRoot spdxDocumentRoot = spdxConverter.convertSpdxV2DocumentInformation(spdxDocument);
         //Check correctness of base info
         Assertions.assertEquals("SPDX-2.3", spdxDocumentRoot.getSpdxVersion());
-        Assertions.assertEquals("SPDXRef-DOCUMENT", spdxDocumentRoot.getSPDXID());
+        Assertions.assertEquals("SPDXRef-DOCUMENT", spdxDocumentRoot.getSpdxId());
         Assertions.assertEquals("some document name", spdxDocumentRoot.getName());
         Assertions.assertEquals("CC0-1.0" ,spdxDocumentRoot.getDataLicense());
         Assertions.assertEquals("some document comment", spdxDocumentRoot.getComment());
@@ -141,11 +141,11 @@ public class SpdxConverterTest {
             SpdxDocumentRoot spdxDocumentRoot = new SpdxDocumentRoot();
             SpdxPackage spdxPackage = (SpdxPackage) spdxDocument.getDocumentDescribes().toArray()[0];
 
-            Package pkg = spdxConverter.convertPackage(spdxPackage, spdxDocumentRoot);
+            SpdxPackageEntity pkg = spdxConverter.convertPackage(spdxPackage, spdxDocumentRoot);
 
             Assertions.assertEquals(spdxDocumentRoot, pkg.getSpdxDocument());
             Assertions.assertEquals("proj1", pkg.getName());
-            Assertions.assertEquals("SPDXRef-Project-Maven-proj1-grp-proj1-0.0.1", pkg.getSPDXID());
+            Assertions.assertEquals("SPDXRef-Project-Maven-proj1-grp-proj1-0.0.1", pkg.getSpdxId());
             Assertions.assertEquals("0.0.1", pkg.getVersionInfo());
             Assertions.assertEquals("https://github.com/path/proj1-repo.git", pkg.getDownloadLocation());
             Assertions.assertEquals("NONE", pkg.getCopyrightText());
@@ -171,7 +171,7 @@ public class SpdxConverterTest {
             SpdxFile spdxFile = (SpdxFile) spdxPackage.getFiles().toArray()[0];
             SpdxFileEntity spdxFileEntity = spdxConverter.convertFile(spdxFile, spdxDocumentRoot);
 
-            Assertions.assertEquals("SPDXRef-File-4", spdxFileEntity.getSPDXID());
+            Assertions.assertEquals("SPDXRef-File-4", spdxFileEntity.getSpdxId());
             Assertions.assertEquals("LICENSE", spdxFileEntity.getFileName());
             Assertions.assertEquals("NONE", spdxFileEntity.getCopyrightText());
             Assertions.assertEquals("NOASSERTION", spdxFileEntity.getLicenseConcluded());

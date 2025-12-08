@@ -19,7 +19,7 @@
 package eu.occtet.boc.spdx.coverter;
 
 import eu.occtet.boc.entity.spdxV2.*;
-import eu.occtet.boc.entity.spdxV2.Package;
+import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.spdx.dao.spdxV2.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,33 +36,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class SpdxConverter {
 
     @Autowired
-    ExternalDocumentRefRepository externalDocumentRefRepro;
-    @Autowired
-    ChecksumRepository checksumRepository;
-    @Autowired
-    CreationInfoRepository creationInfoRepository;
-    @Autowired
-    ExtractedLicensingInfoRepository extractedLicensingInfoRepository;
-    @Autowired
     SpdxDocumentRootRepository spdxDocumentRootRepository;
-    @Autowired
-    ExternalRefRepository externalRefRepository;
-    @Autowired
-    AnnotationRepository annotationRepository;
-    @Autowired
-    PackageRepository packageRepository;
-    @Autowired
-    SpdxFileRepository spdxFileRepository;
-    @Autowired
-    RelationshipRepository relationshipRepository;
 
     private static final Logger log = LogManager.getLogger(SpdxConverter.class);
 
@@ -87,7 +67,11 @@ public class SpdxConverter {
         SpdxDocumentRoot spdxDocumentRoot = new SpdxDocumentRoot();
         try {
             spdxDocumentRoot.setSpdxVersion(spdxDocument.getSpecVersion());
-            spdxDocumentRoot.setSPDXID(spdxDocument.getId());
+            String docId = spdxDocument.getId();
+            if (docId == null || docId.trim().isEmpty()) {
+                docId = "SPDXRef-DOCUMENT";
+            }
+            spdxDocumentRoot.setSpdxId(docId);
             spdxDocumentRoot.setName(spdxDocument.getName().orElse(""));
             spdxDocumentRoot.setDataLicense(spdxDocument.getDataLicense().toString());
             spdxDocumentRoot.setComment(spdxDocument.getComment().orElse(""));
@@ -100,23 +84,22 @@ public class SpdxConverter {
                 refEntity.setId(Long.valueOf(ref.getId()));
                 refEntity.setSpdxDocument(spdxDocumentRoot);
                 refEntity.setExternalDocumentId(ref.getDocumentUri());
-                refEntity.setSpdxDocumentExternal( ref.getSpdxDocument().toString());
+                if(ref.getSpdxDocument().isPresent())
+                    refEntity.setSpdxDocumentExternal(ref.getSpdxDocument().get().getId());
                 if(ref.getChecksum().isPresent()) {
                     ChecksumEntity checksumEntity = new ChecksumEntity();
                     checksumEntity.setAlgorithm(ref.getChecksum().get().getAlgorithm().toString());
                     checksumEntity.setChecksumValue(ref.getChecksum().get().getValue());
                     refEntity.setChecksum(checksumEntity);
-                    checksumRepository.save(checksumEntity);
                 }
                 refList.add(refEntity);
-                externalDocumentRefRepro.save(refEntity);
             }
             spdxDocumentRoot.setExternalDocumentRefs(refList);
 
             CreationInfoEntity creationInfoEntity = new CreationInfoEntity();
             SpdxCreatorInformation creationInfo = spdxDocument.getCreationInfo();
             creationInfoEntity.setComment(creationInfo.getComment().orElse(""));
-            creationInfoEntity.setCreators(creationInfo.getCreators().stream().toList());
+            creationInfoEntity.setCreators(new ArrayList<>(creationInfo.getCreators()));
             creationInfoEntity.setLicenseListVersion(creationInfo.getLicenseListVersion().orElse(""));
             creationInfoEntity.setCreated(creationInfo.getCreated());
             spdxDocumentRoot.setCreationInfo(creationInfoEntity);
@@ -128,7 +111,7 @@ public class SpdxConverter {
                 infoEntity.setSpdxDocument(spdxDocumentRoot);
                 infoEntity.setName(extractedLicenseInfo.getName());
                 infoEntity.setExtractedText(extractedLicenseInfo.getExtractedText());
-                infoEntity.setSeeAlsos(extractedLicenseInfo.getSeeAlso().stream().toList());
+                infoEntity.setSeeAlsos(new ArrayList<>(extractedLicenseInfo.getSeeAlso()));
                 infoEntity.setLicenseId(extractedLicenseInfo.getLicenseId());
                 //TODO implement this
                 //infoEntity.setCrossRefs();
@@ -140,8 +123,6 @@ public class SpdxConverter {
             //spdxDocumentRoot.setSnippets();
 
             spdxDocumentRootRepository.save(spdxDocumentRoot);
-            creationInfoRepository.save(creationInfoEntity);
-
         } catch (InvalidSPDXAnalysisException e) {
             log.error("error while converting spdx document to entity: {}", e.toString());
         }
@@ -149,7 +130,7 @@ public class SpdxConverter {
     }
 
     /**
-     * Converts an {@link SpdxPackage} model into a persistent {@link Package} entity.
+     * Converts an {@link SpdxPackage} model into a persistent {@link SpdxPackageEntity} entity.
      * <p>
      * This method maps core package attributes (Name, ID, Version, License) and persists
      * associated child entities including External References, Annotations, Checksums,
@@ -159,14 +140,15 @@ public class SpdxConverter {
      * @param spdxPackage      The source SPDX package model to convert.
      * @param spdxDocumentRoot The parent database entity representing the SPDX document
      * that this package belongs to.
-     * @return The newly created and persisted {@link Package} entity.
+     * @return The newly created and persisted {@link SpdxPackageEntity} entity.
      */
-    public Package convertPackage(SpdxPackage spdxPackage, SpdxDocumentRoot spdxDocumentRoot){
-        Package spdxPackageEntity = new Package();
+    public SpdxPackageEntity convertPackage(SpdxPackage spdxPackage, SpdxDocumentRoot spdxDocumentRoot){
+        log.info("converting package");
+        SpdxPackageEntity spdxPackageEntity = new SpdxPackageEntity();
         try {
             spdxPackageEntity.setSpdxDocument(spdxDocumentRoot);
             spdxPackageEntity.setName(spdxPackage.getName().orElse(""));
-            spdxPackageEntity.setSPDXID(spdxPackage.getId());
+            spdxPackageEntity.setSpdxId(spdxPackage.getId());
             spdxPackageEntity.setVersionInfo(spdxPackage.getVersionInfo().orElse(""));
             spdxPackageEntity.setCopyrightText(spdxPackage.getCopyrightText());
             spdxPackageEntity.setDownloadLocation(spdxPackage.getDownloadLocation().orElse(""));
@@ -182,7 +164,6 @@ public class SpdxConverter {
                 externalRefEntity.setReferenceType(externalRef.getReferenceType().toString());
                 externalRefEntity.setReferenceLocator(externalRef.getReferenceLocator());
                 externalRefEntities.add(externalRefEntity);
-                externalRefRepository.save(externalRefEntity);
             }
             spdxPackageEntity.setExternalRefs(externalRefEntities);
             List<AnnotationEntity> annotationEntities = new ArrayList<>();
@@ -194,7 +175,6 @@ public class SpdxConverter {
                 annotationEntity.setAnnotator(annotation.getAnnotator());
                 annotationEntity.setSpdxElementId(annotation.getId());
                 annotationEntities.add(annotationEntity);
-                annotationRepository.save(annotationEntity);
             }
             spdxPackageEntity.setAnnotations(annotationEntities);
             List<ChecksumEntity> checksumEntities = new ArrayList<>();
@@ -203,7 +183,6 @@ public class SpdxConverter {
                 checksumEntity.setAlgorithm(checksum.getAlgorithm().toString());
                 checksumEntity.setChecksumValue(checksum.getValue());
                 checksumEntities.add(checksumEntity);
-                checksumRepository.save(checksumEntity);
             }
             spdxPackageEntity.setChecksums(checksumEntities);
 
@@ -213,16 +192,7 @@ public class SpdxConverter {
             }
             spdxPackageEntity.setLicenseInfoFromFiles(licenseInfoFiles);
 
-            PackageVerificationCodeEntity packageVerificationCodeEntity;
-            if(spdxPackage.getPackageVerificationCode().isPresent()) {
-                packageVerificationCodeEntity = new PackageVerificationCodeEntity();
-                packageVerificationCodeEntity.setPackageVerificationCodeValue(spdxPackage.getPackageVerificationCode().get().getValue());
-                packageVerificationCodeEntity.setPackageVerificationCodeExcludedFiles(spdxPackage.getPackageVerificationCode().get().getExcludedFileNames().stream().toList());
-            } else {
-                packageVerificationCodeEntity = new PackageVerificationCodeEntity();
-                packageVerificationCodeEntity.setPackageVerificationCodeValue("");
-                packageVerificationCodeEntity.setPackageVerificationCodeExcludedFiles(Collections.emptyList());
-            }
+            PackageVerificationCodeEntity packageVerificationCodeEntity = getPackageVerificationCodeEntity(spdxPackage);
             spdxPackageEntity.setPackageVerificationCode(packageVerificationCodeEntity);
 
             List<String> fileNames = new ArrayList<>();
@@ -231,15 +201,36 @@ public class SpdxConverter {
             );
             spdxPackageEntity.setFileNames(fileNames);
 
+            log.info("final persistence");
+            spdxPackageEntity.setSpdxDocument(spdxDocumentRoot);
+            if (spdxDocumentRoot.getPackages() == null) {
+                spdxDocumentRoot.setPackages(new ArrayList<>());
+            }
             spdxDocumentRoot.getPackages().add(spdxPackageEntity);
             spdxDocumentRootRepository.save(spdxDocumentRoot);
-            packageRepository.save(spdxPackageEntity);
+            log.info("finished package entity");
             return spdxPackageEntity;
 
-        } catch (InvalidSPDXAnalysisException e) {
+        } catch (Exception e) {
             log.error("error while converting spdx package to entity: {}", e.toString());
-            return null;
+            return spdxPackageEntity;
         }
+    }
+
+    private PackageVerificationCodeEntity getPackageVerificationCodeEntity(SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException {
+        PackageVerificationCodeEntity packageVerificationCodeEntity;
+        if(spdxPackage.getPackageVerificationCode().isPresent()) {
+            packageVerificationCodeEntity = new PackageVerificationCodeEntity();
+            packageVerificationCodeEntity.setPackageVerificationCodeValue(spdxPackage.getPackageVerificationCode().get().getValue());
+            List<String> excludedFiles = new ArrayList<>(spdxPackage.getPackageVerificationCode().get()
+                    .getExcludedFileNames());
+            packageVerificationCodeEntity.setPackageVerificationCodeExcludedFiles(excludedFiles);
+        } else {
+            packageVerificationCodeEntity = new PackageVerificationCodeEntity();
+            packageVerificationCodeEntity.setPackageVerificationCodeValue("");
+            packageVerificationCodeEntity.setPackageVerificationCodeExcludedFiles(new ArrayList<>());
+        }
+        return packageVerificationCodeEntity;
     }
 
     /**
@@ -256,11 +247,12 @@ public class SpdxConverter {
      * @return The newly created and persisted {@link SpdxFileEntity} entity.
      */
     public SpdxFileEntity convertFile(SpdxFile spdxFile, SpdxDocumentRoot spdxDocumentRoot){
+        log.info("converting file");
         SpdxFileEntity spdxFileEntity = new SpdxFileEntity();
         try {
             spdxFileEntity.setFileName(spdxFile.getName().orElse(""));
             spdxFileEntity.setSpdxDocument(spdxDocumentRoot);
-            spdxFileEntity.setSPDXID(spdxFile.getId());
+            spdxFileEntity.setSpdxId(spdxFile.getId());
             spdxFileEntity.setCopyrightText(spdxFile.getCopyrightText());
             spdxFileEntity.setLicenseConcluded(spdxFile.getLicenseConcluded().toString());
 
@@ -270,7 +262,6 @@ public class SpdxConverter {
                 checksumEntity.setAlgorithm(checksum.getAlgorithm().toString());
                 checksumEntity.setChecksumValue(checksum.getValue());
                 checksumEntities.add(checksumEntity);
-                checksumRepository.save(checksumEntity);
             }
             spdxFileEntity.setChecksums(checksumEntities);
 
@@ -288,12 +279,11 @@ public class SpdxConverter {
 
             spdxDocumentRoot.getFiles().add(spdxFileEntity);
             spdxDocumentRootRepository.save(spdxDocumentRoot);
-            spdxFileRepository.save(spdxFileEntity);
             return spdxFileEntity;
 
         } catch (InvalidSPDXAnalysisException e) {
             log.error("error while converting spdx file to entity: {}", e.toString());
-            return null;
+            return spdxFileEntity;
         }
 
     }
@@ -312,6 +302,7 @@ public class SpdxConverter {
      * @return The newly created and persisted {@link RelationshipEntity} entity.
      */
     public RelationshipEntity convertRelationShip(Relationship relationship, SpdxDocumentRoot spdxDocumentRoot, SpdxPackage spdxPackage){
+        log.info("converting relationship");
         RelationshipEntity relationshipEntity = new RelationshipEntity();
         try {
             relationshipEntity.setSpdxDocument(spdxDocumentRoot);
@@ -323,11 +314,10 @@ public class SpdxConverter {
 
             spdxDocumentRoot.getRelationships().add(relationshipEntity);
             spdxDocumentRootRepository.save(spdxDocumentRoot);
-            relationshipRepository.save(relationshipEntity);
             return relationshipEntity;
         } catch (InvalidSPDXAnalysisException e) {
             log.error("error while converting spdx relationship to entity: {}", e.toString());
-            return null;
+            return relationshipEntity;
         }
     }
 }

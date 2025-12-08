@@ -24,7 +24,11 @@ import java.util.List;
 @Entity
 public class Snippet {
     @Id
-    private String SPDXID;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    @Column(nullable = false)
+    private String spdxId;
 
     @ManyToOne
     @JoinColumn(name = "spdx_document_id", nullable = false)
@@ -55,7 +59,7 @@ public class Snippet {
     }
 
     public String getSPDXID() {
-        return SPDXID;
+        return spdxId;
     }
 
     public String getLicenseConcluded() {
@@ -95,7 +99,7 @@ public class Snippet {
     }
 
     public void setSPDXID(String SPDXID) {
-        this.SPDXID = SPDXID;
+        this.spdxId = SPDXID;
     }
 
     public void setName(String name) {
@@ -112,5 +116,9 @@ public class Snippet {
 
     public void setSnippetFromFile(String snippetFromFile) {
         this.snippetFromFile = snippetFromFile;
+    }
+
+    public Long getId() {
+        return id;
     }
 }

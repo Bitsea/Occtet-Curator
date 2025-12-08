@@ -27,7 +27,11 @@ import java.util.List;
 public class SpdxDocumentRoot {
 
     @Id
-    private String SPDXID;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    @Column(nullable = false)
+    private String spdxId;
 
     @Column(nullable = false)
     private String spdxVersion;
@@ -59,7 +63,7 @@ public class SpdxDocumentRoot {
 
     // Other elements stored in the document
     @OneToMany(mappedBy = "spdxDocument", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Package> packages;
+    private List<SpdxPackageEntity> spdxPackageEntities;
 
     @OneToMany(mappedBy = "spdxDocument", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SpdxFileEntity> files;
@@ -71,13 +75,13 @@ public class SpdxDocumentRoot {
         externalDocumentRefEntities = new ArrayList<>();
         hasExtractedLicensingInfoEntities = new ArrayList<>();
         relationshipEntities = new ArrayList<>();
-        packages = new ArrayList<>();
+        spdxPackageEntities = new ArrayList<>();
         files = new ArrayList<>();
         snippets = new ArrayList<>();
     }
 
-    public String getSPDXID() {
-        return SPDXID;
+    public String getSpdxId() {
+        return spdxId;
     }
 
     public String getName() {
@@ -104,8 +108,8 @@ public class SpdxDocumentRoot {
         return hasExtractedLicensingInfoEntities;
     }
 
-    public List<Package> getPackages() {
-        return packages;
+    public List<SpdxPackageEntity> getPackages() {
+        return spdxPackageEntities;
     }
 
     public List<RelationshipEntity> getRelationships() {
@@ -144,8 +148,8 @@ public class SpdxDocumentRoot {
         this.hasExtractedLicensingInfoEntities = hasExtractedLicensingInfoEntities;
     }
 
-    public void setPackages(List<Package> packages) {
-        this.packages = packages;
+    public void setPackages(List<SpdxPackageEntity> spdxPackageEntities) {
+        this.spdxPackageEntities = spdxPackageEntities;
     }
 
     public void setRelationships(List<RelationshipEntity> relationshipEntities) {
@@ -168,11 +172,15 @@ public class SpdxDocumentRoot {
         this.name = name;
     }
 
-    public void setSPDXID(String SPDXID) {
-        this.SPDXID = SPDXID;
+    public void setSpdxId(String SPDXID) {
+        this.spdxId = SPDXID;
     }
 
     public String getDocumentUri() {return documentUri;}
 
     public void setDocumentUri(String documentUri) {this.documentUri = documentUri;}
+
+    public Long getId() {
+        return id;
+    }
 }

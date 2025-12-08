@@ -29,7 +29,7 @@ public class ChecksumEntity {
 
     @ManyToOne
     @JoinColumn(name = "package_id")
-    private Package pkg;
+    private SpdxPackageEntity pkg;
 
     @ManyToOne
     @JoinColumn(name = "file_id")
@@ -49,7 +49,7 @@ public class ChecksumEntity {
         return id;
     }
 
-    public Package getPkg() {
+    public SpdxPackageEntity getPkg() {
         return pkg;
     }
 
@@ -73,7 +73,7 @@ public class ChecksumEntity {
         this.checksumValue = checksumValue;
     }
 
-    public void setPkg(Package pkg) {
+    public void setPkg(SpdxPackageEntity pkg) {
         this.pkg = pkg;
     }
 

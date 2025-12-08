@@ -21,7 +21,7 @@ package eu.occtet.boc.export.service;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.spdxV2.*;
-import eu.occtet.boc.entity.spdxV2.Package;
+import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.export.dao.InventoryItemRepository;
 import eu.occtet.boc.export.dao.ProjectRepository;
 import eu.occtet.boc.export.dao.spdxV2.SpdxDocumentRootRepository;
@@ -164,12 +164,12 @@ public class ExportService extends BaseWorkDataProcessor {
         }
     }
 
-    private List<SpdxPackage> createSpdxPackages(List<Package> pkgEntities,List<SpdxFileEntity> fileEntities, SpdxDocument spdxDocument, IModelStore modelStore, String documentUri) {
+    private List<SpdxPackage> createSpdxPackages(List<SpdxPackageEntity> pkgEntities, List<SpdxFileEntity> fileEntities, SpdxDocument spdxDocument, IModelStore modelStore, String documentUri) {
         List<SpdxPackage> packages = new ArrayList<>();
         try {
-            for (Package pkgEntity : pkgEntities) {
+            for (SpdxPackageEntity pkgEntity : pkgEntities) {
                 SpdxPackage spdxPackage = spdxDocument.createPackage(
-                        pkgEntity.getSPDXID(),
+                        pkgEntity.getSpdxId(),
                         pkgEntity.getName(),
                         LicenseInfoFactory.parseSPDXLicenseStringCompatV2(pkgEntity.getLicenseConcluded()),
                         pkgEntity.getCopyrightText(),
@@ -195,7 +195,7 @@ public class ExportService extends BaseWorkDataProcessor {
                 pkgVerificationCode.getExcludedFileNames().addAll(pkgEntity.getPackageVerificationCode().getPackageVerificationCodeExcludedFiles());
                 spdxPackage.setPackageVerificationCode(new SpdxPackageVerificationCode());
 
-                Optional<InventoryItem> inventoryItem = inventoryItemRepository.findBySpdxId(pkgEntity.getSPDXID());
+                Optional<InventoryItem> inventoryItem = inventoryItemRepository.findBySpdxId(pkgEntity.getSpdxId());
                 if(inventoryItem.isPresent()){
                     //TODO incorporate more of the audit notes
                     spdxPackage.setComment(inventoryItem.get().getExternalNotes());
@@ -226,7 +226,7 @@ public class ExportService extends BaseWorkDataProcessor {
             }
 
             return spdxDocument.createSpdxFile(
-                    fileEntity.getSPDXID(),
+                    fileEntity.getSpdxId(),
                     fileEntity.getFileName(),
                     LicenseInfoFactory.parseSPDXLicenseStringCompatV2(fileEntity.getLicenseConcluded()),
                     seenLicenses,

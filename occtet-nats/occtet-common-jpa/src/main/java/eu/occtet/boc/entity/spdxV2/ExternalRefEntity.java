@@ -29,7 +29,7 @@ public class ExternalRefEntity {
 
     @ManyToOne
     @JoinColumn(name = "package_id", nullable = false)
-    private Package pkg;
+    private SpdxPackageEntity pkg;
 
     @Column(nullable = false)
     private String referenceCategory;
@@ -51,7 +51,7 @@ public class ExternalRefEntity {
         return comment;
     }
 
-    public Package getPkg() {
+    public SpdxPackageEntity getPkg() {
         return pkg;
     }
 
@@ -75,7 +75,7 @@ public class ExternalRefEntity {
         this.comment = comment;
     }
 
-    public void setPkg(Package pkg) {
+    public void setPkg(SpdxPackageEntity pkg) {
         this.pkg = pkg;
     }
 

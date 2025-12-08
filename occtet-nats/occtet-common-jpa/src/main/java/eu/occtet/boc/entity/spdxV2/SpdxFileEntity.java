@@ -21,13 +21,16 @@ package eu.occtet.boc.entity.spdxV2;
 import jakarta.persistence.*;
 
 import java.util.List;
-import java.util.zip.Checksum;
 
 @Entity
 public class SpdxFileEntity {
 
     @Id
-    private String SPDXID;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    @Column(nullable = false)
+    private String spdxId;
 
     @ManyToOne
     @JoinColumn(name = "spdx_document_id")
@@ -54,8 +57,8 @@ public class SpdxFileEntity {
     @Lob
     private String copyrightText;
 
-    public String getSPDXID() {
-        return SPDXID;
+    public String getSpdxId() {
+        return spdxId;
     }
 
     public String getCopyrightText() {
@@ -110,11 +113,15 @@ public class SpdxFileEntity {
         this.copyrightText = copyrightText;
     }
 
-    public void setSPDXID(String SPDXID) {
-        this.SPDXID = SPDXID;
+    public void setSpdxId(String SPDXID) {
+        this.spdxId = SPDXID;
     }
 
     public void setLicenseConcluded(String licenseConcluded) {
         this.licenseConcluded = licenseConcluded;
+    }
+
+    public Long getId() {
+        return id;
     }
 }

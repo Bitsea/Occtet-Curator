@@ -23,7 +23,7 @@
 package eu.occtet.boc.spdx.utlities;
 
 import eu.occtet.boc.entity.*;
-import eu.occtet.boc.entity.spdxV2.Package;
+import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.entity.spdxV2.RelationshipEntity;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.entity.spdxV2.SpdxFileEntity;
@@ -39,7 +39,6 @@ import io.nats.client.JetStreamApiException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
@@ -103,7 +102,7 @@ public class SpdxServiceTest {
                    .thenReturn(new SpdxDocumentRoot());
 
            Mockito.when(spdxConverter.convertPackage(Mockito.any(), Mockito.any()))
-                   .thenReturn(new Package());
+                   .thenReturn(new SpdxPackageEntity());
 
            Mockito.when(spdxConverter.convertFile(Mockito.any(), Mockito.any()))
                    .thenReturn(new SpdxFileEntity());

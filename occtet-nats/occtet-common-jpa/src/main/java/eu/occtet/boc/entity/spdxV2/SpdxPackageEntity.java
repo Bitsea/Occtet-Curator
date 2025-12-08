@@ -23,9 +23,13 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-public class Package {
+public class SpdxPackageEntity {
     @Id
-    private String SPDXID;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    @Column(name = "spdx_id", nullable = false)
+    private String spdxId;
 
     @ManyToOne
     @JoinColumn(name = "spdx_document_id")
@@ -65,6 +69,9 @@ public class Package {
     @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChecksumEntity> checksumEntities;
 
+    @ElementCollection
+    @CollectionTable(name = "package_file_names", joinColumns = @JoinColumn(name = "package_id"))
+    @Column(name = "file_name")
     private List<String> fileNames;
 
     public String getName() {
@@ -115,8 +122,8 @@ public class Package {
         return licenseDeclared;
     }
 
-    public String getSPDXID() {
-        return SPDXID;
+    public String getSpdxId() {
+        return spdxId;
     }
 
     public String getVersionInfo() {
@@ -167,12 +174,16 @@ public class Package {
         this.packageVerificationCodeEntity = packageVerificationCodeEntity;
     }
 
-    public void setSPDXID(String SPDXID) {
-        this.SPDXID = SPDXID;
+    public void setSpdxId(String SPDXID) {
+        this.spdxId = SPDXID;
     }
 
     public void setVersionInfo(String versionInfo) {
         this.versionInfo = versionInfo;
+    }
+
+    public Long getId() {
+        return id;
     }
 }
 
