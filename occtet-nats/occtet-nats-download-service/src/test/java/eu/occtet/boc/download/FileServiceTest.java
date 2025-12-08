@@ -63,11 +63,11 @@ public class FileServiceTest {
 
 
     @Test
-    void testCreatingEntitiesFromPath(@TempDir Path tempDir) throws IOException {
+    void testCreatingEntitiesFromPathOfMainPackage(@TempDir Path tempDir) throws IOException {
         Path parent1 = Files.createDirectories(tempDir.resolve("parent1")); // Project Root
-        Path subFolder = Files.createDirectories(parent1.resolve("subFolder"));
-        Files.createFile(parent1.resolve("rootFile.txt"));
-        Files.createFile(subFolder.resolve("childFile.txt"));
+        Path subFolder = Files.createDirectories(parent1.resolve("subFolder1"));
+        Files.createFile(parent1.resolve("rootFile1.txt"));
+        Files.createFile(subFolder.resolve("childFile1.txt"));
 
         // Parent   -> subFolder      -> childFile.txt
         //          -> rootFile.txt
@@ -77,31 +77,67 @@ public class FileServiceTest {
         project.setBasePath(parent1.toAbsolutePath().toString());
         entityManager.persistAndFlush(project);
 
-        fileService.createEntitiesFromPath(project, parent1);
+        fileService.createEntitiesFromPath(project, parent1, true);
         List<File> allFiles = fileRepository.findAll();
         assertEquals(4, allFiles.size());
 
         // test hierarchy
         File childFile = allFiles.stream()
-                .filter(f -> f.getFileName().equals("childFile.txt"))
+                .filter(f -> f.getFileName().equals("childFile1.txt"))
                 .findFirst().orElseThrow();
         assertNotNull(childFile.getParent());
-        assertEquals("subFolder", childFile.getParent().getFileName());
-        assertEquals("subFolder/childFile.txt", childFile.getRelativePath());
+        assertEquals("subFolder1", childFile.getParent().getFileName());
+        assertEquals("subFolder1/childFile1.txt", childFile.getRelativePath());
 
         File subFolderEntity = childFile.getParent();
 
         assertTrue(subFolderEntity.getIsDirectory());
-        assertEquals("subFolder", subFolderEntity.getRelativePath());
+        assertEquals("subFolder1", subFolderEntity.getRelativePath());
 
         File rootFile = allFiles.stream()
-                .filter(f -> f.getFileName().equals("rootFile.txt"))
+                .filter(f -> f.getFileName().equals("rootFile1.txt"))
                 .findFirst().orElseThrow();
 
-        assertEquals("rootFile.txt", rootFile.getRelativePath());
+        assertEquals("rootFile1.txt", rootFile.getRelativePath());
         assertEquals(project.getId(), rootFile.getProject().getId());
 
         assertNotNull(rootFile.getParent());
     }
+
+    @Test
+    void testCreatingEntitiesFromPathOfDependencyPackage(@TempDir Path tempDir) throws IOException {
+        Path parent1 = Files.createDirectories(tempDir.resolve("parent1"));
+        Path dependencies = Files.createDirectories(parent1.resolve("dependencies"));
+        Path subFolder = Files.createDirectories(dependencies.resolve("subFolder2"));
+        Files.createFile(subFolder.resolve("childFile2.txt"));
+
+        // Parent   -> dependencies   -> subFolder     -> childFile.txt
+
+        Project project = new Project();
+        project.setProjectName("TestProject");
+        project.setBasePath(parent1.toAbsolutePath().toString());
+        entityManager.persistAndFlush(project);
+
+        fileService.createEntitiesFromPath(project, subFolder, false);
+        List<File> allFiles = fileRepository.findAll();
+        assertEquals(3, allFiles.size());
+
+        File childFile = allFiles.stream()
+                .filter(f -> f.getFileName().equals("childFile2.txt"))
+                .findFirst().orElseThrow();
+        assertNotNull(childFile.getParent());
+        assertEquals("subFolder2", childFile.getParent().getFileName());
+        assertEquals("dependencies/subFolder2/childFile2.txt", childFile.getRelativePath());
+
+        File subFolderEntity = childFile.getParent();
+
+        assertTrue(subFolderEntity.getIsDirectory());
+        assertEquals("dependencies/subFolder2", subFolderEntity.getRelativePath());
+
+        File dependenciesEntity = subFolderEntity.getParent();
+        assertEquals("dependencies", dependenciesEntity.getRelativePath());
+        assertTrue(dependenciesEntity.getIsDirectory());
+    }
 }
+
 
