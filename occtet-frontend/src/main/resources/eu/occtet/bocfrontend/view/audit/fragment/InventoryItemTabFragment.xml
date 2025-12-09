@@ -23,6 +23,9 @@
     <data>
         <instance id="inventoryItemDc" class="eu.occtet.bocfrontend.entity.InventoryItem">
             <fetchPlan extends="_base">
+                <property name="parent" fetchPlan="_base">
+                </property>
+                <property name="softwareComponent" fetchPlan="_base"/>
             </fetchPlan>
             <loader id="inventoryItemDl"/>
         </instance>

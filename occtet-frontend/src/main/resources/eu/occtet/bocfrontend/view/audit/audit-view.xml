@@ -65,7 +65,7 @@
                             <fragment class="eu.occtet.bocfrontend.view.audit.fragment.OverviewProjectTabFragment"
                                       id="overviewProjectTabFragment"/>
                         </tab>
-                        <tab id="inventoryItemSection" label="Inventory Items">
+                        <tab id="inventoryItemSection" label="msg://inventoryItems">
                             <tabSheet id="inventoryItemTabSheet" width="100%" height="100%"
                                       themeNames="small no-padding">
                             </tabSheet>
@@ -76,8 +76,14 @@
                         </tab>
                     </tabSheet>
                 </split>
-                <vbox classNames="border rounded-m border-contrast-20" width="16%" margin="false" padding="false"
+                <vbox classNames="toolbox-audit-view" width="16%" margin="false" padding="false"
                       spacing="false">
+                    <button id="createBtn"
+                            action="inventoryItemDataGrid.create"
+                            icon="PLUS"
+                            themeNames="small"
+                            title="msg://createInventoryItem"
+                            alignSelf="END"/>
                     <hbox id="toolbarBox"
                           width="100%"
                           height="auto"
@@ -90,6 +96,9 @@
                                   width="100%"
                                   themeNames="no-row-borders compact row-stripes"
                                   hierarchyProperty="parent" showOrphans="true">
+                        <actions>
+                            <action id="create" type="list_create"/>
+                        </actions>
                         <columns>
                             <column property="inventoryName" header="Item" filterable="true"/>
                             <column key="fileNumCol" header="Files #" textAlign="END" sortable="false" autoWidth="true" flexGrow="0"/>
