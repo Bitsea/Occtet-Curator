@@ -32,4 +32,5 @@ public interface LicenseRepository  extends JmixDataRepository<License, UUID> {
     List<License> findLicensesByCurated(Boolean curated);
     List<License> findLicensesByPriority(Integer priority);
     List<License> findLicensesByLicenseName(String licenseName);
+    License findLicenseById(UUID uuid);
 }

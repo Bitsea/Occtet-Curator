@@ -136,6 +136,7 @@ public class AuditView extends StandardView{
         initializeInventoryDataGrid();
         initializeTabManager();
         addTabSelectionListeners();
+        overviewProjectTabFragment.setHostView(this);
         overviewProjectTabFragment.setDefaultAccordionValues();
     }
 
@@ -488,6 +489,7 @@ public class AuditView extends StandardView{
     @Subscribe("inventoryItemDataGrid")
     public void onInventoryItemDataGridClick(final ItemClickEvent<InventoryItem> event) {
         if (event.getClickCount() == 2) {
+            inventoryItemSection.setVisible(true);
             tabManager.openInventoryItemTab(event.getItem(), true);
         } else {
             treeGridHelper.toggleExpansion(inventoryItemDataGrid, event.getItem());
@@ -498,5 +500,12 @@ public class AuditView extends StandardView{
         inventoryItemDc.setItems(Collections.emptyList());
         fileTreeGridLayout.removeAll();
         tabManager.closeAllTabs();
+    }
+
+    public void handleInventoryItemFromOverview(InventoryItem item){
+        if(!inventoryItemSection.isVisible()){
+            inventoryItemSection.setVisible(true);
+        }
+        tabManager.openInventoryItemTab(item,true);
     }
 }

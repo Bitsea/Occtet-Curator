@@ -21,18 +21,18 @@ package eu.occtet.bocfrontend.view.dialog;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.renderer.Renderer;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
 import eu.occtet.bocfrontend.entity.*;
+import eu.occtet.bocfrontend.view.audit.fragment.InventoryItemTabFragment;
 import io.jmix.flowui.UiComponents;
-import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
@@ -41,14 +41,22 @@ import java.util.Set;
 
 @ViewController("overviewContentInfoDialog")
 @ViewDescriptor("overview-content-info-dialog.xml")
-@DialogMode(width = "1500px", height = "700px")
+@DialogMode(width = "1000px", height = "700px")
 public class OverviewContentInfoDialog extends StandardView {
+
+    private static final Logger log = LogManager.getLogger(OverviewContentInfoDialog.class);
 
     @ViewComponent
     private CollectionContainer<InventoryItem> inventoryItemsDc;
 
     @ViewComponent
+    private DataGrid<InventoryItem> inventoryItemsDataGrid;
+
+    @ViewComponent
     private H3 title;
+
+    @ViewComponent
+    private InventoryItemTabFragment inventoryItemTabFragment;
 
     @Autowired
     private UiComponents uiComponents;
@@ -58,6 +66,8 @@ public class OverviewContentInfoDialog extends StandardView {
 
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
+
+    private InventoryItem inventoryItem;
 
 
     public void setInformationContent(Object content){
@@ -92,18 +102,18 @@ public class OverviewContentInfoDialog extends StandardView {
         inventoryItemsDc.setItems(items);
     }
 
+    @Subscribe("inventoryItemsDataGrid")
+    public void clickOnInventoryDatagrid(final ItemClickEvent<InventoryItem> event){
+        if(event.getClickCount() == 2){
+            setInventoryItem(event.getItem());
+            close(StandardOutcome.CLOSE);
+        }
+    }
+
     @Subscribe("cancelButton")
     public void closeDialog(ClickEvent<Button> event){close(StandardOutcome.CLOSE);}
 
-    @Supply(to = "inventoryItemsDataGrid.showInventoryBtn", subject = "renderer")
-    private Renderer<Project> auditVulnerabilityDataGridShowBtnRenderer() {
-        return new ComponentRenderer<>(this::showInventoryItemButton);
-    }
+    private void setInventoryItem(InventoryItem item){inventoryItem = item;}
+    public InventoryItem getInventoryItem(){return inventoryItem;}
 
-    private JmixButton showInventoryItemButton(){
-        JmixButton itemButton = uiComponents.create(JmixButton.class);
-        itemButton.setIcon(VaadinIcon.CHEVRON_CIRCLE_RIGHT.create());
-        itemButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-        return itemButton;
-    }
 }

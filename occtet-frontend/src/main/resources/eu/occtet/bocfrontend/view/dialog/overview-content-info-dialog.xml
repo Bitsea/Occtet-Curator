@@ -43,7 +43,6 @@
                 <columns resizable="true">
                     <column property="inventoryName" header="Inventory item"/>
                     <column property="softwareComponent.name" header="Software component"/>
-                    <column key="showInventoryBtn" autoWidth="true" sortable="false"/>
                 </columns>
             </dataGrid>
         </vbox>

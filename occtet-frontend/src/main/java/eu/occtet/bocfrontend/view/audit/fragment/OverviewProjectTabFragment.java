@@ -28,7 +28,11 @@ import eu.occtet.bocfrontend.dto.AuditCopyrightDTO;
 import eu.occtet.bocfrontend.dto.AuditLicenseDTO;
 import eu.occtet.bocfrontend.dto.AuditVulnerabilityDTO;
 import eu.occtet.bocfrontend.entity.*;
+import eu.occtet.bocfrontend.view.audit.AuditView;
 import eu.occtet.bocfrontend.view.dialog.OverviewContentInfoDialog;
+import io.jmix.core.DataManager;
+import io.jmix.core.ValueLoadContext;
+import io.jmix.core.entity.KeyValueEntity;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
@@ -109,6 +113,11 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
     @Autowired
     private DialogWindows dialogWindows;
 
+    @Autowired
+    private DataManager dataManager;
+
+    private InventoryItem item;
+
 
     public void setDefaultAccordionValues(){
         copyrightAccordion.setSummaryText("Copyrights (0)");
@@ -129,27 +138,18 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
                 codeLocations.addAll(codeLocationRepository.findByInventoryItem(item));
             }
         }
-        setCopyrights(components,codeLocations);
-        setLicenses(components);
-        setVulnerabilities(components);
+        setAllProjectInformation(this.project);
+        addInfoButton();
+    }
 
-        auditLicensesDataGrid.addComponentColumn(auditLicenseDTO -> {
-            JmixButton showButton = createShowButton();
-            showButton.addClickListener(click -> {
-                List<License> licenses = licenseRepository.findLicensesByLicenseName(auditLicenseDTO.getLicenseName());
-                showContentInformationDialog(licenses.getFirst());
-            });
-        return showButton;
-        });
-        auditVulnerabilityDataGrid.addComponentColumn(auditVulnerabilityDTO -> {
-            JmixButton showButton = createShowButton();
-            showButton.addClickListener(click->{
-                List<Vulnerability> vulnerabilities = vulnerabilityRepository
-                        .findByVulnerabilityId(auditVulnerabilityDTO.getVulnerabilityName());
-                showContentInformationDialog(vulnerabilities.getFirst());
-            });
-            return showButton;
-        });
+    public void setHostView(View<?> hostView) {
+        this.hostView = hostView;
+    }
+
+    private void setAllProjectInformation(Project project){
+        //setCopyrights(softwareComponents,locations);
+        setLicenses(project);
+        setVulnerabilities(project);
     }
 
     private void setCopyrights(List<SoftwareComponent> softwareComponents, List<CodeLocation> locations){
@@ -190,45 +190,59 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
 
     }
 
-    private void setLicenses(List<SoftwareComponent> softwareComponents){
+    private void setLicenses(Project project){
 
         List<AuditLicenseDTO> licensesDTOs = new ArrayList<>();
-        Set<License> allLicenses = new HashSet<>();
 
-        allLicenses.addAll(softwareComponents.stream().map(SoftwareComponent::getLicenses)
-                .filter(Objects::nonNull)
-                .flatMap(List::stream)
-                .collect(Collectors.toSet()));
+        ValueLoadContext context = new ValueLoadContext()
+                .setQuery(new ValueLoadContext.Query("""
+                            select l.id as licenseId, count(s) as countSC
+                            from InventoryItem i
+                            join i.softwareComponent s
+                            join s.licenses l
+                            join i.project p
+                            where p.id = :project_id
+                            group by l.id
+                       """)
+                        .setParameter("project_id",project.getId()))
+                .addProperty("licenseId")
+                .addProperty("countSC");
 
-        allLicenses.forEach(license -> {
-            int count = 0;
-            for(SoftwareComponent sc : softwareComponents){
-                List<License> licenses = sc.getLicenses();
-                if(licenses != null){count += Collections.frequency(licenses,license);}
-            }
-            licensesDTOs.add(new AuditLicenseDTO(license.getLicenseName(),count));
+
+        List<KeyValueEntity> values = dataManager.loadValues(context);
+        values.forEach(s -> {
+            License license = licenseRepository.findLicenseById(s.getValue("licenseId"));
+            Long value = s.getValue("countSC");
+            licensesDTOs.add(new AuditLicenseDTO(license.getLicenseName(),value.intValue()));
         });
         auditLicensesDc.setItems(licensesDTOs);
         licensesAccordion.setSummaryText("Licenses ("+licensesDTOs.size()+")");
     }
 
-    private void setVulnerabilities(List<SoftwareComponent> softwareComponents){
+    private void setVulnerabilities(Project project){
 
         List<AuditVulnerabilityDTO> vulnerabilityDTOs = new ArrayList<>();
-        Set<Vulnerability> allVulnerabilities = new HashSet<>();
 
-        allVulnerabilities.addAll(softwareComponents.stream().map(SoftwareComponent::getVulnerabilities)
-                .filter(Objects::nonNull)
-                .flatMap(List::stream)
-                .collect(Collectors.toSet()));
+        ValueLoadContext context = new ValueLoadContext()
+                .setQuery(new ValueLoadContext.Query("""
+                            select v.id as vulnerabilityId, count(s) as countV
+                            from InventoryItem i
+                            join i.softwareComponent s
+                            join s.vulnerabilites v
+                            join i.project p
+                            where p.id = :project_id
+                            group by v.id
+                       """)
+                        .setParameter("project_id",project.getId()))
+                .addProperty("vulnerabilityId")
+                .addProperty("countV");
 
-        allVulnerabilities.forEach(vulnerability -> {
-            int count = 0;
-            for(SoftwareComponent sc : softwareComponents){
-                List<Vulnerability> vulnerabilities = sc.getVulnerabilities();
-                if(vulnerabilities != null){count += Collections.frequency(vulnerabilities,vulnerability);}
-            }
-            vulnerabilityDTOs.add(new AuditVulnerabilityDTO(vulnerability.getVulnerabilityId(),vulnerability.getRiskScore(),count));
+
+        List<KeyValueEntity> values = dataManager.loadValues(context);
+        values.forEach(s -> {
+            Vulnerability v = vulnerabilityRepository.findbyId(s.getValue("vulnerabilityId"));
+            Long value = s.getValue("countV");
+            vulnerabilityDTOs.add(new AuditVulnerabilityDTO(v.getVulnerabilityId(),v.getRiskScore(),value.intValue()));
         });
         auditVulnerabilitiesDc.setItems(vulnerabilityDTOs);
         vulnerabilityAccordion.setSummaryText("Vulnerabilities ("+vulnerabilityDTOs.size()+")");
@@ -238,6 +252,12 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
         DialogWindow<OverviewContentInfoDialog> window =
                 dialogWindows.view(hostView, OverviewContentInfoDialog.class).build();
         window.getView().setInformationContent(content);
+        window.addAfterCloseListener(event -> {
+            item = window.getView().getInventoryItem();
+            if(hostView instanceof AuditView auditView){
+                auditView.handleInventoryItemFromOverview(item);
+            }
+        });
         window.open();
     }
 
@@ -247,4 +267,37 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
         showButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         return showButton;
     }
+
+    private void addInfoButton(){
+
+        if(auditLicensesDataGrid.getColumnByKey("infoButton") == null) {
+            auditLicensesDataGrid.addComponentColumn(auditLicenseDTO -> {
+                JmixButton showButton = createShowButton();
+                showButton.addClickListener(click -> openOverviewContentDialog(auditLicenseDTO));
+                return showButton;
+            }).setKey("infoButton");
+        }
+        if(auditVulnerabilityDataGrid.getColumnByKey("infoButton") == null){
+            auditVulnerabilityDataGrid.addComponentColumn(auditVulnerabilityDTO -> {
+                JmixButton showButton = createShowButton();
+                showButton.addClickListener(click -> openOverviewContentDialog(auditVulnerabilityDTO));
+                return showButton;
+            }).setKey("infoButton");
+        }
+    }
+
+    private void openOverviewContentDialog(Object content){
+        if(content instanceof AuditLicenseDTO auditLicenseDTO){
+            List<License> licenses = licenseRepository.findLicensesByLicenseName(auditLicenseDTO.getLicenseName());
+            showContentInformationDialog(licenses.getFirst());
+        }
+        if(content instanceof AuditVulnerabilityDTO auditVulnerabilityDTO){
+            List<Vulnerability> vulnerabilities = vulnerabilityRepository
+                    .findByVulnerabilityId(auditVulnerabilityDTO.getVulnerabilityName());
+            showContentInformationDialog(vulnerabilities.getFirst());
+        }
+    }
+
+    public InventoryItem getInventoryItem(){return item;}
+
 }
