@@ -207,6 +207,13 @@ public class ExportService extends BaseWorkDataProcessor {
             builder.setFilesAnalyzed(pkgEntity.isFilesAnalyzed());
             builder.setDownloadLocation(pkgEntity.getDownloadLocation());
 
+            if (!pkgEntity.getVersionInfo().isEmpty()) builder.setVersionInfo(pkgEntity.getVersionInfo());
+            if (!pkgEntity.getHomepage().isEmpty()) builder.setHomepage(pkgEntity.getHomepage());
+            if (!pkgEntity.getSummary().isEmpty()) builder.setSummary(pkgEntity.getSummary());
+            if (!pkgEntity.getDescription().isEmpty()) builder.setDescription(pkgEntity.getDescription());
+            if (!pkgEntity.getOriginator().isEmpty()) builder.setOriginator(pkgEntity.getOriginator());
+            if (!pkgEntity.getSupplier().isEmpty()) builder.setSupplier(pkgEntity.getSupplier());
+
             if (pkgEntity.isFilesAnalyzed() && pkgEntity.getPackageVerificationCode() != null) {
                 SpdxPackageVerificationCode pkgVerificationCode = new SpdxPackageVerificationCode(modelStore, documentUri, SpdxConstantsCompatV2.CLASS_SPDX_VERIFICATIONCODE + pkgEntity.getPackageVerificationCode().getPackageVerificationCodeValue(), null, true);
                 pkgVerificationCode.setValue(pkgEntity.getPackageVerificationCode().getPackageVerificationCodeValue());
@@ -239,19 +246,12 @@ public class ExportService extends BaseWorkDataProcessor {
             if (pkgEntity.getFileNames() != null) {
                 for (String fileSpdxId : pkgEntity.getFileNames()) {
                     SpdxFileEntity fileEntity = fileEntityMap.get(fileSpdxId);
-
                     if (fileEntity != null) {
-                        try {
-                            SpdxFile spdxFile = createSpdxFile(fileEntity, spdxDocument);
-                            if (spdxFile != null) {
-                                spdxPackage.addFile(spdxFile);
-                                elementMap.put(spdxFile.getId(), spdxFile);
-                            }
-                        } catch (Exception e) {
-                            log.error("Error creating file for ID {}", fileSpdxId, e);
+                        SpdxFile spdxFile = createSpdxFile(fileEntity, spdxDocument);
+                        if (spdxFile != null) {
+                            spdxPackage.addFile(spdxFile);
+                            elementMap.put(spdxFile.getId(), spdxFile);
                         }
-                    } else {
-                        log.error("File ID mentioned in package {} not found in file list: {}", pkgEntity.getName(), fileSpdxId);
                     }
                 }
             }

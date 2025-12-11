@@ -56,6 +56,21 @@ public class SpdxPackageEntity {
     @Lob
     private String copyrightText;
 
+    @Lob
+    private String homepage;
+
+    @Lob
+    private String summary;
+
+    @Lob
+    private String description;
+
+    @Lob
+    private String originator;
+
+    @Lob
+    private String supplier;
+
     @ElementCollection
     @CollectionTable(name = "package_license_info_from_files", joinColumns = @JoinColumn(name = "package_id"))
     private List<String> licenseInfoFromFiles;
@@ -195,6 +210,46 @@ public class SpdxPackageEntity {
 
     public void setFilesAnalyzed(boolean filesAnalyzed) {
         this.filesAnalyzed = filesAnalyzed;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public String getHomepage() {
+        return homepage;
+    }
+
+    public String getOriginator() {
+        return originator;
+    }
+
+    public String getSupplier() {
+        return supplier;
+    }
+
+    public void setHomepage(String homepage) {
+        this.homepage = homepage;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setSupplier(String supplier) {
+        this.supplier = supplier;
+    }
+
+    public void setOriginator(String originator) {
+        this.originator = originator;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
     }
 }
 

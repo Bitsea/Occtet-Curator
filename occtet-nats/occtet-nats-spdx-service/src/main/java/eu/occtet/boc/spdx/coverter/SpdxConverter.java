@@ -194,6 +194,11 @@ public class SpdxConverter {
             spdxPackageEntity.setDownloadLocation(spdxPackage.getDownloadLocation().orElse(""));
             spdxPackageEntity.setLicenseConcluded(spdxPackage.getLicenseConcluded().toString());
             spdxPackageEntity.setLicenseDeclared(spdxPackage.getLicenseDeclared().toString());
+            spdxPackageEntity.setHomepage(spdxPackage.getHomepage().orElse(""));
+            spdxPackageEntity.setSummary(spdxPackage.getSummary().orElse(""));
+            spdxPackageEntity.setDescription(spdxPackage.getDescription().orElse(""));
+            spdxPackageEntity.setOriginator(spdxPackage.getOriginator().orElse(""));
+            spdxPackageEntity.setSupplier(spdxPackage.getSupplier().orElse(""));
 
 
             if (spdxPackageEntity.getExternalRefs() == null) {
