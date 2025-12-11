@@ -183,6 +183,7 @@ public class SpdxConverter {
                 ChecksumEntity checksumEntity = new ChecksumEntity();
                 checksumEntity.setAlgorithm(checksum.getAlgorithm().toString());
                 checksumEntity.setChecksumValue(checksum.getValue());
+                checksumEntity.setPkg(spdxPackageEntity);
                 checksumEntities.add(checksumEntity);
             }
             spdxPackageEntity.setChecksums(checksumEntities);
@@ -263,6 +264,7 @@ public class SpdxConverter {
                 checksumEntity.setAlgorithm(checksum.getAlgorithm().toString());
                 checksumEntity.setChecksumValue(checksum.getValue());
                 checksumEntities.add(checksumEntity);
+                checksumEntity.setSpdxFile(spdxFileEntity);
             }
             spdxFileEntity.setChecksums(checksumEntities);
 
