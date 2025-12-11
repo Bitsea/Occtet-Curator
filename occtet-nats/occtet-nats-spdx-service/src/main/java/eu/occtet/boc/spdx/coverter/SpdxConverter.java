@@ -48,7 +48,26 @@ public class SpdxConverter {
 
     private static final Logger log = LogManager.getLogger(SpdxConverter.class);
 
-    public SpdxDocumentRoot convertSpdxV2DocumentInformation(SpdxDocument spdxDocument){
+    /**
+     * Converts the top-level metadata of an {@link SpdxDocument} into a persistent {@link SpdxDocumentRoot}.
+     * <p>
+     * <b>Upsert Logic:</b> This method attempts to find an existing document in the database using the
+     * SPDX ID (defaulting to "SPDXRef-DOCUMENT" if missing).
+     * <ul>
+     * <li>If the document <b>exists</b>, it updates the mutable fields and clears child lists (such as external document references and extracted licensing infos) before repopulating them to avoid duplication.</li>
+     * <li>If the document <b>does not exist</b>, a new entity is created.</li>
+     * </ul>
+     * </p>
+     * <p>
+     * This method handles global attributes like creation info, data license, and external document references.
+     * It saves the entity to the {@link SpdxDocumentRootRepository} immediately.
+     * </p>
+     *
+     * @param spdxDocument The source SPDX document model to be converted.
+     * @return The persisted {@link SpdxDocumentRoot} entity (either newly created or updated).
+     * @see SpdxDocumentRootRepository#findBySpdxId(String)
+     */
+    public SpdxDocumentRoot convertSpdxV2DocumentInformation(SpdxDocument spdxDocument) {
         log.info("converting document");
 
         try {
@@ -73,13 +92,13 @@ public class SpdxConverter {
             List<ExternalDocumentRefEntity> refList = spdxDocumentRoot.getExternalDocumentRefs();
             refList.clear();
 
-            for(ExternalDocumentRef ref: spdxDocument.getExternalDocumentRefs()){
+            for (ExternalDocumentRef ref : spdxDocument.getExternalDocumentRefs()) {
                 ExternalDocumentRefEntity refEntity = new ExternalDocumentRefEntity();
                 refEntity.setSpdxDocument(spdxDocumentRoot);
                 refEntity.setExternalDocumentId(ref.getDocumentUri());
-                if(ref.getSpdxDocument().isPresent())
+                if (ref.getSpdxDocument().isPresent())
                     refEntity.setSpdxDocumentExternal(ref.getSpdxDocument().get().getId());
-                if(ref.getChecksum().isPresent()) {
+                if (ref.getChecksum().isPresent()) {
                     ChecksumEntity checksumEntity = new ChecksumEntity();
                     checksumEntity.setAlgorithm(ref.getChecksum().get().getAlgorithm().toString());
                     checksumEntity.setChecksumValue(ref.getChecksum().get().getValue());
@@ -110,7 +129,7 @@ public class SpdxConverter {
             List<ExtractedLicensingInfoEntity> infoEntities = spdxDocumentRoot.getHasExtractedLicensingInfos();
             infoEntities.clear();
 
-            for(ExtractedLicenseInfo extractedLicenseInfo: spdxDocument.getExtractedLicenseInfos()){
+            for (ExtractedLicenseInfo extractedLicenseInfo : spdxDocument.getExtractedLicenseInfos()) {
                 ExtractedLicensingInfoEntity infoEntity = new ExtractedLicensingInfoEntity();
                 infoEntity.setComment(extractedLicenseInfo.getComment());
                 infoEntity.setSpdxDocument(spdxDocumentRoot);
@@ -130,7 +149,26 @@ public class SpdxConverter {
         }
     }
 
-    public SpdxPackageEntity convertPackage(SpdxPackage spdxPackage, SpdxDocumentRoot spdxDocumentRoot){
+    /**
+     * Converts an {@link SpdxPackage} model into a persistent {@link SpdxPackageEntity}.
+     * <p>
+     * <b>Upsert Logic:</b> Checks the provided {@code spdxDocumentRoot} to see if it already contains
+     * a package with the same SPDX ID.
+     * <ul>
+     * <li>If found, the existing entity is updated. The child lists (ExternalRefs, Annotations, Checksums) are cleared and repopulated with the new data.</li>
+     * <li>If not found, a new {@link SpdxPackageEntity} is created and added to the document's package list.</li>
+     * </ul>
+     * </p>
+     * <p>
+     * This method persists data such as package name, version, download location, verification codes,
+     * and file names associated with the package.
+     * </p>
+     *
+     * @param spdxPackage      The source SPDX package model to convert.
+     * @param spdxDocumentRoot The parent {@link SpdxDocumentRoot} entity to which this package belongs.
+     * @return The persisted {@link SpdxPackageEntity} (either newly created or updated).
+     */
+    public SpdxPackageEntity convertPackage(SpdxPackage spdxPackage, SpdxDocumentRoot spdxDocumentRoot) {
         log.info("converting package");
         try {
             if (spdxDocumentRoot.getPackages() == null) {
@@ -158,11 +196,11 @@ public class SpdxConverter {
             spdxPackageEntity.setLicenseDeclared(spdxPackage.getLicenseDeclared().toString());
 
 
-            if(spdxPackageEntity.getExternalRefs() == null) {
+            if (spdxPackageEntity.getExternalRefs() == null) {
                 spdxPackageEntity.setExternalRefs(new ArrayList<>());
             }
             spdxPackageEntity.getExternalRefs().clear();
-            for(ExternalRef externalRef: spdxPackage.getExternalRefs()){
+            for (ExternalRef externalRef : spdxPackage.getExternalRefs()) {
                 ExternalRefEntity externalRefEntity = new ExternalRefEntity();
                 externalRefEntity.setComment(externalRef.getComment().orElse(""));
                 externalRefEntity.setPkg(spdxPackageEntity);
@@ -172,12 +210,12 @@ public class SpdxConverter {
                 spdxPackageEntity.getExternalRefs().add(externalRefEntity);
             }
 
-            if(spdxPackageEntity.getAnnotations() == null) {
+            if (spdxPackageEntity.getAnnotations() == null) {
                 spdxPackageEntity.setAnnotations(new ArrayList<>());
             }
             spdxPackageEntity.getAnnotations().clear();
 
-            for(Annotation annotation: spdxPackage.getAnnotations()){
+            for (Annotation annotation : spdxPackage.getAnnotations()) {
                 AnnotationEntity annotationEntity = new AnnotationEntity();
                 annotationEntity.setAnnotationDate(annotation.getAnnotationDate());
                 annotationEntity.setComment(annotation.getComment());
@@ -188,12 +226,12 @@ public class SpdxConverter {
                 spdxPackageEntity.getAnnotations().add(annotationEntity);
             }
 
-            if(spdxPackageEntity.getChecksums() == null) {
+            if (spdxPackageEntity.getChecksums() == null) {
                 spdxPackageEntity.setChecksums(new ArrayList<>());
             }
             spdxPackageEntity.getChecksums().clear();
 
-            for(Checksum checksum: spdxPackage.getChecksums()){
+            for (Checksum checksum : spdxPackage.getChecksums()) {
                 ChecksumEntity checksumEntity = new ChecksumEntity();
                 checksumEntity.setAlgorithm(checksum.getAlgorithm().toString());
                 checksumEntity.setChecksumValue(checksum.getValue());
@@ -202,7 +240,7 @@ public class SpdxConverter {
             }
 
             List<String> licenseInfoFiles = new ArrayList<>();
-            for(AnyLicenseInfo anyLicenseInfo: spdxPackage.getLicenseInfoFromFiles()){
+            for (AnyLicenseInfo anyLicenseInfo : spdxPackage.getLicenseInfoFromFiles()) {
                 licenseInfoFiles.add(anyLicenseInfo.toString());
             }
             spdxPackageEntity.setLicenseInfoFromFiles(licenseInfoFiles);
@@ -231,9 +269,20 @@ public class SpdxConverter {
         }
     }
 
+    /**
+     * Helper method to extract the package verification code from an {@link SpdxPackage}.
+     * <p>
+     * If the verification code is present in the model, it extracts the value and the list of excluded files.
+     * If not present, it returns an entity with empty values.
+     * </p>
+     *
+     * @param spdxPackage The source SPDX package model.
+     * @return A {@link PackageVerificationCodeEntity} containing the code and excluded files (or empty defaults).
+     * @throws InvalidSPDXAnalysisException If an error occurs while accessing SPDX model properties.
+     */
     private PackageVerificationCodeEntity getPackageVerificationCodeEntity(SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException {
         PackageVerificationCodeEntity packageVerificationCodeEntity;
-        if(spdxPackage.getPackageVerificationCode().isPresent()) {
+        if (spdxPackage.getPackageVerificationCode().isPresent()) {
             packageVerificationCodeEntity = new PackageVerificationCodeEntity();
             packageVerificationCodeEntity.setPackageVerificationCodeValue(spdxPackage.getPackageVerificationCode().get().getValue());
             List<String> excludedFiles = new ArrayList<>(spdxPackage.getPackageVerificationCode().get()
@@ -247,7 +296,21 @@ public class SpdxConverter {
         return packageVerificationCodeEntity;
     }
 
-    public SpdxFileEntity convertFile(SpdxFile spdxFile, SpdxDocumentRoot spdxDocumentRoot){
+    /**
+     * Converts an {@link SpdxFile} model into a persistent {@link SpdxFileEntity}.
+     * <p>
+     * <b>Upsert Logic:</b> Checks the {@code spdxDocumentRoot} for an existing file with the same SPDX ID.
+     * <ul>
+     * <li>If found, updates the file's attributes and clears/repopulates checksums to prevent duplicates.</li>
+     * <li>If not found, creates a new file entity and adds it to the document's file list.</li>
+     * </ul>
+     * </p>
+     *
+     * @param spdxFile         The source SPDX file model to convert.
+     * @param spdxDocumentRoot The parent {@link SpdxDocumentRoot} entity to which this file belongs.
+     * @return The persisted {@link SpdxFileEntity} (either newly created or updated).
+     */
+    public SpdxFileEntity convertFile(SpdxFile spdxFile, SpdxDocumentRoot spdxDocumentRoot) {
         log.info("converting file");
         try {
             if (spdxDocumentRoot.getFiles() == null) {
@@ -272,11 +335,11 @@ public class SpdxConverter {
             spdxFileEntity.setLicenseConcluded(spdxFile.getLicenseConcluded().toString());
 
 
-            if(spdxFileEntity.getChecksums() == null) {
+            if (spdxFileEntity.getChecksums() == null) {
                 spdxFileEntity.setChecksums(new ArrayList<>());
             }
             spdxFileEntity.getChecksums().clear();
-            for(Checksum checksum: spdxFile.getChecksums()){
+            for (Checksum checksum : spdxFile.getChecksums()) {
                 ChecksumEntity checksumEntity = new ChecksumEntity();
                 checksumEntity.setAlgorithm(checksum.getAlgorithm().toString());
                 checksumEntity.setChecksumValue(checksum.getValue());
@@ -285,13 +348,13 @@ public class SpdxConverter {
             }
 
             List<String> fileTypes = new ArrayList<>();
-            for(FileType fileType: spdxFile.getFileTypes()){
+            for (FileType fileType : spdxFile.getFileTypes()) {
                 fileTypes.add(fileType.getLongName());
             }
             spdxFileEntity.setFileTypes(fileTypes);
 
             List<String> licenseInfoFromFiles = new ArrayList<>();
-            for(AnyLicenseInfo licenseInfo: spdxFile.getLicenseInfoFromFiles()){
+            for (AnyLicenseInfo licenseInfo : spdxFile.getLicenseInfoFromFiles()) {
                 licenseInfoFromFiles.add(licenseInfo.toString());
             }
             spdxFileEntity.setLicenseInfoInFiles(licenseInfoFromFiles);
@@ -309,7 +372,24 @@ public class SpdxConverter {
         }
     }
 
-    public RelationshipEntity convertRelationShip(Relationship relationship, SpdxDocumentRoot spdxDocumentRoot, SpdxPackage spdxPackage){
+    /**
+     * Converts an SPDX {@link Relationship} model into a persistent {@link RelationshipEntity}.
+     * <p>
+     * <b>Check for Existence:</b> Before creating a new relationship, this method checks if a relationship
+     * already exists between the source element and the target element (or null target) with the same
+     * relationship type.
+     * <ul>
+     * <li>If an exact match exists, the existing relationship is returned (no duplicate creation).</li>
+     * <li>If no match exists, a new relationship entity is created, added to the document, and persisted.</li>
+     * </ul>
+     * </p>
+     *
+     * @param relationship     The source relationship model defining the link between SPDX elements.
+     * @param spdxDocumentRoot The parent {@link SpdxDocumentRoot} entity.
+     * @param spdxPackage      The package acting as the source of this relationship (used for the source ID).
+     * @return The persisted {@link RelationshipEntity} (either newly created or the existing match).
+     */
+    public RelationshipEntity convertRelationShip(Relationship relationship, SpdxDocumentRoot spdxDocumentRoot, SpdxPackage spdxPackage) {
         log.info("converting relationship");
         try {
             if (spdxDocumentRoot.getRelationships() == null) {
@@ -334,7 +414,7 @@ public class SpdxConverter {
             relationshipEntity.setSpdxDocument(spdxDocumentRoot);
             relationshipEntity.setComment(relationship.getComment().orElse(""));
             relationshipEntity.setSpdxElementId(spdxPackage.getId());
-            if(targetId != null)
+            if (targetId != null)
                 relationshipEntity.setRelatedSpdxElement(targetId);
             relationshipEntity.setRelationshipType(type);
 
