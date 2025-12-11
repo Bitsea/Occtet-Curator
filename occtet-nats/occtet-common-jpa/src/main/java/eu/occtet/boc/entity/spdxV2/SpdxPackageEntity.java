@@ -41,6 +41,9 @@ public class SpdxPackageEntity {
     @Column(nullable = false)
     private String downloadLocation;
 
+    @Column
+    private boolean filesAnalyzed;
+
     @Lob
     private String versionInfo;
 
@@ -185,5 +188,14 @@ public class SpdxPackageEntity {
     public Long getId() {
         return id;
     }
+
+    public boolean isFilesAnalyzed() {
+        return filesAnalyzed;
+    }
+
+    public void setFilesAnalyzed(boolean filesAnalyzed) {
+        this.filesAnalyzed = filesAnalyzed;
+    }
 }
+
 

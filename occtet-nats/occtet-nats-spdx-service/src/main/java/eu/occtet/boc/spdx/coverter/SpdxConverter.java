@@ -206,6 +206,8 @@ public class SpdxConverter {
             if (spdxDocumentRoot.getPackages() == null) {
                 spdxDocumentRoot.setPackages(new ArrayList<>());
             }
+
+            spdxPackageEntity.setFilesAnalyzed(spdxPackage.isFilesAnalyzed());
             spdxDocumentRoot.getPackages().add(spdxPackageEntity);
             spdxDocumentRootRepository.save(spdxDocumentRoot);
             return spdxPackageEntity;

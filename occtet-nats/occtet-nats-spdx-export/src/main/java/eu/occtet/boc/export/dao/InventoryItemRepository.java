@@ -37,5 +37,5 @@ import java.util.UUID;
 @Repository
 public interface InventoryItemRepository extends JpaRepository<InventoryItem, Long> {
 
-    Optional<InventoryItem> findBySpdxId(String spdxID);
+    List<InventoryItem> findBySpdxIdAndProject(String spdxID, Project project);
 }

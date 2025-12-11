@@ -154,6 +154,7 @@ public class SpdxConverterTest {
             Assertions.assertEquals(spdxDocumentRoot, pkg.getSpdxDocument());
             Assertions.assertEquals("SPDXRef-File-4", pkg.getFileNames().getFirst());
             Assertions.assertFalse(spdxDocumentRoot.getPackages().isEmpty());
+            Assertions.assertFalse(pkg.isFilesAnalyzed());
 
         } catch (Exception e) {
             Assertions.fail("An error occurred: " + e);
