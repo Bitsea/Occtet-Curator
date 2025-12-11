@@ -30,6 +30,10 @@ public class AnnotationEntity {
     @Column(nullable = false)
     private String spdxElementId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "spdx_package_id")
+    private SpdxPackageEntity pkg;
+
     @Column(nullable = false)
     private String annotationDate;
 
@@ -89,5 +93,13 @@ public class AnnotationEntity {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public SpdxPackageEntity getPkg() {
+        return pkg;
+    }
+
+    public void setPkg(SpdxPackageEntity pkg) {
+        this.pkg = pkg;
     }
 }

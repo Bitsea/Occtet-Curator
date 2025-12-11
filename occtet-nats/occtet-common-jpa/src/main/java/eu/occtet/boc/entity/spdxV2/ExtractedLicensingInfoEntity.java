@@ -47,10 +47,6 @@ public class ExtractedLicensingInfoEntity {
     @CollectionTable(name = "extracted_license_see_also", joinColumns = @JoinColumn(name = "license_id"))
     private List<String> seeAlsos;
 
-    @ElementCollection
-    @CollectionTable(name = "extracted_license_cross_ref", joinColumns = @JoinColumn(name = "license_id"))
-    private List<CrossRef> crossRefs; // Collection of the CrossRef embeddable
-
     public String getComment() {
         return comment;
     }
@@ -71,10 +67,6 @@ public class ExtractedLicensingInfoEntity {
         return licenseId;
     }
 
-    public List<CrossRef> getCrossRefs() {
-        return crossRefs;
-    }
-
     public List<String> getSeeAlsos() {
         return seeAlsos;
     }
@@ -89,10 +81,6 @@ public class ExtractedLicensingInfoEntity {
 
     public void setLicenseId(String licenseId) {
         this.licenseId = licenseId;
-    }
-
-    public void setCrossRefs(List<CrossRef> crossRefs) {
-        this.crossRefs = crossRefs;
     }
 
     public void setExtractedText(String extractedText) {

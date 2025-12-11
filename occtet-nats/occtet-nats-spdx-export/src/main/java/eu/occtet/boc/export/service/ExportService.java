@@ -264,7 +264,6 @@ public class ExportService extends BaseWorkDataProcessor {
     }
 
     private SpdxFile createSpdxFile(SpdxFileEntity fileEntity, SpdxDocument spdxDocument) {
-        log.info("creating file: {}", fileEntity.getFileName());
         IModelStore modelStore = spdxDocument.getModelStore();
         String documentUri = spdxDocument.getDocumentUri();
         try {

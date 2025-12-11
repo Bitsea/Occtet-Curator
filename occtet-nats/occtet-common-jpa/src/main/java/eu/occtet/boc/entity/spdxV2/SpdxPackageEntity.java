@@ -63,7 +63,7 @@ public class SpdxPackageEntity {
     @Embedded
     private PackageVerificationCodeEntity packageVerificationCodeEntity;
 
-    @OneToMany(mappedBy = "spdxElementId", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AnnotationEntity> annotationEntities;
 
     @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL, orphanRemoval = true)

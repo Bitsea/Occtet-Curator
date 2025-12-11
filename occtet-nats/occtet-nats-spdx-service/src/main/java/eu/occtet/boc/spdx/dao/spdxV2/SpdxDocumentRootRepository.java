@@ -22,6 +22,9 @@ import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface SpdxDocumentRootRepository extends JpaRepository<SpdxDocumentRoot, Long> {
+    Optional<SpdxDocumentRoot> findBySpdxId(String spdxId);
 }
