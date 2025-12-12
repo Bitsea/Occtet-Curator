@@ -182,8 +182,8 @@
                           id="filesTabFragment"/>
             </tab>
             <tab id="auditNotesTab" label="Audit notes">
-                <richTextEditor id="auditNotesText" label="Notes" width="100%"
-                          height="100%" property="externalNotes" dataContainer="inventoryItemDc" themeNames="compact"/>
+                    <vbox id="auditNotesText" width="100%" height="100%"/>
+
             </tab>
             <tab id="reuseTab" label="msg://eu.occtet.bocfrontend.view.audit/auditView.reuse">
                 <vbox width="100%" height="100%">
