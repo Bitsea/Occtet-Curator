@@ -33,18 +33,22 @@ public class DownloadServiceWorkData extends BaseWorkData{
     private String location;
     private String version;
     private String projectId;
+    private String inventoryItemId;
     private Boolean isMainPackage;
 
     @JsonCreator
-    public DownloadServiceWorkData(@JsonProperty("url") String url,@JsonProperty("location") String location
-            ,@JsonProperty("version") String version, @JsonProperty("projectId") String projectId,
-                                   @JsonProperty("isMainPackage") Boolean isMainPackage) {
-
+    public DownloadServiceWorkData(@JsonProperty("url") String url,
+                                   @JsonProperty("location") String location,
+                                   @JsonProperty("version") String version,
+                                   @JsonProperty("projectId") String projectId,
+                                   @JsonProperty("isMainPackage") Boolean isMainPackage,
+                                   @JsonProperty("inventoryItemId") String inventoryItemId) {
         this.url = url;
         this.location = location;
         this.version = version;
         this.projectId = projectId;
         this.isMainPackage = isMainPackage;
+        this.inventoryItemId = inventoryItemId;
     }
 
     public void setUrl(String url){this.url = url;}
@@ -57,6 +61,8 @@ public class DownloadServiceWorkData extends BaseWorkData{
     public String getVersion(){return this.version;}
     public String getProjectId(){return this.projectId;}
     public Boolean getIsMainPackage(){return this.isMainPackage;}
+    public String getInventoryItemId() {return inventoryItemId;}
+    public void setInventoryItemId(String inventoryItemId) {this.inventoryItemId = inventoryItemId;}
 
     @Override
     public boolean process(IWorkDataProcessor processor) {return processor.process(this);}

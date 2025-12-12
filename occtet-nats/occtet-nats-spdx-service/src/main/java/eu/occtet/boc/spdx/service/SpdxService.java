@@ -46,6 +46,8 @@ import org.spdx.storage.simple.InMemSpdxStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -78,8 +80,6 @@ public class SpdxService extends BaseWorkDataProcessor{
     private ProjectRepository projectRepository;
     @Autowired
     private AnswerService answerService;
-
-
 
     private Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc = new ArrayList<>();
 
@@ -140,7 +140,8 @@ public class SpdxService extends BaseWorkDataProcessor{
                         spdxPackage -> {
                             try {
                                 if (!seenPackages.contains(spdxPackage.toString())) {
-                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project, mainPackageIds));
+                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,
+                                            mainPackageIds));
                                     spdxPackages.add((SpdxPackage) spdxPackage);
                                     seenPackages.add((spdxPackage).toString());
                                 }
@@ -243,20 +244,38 @@ public class SpdxService extends BaseWorkDataProcessor{
             }
         }
 
-        String version = spdxPackage.getVersionInfo().orElse("");
-        if (!version.isEmpty() && !downloadLocation.isEmpty()) {
-            if(answerService.sendToDownload(downloadLocation ,project.getBasePath(), version,
-                    project.getId().toString(), mainPackageIds.contains(spdxPackage.getId()))){
-                log.info("sending to DownloadService was successful");
-            }else{
-                log.error("failed to send to Downloadservice");
-            }
-        }
-
         softwareComponentService.update(component);
         inventoryItemService.update(inventoryItem);
         log.info("created inventoryItem: {}", inventoryName);
         log.info("created softwareComponent: {}", component.getName());
+
+        String version = spdxPackage.getVersionInfo().orElse("");
+        if (!version.isEmpty() && !downloadLocation.isEmpty() && !"NOASSERTION".equals(downloadLocation)) {
+                // Register logic to run AFTER the database commit
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            boolean success = answerService.sendToDownload(
+                                    downloadLocation,
+                                    project.getBasePath(),
+                                    version,
+                                    project.getId().toString(),
+                                    mainPackageIds.contains(spdxPackage.getId()),
+                                    inventoryItem.getId().toString()
+                            );
+
+                            if (success) {
+                                log.info("Sent to DownloadService (After Commit): {}", downloadLocation);
+                            } else {
+                                log.error("Failed to send to DownloadService: {}", downloadLocation);
+                            }
+                        } catch (Exception e) {
+                            log.error("Error sending to NATS after commit", e);
+                        }
+                    }
+                });
+        }
 
         return inventoryItem;
     }

@@ -139,9 +139,11 @@ public class AnswerService {
      *                      differntiating between them and dependencies
      * @return true if sending was successful otherwise false
      */
-    public boolean sendToDownload(String url, String location, String version, String projectId, Boolean isMainPackage){
+    public boolean sendToDownload(String url, String location, String version, String projectId,
+                                  Boolean isMainPackage, String inventoryItemId){
         try {
-            DownloadServiceWorkData payload = new DownloadServiceWorkData(url, location, version, projectId, isMainPackage);
+            DownloadServiceWorkData payload = new DownloadServiceWorkData(url, location, version, projectId,
+                    isMainPackage, inventoryItemId);
             LocalDateTime now = LocalDateTime.now();
             long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
             WorkTask workTask = new WorkTask("download_task", "information about a component to be downloaded to a specific location", actualTimestamp, payload);
