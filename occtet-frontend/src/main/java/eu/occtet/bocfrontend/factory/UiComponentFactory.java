@@ -22,6 +22,7 @@ package eu.occtet.bocfrontend.factory;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.NativeLabel;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -33,8 +34,9 @@ import com.vaadin.flow.component.popover.PopoverVariant;
 import com.vaadin.flow.component.textfield.TextField;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.service.TreeGridHelper;
+import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
 import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,11 +51,10 @@ import org.springframework.stereotype.Component;
 public class UiComponentFactory {
 
     @Autowired
-    private TreeGridHelper treeGridHelper;
-    @Autowired
     private UiComponents uiComponents;
 
     public static final String SEARCH_FIELD_ID = "search-field";
+    public static final String REVIEWED_FILTER_ID = "reviewed-filter";
 
     private final String vulnerabilityFilterId = "vulnerability-filter";
 
@@ -127,16 +128,16 @@ public class UiComponentFactory {
      * @return A HorizontalLayout representing the created toolbox, or null
      *         if the entity class is not supported.
      */
-    public <T> HorizontalLayout createToolBox(TreeDataGrid<T> grid, Class<T> entityClass) {
+    public <T> HorizontalLayout createToolBox(TreeDataGrid<T> grid, Class<T> entityClass, Runnable onExpand, Runnable onCollapse) {
         if (entityClass.equals(InventoryItem.class)) {
-            return createToolBoxForInventoryItemGrid(grid);
+            return createToolBoxForInventoryItemGrid(grid, onExpand, onCollapse);
         } else if (entityClass.equals(File.class)) {
             return createFileTreeToolbox((TreeDataGrid<File>) grid);
         }
         return null;
     }
 
-    private <T> HorizontalLayout createToolBoxForInventoryItemGrid(TreeDataGrid<T> grid) {
+    private <T> HorizontalLayout createToolBoxForInventoryItemGrid(TreeDataGrid<T> grid,Runnable onExpand, Runnable onCollapse) {
         HorizontalLayout toolbox = uiComponents.create(HorizontalLayout.class);
 
         toolbox.setSpacing(true);
@@ -153,27 +154,19 @@ public class UiComponentFactory {
         toolbox.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
         toolbox.setAlignItems(FlexComponent.Alignment.START);
         toolbox.setWidthFull();
-        toolbox.add(vulnerabilityFilter, createExpandAndCollapseToolBar(grid));
+        toolbox.add(vulnerabilityFilter, createExpandAndCollapseToolBar(grid, onExpand, onCollapse));
 
         return toolbox;
     }
 
-    /**
-     * Creates a toolbox layout for a TreeDataGrid containing File entities.
-     * The toolbox includes a search field and expand/collapse buttons for
-     * managing the grid's content display.
-     *
-     * @param grid The TreeDataGrid instance that will interact with the toolbox.
-     * @return A HorizontalLayout representing the toolbox with search and
-     *         expand/collapse functionalities for the file tree.
-     */
     public HorizontalLayout createFileTreeToolbox(TreeDataGrid<File> grid) {
         HorizontalLayout layout = uiComponents.create(HorizontalLayout.class);
         layout.setSpacing(true);
         layout.setPadding(true);
         layout.setWidthFull();
         layout.setClassName("toolbox-audit-view");
-        layout.setAlignItems(FlexComponent.Alignment.START);
+        layout.setAlignItems(FlexComponent.Alignment.END);
+        layout.setJustifyContentMode(FlexComponent.JustifyContentMode.START);
 
         // Search Field
         TextField searchField = uiComponents.create(TextField.class);
@@ -182,11 +175,25 @@ public class UiComponentFactory {
         searchField.setPlaceholder("Search files...");
         searchField.setClearButtonVisible(true);
         searchField.setWidth("300px");
+        searchField.isReadOnly(); // remove once logic exists
 
-        // Expand/Collapse buttons
-        HorizontalLayout expandCollapse = createExpandAndCollapseToolBar(grid);
+        // Reviewed Filter ComboBox
+        JmixComboBox<FileReviewedFilterMode> reviewedFilter = uiComponents.create(JmixComboBox.class);
+        reviewedFilter.setId(REVIEWED_FILTER_ID);
+        reviewedFilter.setLabel("Status");
 
-        layout.add(searchField, expandCollapse);
+        reviewedFilter.setItems(FileReviewedFilterMode.values());
+
+        reviewedFilter.setItemLabelGenerator(item -> switch (item) {
+            case SHOW_ALL -> "Show All";
+            case REVIEWED_ONLY -> "Reviewed";
+            case NOT_REVIEWED_ONLY -> "Not Reviewed";
+        });
+
+        reviewedFilter.setValue(FileReviewedFilterMode.SHOW_ALL);
+        reviewedFilter.setWidth("150px");
+
+        layout.add(searchField, reviewedFilter);
 
         return layout;
     }
@@ -200,7 +207,11 @@ public class UiComponentFactory {
      * @param grid The TreeDataGrid instance for which the expand and collapse functionality is being created.
      * @return A HorizontalLayout containing the "Expand all" and "Collapse all" buttons.
      */
-    public <T> HorizontalLayout createExpandAndCollapseToolBar(TreeDataGrid<T> grid) {
+    public <T> HorizontalLayout createExpandAndCollapseToolBar(
+            TreeDataGrid<T> grid,
+            Runnable onExpand,
+            Runnable onCollapse
+    ) {
         Icon expandIcon = VaadinIcon.EXPAND.create();
         Icon compressIcon = VaadinIcon.COMPRESS.create();
 
@@ -208,13 +219,14 @@ public class UiComponentFactory {
         expandAll.setTooltipText("Expand all");
         expandAll.setIcon(expandIcon);
         expandAll.setThemeName("icon");
-        expandAll.addClickListener(event -> treeGridHelper.expandChildrenOfRoots(grid));
 
         JmixButton collapseAll = uiComponents.create(JmixButton.class);
         collapseAll.setTooltipText("Collapse all");
         collapseAll.setIcon(compressIcon);
         collapseAll.setThemeName("icon");
-        collapseAll.addClickListener(event -> treeGridHelper.collapseChildrenOfRoots(grid));
+
+        expandAll.addClickListener(event -> onExpand.run());
+        collapseAll.addClickListener(event -> onCollapse.run());
 
         HorizontalLayout mergeLayout = uiComponents.create(HorizontalLayout.class);
         mergeLayout.setMargin(false);
@@ -230,6 +242,25 @@ public class UiComponentFactory {
 
     public String getVulnerabilityFilterId() {
         return vulnerabilityFilterId;
+    }
+
+    /**
+     * Helper to create a consistent, aligned menu item with an icon.
+     */
+    public com.vaadin.flow.component.Component createContextMenuItem(VaadinIcon icon, String text) {
+        Icon i = icon.create();
+        i.setSize("16px");
+        i.getStyle().set("color", "var(--lumo-secondary-text-color)");
+
+        Span s = new Span(text);
+        s.getStyle().set("font-size", "var(--lumo-font-size-m)");
+
+        HorizontalLayout layout = new HorizontalLayout(i, s);
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.setSpacing(true);
+        layout.setPadding(false);
+        layout.setMargin(false);
+        return layout;
     }
 }
 

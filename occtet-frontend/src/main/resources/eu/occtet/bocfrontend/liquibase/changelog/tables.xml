@@ -210,6 +210,11 @@
                              foreignKeyName="FK_FILE_CODELOCATION"
                              references="CODE_LOCATION(ID)"/>
             </column>
+            <column name="INVENTORY_ITEM_ID" type="UUID">
+                <constraints nullable="true"
+                             foreignKeyName="FK_FILE_INVENTORY_ITEM"
+                             references="INVENTORY_ITEM(ID)"/>
+            </column>
             <column name="FILENAME" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
@@ -231,10 +236,11 @@
             <column name="LAST_MODIFIED_BY" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet id="3" author="OcctetFrontend">
+    <changeSet id="3" author="OcctetFrontend" runAlways="true">
         <sql>
             CREATE INDEX IF NOT EXISTS IDX_FILE_PARENT ON public.FILE (PARENT_ID);
             CREATE INDEX IF NOT EXISTS IDX_FILE_PROJECT_PARENT ON public.FILE (PROJECT_ID, PARENT_ID);
+            CREATE INDEX IF NOT EXISTS IDX_FILE_PROJECT_REVIEWED ON public.FILE (PROJECT_ID, REVIEWED);
         </sql>
     </changeSet>
 

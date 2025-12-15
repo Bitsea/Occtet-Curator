@@ -19,8 +19,6 @@
 
 package eu.occtet.bocfrontend.view.audit.fragment;
 
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -31,10 +29,11 @@ import eu.occtet.bocfrontend.dao.CodeLocationRepository;
 import eu.occtet.bocfrontend.dao.CopyrightRepository;
 import eu.occtet.bocfrontend.entity.CodeLocation;
 import eu.occtet.bocfrontend.entity.Copyright;
+import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.factory.CodeLocationFactory;
-import eu.occtet.bocfrontend.model.FileResult;
 import eu.occtet.bocfrontend.service.FileContentService;
+import eu.occtet.bocfrontend.view.audit.AuditView;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.action.DialogAction;
@@ -44,7 +43,6 @@ import io.jmix.flowui.app.inputdialog.InputParameter;
 import io.jmix.flowui.component.UiComponentUtils;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentDescriptor;
-import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.component.dropdownbutton.DropdownButton;
 import io.jmix.flowui.kit.component.dropdownbutton.DropdownButtonItem;
 import io.jmix.flowui.kit.component.dropdownbutton.DropdownButtonVariant;
@@ -59,11 +57,11 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The FilesTabFragment class represents a fragment of a user interface for managing and interacting
- * with code locations in a vertical layout. It provides functionality to add, view, edit, delete,
- * and switch between a grid and code viewer view mode.
+ * with code locations in a vertical layout. It provides functionality to add, view, edit, delete.
  */
 @FragmentDescriptor("files-tab-fragment.xml")
 public class FilesTabFragment extends Fragment<VerticalLayout>{
@@ -72,20 +70,11 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
 
     private View<?> hostView;
     private InventoryItem inventoryItem;
-    boolean viewMode = false;
 
     @ViewComponent
     private DataContext dataContext;
     @ViewComponent
     private CollectionLoader<CodeLocation> codeLocationDl;
-    @ViewComponent
-    private VerticalLayout codeLocationViewBox;
-    @ViewComponent
-    private VerticalLayout codeViewerBox;
-    @ViewComponent
-    private JmixButton switchButton;
-    @ViewComponent
-    private CodeViewerFragment codeViewer;
 
     @Autowired
     private Dialogs dialogs;
@@ -106,42 +95,29 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
 
     public void setInventoryItemId(InventoryItem inventoryItem) {
         this.inventoryItem = dataContext.merge(inventoryItem);
-
         codeLocationDl.setParameter("inventoryItem", this.inventoryItem);
         codeLocationDl.load();
     }
 
-    /**
-     * Handles the addition of a new code location for the current inventory item.
-     * Opens an input dialog to collect information such as file path and optional line number range.
-     *
-     * @param event the click event triggered by the UI component, representing the user interaction
-     */
     @Subscribe(id = "codeloctionsEditButton.addCodeLocation")
     public void addCodeLocation(DropdownButtonItem.ClickEvent event) {
         dialogs.createInputDialog(hostView)
                 .withHeader("Enter values")
                 .withParameters(
                         InputParameter.stringParameter("filePath").withLabel("File Path").withRequired(true)
-                                .withRequiredMessage("Provide a path (absolute or relative), e.g. /usr/local/file.txt or ./file.txt"),
+                                .withRequiredMessage("Provide a path"),
                         InputParameter.intParameter("from").withRequired(false).withLabel("From").withDefaultValue(0),
                         InputParameter.intParameter("to").withRequired(false).withLabel("To").withDefaultValue(0)
                 ).withActions(DialogActions.OK_CANCEL)
-                .withCloseListener( closeEvent ->{
-                    if (!closeEvent.closedWith(DialogOutcome.OK)){
-                        return;
+                .withCloseListener(closeEvent -> {
+                    if (closeEvent.closedWith(DialogOutcome.OK)) {
+                        String filePath = closeEvent.getValue("filePath");
+                        Integer from = closeEvent.getValue("from");
+                        Integer to = closeEvent.getValue("to");
+                        codeLocationFactory.create(inventoryItem, filePath, from, to);
+                        codeLocationDl.load();
                     }
-                    String filePath = closeEvent.getValue("filePath");
-                    Integer from = closeEvent.getValue("from");
-                    Integer to = closeEvent.getValue("to");
-                    codeLocationFactory.create(inventoryItem,filePath,from,to);
-                    codeLocationDl.load();
                 }).open();
-    }
-
-    @Subscribe(id = "switchButton")
-    public void onSwitchButtonClick(ClickEvent<Button> event) {
-        switchFileTabMode();
     }
 
     @Supply(to = "codeLocationDataGrid.options", subject = "renderer")
@@ -153,7 +129,6 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
             optionsButton.addThemeVariants(DropdownButtonVariant.LUMO_ICON, DropdownButtonVariant.LUMO_SMALL, DropdownButtonVariant.LUMO_TERTIARY);
             optionsButton.setWidth("40px");
 
-            // option buttons
             optionsButton.addItem("copy", "Copy", clickEvent -> copyCodeLocation(codeLocation));
             optionsButton.addItem("view", "View", clickEvent -> viewCodeLocation(codeLocation));
             optionsButton.addItem("edit", "edit", clickEvent -> editCodeLocation(codeLocation));
@@ -161,6 +136,24 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
 
             return optionsButton;
         });
+    }
+    private void viewCodeLocation(CodeLocation codeLocation) {
+        Optional<File> fileOpt = fileContentService.findFileEntityForCodeLocation(codeLocation, inventoryItem);
+
+        if (fileOpt.isPresent()) {
+            File file = fileOpt.get();
+            if (hostView instanceof AuditView auditView) {
+                auditView.getTabManager().openFileTab(file, true);
+            } else {
+                log.error("Host view is not AuditView, cannot open tab.");
+            }
+        } else {
+            notifications.create("File not found in database for this code location.")
+                    .withPosition(Notification.Position.BOTTOM_END)
+                    .withThemeVariant(NotificationVariant.LUMO_ERROR)
+                    .withDuration(3000)
+                    .show();
+        }
     }
 
     private void copyCodeLocation(CodeLocation codeLocation) {
@@ -173,22 +166,6 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
                                 .withPosition(Notification.Position.BOTTOM_END)
                                 .withThemeVariant(NotificationVariant.LUMO_ERROR)
                                 .show());
-    }
-
-    private void viewCodeLocation(CodeLocation codeLocation) {
-        FileResult fileResult = fileContentService.getFileContentOfCodeLocation(codeLocation, inventoryItem);
-        if (fileResult instanceof FileResult.Success(String content, String fileName)){
-            codeViewer.setCodeEditorContent(content, fileName);
-            switchFileTabMode();
-        } else if (fileResult instanceof FileResult.Failure(String errorMessage)) {
-            log.warn("Could not view code location: {}", errorMessage);
-            notifications.create(errorMessage)
-                    .withPosition(Notification.Position.BOTTOM_END)
-                    .withThemeVariant(NotificationVariant.LUMO_ERROR)
-//                    .withCloseable(true)
-                    .withDuration(6000)
-                    .show();
-        }
     }
 
     private void editCodeLocation(CodeLocation codeLocation){
@@ -224,24 +201,11 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
                 .withText(message)
                 .withActions(
                         new DialogAction(DialogAction.Type.YES).withHandler(event -> {
-                            // TODO handle deletion: Should copyrights be deleted as well? Please revise
                             codeLocationRepository.delete(codeLocation);
                             copyrightRepository.deleteAll(associatedCopyrights);
+                            codeLocationDl.load();
                         }),
                         new DialogAction(DialogAction.Type.NO)
                 ).open();
-    }
-
-    private void switchFileTabMode(){
-        viewMode = !viewMode;
-        codeLocationViewBox.setVisible(!viewMode);
-        codeViewerBox.setVisible(viewMode);
-        if (codeViewerBox.isVisible()) {
-            switchButton.setIcon(VaadinIcon.FILE_TEXT.create());
-            switchButton.setText("Switch back to grid");
-        } else {
-            switchButton.setIcon(VaadinIcon.FILE_CODE.create());
-            switchButton.setText("Switch to code viewer");
-        }
     }
 }

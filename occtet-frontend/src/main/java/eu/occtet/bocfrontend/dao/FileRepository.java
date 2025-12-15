@@ -21,6 +21,7 @@
 
 package eu.occtet.bocfrontend.dao;
 
+import eu.occtet.bocfrontend.entity.CodeLocation;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.Project;
 import io.jmix.core.repository.JmixDataRepository;
@@ -28,30 +29,48 @@ import io.jmix.core.repository.Query;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Repository interface for managing {@link File} entities.
- * Provides methods for querying, counting, and retrieving files based on specific parameters.
- * Extends {@link JmixDataRepository} to inherit basic CRUD operations.
- */
 public interface FileRepository extends JmixDataRepository<File, UUID> {
+    final String DEPENDENCY_FOLDER_NAME = "dependencies";
 
-    List<File> findByProjectAndParentIsNullOrderByIsDirectoryDescFileNameAsc(Project project, Pageable pageable);
-    List<File> findByParentOrderByIsDirectoryDescFileNameAsc(File parent, Pageable pageable);
+    // Root Nodes (Reviewed Filter)
+    @Query("select f from File f " +
+            "where f.project = :project and f.parent is null " +
+            "order by " +
+            "   CASE WHEN lower(f.fileName) = '" + DEPENDENCY_FOLDER_NAME + "' THEN 1 ELSE 0 END ASC, " +
+            "   CASE WHEN (:targetStatus is null) THEN 0 " +
+            "        WHEN (f.reviewed = :targetStatus) THEN 0 " +        // Matches go to Top
+            "        ELSE 1 END ASC, " +                                 // Others go to Bottom
+            "   f.isDirectory desc, " +
+            "   f.fileName asc")
+    List<File> findRootsSorted(@Param("project") Project project,
+                               @Param("targetStatus") Boolean targetStatus,
+                               Pageable pageable);
+
+    // Child Nodes (Reviewed Filter)
+    @Query("select f from File f " +
+            "where f.parent = :parent " +
+            "order by " +
+            "   CASE WHEN lower(f.fileName) = '" + DEPENDENCY_FOLDER_NAME + "' THEN 1 ELSE 0 END ASC, " +
+            "   CASE WHEN (:targetStatus is null) THEN 0 " +
+            "        WHEN (f.reviewed = :targetStatus) THEN 0 " +
+            "        ELSE 1 END ASC, " +
+            "   f.isDirectory desc, " +
+            "   f.fileName asc")
+    List<File> findChildrenSorted(@Param("parent") File parent,
+                                  @Param("targetStatus") Boolean targetStatus,
+                                  Pageable pageable);
+
     long countByProjectAndParentIsNull(Project project);
     long countByParent(File parent);
+    long countByProjectAndParentIsNullAndReviewed(Project project, Boolean reviewed);
+    long countByParentAndReviewed(File parent, Boolean reviewed);
 
-    @Query("select f from File f where f.project = :project and lower(f.fileName) like lower(concat('%', :name, '%'))")
-    List<File> findRawMatches(@Param("project") Project project, @Param("name") String name);
-    @Query("select f from File f where f.parent = :parent and f.id in :ids order by f.isDirectory desc, f.fileName asc")
-    List<File> findByParentAndIdIn(@Param("parent") File parent, @Param("ids") Collection<UUID> ids, Pageable pageable);
-    long countByParentAndIdIn(File parent, Collection<UUID> ids);
-    @Query("select f from File f where f.project = :project and f.parent is null and f.id in :ids order by f.isDirectory desc, f.fileName asc")
-    List<File> findRootsByIdIn(@Param("project") Project project, @Param("ids") Collection<UUID> ids, Pageable pageable);
-    long countByProjectAndParentIsNullAndIdIn(Project project, Collection<UUID> ids);
-    List<File> findByIdIn(Collection<UUID> ids);
+    // Methods for FileContentService & DownloadService
+    File findByCodeLocation(CodeLocation codeLocation);
+
+    @Query("select f from File f where f.project = :project and f.fileName = :fileName")
+    List<File> findCandidates(@Param("project") Project project, @Param("fileName") String fileName);
 }
-

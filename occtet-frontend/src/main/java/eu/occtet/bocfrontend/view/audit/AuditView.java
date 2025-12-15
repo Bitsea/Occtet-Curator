@@ -24,12 +24,12 @@ import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.*;
 import eu.occtet.bocfrontend.dao.FileRepository;
@@ -39,6 +39,7 @@ import eu.occtet.bocfrontend.engine.TabManager;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.factory.UiComponentFactory;
 import eu.occtet.bocfrontend.factory.RendererFactory;
+import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
 import eu.occtet.bocfrontend.service.*;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
@@ -81,6 +82,7 @@ import java.util.stream.Collectors;
 @Route(value = "audit-view/:projectId?", layout = MainView.class)
 @ViewController(id = "AuditView")
 @ViewDescriptor(path = "audit-view.xml")
+@CssImport(themeFor = "vaadin-grid", value = "./themes/BocFrontend/BocFrontend.css")
 public class AuditView extends StandardView{
 
     private static final Logger log = LogManager.getLogger(AuditView.class);
@@ -145,10 +147,10 @@ public class AuditView extends StandardView{
      */
     @Subscribe
     protected void onInit(InitEvent event) {
+        initializeTabManager();
         initializeProjectComboBox();
         initializeInventoryDataGrid();
         initializeFileTreeGrid();
-        initializeTabManager();
         addTabSelectionListeners();
 //        overviewProjectTabFragment.setBasicAccordionValues(); TODO comment
     }
@@ -161,31 +163,25 @@ public class AuditView extends StandardView{
     private void initializeFileTreeGrid(){
         HorizontalLayout toolboxWrapper = componentFactory.createFileTreeToolbox(fileTreeGrid);
         fileTreeGridLayout.addComponentAsFirst(toolboxWrapper);
-        // TODO
+
         toolboxWrapper.getChildren()
                 .filter(component -> component instanceof TextField &&
                         UiComponentFactory.SEARCH_FIELD_ID.equals(component.getId().orElse(null)))
                 .map(component -> (TextField) component)
                 .findFirst()
                 .ifPresent(searchField -> {
-                    searchField.addValueChangeListener(e -> {
-                        String searchText = e.getValue();
-                        Project currentProject = projectComboBox.getValue();
-                        if (currentProject == null) return;
-
-                        DataProvider<File, ?> dataProvider = fileTreeGrid.getDataProvider();
-
-                        if (dataProvider instanceof FileHierarchyProvider provider) {
-                            provider.setFilterText(searchText);
-
-                            if (searchText != null && !searchText.isBlank()) {
-                                treeGridHelper.expandPathOnly(provider, fileTreeGrid);
-                            } else {
-                                treeGridHelper.collapseChildrenOfRoots(fileTreeGrid);
-                            }
-                        }
-                    });
+                    // add search listener
                 });
+        toolboxWrapper.getChildren()
+                .filter(component -> component instanceof JmixComboBox &&
+                        UiComponentFactory.REVIEWED_FILTER_ID.equals(component.getId().orElse(null)))
+                .map(component -> (JmixComboBox<FileReviewedFilterMode>) component)
+                .findFirst()
+                .ifPresent(comboBox -> comboBox.addValueChangeListener(e ->
+                        treeGridHelper.reviewedFilterChangeValueListenerAction(e, projectComboBox.getValue(),
+                                fileTreeGrid)
+                ));
+
         treeGridHelper.setupFileGridContextMenu(fileTreeGrid, tabManager);
         fileTreeGrid.addItemClickListener(event -> {
             File clickedFile = event.getItem();
@@ -269,7 +265,6 @@ public class AuditView extends StandardView{
         viewStateService.get().ifPresent(state -> {
             restoreSessionTabs(state);
             Set<UUID> idsToExpand = new HashSet<>(state.expandedNodeIds());
-            treeGridHelper.restoreExpansionState(idsToExpand, fileTreeGrid);
             this.expandedItemIds.addAll(idsToExpand);
 
             log.debug("Restoring session state: {}", state);
@@ -300,7 +295,9 @@ public class AuditView extends StandardView{
 
     private void initializeInventoryDataGrid() {
         HorizontalLayout inventoryToolbox = componentFactory.createToolBox(
-                inventoryItemDataGrid, InventoryItem.class);
+                inventoryItemDataGrid, InventoryItem.class,
+                () -> treeGridHelper.expandChildrenOfRoots(inventoryItemDataGrid),
+                () -> treeGridHelper.collapseChildrenOfRoots(inventoryItemDataGrid));
         // Find the vulnerability filter checkbox and add a value change listener to it.
         findCheckBoxById(inventoryToolbox, componentFactory.getVulnerabilityFilterId())
                 .ifPresentOrElse(checkbox -> {
@@ -551,5 +548,9 @@ public class AuditView extends StandardView{
         inventoryItemDc.setItems(Collections.emptyList());
         fileDc.setItems(Collections.emptyList());
         tabManager.closeAllTabs();
+    }
+
+    public TabManager getTabManager() {
+        return tabManager;
     }
 }

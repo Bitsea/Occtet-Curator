@@ -35,6 +35,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service class for managing file contents and resolving file paths.
@@ -49,50 +50,34 @@ public class FileContentService {
     @Autowired
     private FileRepository fileRepository;
 
-    /**
-     * Attempts to retrieve the content of a file based on the given {@link CodeLocation} and {@link InventoryItem}.
-     * The method first checks if the resolved file path exists locally. If not, it attempts to resolve the file through
-     * a database lookup using the associated inventory item.
-     *
-     * @param codeLocation the code location entity containing file path and other metadata
-     * @param inventoryItem the inventory item associated with the project for database lookup
-     * @return a {@link FileResult} containing the content and file path in case of success,
-     *         or an error message in case of failure
-     */
-    public FileResult getFileContentOfCodeLocation(CodeLocation codeLocation, InventoryItem inventoryItem) {
-        String relativePathStr = codeLocation.getFilePath();
-
-        Path pathCheck = Paths.get(relativePathStr);
-        if (pathCheck.isAbsolute() && Files.exists(pathCheck)) {
-            try {
-                return new FileResult.Success(Files.readString(pathCheck), pathCheck.toString());
-            } catch (IOException e) {
-                log.error("File exists but unreadable: {}", pathCheck, e);
-                return new FileResult.Failure("Access Denied or File Locked: " + e.getMessage());
-            }
+    public Optional<File> findFileEntityForCodeLocation(CodeLocation codeLocation, InventoryItem inventoryItem) {
+        // Try Direct Link (If your DownloadService set it)
+        File linkedFile = fileRepository.findByCodeLocation(codeLocation);
+        if (linkedFile != null) {
+            return Optional.of(linkedFile);
         }
 
-        String searchSuffix = relativePathStr.replace("\\", "/");
+        // Try Fuzzy Path Matching
+        String relativePathStr = codeLocation.getFilePath();
+        if (relativePathStr == null) return Optional.empty();
 
-        List<File> candidates = fileRepository.findRawMatches(inventoryItem.getProject(), Path.of(relativePathStr).getFileName().toString());
+        String searchSuffix = relativePathStr.replace("\\", "/");
+        String fileName = Paths.get(relativePathStr).getFileName().toString();
+
+        // Find all files with this name in the project
+        List<File> candidates = fileRepository.findCandidates(
+                inventoryItem.getProject(),
+                fileName
+        );
 
         for (File candidate : candidates) {
             String absPath = candidate.getAbsolutePath();
-            if (absPath.replace("\\", "/").endsWith(searchSuffix)) {
-                try {
-                    Path p = Paths.get(absPath);
-                    if (Files.exists(p)) {
-                        log.info("Resolved via DB: {}", p);
-                        return new FileResult.Success(Files.readString(p), absPath);
-                    }
-                } catch (IOException e) {
-                    log.error("Found inside DB but could not read: {}", absPath, e);
-                    return new FileResult.Failure("Access Denied or File Locked: " + e.getMessage());
-                }
+            if (absPath != null && absPath.replace("\\", "/").endsWith(searchSuffix)) {
+                return Optional.of(candidate);
             }
         }
 
-        return new FileResult.Failure("File not found via Database lookup.");
+        return Optional.empty();
     }
 
     /**
