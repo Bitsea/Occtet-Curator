@@ -27,6 +27,7 @@
                 <property name="parent" fetchPlan="_base">
                     <property name="inventoryName"/>
                 </property>
+
             </fetchPlan>
             <loader id="inventoryItemDl"/>
         </instance>

@@ -23,8 +23,11 @@ package eu.occtet.bocfrontend.view.audit;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.ItemClickEvent;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
@@ -40,12 +43,14 @@ import eu.occtet.bocfrontend.factory.RendererFactory;
 import eu.occtet.bocfrontend.model.FileTreeNode;
 import eu.occtet.bocfrontend.service.*;
 import eu.occtet.bocfrontend.view.audit.fragment.OverviewProjectTabFragment;
+import eu.occtet.bocfrontend.view.inventoryitem.InventoryItemDetailView;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
 import io.jmix.core.ValueLoadContext;
 import io.jmix.core.entity.KeyValueEntity;
 import io.jmix.flowui.*;
 import io.jmix.flowui.action.DialogAction;
+import io.jmix.flowui.action.list.CreateAction;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
@@ -56,6 +61,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -499,4 +505,11 @@ public class AuditView extends StandardView{
         fileTreeGridLayout.removeAll();
         tabManager.closeAllTabs();
     }
+
+    @Install(to = "inventoryItemDataGrid.create", subject = "initializer")
+    private void inventoryItemDataGridCreateActionInitializer(final InventoryItem inventoryItem) {
+        inventoryItem.setProject(projectComboBox.getValue());
+    }
+
+
 }
