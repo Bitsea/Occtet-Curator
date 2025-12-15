@@ -23,17 +23,17 @@
     <layout width="100%" height="100%">
         <vbox width="100%">
             <hbox width="100%">
-                <textField id="licenseNameField" label="License name" width="100%"/>
-                <textField id="licenseTypeField" label="License Type" width="100%"/>
+                <textField id="licenseNameField" label="License name" width="100%" required="true"/>
+                <textField id="licenseTypeField" label="License Type" width="100%" required="true"/>
             </hbox>
-            <textField id="detailsUrlField"  label="Detail url" width="100%"/>
-            <textField id="priorityField" label="Priority"/>
+            <textField id="detailsUrlField"  label="Detail url" width="100%" required="true"/>
+            <textField id="priorityField" label="Priority" required="true"/>
             <hbox>
                 <checkbox id="isSpdxField" label="SPDX"/>
                 <checkbox id="isCuratedField"  label="Curated"/>
                 <checkbox id="isModifiedField" label="Modified"/>
             </hbox>
-            <textArea id="licenseTextField" label="License text" minWidth="100%" maxRows="20"/>
+            <textArea id="licenseTextField" label="License text" minWidth="100%" maxRows="20" required="true"/>
         </vbox>
         <hbox width="100%" alignItems="CENTER" justifyContent="CENTER" alignSelf="BASELINE">
             <button id="addLicenseButton" text="Add license" themeNames="primary"/>
