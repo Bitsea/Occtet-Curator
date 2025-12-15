@@ -202,6 +202,8 @@
         </createTable>
     </changeSet>
 
+
+
     <!-- MODIFICATIONS-->
 
 </databaseChangeLog>
