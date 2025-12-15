@@ -102,6 +102,8 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
         autocompleteAuditNotes = new AutocompleteField( messages.getMessage(getClass(), "auditNotes"));
         autocompleteAuditNotes.setOptions(suggestions);
         autocompleteAuditNotes.initializeField();
+        if(inventoryItem.getExternalNotes()!=null)
+            autocompleteAuditNotes.setValue(inventoryItem.getExternalNotes());
         auditNotesText.add(autocompleteAuditNotes);
 
         loadSuggestions("inventoryNames");

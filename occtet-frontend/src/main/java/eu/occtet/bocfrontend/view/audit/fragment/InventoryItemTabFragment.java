@@ -157,6 +157,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         autocompleteAuditNotes = new AutocompleteField( messages.getMessage(getClass(), "auditNotes"));
         autocompleteAuditNotes.setOptions(suggestions);
         autocompleteAuditNotes.initializeField();
+        if(this.inventoryItem.getExternalNotes()!=null)
+            autocompleteAuditNotes.setValue(this.inventoryItem.getExternalNotes());
         auditNotesText.add(autocompleteAuditNotes);
 
         loadSuggestions("inventoryNames");
@@ -167,6 +169,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         inventoryNameField.add(autocompleteInventoryName);
 
     }
+
+
     /**
      * loads the suggestions strings from db
      * for autocomplete fields
@@ -194,7 +198,6 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             this.softwareComponent = dataContext.merge(this.softwareComponent);
             softwareComponentDc.setItem(this.softwareComponent);
         }
-
 
         inventoryItemDc.setItem(this.inventoryItem);
         updateCopyrights(this.inventoryItem, copyrightDc);
@@ -241,6 +244,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     @Subscribe("saveAction")
     public void onSaveAction(ActionPerformedEvent event) {
         this.inventoryItem.setExternalNotes(autocompleteAuditNotes.getValue());
+        this.inventoryItem.setInventoryName(autocompleteInventoryName.getValue());
         if (dataContext.hasChanges()) {
             log.debug("Inventory Item {} has changes.", inventoryItem.getInventoryName());
 
