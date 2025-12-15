@@ -21,22 +21,10 @@
 
 package eu.occtet.boc.download.dao;
 
-import eu.occtet.boc.entity.File;
-import eu.occtet.boc.entity.Project;
+import eu.occtet.boc.entity.InventoryItem;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
-@Repository
-public interface FileRepository extends JpaRepository<File, UUID> {
-
-    List<File> findAllByProject(Project project);
-    @Query("select f.absolutePath from File f where f.project = :project")
-    Set<String> findAllPathsByProject(@Param("project") Project project);
-    File findByProjectAndAbsolutePath(Project project, String absolutePath);
+public interface InventoryItemRepository extends JpaRepository<InventoryItem, UUID> {
 }

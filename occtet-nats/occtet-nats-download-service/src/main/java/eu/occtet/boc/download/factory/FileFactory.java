@@ -21,7 +21,9 @@
 
 package eu.occtet.boc.download.factory;
 
+import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.File;
+import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +36,9 @@ public class FileFactory {
                        String absolutePath,
                        String relativePath,
                        boolean isDirectory,
-                       File parentEntity
+                       File parentEntity,
+                       InventoryItem inventoryItem,
+                       CodeLocation codeLocation
     ) {
         File file = new File();
 
@@ -44,8 +48,9 @@ public class FileFactory {
         file.setRelativePath(relativePath);
         file.setIsDirectory(isDirectory);
         file.setParent(parentEntity);
+        file.setInventoryItem(inventoryItem);
+        file.setCodeLocation(codeLocation);
 
-        file.setCodeLocation(null);
         file.setReviewed(false);
 
         return file;

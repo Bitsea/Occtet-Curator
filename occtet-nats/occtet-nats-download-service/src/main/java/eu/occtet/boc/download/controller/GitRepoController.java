@@ -22,7 +22,6 @@
 
 package eu.occtet.boc.download.controller;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,85 +32,101 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 public class GitRepoController {
 
     private final static String GIT_API = "https://api.github.com/repos/";
-
-    private final static int CORRECT_STATUSCODE = 200;
-
+    private final static int SUCCESS_STATUS_CODE = 200;
     private static final Logger log = LoggerFactory.getLogger(GitRepoController.class);
 
+    /**
+     * Retrieves the download URL of a GitHub repository ZIP file for a specific version or tag.
+     * The method constructs possible tag candidates based on the provided version and
+     * attempts to locate a valid tag in the GitHub repository. If a valid tag is found,
+     * the corresponding download URL is returned.
+     *
+     * @param owner the owner or organization of the GitHub repository
+     * @param repo the name of the GitHub repository
+     * @param version the version or tag to be checked in the repository
+     * @return the download URL of the repository ZIP file for*/
     public String getGitRepository(String owner, String repo, String version) throws IOException, InterruptedException {
+        if (version == null || version.isEmpty()) {
+            return "";
+        }
 
-        String url;
-        HttpResponse<InputStream> response;
-        StringBuilder apiUrl = new StringBuilder();
-        apiUrl.append(GIT_API).append(owner).append("/").append(repo).append("/zipball");
+        List<String> tagCandidates = new ArrayList<>();
 
-        if(version != null){
-            char firstCharacter = version.charAt(0);
-            if(firstCharacter == 'v' || firstCharacter == 'V'){
-                apiUrl.append("/").append(version);
-                log.info("API-Url: {}",apiUrl);
-                response = getHttpResponse(apiUrl.toString());
+        // Case 1: Exact Version
+        tagCandidates.add(version);
 
-                log.info("Response: {}",response.statusCode());
-                if(response.statusCode() == CORRECT_STATUSCODE){
-                    url = response.uri().toString();
-                    return url;
-                }else{
-                    int index = apiUrl.lastIndexOf("/");
-                    apiUrl.deleteCharAt(index+1);
-                    response = getHttpResponse(apiUrl.toString());
-                    log.info("Modified api-url: {}",apiUrl);
+        // Case 2: 'v' prefix logic
+        String versionNoV = version;
+        if (version.toLowerCase().startsWith("v")) {
+            versionNoV = version.substring(1);
+            tagCandidates.add(versionNoV);
+        } else {
+            tagCandidates.add("v" + version);
+        }
 
-                    log.info("Response: {}",response.statusCode());
-                    if(response.statusCode() == CORRECT_STATUSCODE){
-                        url = response.uri().toString();
-                        return url;
-                    }else{
-                        return "";
-                    }
-                }
-            }else{
-                apiUrl.append("/").append(version);
-                log.info("API-Url: {}",apiUrl);
-                response = getHttpResponse(apiUrl.toString());
+        // Case 3: Repo-Prefix combinations (e.g. "awaitility-4.3.0")
+        tagCandidates.add(repo + "-" + version);
 
-                log.info("Response: {}",response.statusCode());
-                if(response.statusCode() == CORRECT_STATUSCODE){
-                    url = response.uri().toString();
-                    return url;
-                }else{
-                    int index = apiUrl.lastIndexOf("/");
-                    apiUrl.insert(index+1,"v");
-                    response = getHttpResponse(apiUrl.toString());
-                    log.info("Modified api-url: {}",apiUrl);
+        if (!version.equals(versionNoV)) {
+            tagCandidates.add(repo + "-" + versionNoV);
+        }
+        if (!version.toLowerCase().startsWith("v")) {
+            tagCandidates.add(repo + "-v" + version);
+        }
 
-                    log.info("Response: {}",response.statusCode());
-                    if(response.statusCode() == CORRECT_STATUSCODE){
-                        url = response.uri().toString();
-                        return url;
-                    }else{
-                        return "";
-                    }
-                }
+        // Case 4:  Underscore variation (e.g. logback "v_1.5.18")
+        if (version.toLowerCase().startsWith("v")) {
+            tagCandidates.add(version.replace("v", "v_"));
+        } else {
+            tagCandidates.add("v_" + version);
+        }
+
+        // Case 5: Apache/Groovy Style (e.g. "GROOVY_4_0_26")
+        // Logic: REPO (UPPER) + "_" + VERSION (dots -> underscores)
+        String underscoreVersion = versionNoV.replace(".", "_");
+        tagCandidates.add(repo.toUpperCase() + "_" + underscoreVersion);
+
+        // Case 6: "rel/" prefix (Common in some older repos)
+        tagCandidates.add("rel/" + version);
+        tagCandidates.add("release/" + version);
+
+        for (String tag : tagCandidates) {
+            String url = constructZipUrl(owner, repo, tag);
+            log.info("Checking API-Url: {}", url);
+
+            HttpResponse<InputStream> response = getHttpResponse(url);
+
+            if (response.statusCode() == SUCCESS_STATUS_CODE) {
+                log.info("Found valid tag: {}", tag);
+                return response.uri().toString();
             }
         }
+
+        log.warn("No valid tag found for {}/{} version {}", owner, repo, version);
         return "";
     }
 
-    private HttpResponse getHttpResponse(String apiUrl) throws IOException, InterruptedException {
+    private String constructZipUrl(String owner, String repo, String tag) {
+        return GIT_API + owner + "/" + repo + "/zipball/" + tag;
+    }
 
-        HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
+    private HttpResponse<InputStream> getHttpResponse(String apiUrl) throws IOException, InterruptedException {
+        HttpClient client = HttpClient.newBuilder()
+                .followRedirects(HttpClient.Redirect.ALWAYS)
+                .build();
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(apiUrl))
                 .GET()
-                .header("Accept", "application/vnd.github+json").build();
+                .header("Accept", "application/vnd.github+json")
+                .build();
 
         return client.send(request, HttpResponse.BodyHandlers.ofInputStream());
     }

@@ -35,7 +35,11 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table(name = "FILE")
+@Table(name = "FILE", indexes = {
+        @Index(name = "IDX_FILE_PROJECT_PARENT", columnList = "PROJECT_ID, PARENT_ID"),
+        @Index(name = "IDX_FILE_PARENT", columnList = "PARENT_ID"),
+        @Index(name = "IDX_FILE_PROJECT_REVIEWED", columnList = "PROJECT_ID, REVIEWED")
+})
 @EntityListeners(AuditingEntityListener.class)
 public class File {
 
@@ -58,6 +62,11 @@ public class File {
     @JoinColumn(name = "CODELOCATION_ID", nullable = true)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private CodeLocation codeLocation;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "INVENTORY_ITEM_ID")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    private InventoryItem inventoryItem;
 
     @Column(name = "FILENAME", nullable = false)
     private String fileName;
@@ -91,6 +100,14 @@ public class File {
     private String lastModifiedBy;
 
     public File() {
+    }
+
+    public InventoryItem getInventoryItem() {
+        return inventoryItem;
+    }
+
+    public void setInventoryItem(InventoryItem inventoryItem) {
+        this.inventoryItem = inventoryItem;
     }
 
     public UUID getId() {
@@ -195,6 +212,14 @@ public class File {
 
     public void setLastModifiedBy(String lastModifiedBy) {
         this.lastModifiedBy = lastModifiedBy;
+    }
+
+    public Boolean getDirectory() {
+        return isDirectory;
+    }
+
+    public void setDirectory(Boolean directory) {
+        isDirectory = directory;
     }
 
     @Override

@@ -22,7 +22,6 @@
 
 package eu.occtet.boc.download.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.BaseWorkData;
 import eu.occtet.boc.model.DownloadServiceWorkData;
@@ -36,6 +35,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class DownloadWorkConsumer extends WorkConsumer {
@@ -48,15 +50,25 @@ public class DownloadWorkConsumer extends WorkConsumer {
     @Override
     protected void handleMessage(Message msg) {
         log.debug("handleMessage called");
-        String jsonData = new String(msg.getData(), StandardCharsets.UTF_8);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        WorkTask workTask = null;
+        ScheduledExecutorService keepAliveExecutor = Executors.newSingleThreadScheduledExecutor();
+        keepAliveExecutor.scheduleAtFixedRate(() -> {
+            try {
+                log.trace("Sending NATS heartbeat (inProgress)...");
+                msg.inProgress();
+            } catch (Exception e) {
+                log.warn("Failed to send inProgress heartbeat", e);
+            }
+        }, 2, 2, TimeUnit.SECONDS);
+
         try {
-            workTask = objectMapper.readValue(jsonData,WorkTask.class);
+            String jsonData = new String(msg.getData(), StandardCharsets.UTF_8);
+            ObjectMapper objectMapper = new ObjectMapper();
+            WorkTask workTask = objectMapper.readValue(jsonData, WorkTask.class);
             log.debug("workTask: {}", workTask);
             BaseWorkData workData = workTask.workData();
             log.debug("workData: {}", workData);
+
             boolean result = workData.process(new BaseWorkDataProcessor() {
                 @Override
                 public boolean process(DownloadServiceWorkData workData) {
@@ -69,11 +81,17 @@ public class DownloadWorkConsumer extends WorkConsumer {
                     }
                 }
             });
+
             if (!result) {
                 log.error("Could not process workData of type {}", workData.getClass().getName());
+            } else {
+                msg.ack();
             }
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+
+        } catch (Exception e) {
+            log.error("Fatal error in consumer", e);
+        } finally {
+            keepAliveExecutor.shutdownNow();
         }
     }
 }
