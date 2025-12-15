@@ -45,7 +45,7 @@ import org.spdx.storage.simple.InMemSpdxStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -64,6 +64,8 @@ public class ExportService extends BaseWorkDataProcessor {
     SpdxDocumentRootRepository spdxDocumentRootRepository;
     @Autowired
     InventoryItemRepository inventoryItemRepository;
+    @Autowired
+    AnswerService answerService;
 
     @Override
     public boolean process(SpdxExportWorkData spdxExportWorkData) {
@@ -77,11 +79,11 @@ public class ExportService extends BaseWorkDataProcessor {
             InMemSpdxStore modelStore = new InMemSpdxStore();
             MultiFormatStore jsonStore = new MultiFormatStore(modelStore, MultiFormatStore.Format.JSON_PRETTY);
 
-            log.info("fetching project");
+            log.info("fetching project with id: {}", spdxExportWorkData.getProjectId());
             Optional<Project> project = projectRepository.findById(UUID.fromString(spdxExportWorkData.getProjectId()));
             if (project.isEmpty()) return false;
 
-            log.info("fetching document");
+            log.info("fetching document with id: {}", spdxExportWorkData.getSpdxDocumentId());
             Optional<SpdxDocumentRoot> spdxDocumentRootOpt = spdxDocumentRootRepository.findBySpdxId(spdxExportWorkData.getSpdxDocumentId());
             if (spdxDocumentRootOpt.isEmpty()) return false;
 
@@ -93,6 +95,7 @@ public class ExportService extends BaseWorkDataProcessor {
             elementMap.put(spdxDocument.getId(), spdxDocument);
             elementMap.put("SPDXRef-DOCUMENT", spdxDocument);
 
+            log.info("create creationInfo");
             // TODO get user and other creators?
             CreationInfoEntity creationInfoEntity = spdxDocumentRoot.getCreationInfo();
             spdxDocument.setCreationInfo(
@@ -108,6 +111,7 @@ public class ExportService extends BaseWorkDataProcessor {
             spdxDocument.setDataLicense(LicenseInfoFactory.parseSPDXLicenseStringCompatV2(
                     spdxDocumentRoot.getDataLicense(), modelStore, documentUri, null));
 
+            log.info("create extractedLicense info");
             spdxDocumentRoot.getHasExtractedLicensingInfos().forEach(extractedLicense -> {
                 try {
                     ExtractedLicenseInfo extractedInfo = new ExtractedLicenseInfo(modelStore, documentUri, extractedLicense.getLicenseId(), null, true);
@@ -118,9 +122,11 @@ public class ExportService extends BaseWorkDataProcessor {
                 }
             });
 
+            log.info("create ExternalDocumentRefs");
             Collection<ExternalDocumentRef> externalRefs = new ArrayList<>();
             spdxDocumentRoot.getExternalDocumentRefs().forEach(externalRef -> {
                 try {
+                    log.info("creating external ref for: {}", externalRef.getExternalDocumentId());
                     externalRefs.add(new ExternalDocumentRef(modelStore, documentUri, externalRef.getExternalDocumentId(), null, true));
                 } catch (InvalidSPDXAnalysisException e) {
                     log.error("Error adding external refs", e);
@@ -128,9 +134,11 @@ public class ExportService extends BaseWorkDataProcessor {
             });
             spdxDocument.setExternalDocumentRefs(externalRefs);
 
+            log.info("map files");
             Map<String, SpdxFileEntity> fileEntityMap = spdxDocumentRoot.getFiles().stream()
                     .collect(Collectors.toMap(SpdxFileEntity::getSpdxId, Function.identity(), (existing, replacement) -> existing));
 
+            log.info("start converting packages");
             List<SpdxPackage> packages = new ArrayList<>();
             for (SpdxPackageEntity pkgEntity : spdxDocumentRoot.getPackages()) {
                 SpdxPackage pkg = createSpdxPackage(pkgEntity, fileEntityMap, spdxDocument, modelStore, documentUri, project.get(), elementMap);
@@ -142,6 +150,7 @@ public class ExportService extends BaseWorkDataProcessor {
 
             spdxDocumentRoot.getRelationships().forEach(relationship -> {
                 try {
+                    log.info("relationship: {} to {}", relationship.getSpdxElementId(), relationship.getRelatedSpdxElement());
                     String uniqueRelationshipId = SpdxConstantsCompatV2.SPDX_ELEMENT_REF_PRENUM + "Relationship-" + UUID.randomUUID();
                     Relationship spdxRelationship = new Relationship(modelStore, documentUri, uniqueRelationshipId, null, true);
 
@@ -168,17 +177,15 @@ public class ExportService extends BaseWorkDataProcessor {
                 }
             });
 
-            java.nio.file.Path basePath = java.nio.file.Paths.get(project.get().getBasePath());
-            String fileName = project.get().getProjectName() + "_Export.json";
-            java.nio.file.Path fullPath = basePath.resolve(fileName);
-
-            java.io.File file = fullPath.toFile();
-            if (file.getParentFile() != null) file.getParentFile().mkdirs();
-
-            try (FileOutputStream out = new FileOutputStream(file);
+            try (ByteArrayOutputStream out = new ByteArrayOutputStream();
                  java.io.BufferedOutputStream bufferedOut = new java.io.BufferedOutputStream(out)) {
                 jsonStore.serialize(bufferedOut, spdxDocument);
-                log.info("JSON SBOM created successfully at: {}", fullPath);
+                bufferedOut.flush();
+                String objectStoreKey = spdxExportWorkData.getSpdxDocumentId();
+
+                log.info("Serialized SBOM JSON. Sending {} bytes to Object Store with key: {}", out.size(), objectStoreKey);
+
+                answerService.putIntoBucket(objectStoreKey, out.toByteArray());
             }
 
             return true;
@@ -195,6 +202,7 @@ public class ExportService extends BaseWorkDataProcessor {
                                           String documentUri,
                                           Project project,
                                           Map<String, SpdxElement> elementMap) {
+        log.info("create pkg: {}", pkgEntity.getSpdxId());
         try {
             SpdxPackage.SpdxPackageBuilder builder = spdxDocument.createPackage(
                     pkgEntity.getSpdxId(),
@@ -264,6 +272,7 @@ public class ExportService extends BaseWorkDataProcessor {
     }
 
     private SpdxFile createSpdxFile(SpdxFileEntity fileEntity, SpdxDocument spdxDocument) {
+        log.info("creating file: {}", fileEntity.getSpdxId());
         IModelStore modelStore = spdxDocument.getModelStore();
         String documentUri = spdxDocument.getDocumentUri();
         try {
