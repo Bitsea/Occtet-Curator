@@ -158,6 +158,20 @@ public class CopyrightListView extends StandardListView<Copyright> {
         return checkbox;
     }
 
+    @Supply(to = "copyrightsDataGrid.aiControlled", subject = "renderer")
+    protected Renderer<Copyright> aiControlledComponentRenderer() {
+        return new ComponentRenderer<>(
+                () -> {
+                    JmixCheckbox checkbox = uiComponents.create(JmixCheckbox.class);
+                    checkbox.setReadOnly(true);
+                    return checkbox;
+                },
+                (checkbox, copyright) -> checkbox.setValue(copyright.getAiControlled())
+        );
+    }
+
+
+
     @Subscribe("downloadButton")
     public void downloadGarbageCopyrights(ClickEvent<Button> event){
 
