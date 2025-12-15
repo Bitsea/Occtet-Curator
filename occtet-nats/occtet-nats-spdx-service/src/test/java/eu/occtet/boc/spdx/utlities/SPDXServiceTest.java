@@ -81,9 +81,15 @@ public class SPDXServiceTest {
    @Test
     public void parseDocumentTest() {
        try {
-           Mockito.when(answerService.sendToDownload(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
-                           Mockito.anyString()))
-                   .thenReturn(true);
+           Mockito.when(answerService.sendToDownload(
+                   Mockito.anyString(),
+                   Mockito.anyString(),
+                   Mockito.anyString(),
+                   Mockito.anyString(),
+                   Mockito.anyBoolean(),
+                   Mockito.anyString()
+           )).thenReturn(true);
+
            Mockito.when(answerService.prepareAnswers(Mockito.anyList(), Mockito.eq(true), Mockito.eq(true)))
                    .thenReturn(true);
 
