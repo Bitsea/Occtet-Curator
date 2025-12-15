@@ -34,5 +34,6 @@ import java.util.List;
 public interface LicenseRepository extends JpaRepository<License, Long> {
 
     List<License> findByLicenseTypeAndLicenseText(String licenseType, String LicenseText);
+    List<License> findByLicenseType(String licenseType);
 
 }
