@@ -114,7 +114,7 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
             close(StandardOutcome.CLOSE);
 
         }else{
-            notifications.create("Something went wrong, please check your input")
+            notifications.create("Something went wrong, please check your input, some fields are required")
                     .withDuration(3000)
                     .withPosition(Notification.Position.TOP_CENTER)
                     .withThemeVariant(NotificationVariant.LUMO_ERROR)

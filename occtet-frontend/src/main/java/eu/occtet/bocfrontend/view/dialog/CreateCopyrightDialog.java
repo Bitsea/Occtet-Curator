@@ -85,8 +85,12 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
 
     @Override
     public void setAvailableContent(InventoryItem content) {
-        this.inventoryItem = dataManager.load(InventoryItem.class).id(content.getId())
-                .fetchPlan(f -> f.add("copyrights")).one();
+        this.inventoryItem = dataManager.load(InventoryItem.class)
+                .id(content.getId())
+                .fetchPlan(fpb -> fpb.addAll(
+                        "softwareComponent",
+                        "softwareComponent.copyrights"))
+                .one();
     }
 
     @Override
@@ -103,7 +107,7 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
 
             this.inventoryItem.getSoftwareComponent().getCopyrights().add(copyright);
             dataManager.save(inventoryItem.getSoftwareComponent());
-            log.debug("Created and added copyright {} to softwareComponent {}",copyright.getCopyrightText(), inventoryItem.getSoftwareComponent().getName());
+            log.debug("Created and added copyright {} to softwareComponent {}",copyright.getCopyrightText(), inventoryItem.getSoftwareComponent());
             close(StandardOutcome.CLOSE);
         }else{
             notifications.create("Something went wrong, please check your input")
