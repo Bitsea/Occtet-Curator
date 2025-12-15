@@ -13,7 +13,6 @@ import org.apache.logging.log4j.Logger;
 
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class AutocompleteField extends VerticalLayout {
@@ -27,8 +26,9 @@ public class AutocompleteField extends VerticalLayout {
 
     private List<String> options;
 
-    public AutocompleteField() {
+    public AutocompleteField(String t) {
         log.debug("Initializing AutocompleteField");
+        input.setLabel(t);
         input.setSizeFull();
         input.setWidth("100%");
         input.setHeight("100%");
@@ -115,7 +115,4 @@ public class AutocompleteField extends VerticalLayout {
         input.setValue(value);
     }
 
-    public TextArea getInputField() {
-        return input;
-    }
 }

@@ -73,8 +73,7 @@
         <tabSheet id="mainTabSheet" width="100%" height="100%">
             <tab id="inventoriesTab" label="Inventory item">
                 <formLayout id="form" dataContainer="inventoryItemDc">
-                    <textField id="inventoryNameField" property="inventoryName"
-                               label="Inventory Name" width="100%"/>
+                    <vbox id="inventoryNameField" width="100%"/>
                     <hbox spacing="true" width="100%" alignItems="BASELINE">
                         <textField id="parentID" property="parent.inventoryName"
                                    label="Parent-Inventory item" width="100%"/>

@@ -32,13 +32,10 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
-import com.vaadin.flow.data.value.ValueChangeMode;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
-import eu.occtet.bocfrontend.entity.Copyright;
-import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.License;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.dao.SuggestionRepository;
+import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.view.audit.AuditView;
 import eu.occtet.bocfrontend.view.copyright.CopyrightDetailView;
 import eu.occtet.bocfrontend.view.dialog.*;
@@ -70,6 +67,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @FragmentDescriptor("InventoryItemTabFragment.xml")
 public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
@@ -115,7 +113,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private TextField parentReuseID;
     @ViewComponent
     private JmixButton parentReuseButton;
-
+    @Autowired
+    private Messages messages;
     @ViewComponent
     private DataGrid<InventoryItem> inventoryDataGridReuse;
     @ViewComponent
@@ -139,9 +138,14 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
+    @ViewComponent
+    private VerticalLayout inventoryNameField;
+    @Autowired
+    private SuggestionRepository suggestionRepository;
 
     private List<String> suggestions;
-    private AutocompleteField autocompleteField;
+    private AutocompleteField autocompleteAuditNotes;
+    private AutocompleteField autocompleteInventoryName;
 
     @ViewComponent
     private VerticalLayout auditNotesText;
@@ -149,33 +153,32 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
     public void activateAutocomplete() {
         log.info("on before show");
-        loadSuggestions();
-        autocompleteField= new AutocompleteField();
-        autocompleteField.setOptions(suggestions);
-        autocompleteField.initializeField();
-        auditNotesText.add(autocompleteField);
+        loadSuggestions("auditNotes");
+        autocompleteAuditNotes = new AutocompleteField( messages.getMessage(getClass(), "auditNotes"));
+        autocompleteAuditNotes.setOptions(suggestions);
+        autocompleteAuditNotes.initializeField();
+        auditNotesText.add(autocompleteAuditNotes);
+
+        loadSuggestions("inventoryNames");
+        autocompleteInventoryName= new AutocompleteField(messages.getMessage(getClass(), "inventoryName"));
+        autocompleteInventoryName.setOptions(suggestions);
+        autocompleteInventoryName.initializeField();
+        autocompleteInventoryName.setValue(inventoryItem.getInventoryName());
+        inventoryNameField.add(autocompleteInventoryName);
+
     }
-
-
-
     /**
-     * loads the suggestions strings from suggestions.json file
-     * for autocomplete field
+     * loads the suggestions strings from db
+     * for autocomplete fields
      */
-    private void loadSuggestions(){
-        try {
-            ObjectMapper jsonMapper = new ObjectMapper();
-            JsonNode node = jsonMapper.readTree(getClass().getResourceAsStream("/suggestions.json"));
-            suggestions= jsonMapper.convertValue(
-                    node.get("suggestions"),
-                    new TypeReference<List<String>>() {
-                    }
-            );
-        }catch (IOException io){
-            log.error("could not load file suggestions.json {}",io.getMessage());
-        }
+    private void loadSuggestions(String context){
+
+        suggestions= suggestionRepository.findByContext(context).stream().map(Suggestion::getSentence)
+                .filter(Objects::nonNull).collect(Collectors.toList());
 
     }
+
+
     /**
      * Sets the inventory item for the current fragment and initializes necessary
      * components, updates data contexts, and manages UI state based on the supplied
@@ -237,7 +240,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
      */
     @Subscribe("saveAction")
     public void onSaveAction(ActionPerformedEvent event) {
-        this.inventoryItem.setExternalNotes(autocompleteField.getValue());
+        this.inventoryItem.setExternalNotes(autocompleteAuditNotes.getValue());
         if (dataContext.hasChanges()) {
             log.debug("Inventory Item {} has changes.", inventoryItem.getInventoryName());
 
@@ -528,7 +531,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                 this.inventoryItem.setExternalNotes(notes + "<br>" + getTimeStampSeperator() + "<br>" + ReuseItem.getExternalNotes());
             }
             inventoryItemRepository.save(this.inventoryItem);
-            autocompleteField.setValue(this.inventoryItem.getExternalNotes());
+            autocompleteAuditNotes.setValue(this.inventoryItem.getExternalNotes());
         }
     }
 

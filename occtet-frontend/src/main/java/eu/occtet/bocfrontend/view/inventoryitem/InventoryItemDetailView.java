@@ -22,16 +22,17 @@ package eu.occtet.bocfrontend.view.inventoryitem;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
-import eu.occtet.bocfrontend.entity.Copyright;
-import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.dao.SuggestionRepository;
+import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.service.InventoryItemService;
+import eu.occtet.bocfrontend.view.audit.fragment.AutocompleteField;
 import eu.occtet.bocfrontend.view.dialog.AddCopyrightDialog;
 import eu.occtet.bocfrontend.view.main.MainView;
+import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.combobox.JmixComboBox;
@@ -40,6 +41,10 @@ import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 @Route(value = "inventory-items/:id", layout = MainView.class)
@@ -67,8 +72,19 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
     private JmixComboBox<Project> projectField;
     @ViewComponent
     private JmixComboBox<SoftwareComponent> softwareComponentField;
+    @Autowired
+    private Messages messages;
+    @ViewComponent
+    private VerticalLayout auditNotesText;
+    @ViewComponent
+    private VerticalLayout inventoryNameField;
+    @Autowired
+    private SuggestionRepository suggestionRepository;
 
     private InventoryItem inventoryItem;
+    private List<String> suggestions;
+    private AutocompleteField autocompleteAuditNotes;
+    private AutocompleteField autocompleteInventoryName;
 
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
@@ -81,6 +97,30 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
         softwareComponentField.setValue(inventoryItem.getSoftwareComponent());
         softwareComponentField.setItemLabelGenerator(sc -> sc.getName()+" "+sc.getVersion());
         copyrightsDc.setItems(inventoryItem.getSoftwareComponent().getCopyrights());
+
+        loadSuggestions("auditNotes");
+        autocompleteAuditNotes = new AutocompleteField( messages.getMessage(getClass(), "auditNotes"));
+        autocompleteAuditNotes.setOptions(suggestions);
+        autocompleteAuditNotes.initializeField();
+        auditNotesText.add(autocompleteAuditNotes);
+
+        loadSuggestions("inventoryNames");
+        autocompleteInventoryName= new AutocompleteField(messages.getMessage(getClass(), "inventoryName"));
+        autocompleteInventoryName.setOptions(suggestions);
+        autocompleteInventoryName.initializeField();
+        autocompleteInventoryName.setValue(inventoryItem.getInventoryName());
+        inventoryNameField.add(autocompleteInventoryName);
+    }
+
+    /**
+     * loads the suggestions strings from db
+     * for autocomplete fields
+     */
+    private void loadSuggestions(String context){
+
+        suggestions= suggestionRepository.findByContext(context).stream().map(Suggestion::getSentence)
+                .filter(Objects::nonNull).collect(Collectors.toList());
+
     }
 
     @Subscribe("projectField")
@@ -133,4 +173,12 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
     public void checkInventoryItem(ClickEvent<Button> event){
         inventoryItemService.controlInventoryItem(inventoryItem);
     }
+
+    @Subscribe
+    public void onBeforeSave(final BeforeSaveEvent event) {
+        inventoryItem.setExternalNotes(autocompleteAuditNotes.getValue());
+        inventoryItem.setInventoryName(autocompleteInventoryName.getValue());
+    }
+
+
 }
