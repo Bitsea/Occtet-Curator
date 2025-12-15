@@ -20,6 +20,8 @@
 package eu.occtet.bocfrontend.dao;
 
 
+import eu.occtet.bocfrontend.entity.Copyright;
+import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.Vulnerability;
 import io.jmix.core.repository.JmixDataRepository;

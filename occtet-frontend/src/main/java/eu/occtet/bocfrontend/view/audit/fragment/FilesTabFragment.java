@@ -192,10 +192,10 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
     }
 
     private void deleteCodeLocation(CodeLocation codeLocation){
-        List<Copyright> associatedCopyrights = copyrightRepository.findCopyrightsByCodeLocation(codeLocation);
+        List<Copyright> associatedCopyrights = copyrightRepository.findCopyrightsByCodeLocationsIn(List.of(codeLocation));
         String message = "Are you sure you want to delete this code location?\n"+codeLocation.getFilePath();
         if (!associatedCopyrights.isEmpty()) {
-            message += "\n\n" + associatedCopyrights.size() + " associated copyrights will also be deleted.";
+            message += "\n\n" + associatedCopyrights.size() + " associated copyrights with only this location will also be deleted.";
         }
         dialogs.createOptionDialog().withHeader("Delete code location")
                 .withText(message)

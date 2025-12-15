@@ -97,3 +97,4 @@ vaadin-text-field[readonly].read-only::part(input-field) {
     filter: grayscale(100%);
     color: var(--lumo-disabled-text-color);
 }
+

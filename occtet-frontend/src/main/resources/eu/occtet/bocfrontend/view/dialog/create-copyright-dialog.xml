@@ -23,7 +23,7 @@
     <layout width="100%" height="100%">
         <vbox width="100%" height="100%">
             <textField id="copyrightNameField" label="Copyright name" width="100%"/>
-            <comboBox id="copyrightFilePathComboBox" label="File path" width="100%"/>
+            <multiSelectComboBox id="copyrightFilePathComboBox" label="File path" width="100%"/>
             <vbox margin="false" padding="false">
                 <checkbox id="isGarbageField" label="Garbage"/>
                 <checkbox id="isCuratedField" label="Curated"/>

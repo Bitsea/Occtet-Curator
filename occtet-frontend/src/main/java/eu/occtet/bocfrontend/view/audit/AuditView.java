@@ -462,7 +462,6 @@ public class AuditView extends StandardView{
      * @param project the project whose inventory item file counts are to be loaded
      */
     private void loadFileCounts(Project project) {
-        // TODO see if their is a better/faster way to do this
         ValueLoadContext context = new ValueLoadContext()
                 .setQuery(new ValueLoadContext.Query("""
                             select cl.inventoryItem.id as itemId, count(cl) as fileCount
@@ -549,6 +548,13 @@ public class AuditView extends StandardView{
         fileDc.setItems(Collections.emptyList());
         tabManager.closeAllTabs();
     }
+
+    @Install(to = "inventoryItemDataGrid.create", subject = "initializer")
+    private void inventoryItemDataGridCreateActionInitializer(final InventoryItem inventoryItem) {
+        inventoryItem.setProject(projectComboBox.getValue());
+    }
+
+
 
     public TabManager getTabManager() {
         return tabManager;

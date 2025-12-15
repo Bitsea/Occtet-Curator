@@ -293,12 +293,13 @@ public class SpdxService extends BaseWorkDataProcessor{
                 if(licenseId.isEmpty()){
                     licenseId= "Unknown";
                 }
-                log.debug("adding license {}", licenseId);
+
                 String licenseText = license.getLicenseText();
                 License licenseEntity = licenseService.findOrCreateLicense(licenseId, licenseText, licenseId);
                 licenseEntity.setSpdx(true);
                 //save changes to spdx status
                 licenseRepository.save(licenseEntity);
+                log.debug("adding license {}", licenseId);
                 allLicenses.add(licenseEntity);
             } else if (individualLicenseInfo instanceof ExtractedLicenseInfo) {
                 Optional<ExtractedLicenseInfo> extractedLicense = licenseInfosExtractedSpdxDoc.stream().filter(s -> s.getLicenseId().equals(individualLicenseInfo.getId())).findFirst();
@@ -307,7 +308,6 @@ public class SpdxService extends BaseWorkDataProcessor{
                     if(licenseId.isEmpty()){
                         licenseId= "Unknown";
                     }
-                    log.debug("adding license {}", licenseId);
                     String licenseText = extractedLicense.get().getExtractedText();
                     allLicenses.add(licenseService.findOrCreateLicense(licenseId, licenseText, licenseId));
                 }
@@ -347,7 +347,8 @@ public class SpdxService extends BaseWorkDataProcessor{
             if (!codeLocations.contains(fileLocation)) {
                 codeLocations.add(fileLocation);
             }
-            Copyright fileCopyright = copyrightService.findOrCreateCopyright(copyrightText, fileLocation);
+
+            Copyright fileCopyright = copyrightService.findOrCreateCopyright(copyrightText, codeLocations);
             if (!copyrights.contains(fileCopyright)) {
                 copyrights.add(fileCopyright);
                 log.info("Created codeLocation: {} for Copyright: {}", fileLocation.getFilePath(), copyrightText);
