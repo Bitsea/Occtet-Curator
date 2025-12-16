@@ -6,20 +6,15 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
 
-    <changeSet id="11" author="occtet">
-        <addColumn  tableName="COPYRIGHT">
-            <column  name="AI_CONTROLLED"  type="BOOLEAN" >
-                <constraints nullable="true"/>
-            </column>
-        </addColumn>
 
+    <changeSet id="12" author="occtet">
         <addColumn  tableName="SOFTWARE_COMPONENT">
             <column  name="LICENSE_AI_CONTROLLED"  type="BOOLEAN" >
                 <constraints nullable="true"/>
             </column>
         </addColumn>
-
     </changeSet>
+
 
 
 
