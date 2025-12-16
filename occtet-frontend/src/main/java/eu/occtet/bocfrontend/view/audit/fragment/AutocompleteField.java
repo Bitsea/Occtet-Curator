@@ -1,7 +1,6 @@
 package eu.occtet.bocfrontend.view.audit.fragment;
 
 
-import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyDownEvent;
 import com.vaadin.flow.component.listbox.ListBox;

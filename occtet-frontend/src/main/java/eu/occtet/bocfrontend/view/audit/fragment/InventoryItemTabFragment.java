@@ -43,6 +43,7 @@ import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.fragment.Fragment;
@@ -115,6 +116,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private DataGrid<InventoryItem> inventoryDataGridReuse;
     @ViewComponent
     private CollectionContainer<InventoryItem> inventoryItemDcReuse;
+    @ViewComponent
+    private JmixComboBox<InventoryItem> parentField;
 
     // Tab fragments
     @ViewComponent
@@ -193,6 +196,12 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         if (this.softwareComponent != null) {
             this.softwareComponent = dataContext.merge(this.softwareComponent);
             softwareComponentDc.setItem(this.softwareComponent);
+        }
+        parentField.setItems(inventoryItemRepository.findAll());
+        parentField.setItemLabelGenerator(InventoryItem::getInventoryName);
+        if(inventoryItem.getParent() != null) {
+            parentField.setValue(inventoryItem.getParent());
+
         }
 
         inventoryItemDc.setItem(this.inventoryItem);
@@ -464,11 +473,14 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
      */
     @Subscribe(id = "parentButton")
     public void showParentDetails(ClickEvent<Button> event) {
-
-        InventoryItem parent = inventoryItem.getParent();
-        if (parent != null) {
-            dialogWindow.view(hostView, InventoryItemDetailView.class)
-                    .withViewConfigurer(i -> i.setEntityToEdit(parent)).open().setSizeFull();
+        log.debug("parent {}", inventoryItem.getParent());
+        if (parentField.getValue() != null) {
+            DialogWindow<InventoryItemDetailView> dialog = dialogWindow.detail(hostView, InventoryItem.class)
+                    .withViewClass(InventoryItemDetailView.class)
+                    .editEntity(parentField.getValue()).build();
+            dialog.setHeight("90%");
+            dialog.setWidth("90%");
+            dialog.open();
         }
     }
 
