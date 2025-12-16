@@ -44,6 +44,9 @@ public class Project {
     @Column(name = "BASEPATH", columnDefinition = "TEXT")
     private String basePath;
 
+    @Column(name = "SPDX_DOCUMENT_ID", columnDefinition = "TEXT")
+    private String documentID;
+
     public Project() {}
 
     public Project(String projectName) {
@@ -62,5 +65,12 @@ public class Project {
 
     public void setBasePath(String basePath) {this.basePath = basePath;}
 
+    public String getDocumentID() {
+        return documentID;
+    }
+
+    public void setDocumentID(String documentID) {
+        this.documentID = documentID;
+    }
 }
 

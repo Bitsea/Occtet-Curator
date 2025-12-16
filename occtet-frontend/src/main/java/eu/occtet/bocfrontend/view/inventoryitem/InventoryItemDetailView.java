@@ -23,25 +23,24 @@ import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
-import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
+import eu.occtet.bocfrontend.dao.SuggestionRepository;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.service.InventoryItemService;
+import eu.occtet.bocfrontend.view.audit.fragment.AutocompleteField;
 import eu.occtet.bocfrontend.view.dialog.AddCopyrightDialog;
 import eu.occtet.bocfrontend.view.dialog.AddLicenseDialog;
 import eu.occtet.bocfrontend.view.dialog.CreateLicenseDialog;
 import eu.occtet.bocfrontend.view.license.LicenseDetailView;
 import eu.occtet.bocfrontend.view.main.MainView;
 import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
+import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
-import io.jmix.flowui.Dialogs;
-import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.combobox.JmixComboBox;
-import io.jmix.flowui.component.grid.DataGrid;
-import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.component.dropdownbutton.DropdownButtonItem;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;
@@ -50,7 +49,9 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 @Route(value = "inventory-items/:id", layout = MainView.class)
@@ -62,8 +63,7 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
     private static final Logger log = LogManager.getLogger(InventoryItemDetailView.class);
 
     @Autowired
-    private ViewNavigators viewNavigator;
-
+    private DialogWindows dialogWindows;
     @Autowired
     private ProjectRepository projectRepository;
     @Autowired
@@ -79,16 +79,23 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
     private JmixComboBox<SoftwareComponent> softwareComponentField;
     @ViewComponent
     private JmixComboBox<InventoryItem> parentField;
-    @Autowired
-    private DialogWindows dialogWindows;
     @ViewComponent
     private CollectionContainer<License> licenseDc;
-    @ViewComponent
-    private DataGrid<License> licensesDataGrid;
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
+    @Autowired
+    private Messages messages;
+    @ViewComponent
+    private VerticalLayout auditNotesText;
+    @ViewComponent
+    private VerticalLayout inventoryNameField;
+    @Autowired
+    private SuggestionRepository suggestionRepository;
 
     private InventoryItem inventoryItem;
+    private List<String> suggestions;
+    private AutocompleteField autocompleteAuditNotes;
+    private AutocompleteField autocompleteInventoryName;
 
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
@@ -111,6 +118,33 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
             if (inventoryItem.getSoftwareComponent().getCopyrights() != null)
                 copyrightsDc.setItems(inventoryItem.getSoftwareComponent().getCopyrights());
         }
+
+        loadSuggestions("auditNotes");
+        autocompleteAuditNotes = new AutocompleteField( messages.getMessage(getClass(), "auditNotes"));
+        autocompleteAuditNotes.setOptions(suggestions);
+        autocompleteAuditNotes.initializeField();
+        if(inventoryItem.getExternalNotes()!=null)
+            autocompleteAuditNotes.setValue(inventoryItem.getExternalNotes());
+        auditNotesText.add(autocompleteAuditNotes);
+
+        loadSuggestions("inventoryNames");
+        autocompleteInventoryName= new AutocompleteField(messages.getMessage(getClass(), "inventoryName"));
+        autocompleteInventoryName.setOptions(suggestions);
+        autocompleteInventoryName.initializeField();
+        autocompleteInventoryName.setValue(inventoryItem.getInventoryName());
+        inventoryNameField.add(autocompleteInventoryName);
+
+    }
+
+    /**
+     * loads the suggestions strings from db
+     * for autocomplete fields
+     */
+    private void loadSuggestions(String context){
+
+        suggestions= suggestionRepository.findByContext(context).stream().map(Suggestion::getSentence)
+                .filter(Objects::nonNull).collect(Collectors.toList());
+
     }
 
     @Subscribe("projectField")
@@ -189,6 +223,11 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
         inventoryItemService.controlInventoryItem(inventoryItem);
     }
 
+    @Subscribe
+    public void onBeforeSave(final BeforeSaveEvent event) {
+        inventoryItem.setExternalNotes(autocompleteAuditNotes.getValue());
+        inventoryItem.setInventoryName(autocompleteInventoryName.getValue());
+    }
 
     /**
      * Handles the creation and addition of a new license via a dialog window. This method
@@ -230,5 +269,6 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
         window.getView().setEntityToEdit(event.getItem());
         window.open();
     }
+
 
 }

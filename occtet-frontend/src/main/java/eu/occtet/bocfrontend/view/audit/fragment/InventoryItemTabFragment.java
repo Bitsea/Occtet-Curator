@@ -25,26 +25,26 @@ import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
-import eu.occtet.bocfrontend.entity.Copyright;
-import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.License;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.dao.SuggestionRepository;
+import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.view.audit.AuditView;
 import eu.occtet.bocfrontend.view.copyright.CopyrightDetailView;
 import eu.occtet.bocfrontend.view.dialog.*;
 import eu.occtet.bocfrontend.view.inventoryitem.InventoryItemDetailView;
 import eu.occtet.bocfrontend.view.license.LicenseDetailView;
 import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
+import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
-import io.jmix.flowui.component.richtexteditor.RichTextEditor;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentDescriptor;
@@ -63,9 +63,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @FragmentDescriptor("InventoryItemTabFragment.xml")
 public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
@@ -111,13 +110,14 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private TextField parentReuseID;
     @ViewComponent
     private JmixButton parentReuseButton;
-    @ViewComponent
-    private RichTextEditor auditNotesText;
+    @Autowired
+    private Messages messages;
     @ViewComponent
     private DataGrid<InventoryItem> inventoryDataGridReuse;
     @ViewComponent
     private CollectionContainer<InventoryItem> inventoryItemDcReuse;
-
+    @ViewComponent
+    private JmixComboBox<InventoryItem> parentField;
 
     // Tab fragments
     @ViewComponent
@@ -128,6 +128,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     @ViewComponent
     private FilesTabFragment filesReuseTabFragment;
 
+
     @Autowired
     private DialogWindows dialogWindow;
     @Autowired
@@ -136,6 +137,49 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
+    @ViewComponent
+    private VerticalLayout inventoryNameField;
+    @Autowired
+    private SuggestionRepository suggestionRepository;
+
+    private List<String> suggestions;
+    private AutocompleteField autocompleteAuditNotes;
+    private AutocompleteField autocompleteInventoryName;
+
+    @ViewComponent
+    private VerticalLayout auditNotesText;
+
+
+    public void activateAutocomplete() {
+        log.info("on before show");
+        loadSuggestions("auditNotes");
+        autocompleteAuditNotes = new AutocompleteField( messages.getMessage(getClass(), "auditNotes"));
+        autocompleteAuditNotes.setOptions(suggestions);
+        autocompleteAuditNotes.initializeField();
+        if(this.inventoryItem.getExternalNotes()!=null)
+            autocompleteAuditNotes.setValue(this.inventoryItem.getExternalNotes());
+        auditNotesText.add(autocompleteAuditNotes);
+
+        loadSuggestions("inventoryNames");
+        autocompleteInventoryName= new AutocompleteField(messages.getMessage(getClass(), "inventoryName"));
+        autocompleteInventoryName.setOptions(suggestions);
+        autocompleteInventoryName.initializeField();
+        autocompleteInventoryName.setValue(inventoryItem.getInventoryName());
+        inventoryNameField.add(autocompleteInventoryName);
+
+    }
+
+
+    /**
+     * loads the suggestions strings from db
+     * for autocomplete fields
+     */
+    private void loadSuggestions(String context){
+
+        suggestions= suggestionRepository.findByContext(context).stream().map(Suggestion::getSentence)
+                .filter(Objects::nonNull).collect(Collectors.toList());
+
+    }
 
 
     /**
@@ -153,7 +197,12 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             this.softwareComponent = dataContext.merge(this.softwareComponent);
             softwareComponentDc.setItem(this.softwareComponent);
         }
+        parentField.setItems(inventoryItemRepository.findAll());
+        parentField.setItemLabelGenerator(InventoryItem::getInventoryName);
+        if(inventoryItem.getParent() != null) {
+            parentField.setValue(inventoryItem.getParent());
 
+        }
 
         inventoryItemDc.setItem(this.inventoryItem);
         updateCopyrights(this.inventoryItem, copyrightDc);
@@ -169,6 +218,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         parentButton.setEnabled(this.inventoryItem.getParent() != null);
         softwareComponentButton.setEnabled(softwareComponent != null);
         editLicense.setEnabled(softwareComponent != null);
+        activateAutocomplete();
     }
 
     /**
@@ -198,8 +248,11 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
      */
     @Subscribe("saveAction")
     public void onSaveAction(ActionPerformedEvent event) {
+        this.inventoryItem.setExternalNotes(autocompleteAuditNotes.getValue());
+        this.inventoryItem.setInventoryName(autocompleteInventoryName.getValue());
         if (dataContext.hasChanges()) {
             log.debug("Inventory Item {} has changes.", inventoryItem.getInventoryName());
+
             dataContext.save();
             notifications.create("Changes saved.").withPosition(Notification.Position.BOTTOM_END)
                     .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
@@ -420,11 +473,14 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
      */
     @Subscribe(id = "parentButton")
     public void showParentDetails(ClickEvent<Button> event) {
-
-        InventoryItem parent = inventoryItem.getParent();
-        if (parent != null) {
-            dialogWindow.view(hostView, InventoryItemDetailView.class)
-                    .withViewConfigurer(i -> i.setEntityToEdit(parent)).open().setSizeFull();
+        log.debug("parent {}", inventoryItem.getParent());
+        if (parentField.getValue() != null) {
+            DialogWindow<InventoryItemDetailView> dialog = dialogWindow.detail(hostView, InventoryItem.class)
+                    .withViewClass(InventoryItemDetailView.class)
+                    .editEntity(parentField.getValue()).build();
+            dialog.setHeight("90%");
+            dialog.setWidth("90%");
+            dialog.open();
         }
     }
 
@@ -487,9 +543,11 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                 this.inventoryItem.setExternalNotes(notes + "<br>" + getTimeStampSeperator() + "<br>" + ReuseItem.getExternalNotes());
             }
             inventoryItemRepository.save(this.inventoryItem);
-            auditNotesText.setValue(this.inventoryItem.getExternalNotes());
+            autocompleteAuditNotes.setValue(this.inventoryItem.getExternalNotes());
         }
     }
+
+
 
 
 
