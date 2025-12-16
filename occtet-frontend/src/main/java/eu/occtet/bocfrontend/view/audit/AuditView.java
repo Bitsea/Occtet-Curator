@@ -41,6 +41,7 @@ import eu.occtet.bocfrontend.factory.UiComponentFactory;
 import eu.occtet.bocfrontend.factory.RendererFactory;
 import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
 import eu.occtet.bocfrontend.service.*;
+import eu.occtet.bocfrontend.view.audit.fragment.OverviewProjectTabFragment;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
 import io.jmix.core.ValueLoadContext;
@@ -119,7 +120,7 @@ public class AuditView extends StandardView{
     @ViewComponent private TreeDataGrid<File> fileTreeGrid;
     @ViewComponent private HorizontalLayout toolbarBox;
     @ViewComponent private VerticalLayout fileTreeGridLayout;
-    //    @ViewComponent private OverviewProjectTabFragment overviewProjectTabFragment; TODO comment, (commented out becasue query is taking too long for now. Waiting for fix...)
+    @ViewComponent private OverviewProjectTabFragment overviewProjectTabFragment;
 
     private TabManager tabManager;
     private Map<UUID, Long> fileCounts = new HashMap<>();
@@ -152,7 +153,7 @@ public class AuditView extends StandardView{
         initializeInventoryDataGrid();
         initializeFileTreeGrid();
         addTabSelectionListeners();
-//        overviewProjectTabFragment.setBasicAccordionValues(); TODO comment
+        overviewProjectTabFragment.setBasicAccordionValues();
     }
 
     @Subscribe
