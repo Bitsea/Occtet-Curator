@@ -48,6 +48,9 @@ public class Copyright {
     @Column(name= "CURATED")
     private Boolean curated;
 
+    @Column(name= "AI_CONTROLLED")
+    private Boolean aiControlled;
+
     @Column(name= "GARBAGE")
     private Boolean garbage;
 
@@ -101,6 +104,14 @@ public class Copyright {
 
     public void setLicenses(List<License> licenses) {
         this.licenses = licenses;
+    }
+
+    public Boolean getAiControlled() {
+        return aiControlled;
+    }
+
+    public void setAiControlled(Boolean aiControlled) {
+        this.aiControlled = aiControlled;
     }
 }
 

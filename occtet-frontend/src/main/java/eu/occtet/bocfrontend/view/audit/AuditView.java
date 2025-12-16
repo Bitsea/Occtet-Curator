@@ -23,34 +23,31 @@ package eu.occtet.bocfrontend.view.audit;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.ItemClickEvent;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.*;
+import eu.occtet.bocfrontend.dao.FileRepository;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.engine.TabManager;
 import eu.occtet.bocfrontend.entity.*;
-import eu.occtet.bocfrontend.factory.ComponentFactory;
-import eu.occtet.bocfrontend.factory.FileTreeGridFactory;
+import eu.occtet.bocfrontend.factory.UiComponentFactory;
 import eu.occtet.bocfrontend.factory.RendererFactory;
-import eu.occtet.bocfrontend.model.FileTreeNode;
+import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
 import eu.occtet.bocfrontend.service.*;
 import eu.occtet.bocfrontend.view.audit.fragment.OverviewProjectTabFragment;
-import eu.occtet.bocfrontend.view.inventoryitem.InventoryItemDetailView;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
 import io.jmix.core.ValueLoadContext;
 import io.jmix.core.entity.KeyValueEntity;
 import io.jmix.flowui.*;
 import io.jmix.flowui.action.DialogAction;
-import io.jmix.flowui.action.list.CreateAction;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
@@ -61,61 +58,74 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * AuditView serves as a user interface controller for managing and displaying audit-related data,
- * including projects, inventory items, files, and tabs.
+ * AuditView serves as the central user interface controller for the audit workflow,
+ * orchestrating the management and display of projects, inventory items, and file hierarchies.
+ *
+ * <p>Key functionalities include:</p>
  * <ul>
- * <li>Manages project and inventory contexts and maintains the UI state.</li>
- * <li>Supports user interactions such as switching tabs, selecting projects, and navigating between views.</li>
- * <li>Implements state persistence by saving and restoring the session state.</li>
- * <li>Handles file counts, inventory data, and other project-related data management functionalities.</li>
+ * <li><b>Context Management:</b> Manages project and inventory contexts and maintains the UI state.</li>
+ * <li><b>Advanced File Search:</b> Implements hierarchy-aware search logic that visualizes search results by expanding paths to matches while keeping the structure navigable.</li>
+ * <li><b>State Persistence:</b> Implements comprehensive session state saving and restoring, covering:
+ * <ul>
+ * <li>Selected Project and active navigation.</li>
+ * <li>Open Inventory and File tabs.</li>
+ * <li><b>Expansion State:</b> Tracks and restores expanded nodes within the file tree to preserve the user's view across refreshes.</li>
+ * </ul>
+ * </li>
+ * <li><b>Tree & Tab Synchronization:</b> Ensures that file paths to open tabs are automatically expanded and visible in the grid upon session restoration.</li>
  * </ul>
  */
 @Route(value = "audit-view/:projectId?", layout = MainView.class)
 @ViewController(id = "AuditView")
 @ViewDescriptor(path = "audit-view.xml")
+@CssImport(themeFor = "vaadin-grid", value = "./themes/BocFrontend/BocFrontend.css")
 public class AuditView extends StandardView{
 
     private static final Logger log = LogManager.getLogger(AuditView.class);
 
     @Autowired private ProjectRepository projectRepository;
+    @Autowired private FileRepository fileRepository;
     @Autowired private InventoryItemRepository inventoryItemRepository;
+
     @Autowired private Fragments fragments;
     @Autowired private Dialogs dialogs;
     @Autowired private Notifications notifications;
     @Autowired private DataManager dataManager;
+
     @Autowired private FileContentService fileContentService;
-    @Autowired private FileTreeCacheService fileTreeCacheService;
     @Autowired private AuditViewStateService viewStateService;
+
     @Autowired private TreeGridHelper treeGridHelper;
-    @Autowired private FileTreeGridFactory fileTreeGridFactory;
-    @Autowired private ComponentFactory componentFactory;
+
+    @Autowired private UiComponentFactory componentFactory;
     @Autowired private RendererFactory rendererFactory;
 
-
     @ViewComponent private DataContext dataContext;
-    @ViewComponent private JmixComboBox<Project> projectComboBox;
     @ViewComponent private CollectionContainer<InventoryItem> inventoryItemDc;
+    @ViewComponent private CollectionLoader<InventoryItem> inventoryItemDl;
+    @ViewComponent private CollectionContainer<File> fileDc;
+
+    @ViewComponent private JmixComboBox<Project> projectComboBox;
     @ViewComponent private JmixTabSheet inventoryItemTabSheet;
     @ViewComponent private Tab inventoryItemSection;
     @ViewComponent private JmixTabSheet filesTabSheet;
     @ViewComponent private Tab filesSection;
     @ViewComponent private JmixTabSheet mainTabSheet;
     @ViewComponent private TreeDataGrid<InventoryItem> inventoryItemDataGrid;
+    @ViewComponent private TreeDataGrid<File> fileTreeGrid;
+    @ViewComponent private HorizontalLayout toolbarBox;
     @ViewComponent private VerticalLayout fileTreeGridLayout;
-    @ViewComponent private CollectionLoader<InventoryItem> inventoryItemDl;
-    @ViewComponent HorizontalLayout toolbarBox;
-    @ViewComponent OverviewProjectTabFragment overviewProjectTabFragment;
-
+    @ViewComponent private OverviewProjectTabFragment overviewProjectTabFragment;
 
     private TabManager tabManager;
     private Map<UUID, Long> fileCounts = new HashMap<>();
     private boolean suppressNavigation = false;
+    private final Set<UUID> expandedItemIds = new HashSet<>();
 
     /**
      * Handles actions to be performed before the view is entered. This method ensures
@@ -138,9 +148,10 @@ public class AuditView extends StandardView{
      */
     @Subscribe
     protected void onInit(InitEvent event) {
+        initializeTabManager();
         initializeProjectComboBox();
         initializeInventoryDataGrid();
-        initializeTabManager();
+        initializeFileTreeGrid();
         addTabSelectionListeners();
         overviewProjectTabFragment.setHostView(this);
         overviewProjectTabFragment.setDefaultAccordionValues();
@@ -149,6 +160,46 @@ public class AuditView extends StandardView{
     @Subscribe
     public void onBeforeClose(BeforeCloseEvent event) {
         saveStateToSession();
+    }
+
+    private void initializeFileTreeGrid(){
+        HorizontalLayout toolboxWrapper = componentFactory.createFileTreeToolbox(fileTreeGrid);
+        fileTreeGridLayout.addComponentAsFirst(toolboxWrapper);
+
+        toolboxWrapper.getChildren()
+                .filter(component -> component instanceof TextField &&
+                        UiComponentFactory.SEARCH_FIELD_ID.equals(component.getId().orElse(null)))
+                .map(component -> (TextField) component)
+                .findFirst()
+                .ifPresent(searchField -> {
+                    // add search listener
+                });
+        toolboxWrapper.getChildren()
+                .filter(component -> component instanceof JmixComboBox &&
+                        UiComponentFactory.REVIEWED_FILTER_ID.equals(component.getId().orElse(null)))
+                .map(component -> (JmixComboBox<FileReviewedFilterMode>) component)
+                .findFirst()
+                .ifPresent(comboBox -> comboBox.addValueChangeListener(e ->
+                        treeGridHelper.reviewedFilterChangeValueListenerAction(e, projectComboBox.getValue(),
+                                fileTreeGrid)
+                ));
+
+        treeGridHelper.setupFileGridContextMenu(fileTreeGrid, tabManager);
+        fileTreeGrid.addItemClickListener(event -> {
+            File clickedFile = event.getItem();
+            if (event.getClickCount() == 2 && Boolean.FALSE.equals(clickedFile.getIsDirectory())) {
+                tabManager.openFileTab(clickedFile, true);
+            } else {
+                treeGridHelper.toggleExpansion(fileTreeGrid, clickedFile);
+            }
+        });
+        // important for keeping hold of the expand and collapse state of the grid
+        fileTreeGrid.addExpandListener(event ->{
+           event.getItems().forEach(item -> expandedItemIds.add(item.getId()));
+        });
+        fileTreeGrid.addCollapseListener(event -> {
+            event.getItems().forEach(file -> expandedItemIds.remove(file.getId()));
+        });
     }
 
     /**
@@ -205,7 +256,7 @@ public class AuditView extends StandardView{
 
     /**
      * Restores the active tabs and session state for the AuditView.
-     *
+     * <p>
      * This method retrieves the previously saved state of the AuditView using
      * the viewStateService. It restores the session tabs, including
      * inventory item and file tree tabs, and attempts to reselect the last active
@@ -215,17 +266,14 @@ public class AuditView extends StandardView{
     private void restoreTabsAndState() {
         viewStateService.get().ifPresent(state -> {
             restoreSessionTabs(state);
+            Set<UUID> idsToExpand = new HashSet<>(state.expandedNodeIds());
+            this.expandedItemIds.addAll(idsToExpand);
 
             log.debug("Restoring session state: {}", state);
             if (state.activeTabIdentifier() != null) {
                 UI ui = UI.getCurrent();
                 ui.access(() -> {
-                    tabManager.selectTab(state.activeTabIdentifier());
-                    if (state.activeTabIdentifier() instanceof InventoryItem) {
-                        mainTabSheet.setSelectedTab(inventoryItemSection);
-                    } else if (state.activeTabIdentifier() instanceof FileTreeNode) {
-                        mainTabSheet.setSelectedTab(filesSection);
-                    }
+                   tabManager.selectTab(state.activeTabIdentifier());
                 });
             }
         });
@@ -234,6 +282,7 @@ public class AuditView extends StandardView{
     private void addTabSelectionListeners() {
         inventoryItemTabSheet.addSelectedChangeListener(e -> handleTabSelectionChange());
         filesTabSheet.addSelectedChangeListener(e -> handleTabSelectionChange());
+        mainTabSheet.addSelectedChangeListener(e -> handleTabSelectionChange());
     }
 
     private void handleTabSelectionChange() {
@@ -248,7 +297,9 @@ public class AuditView extends StandardView{
 
     private void initializeInventoryDataGrid() {
         HorizontalLayout inventoryToolbox = componentFactory.createToolBox(
-                inventoryItemDataGrid, InventoryItem.class);
+                inventoryItemDataGrid, InventoryItem.class,
+                () -> treeGridHelper.expandChildrenOfRoots(inventoryItemDataGrid),
+                () -> treeGridHelper.collapseChildrenOfRoots(inventoryItemDataGrid));
         // Find the vulnerability filter checkbox and add a value change listener to it.
         findCheckBoxById(inventoryToolbox, componentFactory.getVulnerabilityFilterId())
                 .ifPresentOrElse(checkbox -> {
@@ -314,13 +365,19 @@ public class AuditView extends StandardView{
                 .forEach(item -> tabManager.openInventoryItemTab(item,false));
 
         // Restore file tabs without auto-selecting them
-        state.openFileTabsPaths().forEach(nodePath -> fileTreeCacheService.findNodeByPath(projectComboBox.getValue(), nodePath)
-                .ifPresent(node -> tabManager.openFileTab(node, false)));
+        // need to get list first and then ensure that the files section is visable
+        List<UUID> fileIds = state.openFileTabsIds();
+        if (!fileIds.isEmpty()) {
+            filesSection.setVisible(true);
+        }
+        fileIds.stream()
+                .flatMap(id -> fileRepository.findById(id).stream())
+                .forEach(file -> tabManager.openFileTab(file, false));
     }
 
     /**
      * Saves the current state of the AuditView to the user's session.
-     *
+     * <p>
      * This method captures the active state of the application, including the selected project,
      * open inventory item tabs, open file tabs, and the currently active tab identifier.
      * If no project is selected, the session state is cleared.
@@ -335,8 +392,9 @@ public class AuditView extends StandardView{
         var state = new AuditViewStateService.AuditViewState(
                 selectedProject.getId(),
                 tabManager.getOpenInventoryItemIds(),
-                tabManager.getOpenFilePaths(),
-                tabManager.getActiveTabIdentifier()
+                tabManager.getOpenFileIds(),
+                tabManager.getActiveTabIdentifier(),
+                expandedItemIds
         );
         log.debug("Saving state to session: {}", state);
         viewStateService.save(state);
@@ -345,7 +403,7 @@ public class AuditView extends StandardView{
 
     /**
      * Handles changes to the active tab in the AuditView.
-     *
+     * <p>
      * This method updates the application's state or URL when the active tab changes.
      *
      * @param activeIdentifier the identifier of the newly active tab
@@ -385,7 +443,8 @@ public class AuditView extends StandardView{
             return;
         }
         refreshInventoryItemDc(project);
-        rebuildFileTree(project);
+
+        fileTreeGrid.setDataProvider(new FileHierarchyProvider(fileRepository, project));
     }
 
     public void refreshInventoryItemDc(Project project) {
@@ -434,21 +493,6 @@ public class AuditView extends StandardView{
     @Supply(to = "inventoryItemDataGrid.status", subject = "renderer")
     Renderer<InventoryItem> statusRenderer() {
         return rendererFactory.statusRenderer();
-    }
-
-    private void rebuildFileTree(Project project) {
-        List<FileTreeNode> rootNodes = fileTreeCacheService.getFileTree(project);
-        FileTreeGridFactory.TreeGridWithFilter treeWithFilter  =
-                fileTreeGridFactory.createTreeGridWithFilter(rootNodes,
-                        node -> tabManager.openFileTab(node, true),
-                        item -> tabManager.openInventoryItemTab(item, true)
-                );
-        fileTreeGridLayout.removeAll();
-
-        HorizontalLayout toolBox = componentFactory.createToolBox(treeWithFilter.grid(), FileTreeNode.class);
-        toolBox.addComponentAsFirst(treeWithFilter.filterField());
-        fileTreeGridLayout.add(toolBox);
-        fileTreeGridLayout.add(treeWithFilter.grid());
     }
 
     /**
@@ -504,7 +548,7 @@ public class AuditView extends StandardView{
 
     private void clearView() {
         inventoryItemDc.setItems(Collections.emptyList());
-        fileTreeGridLayout.removeAll();
+        fileDc.setItems(Collections.emptyList());
         tabManager.closeAllTabs();
     }
 
@@ -521,4 +565,8 @@ public class AuditView extends StandardView{
     }
 
 
+
+    public TabManager getTabManager() {
+        return tabManager;
+    }
 }

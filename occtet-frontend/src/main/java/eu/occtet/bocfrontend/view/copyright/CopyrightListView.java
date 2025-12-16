@@ -22,15 +22,12 @@ package eu.occtet.bocfrontend.view.copyright;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.grid.editor.EditorCloseEvent;
 import com.vaadin.flow.component.grid.editor.EditorSaveEvent;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
-import eu.occtet.bocfrontend.dao.CopyrightRepository;
-import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
 import eu.occtet.bocfrontend.entity.CodeLocation;
 import eu.occtet.bocfrontend.entity.Copyright;
 import eu.occtet.bocfrontend.entity.InventoryItem;
@@ -41,8 +38,6 @@ import io.jmix.core.DataManager;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.checkbox.JmixCheckbox;
-import io.jmix.flowui.component.grid.DataGrid;
-import io.jmix.flowui.component.grid.DataGridColumn;
 import io.jmix.flowui.component.upload.FileUploadField;
 import io.jmix.flowui.download.Downloader;
 import io.jmix.flowui.kit.component.button.JmixButton;
@@ -60,7 +55,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 @Route(value = "copyrights", layout = MainView.class)
@@ -157,6 +151,20 @@ public class CopyrightListView extends StandardListView<Copyright> {
         checkbox.setValue(copyright.isGarbage());
         return checkbox;
     }
+
+    @Supply(to = "copyrightsDataGrid.aiControlled", subject = "renderer")
+    protected Renderer<Copyright> aiControlledComponentRenderer() {
+        return new ComponentRenderer<>(
+                () -> {
+                    JmixCheckbox checkbox = uiComponents.create(JmixCheckbox.class);
+                    checkbox.setReadOnly(true);
+                    return checkbox;
+                },
+                (checkbox, copyright) -> checkbox.setValue(copyright.getAiControlled())
+        );
+    }
+
+
 
     @Subscribe("downloadButton")
     public void downloadGarbageCopyrights(ClickEvent<Button> event){

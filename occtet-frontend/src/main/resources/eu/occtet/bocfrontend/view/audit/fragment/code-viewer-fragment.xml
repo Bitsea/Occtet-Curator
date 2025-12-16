@@ -20,7 +20,7 @@
 
 <fragment xmlns="http://jmix.io/schema/flowui/fragment">
     <content>
-        <vbox id="mainLayout" width="100%" height="100%" margin="false" padding="false" spacing="false">
+        <vbox id="mainLayout" width="100%" height="100%" margin="false" spacing="false">
             <hbox id="topLayout" width="100%" justifyContent="BETWEEN" alignItems="END">
                 <hbox id="searchLayout" width="70%" justifyContent="START">
                     <textField id="searchField" placeholder="search" width="50%" focusShortcut="TAB"/>

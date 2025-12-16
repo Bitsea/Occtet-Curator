@@ -68,8 +68,9 @@
                 </dataGrid>
             </vbox>
             <hbox>
-                <checkbox id="curatedField" dataContainer="copyrightDc" property="curated" label="Curated"/>
-                <checkbox id="garbageField" dataContainer="copyrightDc" property="garbage" label="Garbage"/>
+                <checkbox id="curatedField" dataContainer="copyrightDc" property="curated" label="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
+                <checkbox id="garbageField" dataContainer="copyrightDc" property="garbage" label="msg://eu.occtet.bocfrontend.entity/Copyright.garbage"/>
+                <checkbox id="aiControlledField" dataContainer="copyrightDc" property="aiControlled" label="msg://aiControlled"/>
             </hbox>
                 <dataGrid dataContainer="licenseDc"  id="licensesDataGrid" width="100%" >
                     <columns resizable="true">

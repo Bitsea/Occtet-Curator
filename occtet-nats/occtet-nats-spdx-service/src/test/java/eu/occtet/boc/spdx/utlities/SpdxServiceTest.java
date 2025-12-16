@@ -28,7 +28,7 @@ import eu.occtet.boc.entity.spdxV2.RelationshipEntity;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.entity.spdxV2.SpdxFileEntity;
 import eu.occtet.boc.model.SpdxWorkData;
-import eu.occtet.boc.spdx.coverter.SpdxConverter;
+import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
 import eu.occtet.boc.spdx.dao.ProjectRepository;
@@ -93,8 +93,15 @@ public class SpdxServiceTest {
    @Test
     public void parseDocumentTest() {
        try {
-           Mockito.when(answerService.sendToDownload(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
-                   .thenReturn(true);
+           Mockito.when(answerService.sendToDownload(
+                   Mockito.anyString(),
+                   Mockito.anyString(),
+                   Mockito.anyString(),
+                   Mockito.anyString(),
+                   Mockito.anyBoolean(),
+                   Mockito.anyString()
+           )).thenReturn(true);
+
            Mockito.when(answerService.prepareAnswers(Mockito.anyList(), Mockito.eq(true), Mockito.eq(true)))
                    .thenReturn(true);
 
