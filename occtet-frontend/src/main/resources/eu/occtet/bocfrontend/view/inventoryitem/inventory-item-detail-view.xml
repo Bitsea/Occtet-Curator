@@ -27,6 +27,7 @@
             <fetchPlan extends="_base">
                 <property name="softwareComponent" fetchPlan="_base"/>
                 <property name="parent" fetchPlan="_base">
+                    <property name="inventoryName"/>
                 </property>
             </fetchPlan>
             <loader id="inventoryItemDl"/>
@@ -57,8 +58,7 @@
             <tab id="generalInformationTab" label="General information" >
                 <vbox alignItems="CENTER" justifyContent="START" alignSelf="START" classNames="scanner-layout" height="100%">
                     <formLayout id="form" dataContainer="inventoryItemDc" width="100%" alignSelf="CENTER">
-                        <textField id="inventoryNameField" property="inventoryName" label="Inventory Name"
-                                   width="25em" required="true"/>
+                        <vbox id="inventoryNameField" width="100%"/>
                         <hbox>
                             <comboBox id="projectField" label="Project" required="true"/>
                             <textField id="sizeField" property="size" label="Size" width="AUTO"/>
@@ -81,42 +81,40 @@
                         </hbox>
                         <hbox spacing="true" width="100%" colspan="2">
                         <vbox spacing="true" alignItems="CENTER" width="50%">
-                            <dataGrid id="licensesDataGrid"
-                                      width="100%"
-                                      height="20em"
-                                      dataContainer="licenseDc">
-                                <columns>
-                                    <column property="licenseType" header="License"/>
-                                </columns>
-                            </dataGrid>
-                            <hbox>
-                                <dropdownButton id="editLicense" text="edit" icon="lumo:edit"
-                                                dropdownIndicatorVisible="false" themeNames="small">
-                                    <items>
-                                        <componentItem id="createLicense">
-                                            <hbox padding="false">
-                                                <span text="create new"/>
-                                            </hbox>
-                                        </componentItem>
-                                        <componentItem id="addLicense">
-                                            <hbox padding="false">
-                                                <span text="add"/>
-                                            </hbox>
-                                        </componentItem>
-                                        <componentItem id="removeLicense">
-                                            <hbox padding="false">
-                                                <span text="remove"/>
-                                            </hbox>
-                                        </componentItem>
-                                    </items>
-                                </dropdownButton>
-                                <button id="removeLicenseButton" icon="TRASH" visible="false" themeNames="error small"/>
-                            </hbox>
-                        </vbox>
-                            <textArea id="externalNotesField" property="externalNotes" label="External notes" width="50%"
-                                         height="20em" colspan="2"/>
+                        <dataGrid id="licensesDataGrid"
+                                  width="100%"
+                                  height="20em"
+                                  dataContainer="licenseDc">
+                            <columns>
+                                <column property="licenseType" header="License"/>
+                            </columns>
+                        </dataGrid>
+                        <hbox>
+                            <dropdownButton id="editLicense" text="edit" icon="lumo:edit"
+                                            dropdownIndicatorVisible="false" themeNames="small">
+                                <items>
+                                    <componentItem id="createLicense">
+                                        <hbox padding="false">
+                                            <span text="create new"/>
+                                        </hbox>
+                                    </componentItem>
+                                    <componentItem id="addLicense">
+                                        <hbox padding="false">
+                                            <span text="add"/>
+                                        </hbox>
+                                    </componentItem>
+                                    <componentItem id="removeLicense">
+                                        <hbox padding="false">
+                                            <span text="remove"/>
+                                        </hbox>
+                                    </componentItem>
+                                </items>
+                            </dropdownButton>
+                            <button id="removeLicenseButton" icon="TRASH" visible="false" themeNames="error small"/>
                         </hbox>
-
+                        </vbox>
+                        </hbox>
+                        <vbox id="auditNotesText" width="100%" height="100%"/>
 
                     </formLayout>
                     <hbox id="detailActions" justifyContent="CENTER" alignItems="CENTER" alignSelf="CENTER" height="100%">
