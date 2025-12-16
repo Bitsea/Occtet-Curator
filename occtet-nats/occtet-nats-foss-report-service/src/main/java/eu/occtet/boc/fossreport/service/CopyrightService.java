@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -48,13 +49,17 @@ public class CopyrightService {
 
 
     public Copyright findOrCreateCopyright(String copyrightString, CodeLocation codeLocation) {
-        List<Copyright> copyright = copyrightRepository.findByCopyrightTextAndCodeLocation(copyrightString,
-                codeLocation);
+        List<Copyright> copyright = copyrightRepository.findByCopyrightText(copyrightString);
         if (!copyright.isEmpty() && copyright.getFirst() != null) {
-            copyright.getFirst();
+            if(copyright.getFirst().getCodeLocations()==null){
+                copyright.getFirst().setCodeLocations(new ArrayList<>(List.of(codeLocation)));
+            }else if( !copyright.getFirst().getCodeLocations().contains(codeLocation)) {
+                copyright.getFirst().getCodeLocations().add(codeLocation);
+            }
+            return copyright.getFirst();
         }
 
-        return copyrightFactory.create(copyrightString, codeLocation);
+        return copyrightFactory.create(copyrightString, List.of(codeLocation));
     }
 
 

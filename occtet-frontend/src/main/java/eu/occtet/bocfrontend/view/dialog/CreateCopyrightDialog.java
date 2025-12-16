@@ -33,10 +33,14 @@ import eu.occtet.bocfrontend.service.CopyrightService;
 import io.jmix.core.DataManager;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.combobox.JmixComboBox;
+import io.jmix.flowui.component.multiselectcombobox.JmixMultiSelectComboBox;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+import java.util.Set;
 
 
 @ViewController("createCopyrightDialog")
@@ -52,7 +56,7 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
     private TextField copyrightNameField;
 
     @ViewComponent
-    private JmixComboBox<CodeLocation> copyrightFilePathComboBox;
+    private JmixMultiSelectComboBox<CodeLocation> copyrightFilePathComboBox;
 
     @ViewComponent
     private Checkbox isGarbageField;
@@ -81,8 +85,12 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
 
     @Override
     public void setAvailableContent(InventoryItem content) {
-        this.inventoryItem = dataManager.load(InventoryItem.class).id(content.getId())
-                .fetchPlan(f -> f.add("copyrights")).one();
+        this.inventoryItem = dataManager.load(InventoryItem.class)
+                .id(content.getId())
+                .fetchPlan(fpb -> fpb.addAll(
+                        "softwareComponent",
+                        "softwareComponent.copyrights"))
+                .one();
     }
 
     @Override
@@ -90,16 +98,16 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
     public void addContentButton(ClickEvent<Button> event) {
 
         String copyrightName = copyrightNameField.getValue();
-        CodeLocation location = copyrightFilePathComboBox.getValue();
+        Set<CodeLocation> location = copyrightFilePathComboBox.getValue();
 
         if(checkInput(copyrightName,location)){
 
-            Copyright copyright = copyrightService.createCopyright(copyrightName,location,
+            Copyright copyright = copyrightService.createCopyright(copyrightName, List.copyOf(location),
                     isCuratedField.getValue(),isGarbageField.getValue());
 
             this.inventoryItem.getSoftwareComponent().getCopyrights().add(copyright);
             dataManager.save(inventoryItem.getSoftwareComponent());
-            log.debug("Created and added copyright {} to softwareComponent {}",copyright.getCopyrightText(), inventoryItem.getSoftwareComponent().getName());
+            log.debug("Created and added copyright {} to softwareComponent {}",copyright.getCopyrightText(), inventoryItem.getSoftwareComponent());
             close(StandardOutcome.CLOSE);
         }else{
             notifications.create("Something went wrong, please check your input")
@@ -113,7 +121,7 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
     @Subscribe(id = "cancelButton")
     public void cancelCopyright(ClickEvent<Button> event){cancelButton(event);}
 
-    private boolean checkInput(String name, CodeLocation codeLocation){
+    private boolean checkInput(String name, Set<CodeLocation> codeLocation){
 
         if(!name.isEmpty() && codeLocation != null){
             return true;

@@ -330,7 +330,8 @@ public class SpdxService extends BaseWorkDataProcessor{
             if (!codeLocations.contains(fileLocation)) {
                 codeLocations.add(fileLocation);
             }
-            Copyright fileCopyright = copyrightService.findOrCreateCopyright(copyrightText, fileLocation);
+
+            Copyright fileCopyright = copyrightService.findOrCreateCopyright(copyrightText, codeLocations);
             if (!copyrights.contains(fileCopyright)) {
                 copyrights.add(fileCopyright);
                 log.info("Created codeLocation: {} for Copyright: {}", fileLocation.getFilePath(), copyrightText);

@@ -62,7 +62,7 @@ public class SPDXLicenseService {
         try {
 
             URL url = new URL("https://raw.githubusercontent.com/spdx/license-list-data/main/json/licenses.json");
-
+            log.info("Reading spdx/default license infos from {}", url);
             readLicenseInfos(url.openStream());
         } catch (IOException e) {
             log.warn("could not read default license infos", e);

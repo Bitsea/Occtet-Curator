@@ -25,7 +25,7 @@
         <collection id="copyrightsDc"
                     class="eu.occtet.bocfrontend.entity.Copyright">
             <fetchPlan extends="_base">
-                <property name="codeLocation"/>
+                <property name="codeLocations"/>
             </fetchPlan>
             <loader id="copyrightsDl" readOnly="true">
                 <query>

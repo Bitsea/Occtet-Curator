@@ -33,7 +33,5 @@ import java.util.Optional;
 
 @Repository
 public interface CopyrightRepository extends JpaRepository<Copyright, Long> {
-    Optional<Copyright> findByCopyrightTextAndCodeLocation(String copyrightText, CodeLocation codeLocation);
-    Optional<Copyright> findByCopyrightText(String copyrightText);
-    List<Copyright> findByCodeLocation(CodeLocation codeLocation);
+    List<Copyright> findByCopyrightText(String copyrightText);
 }

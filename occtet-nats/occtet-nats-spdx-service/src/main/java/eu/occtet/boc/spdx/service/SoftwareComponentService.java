@@ -25,6 +25,8 @@ package eu.occtet.boc.spdx.service;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.spdx.dao.SoftwareComponentRepository;
 import eu.occtet.boc.spdx.factory.SoftwareComponentFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +41,9 @@ public class SoftwareComponentService {
 
     @Autowired
     private SoftwareComponentFactory softwareComponentFactory;
+
+    private static final Logger log = LogManager.getLogger(SoftwareComponentService.class);
+
 
 
     public SoftwareComponent getOrCreateSoftwareComponent(String softwareName, String version){

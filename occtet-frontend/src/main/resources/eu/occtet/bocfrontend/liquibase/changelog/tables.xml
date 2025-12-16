@@ -73,16 +73,6 @@
             <column name="CONSPICUOUS" type="BOOLEAN"/>
         </createTable>
 
-        <createTable tableName="COPYRIGHT" ifNotExists="true">
-            <column name="ID" type="UUID">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_COPYRIGHT"/>
-            </column>
-            <column name="SOFTWARE_COMPONENT_ID" type="UUID"/>
-            <column name="COPYRIGHT_TEXT" type="TEXT"/>
-            <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
-            <column name="GARBAGE" type="BOOLEAN"/>
-        </createTable>
-
         <createTable tableName="LICENSE" ifNotExists="true">
             <column name="ID" type="UUID">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="PK_LICENSE"/>
@@ -190,6 +180,26 @@
         </createTable>
 
 
+    </changeSet>
+
+    <changeSet id="8" author="db">
+        <createTable tableName="COPYRIGHT" ifNotExists="true">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_COPYRIGHT"/>
+            </column>
+            <column name="SOFTWARE_COMPONENT_ID" type="UUID"/>
+            <column name="COPYRIGHT_TEXT" type="TEXT"/>
+            <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
+            <column name="GARBAGE" type="BOOLEAN"/>
+        </createTable>
+        <createTable tableName="COPYRIGHT_CODE_LOCATION_LINK" ifNotExists="true">
+            <column name="COPYRIGHT_ID" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CODE_LOCATION_ID" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
     </changeSet>
 
     <!-- MODIFICATIONS-->
