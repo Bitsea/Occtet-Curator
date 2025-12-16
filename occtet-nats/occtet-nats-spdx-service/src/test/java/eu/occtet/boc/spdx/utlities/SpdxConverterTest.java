@@ -20,7 +20,7 @@ package eu.occtet.boc.spdx.utlities;
 
 import eu.occtet.boc.entity.spdxV2.*;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
-import eu.occtet.boc.spdx.coverter.SpdxConverter;
+import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.dao.spdxV2.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
