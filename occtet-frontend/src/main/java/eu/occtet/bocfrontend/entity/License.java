@@ -30,7 +30,7 @@ import jakarta.persistence.*;
 import java.util.UUID;
 
 @JmixEntity
-@Table(name = "LICENSE")
+@Table(name = "LICENSE",uniqueConstraints = { @UniqueConstraint(columnNames = { "LICENSE_TYPE"})})
 @Entity
 public class License {
 
