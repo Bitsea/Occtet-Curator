@@ -23,6 +23,11 @@
     <data>
         <instance id="inventoryItemDc" class="eu.occtet.bocfrontend.entity.InventoryItem">
             <fetchPlan extends="_base">
+                <property name="softwareComponent" fetchPlan="_base"/>
+                <property name="parent" fetchPlan="_base">
+                    <property name="inventoryName"/>
+                </property>
+
             </fetchPlan>
             <loader id="inventoryItemDl"/>
         </instance>
@@ -71,23 +76,23 @@
     </actions>
     <content>
         <tabSheet id="mainTabSheet" width="100%" height="100%">
-            <tab id="inventoriesTab" label="Inventory item">
-                <formLayout id="form" dataContainer="inventoryItemDc">
+            <tab id="inventoriesTab" label="Inventory item" >
+                <vbox id="form"  height="100%">
                     <vbox id="inventoryNameField" width="100%"/>
                     <hbox spacing="true" width="100%" alignItems="BASELINE">
                         <textField id="parentID" property="parent.inventoryName"
-                                   label="Parent-Inventory item" width="100%"/>
+                                   label="Parent-Inventory item" width="100%" dataContainer="inventoryItemDc"/>
                         <button id="parentButton" icon="INFO_CIRCLE_O" title="Show parent details"/>
                     </hbox>
                     <hbox spacing="true" width="100%" alignItems="BASELINE">
                         <textField id="softwareComponentField" label="Software component"
-                                   property="softwareComponent" width="100%"/>
+                                   property="softwareComponent" dataContainer="inventoryItemDc" width="100%"/>
                         <button id="softwareComponentButton" title="Show component details" icon="INFO_CIRCLE_O"/>
                     </hbox>
                     <textField id="detailsUrlTextField" property="detailsUrl" label="url"
                                dataContainer="softwareComponentDc"/>
                     <hbox spacing="true" width="100%" alignItems="BASELINE">
-                        <textField id="priorityField" label="Priority" property="priority" width="70px"/>
+                        <textField id="priorityField" label="Priority" property="priority" dataContainer="inventoryItemDc" width="70px"/>
                     </hbox>
                     <hbox spacing="true">
                         <checkbox id="curatedID" property="curated" label="Curated"/>
@@ -167,12 +172,12 @@
                     </hbox>
                     <hbox>
                         <nativeLabel text="Created at: "/>
-                        <nativeLabel id="createdField" property="createdAt"  colspan="2"/>
+                        <nativeLabel id="createdField" property="createdAt" dataContainer="inventoryItemDc" colspan="2"/>
                     </hbox>
-                </formLayout>
+                </vbox>
             </tab>
             <tab id="vulnerabilitiesTab" label="Vulnerabilities">
-                <vbox>
+                <vbox height="100%">
                     <fragment class="eu.occtet.bocfrontend.view.audit.fragment.Vulnerabilitytabfragment" id="vulnerabilitytabfragment"/>
                 </vbox>
             </tab>
@@ -186,7 +191,7 @@
             </tab>
             <tab id="reuseTab" label="msg://eu.occtet.bocfrontend.view.audit/auditView.reuse">
                 <vbox width="100%" height="100%">
-                    <split width="100%" themeNames="small" orientation="VERTICAL">
+                    <split width="100%" height="100%" themeNames="small" orientation="VERTICAL">
                         <hbox width="100%" height="70%" classNames="border rounded-m border-contrast-20">
                             <tabSheet id="ReuseTabSheet" width="100%" height="100%" >
                                 <tab id="generalInformationReuse" label="General information">
@@ -239,7 +244,7 @@
                                       width="100%"
                                       height="100%"
                                       dataContainer="inventoryItemDcReuse"
-                                      columnReorderingAllowed="true">
+                                      columnReorderingAllowed="true"  >
                                 <columns resizable="true">
                                     <column property="inventoryName" header="Reuse-items"/>
                                     <column property="createdAt" header="Date"/>
