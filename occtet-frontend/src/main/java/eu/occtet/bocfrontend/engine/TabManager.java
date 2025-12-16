@@ -27,9 +27,9 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.tabs.Tab;
+import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.model.FileResult;
-import eu.occtet.bocfrontend.model.FileTreeNode;
 import eu.occtet.bocfrontend.service.FileContentService;
 import eu.occtet.bocfrontend.view.audit.AuditView;
 import eu.occtet.bocfrontend.view.audit.fragment.InventoryItemTabFragment;
@@ -50,8 +50,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * Manages tabs for inventory items and files in the AuditView.
- * Handles opening, closing, and tracking of tab state.
+ * Manages the behavior and operations related to creating, opening, focusing,
+ * and closing tabs of different types within a user interface.
+ * Tabs can be associated with either `InventoryItem` instances or `File` objects.
  */
 public class TabManager {
 
@@ -59,7 +60,7 @@ public class TabManager {
 
     // Tab tracking
     private final Map<InventoryItem, Tab> openInventoryTabs = new LinkedHashMap<>();
-    private final Map<FileTreeNode, Tab> openFileTabs = new LinkedHashMap<>();
+    private final Map<File, Tab> openFileTabs = new LinkedHashMap<>();
 
     private final StandardView hostView;
     private final DataContext dataContext;
@@ -111,15 +112,16 @@ public class TabManager {
     }
 
     /**
-     * Opens or focuses a tab for the given FileTreeNode.
+     * Opens or focuses a tab for the given File object.
      */
-    public void openFileTab(FileTreeNode file, boolean selectTab) {
-        if (file == null || file.isDirectory()) {
+    public void openFileTab(File file, boolean selectTab) {
+        if (file == null || Boolean.TRUE.equals(file.getIsDirectory())) {
             log.debug("Skipping tab creation for null or directory node");
             return;
         }
 
         if (selectTab) {
+            filesTabSection.setVisible(true);
             mainTabSheet.setSelectedTab(filesTabSection);
         }
 
@@ -127,10 +129,16 @@ public class TabManager {
                 openFileTabs,
                 filesTabSheet,
                 file,
-                file.getName(),
+                file.getFileName(),
                 () -> createCodeViewerFragment(file),
-                tab -> closeFileTab(file),
-                file.getFullPath(), selectTab
+                tab -> {
+                    closeFileTab(file);
+                    if (filesTabSheet.getTabCount() == 0) {
+                        filesTabSection.setVisible(false);
+                    }
+                },
+                file.getId(),
+                selectTab
         );
     }
 
@@ -191,10 +199,11 @@ public class TabManager {
         return fragment;
     }
 
-    private Component createCodeViewerFragment(FileTreeNode file) {
+    private Component createCodeViewerFragment(File file) {
         CodeViewerFragment fragment = fragments.create(hostView, CodeViewerFragment.class);
 
-        FileResult result = fileContentService.getFileContent(file.getFullPath());
+        FileResult result = fileContentService.getFileContent(file.getAbsolutePath());
+        log.debug("Opening file: {}", file.getAbsolutePath());
         switch (result) {
             case FileResult.Success(String content, String fileName) ->
                     fragment.setCodeEditorContent(content, fileName);
@@ -258,11 +267,11 @@ public class TabManager {
     /**
      * Closes the specified FileTreeNode tab.
      */
-    private void closeFileTab(FileTreeNode file) {
+    private void closeFileTab(File file) {
         Tab tab = openFileTabs.remove(file);
         if (tab != null) {
             filesTabSheet.remove(tab);
-            log.debug("Closed file tab: {}", file.getName());
+            log.debug("Closed file tab: {}", file.getFileName());
         }
         onTabChangeCallback.accept(getActiveTabIdentifier());
     }
@@ -273,7 +282,7 @@ public class TabManager {
     public void closeAllTabs() {
         // Create copies to avoid ConcurrentModificationException
         List<InventoryItem> inventoryItems = new ArrayList<>(openInventoryTabs.keySet());
-        List<FileTreeNode> fileNodes = new ArrayList<>(openFileTabs.keySet());
+        List<File> fileNodes = new ArrayList<>(openFileTabs.keySet());
 
         inventoryItems.forEach(this::closeInventoryItemTab);
         fileNodes.forEach(this::closeFileTab);
@@ -298,41 +307,41 @@ public class TabManager {
         }
 
         if (identifier instanceof UUID itemId) {
-            selectInventoryItemTab(itemId);
-        } else if (identifier instanceof String path) {
-            selectFileTab(path);
+            boolean foundInInv = selectInventoryItemTab(itemId);
+            if (!foundInInv)
+                selectFileTab(itemId);
         } else {
             log.warn("Unknown identifier type: {}", identifier.getClass());
         }
     }
 
-    private void selectInventoryItemTab(UUID itemId) {
-        openInventoryTabs.entrySet().stream()
-                .filter(entry -> entry.getKey().getId().equals(itemId))
-                .findFirst()
-                .ifPresentOrElse(
-                        entry -> {
-                            mainTabSheet.setSelectedTab(inventoryItemTabSection);
-                            inventoryItemTabSheet.setSelectedTab(entry.getValue());
-                            onTabChangeCallback.accept(itemId);
-                            log.debug("Selected inventory item tab: {}", itemId);
-                        },
-                        () -> log.debug("No open tab found for inventory item: {}", itemId)
-                );
+    private boolean selectInventoryItemTab(UUID itemId) {
+        Optional<Map.Entry<InventoryItem, Tab>> match = openInventoryTabs.entrySet().stream()
+                .filter(inventoryItemTabEntry -> inventoryItemTabEntry.getKey().getId().equals(itemId))
+                .findFirst();
+
+        if (match.isPresent()) {
+            mainTabSheet.setSelectedTab(inventoryItemTabSection);
+            inventoryItemTabSheet.setSelectedTab(match.get().getValue());
+            onTabChangeCallback.accept(itemId);
+            log.debug("Selected inventory item tab: {}", itemId);
+            return true;
+        }
+        return false;
     }
 
-    private void selectFileTab(String path) {
+    private void selectFileTab(UUID fileId) {
         openFileTabs.entrySet().stream()
-                .filter(entry -> entry.getKey().getFullPath().equals(path))
+                .filter(entry -> entry.getKey().getId().equals(fileId))
                 .findFirst()
                 .ifPresentOrElse(
                         entry -> {
                             mainTabSheet.setSelectedTab(filesTabSection);
                             filesTabSheet.setSelectedTab(entry.getValue());
-                            onTabChangeCallback.accept(path);
-                            log.debug("Selected file tab: {}", path);
+                            onTabChangeCallback.accept(fileId);
+                            log.debug("Selected file tab: {}", fileId);
                         },
-                        () -> log.debug("No open tab found for file: {}", path)
+                        () -> log.debug("No open tab found for file ID: {}", fileId)
                 );
     }
 
@@ -345,12 +354,9 @@ public class TabManager {
                 .toList();
     }
 
-    /**
-     * Returns the list of open file paths (not FileTreeNode objects).
-     */
-    public List<String> getOpenFilePaths() {
+    public List<UUID> getOpenFileIds() {
         return openFileTabs.keySet().stream()
-                .map(FileTreeNode::getFullPath)
+                .map(File::getId)
                 .toList();
     }
 
@@ -360,14 +366,12 @@ public class TabManager {
     public Serializable getActiveTabIdentifier() {
         Tab selectedMainTab = mainTabSheet.getSelectedTab();
 
-        if (selectedMainTab == null) {
-            return null;
-        }
+        if (selectedMainTab == null) return null;
 
         if (selectedMainTab.equals(inventoryItemTabSection)) {
             return getActiveInventoryItemId();
         } else if (selectedMainTab.equals(filesTabSection)) {
-            return getActiveFilePath();
+            return getActiveFileId();
         }
 
         return null;
@@ -386,7 +390,7 @@ public class TabManager {
                 .orElse(null);
     }
 
-    private String getActiveFilePath() {
+    private UUID getActiveFileId() {
         Tab selectedTab = filesTabSheet.getSelectedTab();
         if (selectedTab == null) {
             return null;
@@ -394,7 +398,7 @@ public class TabManager {
 
         return openFileTabs.entrySet().stream()
                 .filter(e -> e.getValue().equals(selectedTab))
-                .map(e -> e.getKey().getFullPath())
+                .map(e -> e.getKey().getId()) // Return UUID
                 .findFirst()
                 .orElse(null);
     }
