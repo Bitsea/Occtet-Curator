@@ -16,7 +16,7 @@
  *  License-Filename: LICENSE
  */
 
-package eu.occtet.boc.spdx.coverter;
+package eu.occtet.boc.spdx.converter;
 
 import eu.occtet.boc.entity.spdxV2.*;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
