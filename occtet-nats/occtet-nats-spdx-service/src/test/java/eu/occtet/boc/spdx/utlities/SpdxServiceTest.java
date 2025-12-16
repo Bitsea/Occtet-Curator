@@ -23,7 +23,12 @@
 package eu.occtet.boc.spdx.utlities;
 
 import eu.occtet.boc.entity.*;
+import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
+import eu.occtet.boc.entity.spdxV2.RelationshipEntity;
+import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
+import eu.occtet.boc.entity.spdxV2.SpdxFileEntity;
 import eu.occtet.boc.model.SpdxWorkData;
+import eu.occtet.boc.spdx.coverter.SpdxConverter;
 import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
 import eu.occtet.boc.spdx.dao.ProjectRepository;
@@ -56,15 +61,22 @@ import java.util.UUID;
         CopyrightService.class, InventoryItemService.class, LicenseService.class, CodeLocationService.class,
         ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class,
         CopyrightFactory.class, CodeLocationFactory.class, InventoryItemFactory.class,
-        LicenseFactory.class
+        LicenseFactory.class, SpdxConverter.class
 })
-@EnableJpaRepositories(basePackages = "eu.occtet.boc.spdx.dao")
-@EntityScan(basePackages = "eu.occtet.boc.entity")
+@EnableJpaRepositories(basePackages = {
+        "eu.occtet.boc.spdx.dao"
+} )
+@EntityScan(basePackages = {
+        "eu.occtet.boc.entity"
+})
 @ExtendWith(MockitoExtension.class)
-public class SPDXServiceTest {
+public class SpdxServiceTest {
 
     @MockitoBean
     private AnswerService answerService;
+
+    @MockitoBean
+    private SpdxConverter spdxConverter;
 
     @Autowired
     private SpdxService spdxService;
@@ -75,7 +87,7 @@ public class SPDXServiceTest {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
 
-    private static final Logger log = LoggerFactory.getLogger(SPDXServiceTest.class);
+    private static final Logger log = LoggerFactory.getLogger(SpdxServiceTest.class);
 
 
    @Test
@@ -92,6 +104,18 @@ public class SPDXServiceTest {
 
            Mockito.when(answerService.prepareAnswers(Mockito.anyList(), Mockito.eq(true), Mockito.eq(true)))
                    .thenReturn(true);
+
+           Mockito.when(spdxConverter.convertSpdxV2DocumentInformation(Mockito.any()))
+                   .thenReturn(new SpdxDocumentRoot());
+
+           Mockito.when(spdxConverter.convertPackage(Mockito.any(), Mockito.any()))
+                   .thenReturn(new SpdxPackageEntity());
+
+           Mockito.when(spdxConverter.convertFile(Mockito.any(), Mockito.any()))
+                   .thenReturn(new SpdxFileEntity());
+
+           Mockito.when(spdxConverter.convertRelationShip(Mockito.any(), Mockito.any(), Mockito.any()))
+                   .thenReturn(new RelationshipEntity());
 
            SpdxWorkData spdxWorkData = new SpdxWorkData();
            byte[] bytes = Thread.currentThread().getContextClassLoader().getResourceAsStream("synthetic-scan-result-expected-output.spdx.json").readAllBytes();

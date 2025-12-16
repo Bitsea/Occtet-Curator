@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+
+
+    <changeSet id="10" author="occtet" context="!cuba">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM SUGGESTION</sqlCheck>
+            </and>
+        </preConditions>
+
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="3f2b4e5c-8c1e-4e57-bc3f-2ad8f4a9c1d2"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="The following information was found in the scanned file [filePath] :" />
+        </insert>
+
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="a91c2f34-7be6-4d1f-bbb0-0c9e8e2351fa"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="No License information found in the file:"/>
+        </insert>
+
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="d7f4ce12-2f6a-4f0d-896e-5c2c1a8e77b3"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="The license text was found on [date] at [URL]." />
+        </insert>
+
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="55baf7b2-d1a9-4c86-ae16-25cb6c9f1cc4"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="The [licenseName] license text was found on [date] at [URL]."/>
+        </insert>
+
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="e3a4f9fd-8d2c-4e9f-98a2-79c52d564af1"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="The license text was found in file [filePath]."/>
+        </insert>
+
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="0c1bfa3f-96e0-432b-9e94-31da87f46ccb"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="The following files only contain copyright holder of [COPYRIGHT]:"/>
+        </insert>
+
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="8b47cf21-7c6d-4f61-8020-3c16d1d8afde"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="Files in this group contain one 'diff' entry. A file referenced in that entry is licensed under [LICENSE] license."/>
+        </insert>
+
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="f3ce0129-1b7d-4768-b5f7-41037c0b53b8"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="Files in this group contain two 'diff' entries. A file referenced in that entry is licensed under [LICENSE] license, and a second file is licensed under [LICENSE] license."/>
+        </insert>
+
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="6faad3ea-c26f-4d21-91f7-2bdebf0fb41c"/>
+            <column name="CONTEXT" value="inventoryNames"/>
+            <column name="SENTENCE" value="[componentName] [version] ([licenseID])"/>
+        </insert>
+
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="9d41d473-c09a-40d1-a7cf-0af1de62af43"/>
+            <column name="CONTEXT" value="inventoryNames"/>
+            <column name="SENTENCE" value="[componentName] [version] (COMBINED [licenseID1] AND [licenseID2])"/>
+        </insert>
+
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="7e8c0af4-6e32-4a76-b139-2bbf22b4df95"/>
+            <column name="CONTEXT" value="inventoryNames"/>
+            <column name="SENTENCE" value="[componentName] [version] ([licenseID1] OR [licenseID2])"/>
+        </insert>
+
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="b312a2d2-3a58-4a9a-bd71-93a6b250d889"/>
+            <column name="CONTEXT" value="inventoryNames"/>
+            <column name="SENTENCE" value="[componentName] [version] ([licenseID] WITH [exception])"/>
+        </insert>
+
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="025f6b8a-28df-4c87-9c01-68ed7f4178c5"/>
+            <column name="CONTEXT" value="inventoryNames"/>
+            <column name="SENTENCE" value="[componentName] [version] [Bundled with [parentComponentName] [parentVersion]] ([licenseID])"/>
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>

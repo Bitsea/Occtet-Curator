@@ -63,6 +63,8 @@ public class SpdxService extends BaseWorkDataProcessor{
     private static final Logger log = LogManager.getLogger(SpdxService.class);
 
     @Autowired
+    SpdxConverter spdxConverter;
+    @Autowired
     private SoftwareComponentService softwareComponentService;
     @Autowired
     private CopyrightService copyrightService;
@@ -80,6 +82,8 @@ public class SpdxService extends BaseWorkDataProcessor{
     private ProjectRepository projectRepository;
     @Autowired
     private AnswerService answerService;
+
+
 
     private Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc = new ArrayList<>();
 
@@ -108,6 +112,8 @@ public class SpdxService extends BaseWorkDataProcessor{
             InputStream inputStream = new ByteArrayInputStream(spdxJsonBytes);
             SpdxDocument spdxDocument = inputStore.deSerialize(inputStream, false);
 
+            SpdxDocumentRoot spdxDocumentRoot = spdxConverter.convertSpdxV2DocumentInformation(spdxDocument);
+
             UUID projectId = UUID.fromString(spdxWorkData.getProjectId());
             Optional<Project> projectOptional = projectRepository.findById(projectId);
             if(projectOptional.isEmpty()) {
@@ -115,6 +121,8 @@ public class SpdxService extends BaseWorkDataProcessor{
                 return false;
             }
             Project project = projectOptional.get();
+            project.setDocumentID(spdxDocument.getId());
+            projectRepository.save(project);
 
 
             List<InventoryItem> inventoryItems = new ArrayList<>();
@@ -140,8 +148,7 @@ public class SpdxService extends BaseWorkDataProcessor{
                         spdxPackage -> {
                             try {
                                 if (!seenPackages.contains(spdxPackage.toString())) {
-                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,
-                                            mainPackageIds));
+                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,mainPackageIds, spdxDocumentRoot));
                                     spdxPackages.add((SpdxPackage) spdxPackage);
                                     seenPackages.add((spdxPackage).toString());
                                 }
@@ -153,6 +160,9 @@ public class SpdxService extends BaseWorkDataProcessor{
             }
             for (SpdxPackage spdxPackage : spdxPackages) {
                 parseRelationships(spdxPackage, spdxPackage.getRelationships().stream().toList(), project);
+                for(Relationship relationship: spdxPackage.getRelationships()) {
+                    spdxConverter.convertRelationShip(relationship, spdxDocumentRoot, spdxPackage);
+                }
             }
 
             log.info("processed spdx with {} items", inventoryItems.size());
@@ -166,10 +176,12 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
     }
 
-    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project, Set<String> mainPackageIds)
+    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project, Set<String> mainPackageIds, SpdxDocumentRoot spdxDocumentRoot)
             throws Exception {
 
         log.info("Looking at package: {}", spdxPackage.getId());
+        //Convert to entities
+        spdxConverter.convertPackage(spdxPackage, spdxDocumentRoot);
 
         String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
         List<CodeLocation> codeLocations = new ArrayList<>();
@@ -216,6 +228,7 @@ public class SpdxService extends BaseWorkDataProcessor{
 
         spdxPackage.getFiles().forEach(f -> {
             try {
+                spdxConverter.convertFile(f, spdxDocumentRoot);
                 parseFiles(f, inventoryItem, codeLocations, copyrights);
             } catch (InvalidSPDXAnalysisException e) {
                 throw new RuntimeException(e);
@@ -241,6 +254,15 @@ public class SpdxService extends BaseWorkDataProcessor{
             if(externalRef.getReferenceType().getIndividualURI().endsWith("purl")){
                 component.setPurl(externalRef.getReferenceLocator());
                 log.info("Found purl: {} for Component: {}", externalRef.getReferenceLocator(), component.getName());
+            }
+        }
+
+        String version = spdxPackage.getVersionInfo().orElse("");
+        if (!version.isEmpty() && !downloadLocation.isEmpty()) {
+            if(answerService.sendToDownload(downloadLocation ,project.getBasePath(), version)){
+                log.info("sending to DownloadService was successful");
+            }else{
+                log.error("failed to send to Downloadservice");
             }
         }
 

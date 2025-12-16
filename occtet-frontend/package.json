@@ -3,7 +3,9 @@
   "license": "UNLICENSED",
   "type": "module",
   "dependencies": {
+    "@lit-labs/observers": "2.0.0",
     "@polymer/polymer": "3.5.2",
+    "@vaadin-component-factory/vcf-autocomplete": "24.1.6",
     "@vaadin/bundles": "24.6.9",
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/polymer-legacy-adapter": "24.6.9",
@@ -59,11 +61,15 @@
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
     "ace-builds": "$ace-builds",
     "@vaadin/vaadin-lumo-styles": "$@vaadin/vaadin-lumo-styles",
-    "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles"
+    "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles",
+    "@vaadin-component-factory/vcf-autocomplete": "$@vaadin-component-factory/vcf-autocomplete",
+    "@lit-labs/observers": "$@lit-labs/observers"
   },
   "vaadin": {
     "dependencies": {
+      "@lit-labs/observers": "2.0.0",
       "@polymer/polymer": "3.5.2",
+      "@vaadin-component-factory/vcf-autocomplete": "24.1.6",
       "@vaadin/bundles": "24.6.9",
       "@vaadin/common-frontend": "0.0.19",
       "@vaadin/polymer-legacy-adapter": "24.6.9",
@@ -102,6 +108,6 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "3d06a7aa73b639890fee47e699f8ebdaf1fba27e81577ec8e4fb154e58a8ef8b"
+    "hash": "1486cd743c636a7b1fef81738c534ab518ec5d044f6ff1bfeafc34ab773b42d3"
   }
 }
