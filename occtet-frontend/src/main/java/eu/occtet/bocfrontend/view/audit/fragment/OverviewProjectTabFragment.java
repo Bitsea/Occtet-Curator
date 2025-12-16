@@ -240,7 +240,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
 
         List<KeyValueEntity> values = dataManager.loadValues(context);
         values.forEach(s -> {
-            Vulnerability v = vulnerabilityRepository.findbyId(s.getValue("vulnerabilityId"));
+            Vulnerability v = vulnerabilityRepository.findVulnerabilityById(s.getValue("vulnerabilityId"));
             Long value = s.getValue("countV");
             vulnerabilityDTOs.add(new AuditVulnerabilityDTO(v.getVulnerabilityId(),v.getRiskScore(),value.intValue()));
         });
