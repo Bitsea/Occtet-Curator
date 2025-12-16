@@ -32,28 +32,33 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class CopyrightService {
 
-    private static final Logger log = LogManager.getLogger(CopyrightService.class);
 
     @Autowired
     private CopyrightFactory copyrightFactory;
     @Autowired
     private CopyrightRepository copyrightRepository;
-    @Autowired
-    private CodeLocationService codeLocationService;
 
-    public Copyright findOrCreateCopyright(String copyrightString, CodeLocation codeLocation){
-        Optional<Copyright> copyright = copyrightRepository.findByCopyrightTextAndCodeLocation(copyrightString,
-                codeLocation);
-        if (!copyright.isPresent()) {
-            copyright = Optional.ofNullable(copyrightFactory.create(copyrightString, codeLocation));
+    public Copyright findOrCreateCopyright(String copyrightString, List<CodeLocation> codeLocations){
+        List<Copyright> copyrights = copyrightRepository.findByCopyrightText(copyrightString);
+        Copyright copyright;
+        if (copyrights.isEmpty()) {
+            copyright = copyrightFactory.create(copyrightString, codeLocations);
+        }else{
+            copyright= copyrights.getFirst();
+            for(CodeLocation cl: codeLocations) {
+               if(! copyright.getCodeLocations().contains(cl)){
+                   copyright.getCodeLocations().add(cl);
+               }
+            }
         }
 
-        return copyright.get();
+        return copyright;
     }
 
 

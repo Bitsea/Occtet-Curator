@@ -20,6 +20,7 @@
 package eu.occtet.bocfrontend.entity;
 
 
+import io.jmix.core.DeletePolicy;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.entity.annotation.OnDelete;
 import io.jmix.core.metamodel.annotation.InstanceName;
@@ -50,9 +51,13 @@ public class Copyright {
     @Column(name= "GARBAGE")
     private Boolean garbage;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name= "CODE_LOCATION_ID")
-    private CodeLocation codeLocation;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "COPYRIGHT_CODE_LOCATION_LINK",
+            joinColumns = @JoinColumn(name = "COPYRIGHT_ID", referencedColumnName = "ID"),
+            inverseJoinColumns = @JoinColumn(name = "CODE_LOCATION_ID", referencedColumnName = "ID"))
+    @OnDelete(DeletePolicy.CASCADE)
+    private List<CodeLocation> codeLocations;
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name= "COPYRIGHT_ID")
@@ -78,9 +83,9 @@ public class Copyright {
 
     public void setGarbage(Boolean garbage) {this.garbage = garbage;}
 
-    public CodeLocation getCodeLocation(){return this.codeLocation;}
+    public List<CodeLocation> getCodeLocations(){return this.codeLocations;}
 
-    public void setCodeLocation(CodeLocation codeLocation) {this.codeLocation = codeLocation;}
+    public void setCodeLocations(List<CodeLocation> codeLocations) {this.codeLocations = codeLocations;}
 
     public Boolean getCurated() {
         return curated;

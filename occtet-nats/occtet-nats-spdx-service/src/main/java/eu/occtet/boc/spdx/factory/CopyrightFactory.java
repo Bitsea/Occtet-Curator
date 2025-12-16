@@ -29,14 +29,16 @@ import eu.occtet.boc.spdx.dao.CopyrightRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class CopyrightFactory {
 
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public Copyright create(String copyrightString, CodeLocation codeLocation){
-        Copyright copyright = new Copyright(copyrightString, codeLocation);
+    public Copyright create(String copyrightString, List<CodeLocation> codeLocations){
+        Copyright copyright = new Copyright(copyrightString, codeLocations);
 
         return copyrightRepository.save(copyright);
     }

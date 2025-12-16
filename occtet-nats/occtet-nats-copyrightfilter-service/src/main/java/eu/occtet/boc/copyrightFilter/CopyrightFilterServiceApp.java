@@ -64,6 +64,9 @@ public class CopyrightFilterServiceApp {
     @Autowired
     private CopyrightFilterWorkConsumer copyrightFilterWorkConsumer;
 
+    @Value("${application.version}")
+    private String applicationVersion;
+
     @Value("${nats.stream-name}")
     private String streamName;
 
@@ -86,6 +89,7 @@ public class CopyrightFilterServiceApp {
         ClassPathResource resource = new ClassPathResource("microserviceDescriptor.json");
         String s = new String(Files.readAllBytes(Paths.get(resource.getURI())));
         microserviceDescriptor = (new ObjectMapper()).readValue(s, MicroserviceDescriptor.class);
+        microserviceDescriptor.setVersion(applicationVersion);
         log.info("Init Microservice: {} (version {})", microserviceDescriptor.getName(), microserviceDescriptor.getVersion());
         systemHandler = new SystemHandler(natsConnection, microserviceDescriptor, copyrightFilterWorkConsumer);
         systemHandler.subscribeToSystemSubject();

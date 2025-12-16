@@ -26,18 +26,26 @@
         <collection id="copyrightsDc"
                     class="eu.occtet.bocfrontend.entity.Copyright">
             <fetchPlan extends="_base">
-                <property name="codeLocation" fetchPlan="_base">
+                <property name="codeLocations" fetchPlan="_base">
                     <property name="inventoryItem" fetchPlan="_base">
                         <property name="softwareComponent" fetchPlan="_base"/>
+
                     </property>
                 </property>
             </fetchPlan>
             <fetchPlan extends="_base">
-                <property name="codeLocation" fetch="AUTO"/>
+                <property name="codeLocations" fetch="AUTO"/>
             </fetchPlan>
-            <loader id="copyrightsDl" readOnly="true">
+
+            <loader id="copyrightsDl">
                 <query>
-                    <![CDATA[select e from Copyright e]]>
+                    <![CDATA[
+                        select distinct c
+                        from Copyright c
+                        left join c.codeLocations cl
+                        left join cl.inventoryItem ii
+                        left join ii.softwareComponent sc
+                    ]]>
                 </query>
             </loader>
         </collection>
@@ -60,13 +68,9 @@
                     <properties include=".*"/>
                     <conditions> </conditions>
                 </genericFilter>
-                <vbox alignSelf="END">
-                <hbox>
                 <checkbox id="immediateCheckbox" label="msg://saveImmediately" value="true" alignSelf="END"/>
                 <button id="saveButton" text="Save" enabled="false" alignSelf="END" themeNames="warning" icon="vaadin:safe"/>
-                 </hbox>
-                <simplePagination id="pagination" dataLoader="copyrightsDl" alignSelf="END"/>
-                </vbox>
+                <simplePagination id="pagination" dataLoader="copyrightsDl" alignSelf="END" />
             </hbox>
             <dataGrid id="copyrightsDataGrid"
                       width="100%"
@@ -78,11 +82,10 @@
                     <column property="copyrightText" header="Name"/>
                     <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated" editable="true"/>
                     <column property="garbage" header="msg://eu.occtet.bocfrontend.entity/Copyright.garbage" editable="true"/>
-                    <column property="codeLocation.filePath" header="msg://FilePath" key="filePath"/>
-                    <column property="codeLocation.inventoryItem.softwareComponent" header="msg://SoftwareComponent" key="softwareComponent"/>
+                    <column property="codeLocations.filePath" header="msg://FilePath" key="filePath"/>
+                    <column property="codeLocations.inventoryItem.softwareComponent.name" header="msg://SoftwareComponent" key="softwareComponent"/>
                     <editorActionsColumn key="nonBufferedEditorColumn">
                         <editButton icon="PENCIL" text="msg:///actions.Edit"/>
-                        <closeButton icon="CLOSE" />
                         <saveButton icon="CHECK"/>
                     </editorActionsColumn>
                 </columns>

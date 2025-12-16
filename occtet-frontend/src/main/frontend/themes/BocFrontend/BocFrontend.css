@@ -90,3 +90,4 @@ vaadin-text-field[readonly].read-only::part(input-field) {
     border-radius: 6px;
     padding: var(--lumo-space-s);
 }
+

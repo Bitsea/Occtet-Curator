@@ -78,7 +78,7 @@ public class SPDXServiceTest {
     private static final Logger log = LoggerFactory.getLogger(SPDXServiceTest.class);
 
 
-    //@Test // commented out because of failure loading the copyrights
+   @Test
     public void parseDocumentTest() {
        try {
            Mockito.when(answerService.sendToDownload(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
@@ -119,8 +119,8 @@ public class SPDXServiceTest {
            Assertions.assertEquals(1, copyrights.size());
            Copyright sampleCopyright = copyrights.getFirst();
            Assertions.assertEquals("Copyright 2020 Some copyright holder in source artifact", sampleCopyright.getCopyrightText());
-           Assertions.assertNotNull(sampleCopyright.getCodeLocation());
-           Assertions.assertEquals("some/file", sampleCopyright.getCodeLocation().getFilePath());
+           Assertions.assertNotNull(sampleCopyright.getCodeLocations());
+           Assertions.assertEquals("some/file", sampleCopyright.getCodeLocations().getFirst().getFilePath());
 
            //Check SoftwareComponent
            SoftwareComponent softwareComponent = inventoryItem.getSoftwareComponent();

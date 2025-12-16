@@ -23,7 +23,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.*;
-import eu.occtet.bocfrontend.dao.CopyrightRepository;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.factory.CopyrightFactory;
 import org.apache.logging.log4j.LogManager;
@@ -40,17 +39,17 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CopyrightService {
 
+    @Autowired
+    private CopyrightFactory copyrightFactory;
 
     private static final Logger log = LogManager.getLogger(CopyrightService.class);
-    private final CopyrightRepository copyrightRepository;
-    private final CopyrightFactory copyrightFactory;
 
-    @Autowired
-    private InventoryItemService inventoryItemService;
+
 
     private static final Path BASEPATH_YML = Paths.get("src", "main", "resources","garbage-Copyrights","garbage-copyrights.yml");
     private static final Path BASEPATH_JSON = Paths.get("src","main","resources","garbage-Copyrights","garbage-copyrights.json");
@@ -59,32 +58,8 @@ public class CopyrightService {
     @Autowired
     private TemporaryStorage temporaryStorage;
 
-    public CopyrightService(CopyrightRepository copyrightRepository, CopyrightFactory copyrightFactory) {
-        this.copyrightRepository = copyrightRepository;
-        this.copyrightFactory = copyrightFactory;
-    }
 
-    public List<Copyright> findCopyrightsByProject(Project project){
-        List<InventoryItem> inventoryItems = inventoryItemService.findInventoryItemsOfProject(project);
-        List<Copyright> copyrights = new ArrayList<>();
-        inventoryItems.forEach(i->copyrights.addAll(i.getSoftwareComponent().getCopyrights()));
-        return copyrights;
-    }
 
-    public List<Copyright> findCopyrightsBySoftwareComponent(SoftwareComponent softwareComponent){
-        List<InventoryItem> inventoryItems = inventoryItemService.findInventoryItemsOfSoftwareComponent(softwareComponent);
-        List<Copyright> copyrights = new ArrayList<>();
-        inventoryItems.forEach(i->copyrights.addAll(i.getSoftwareComponent().getCopyrights()));
-        return copyrights;
-    }
-
-    public List<Copyright> findCopyrightsByGarbage(Boolean isGarbage){
-        return copyrightRepository.findCopyrightsByGarbage(isGarbage);
-    }
-
-    public List<Copyright> findCopyrightsByCurated(Boolean isCurated){
-        return copyrightRepository.findCopyrightsByCurated(isCurated);
-    }
 
     public void createYML(List<Copyright> copyrightList) {
 
@@ -173,7 +148,7 @@ public class CopyrightService {
         }
     }
 
-    public Copyright createCopyright(String name, CodeLocation codeLocation, boolean isCurated, boolean isGarbage){
+    public Copyright createCopyright(String name, List<CodeLocation> codeLocation, boolean isCurated, boolean isGarbage){
         return copyrightFactory.create(name,codeLocation,isCurated,isGarbage);
     }
 }
