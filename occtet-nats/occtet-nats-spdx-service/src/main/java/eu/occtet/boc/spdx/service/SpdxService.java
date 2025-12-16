@@ -26,8 +26,10 @@ package eu.occtet.boc.spdx.service;
 
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.License;
+import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
+import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
 import eu.occtet.boc.spdx.dao.ProjectRepository;
@@ -258,20 +260,13 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
 
         String version = spdxPackage.getVersionInfo().orElse("");
-        if (!version.isEmpty() && !downloadLocation.isEmpty()) {
-            if(answerService.sendToDownload(downloadLocation ,project.getBasePath(), version)){
-                log.info("sending to DownloadService was successful");
-            }else{
-                log.error("failed to send to Downloadservice");
-            }
-        }
+
 
         softwareComponentService.update(component);
         inventoryItemService.update(inventoryItem);
         log.info("created inventoryItem: {}", inventoryName);
         log.info("created softwareComponent: {}", component.getName());
 
-        String version = spdxPackage.getVersionInfo().orElse("");
         if (!version.isEmpty() && !downloadLocation.isEmpty() && !"NOASSERTION".equals(downloadLocation)) {
                 // Register logic to run AFTER the database commit
                 TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {

@@ -28,7 +28,7 @@ import eu.occtet.boc.entity.spdxV2.RelationshipEntity;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.entity.spdxV2.SpdxFileEntity;
 import eu.occtet.boc.model.SpdxWorkData;
-import eu.occtet.boc.spdx.coverter.SpdxConverter;
+import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
 import eu.occtet.boc.spdx.dao.ProjectRepository;
