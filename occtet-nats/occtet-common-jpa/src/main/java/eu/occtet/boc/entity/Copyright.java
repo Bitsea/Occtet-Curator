@@ -51,6 +51,9 @@ public class Copyright {
     @Column(name= "GARBAGE")
     private Boolean garbage;
 
+    @Column(name= "AI_CONTROLLED")
+    private Boolean aiControlled;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "COPYRIGHT_CODE_LOCATION_LINK",
@@ -68,6 +71,15 @@ public class Copyright {
         this.codeLocations = cl;
         this.curated = false;
         this.garbage = false;
+        this.aiControlled=false;
+    }
+
+    public Boolean getAiControlled() {
+        return aiControlled;
+    }
+
+    public void setAiControlled(Boolean aiControlled) {
+        this.aiControlled = aiControlled;
     }
 
     public Copyright() {}

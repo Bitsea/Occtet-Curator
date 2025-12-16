@@ -59,6 +59,9 @@ public class SoftwareComponent {
     @Column(name= "CURATED")
     private Boolean curated;
 
+    @Column(name= "LICENSE_AI_CONTROLLED")
+    private Boolean licenseAiControlled;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "SOFTWARE_COMPONENT_LICENSE_LINK",
             joinColumns = @JoinColumn(name = "SOFTWARE_COMPONENT_ID", referencedColumnName = "ID"),
@@ -80,7 +83,9 @@ public class SoftwareComponent {
     @JoinColumn(name= "SOFTWARECOMPONENT_ID")
     private List<Copyright> copyrights;
 
-    public SoftwareComponent(){}
+    public SoftwareComponent(){
+        this.licenseAiControlled= false;
+    }
 
     public SoftwareComponent(String name, String version, String purl,
                              Boolean curated, List<License> licenses) {
@@ -89,6 +94,15 @@ public class SoftwareComponent {
         this.purl = purl;
         this.curated = curated;
         this.licenses = licenses;
+        this.licenseAiControlled= false;
+    }
+
+    public Boolean getLicenseAiControlled() {
+        return licenseAiControlled;
+    }
+
+    public void setLicenseAiControlled(Boolean aiControlled) {
+        this.licenseAiControlled = aiControlled;
     }
 
     public UUID getId() {

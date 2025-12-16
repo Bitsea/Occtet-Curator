@@ -25,10 +25,12 @@ package eu.occtet.boc.ai.copyrightFilter.service;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.occtet.boc.ai.copyrightFilter.dao.CopyrightRepository;
 import eu.occtet.boc.ai.copyrightFilter.dao.InventoryItemRepository;
 import eu.occtet.boc.ai.copyrightFilter.factory.AdvisorFactory;
 import eu.occtet.boc.ai.copyrightFilter.factory.PromptFactory;
 import eu.occtet.boc.ai.copyrightFilter.postprocessing.PostProcessor;
+import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.model.*;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
@@ -50,6 +52,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -65,6 +68,8 @@ public class LLMService extends BaseWorkDataProcessor {
 
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
+    @Autowired
+    private CopyrightRepository copyrightRepository;
 
     @Autowired
     private AdvisorFactory advisorFactory;
@@ -108,10 +113,11 @@ public class LLMService extends BaseWorkDataProcessor {
 
         } catch (Exception e) {
             log.error("Exception with calling ai {}", e.getMessage());
+            return false;
         }
 
         postProcessor.deleteThinking(response);
-        return  true; // fixme return false on error
+        return  true;
     }
 
 
@@ -121,9 +127,9 @@ public class LLMService extends BaseWorkDataProcessor {
         List<Advisor> advisors = advisorFactory.createAdvisors();
         String response = "";
         Prompt question = promptFactory.createFalseCopyrightPrompt(aiWorkData.getUserMessage());
-        String copyrights = createString(aiWorkData.getQuestionableCopyrights());
+        List<Copyright> copyrightList= new ArrayList<>();
+        String copyrights = createString(aiWorkData.getQuestionableCopyrights(), copyrightList);
         String userQuestion = "List of copyrights, separated by |||. Delete invalid copyrights from this list: " + copyrights;
-
         try {
             response = chatClient.prompt(question).user(userQuestion)
                     .advisors(advisors)
@@ -133,7 +139,8 @@ public class LLMService extends BaseWorkDataProcessor {
             log.error("Exception with calling ai {}", e.getMessage());
         }
         String result = postProcessor.deleteThinking(response);
-        handleAIResult(item, result);
+
+        handleAIResult(item, result, copyrightList);
         if(!result.isEmpty()) {
             try {
                 sendAnswerToStream(result);
@@ -151,9 +158,10 @@ public class LLMService extends BaseWorkDataProcessor {
      * @param group
      * @return
      */
-    private String createString(List<String> group){
+    private String createString(List<String> group, List<Copyright> copyrightList){
         StringBuilder b = new StringBuilder();
         for(String c : group){
+            copyrightList.add(copyrightRepository.findByCopyrightText(c).getFirst());
             b.append("|||").append(c);
         }
         return b.toString();
@@ -169,13 +177,21 @@ public class LLMService extends BaseWorkDataProcessor {
      * @param item
      * @param response
      */
-    public void handleAIResult(InventoryItem item, String response){
+    public void handleAIResult(InventoryItem item, String response, List<Copyright> copyrightList){
 
         if(item.getExternalNotes()== null &&  !response.isEmpty()){
             item.setExternalNotes(response);
         }else{
             item.setExternalNotes(item.getExternalNotes()+"\n"+response);
         }
+        for(Copyright c: copyrightList) {
+            if (!response.contains(c.getCopyrightText())) {
+                c.setGarbage(true);
+            }
+            c.setAiControlled(true);
+            copyrightRepository.save(c);
+        }
+
         inventoryItemRepository.save(item);
     }
 

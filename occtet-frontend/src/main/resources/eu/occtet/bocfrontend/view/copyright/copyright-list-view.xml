@@ -82,6 +82,7 @@
                     <column property="copyrightText" header="Name"/>
                     <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated" editable="true"/>
                     <column property="garbage" header="msg://eu.occtet.bocfrontend.entity/Copyright.garbage" editable="true"/>
+                    <column property="aiControlled" header="msg://aiControlled" editable="true"/>
                     <column property="codeLocations.filePath" header="msg://FilePath" key="filePath"/>
                     <column property="codeLocations.inventoryItem.softwareComponent.name" header="msg://SoftwareComponent" key="softwareComponent"/>
                     <editorActionsColumn key="nonBufferedEditorColumn">
