@@ -23,21 +23,24 @@ import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
+import eu.occtet.bocfrontend.dao.SuggestionRepository;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.service.InventoryItemService;
 import eu.occtet.bocfrontend.view.audit.fragment.AutocompleteField;
 import eu.occtet.bocfrontend.view.dialog.AddCopyrightDialog;
+import eu.occtet.bocfrontend.view.dialog.AddLicenseDialog;
 import eu.occtet.bocfrontend.view.dialog.CreateLicenseDialog;
 import eu.occtet.bocfrontend.view.license.LicenseDetailView;
 import eu.occtet.bocfrontend.view.main.MainView;
+import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
+import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
-import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.combobox.JmixComboBox;
-import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.kit.component.dropdownbutton.DropdownButtonItem;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;
@@ -46,6 +49,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -59,9 +63,7 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
     private static final Logger log = LogManager.getLogger(InventoryItemDetailView.class);
 
     @Autowired
-    private ViewNavigators viewNavigator;
-    @Autowired
-    private DialogWindows dialogWindow;
+    private DialogWindows dialogWindows;
     @Autowired
     private ProjectRepository projectRepository;
     @Autowired
@@ -79,8 +81,6 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
     private JmixComboBox<InventoryItem> parentField;
     @ViewComponent
     private CollectionContainer<License> licenseDc;
-    @ViewComponent
-    private DataGrid<License> licensesDataGrid;
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
