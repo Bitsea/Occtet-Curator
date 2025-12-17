@@ -153,7 +153,8 @@ public class AuditView extends StandardView{
         initializeInventoryDataGrid();
         initializeFileTreeGrid();
         addTabSelectionListeners();
-        overviewProjectTabFragment.setBasicAccordionValues();
+        overviewProjectTabFragment.setHostView(this);
+        overviewProjectTabFragment.setDefaultAccordionValues();
     }
 
     @Subscribe
@@ -245,6 +246,7 @@ public class AuditView extends StandardView{
                 projectComboBox.setValue(project);
                 refreshAllDataForProject(project);
                 restoreTabsAndState();
+                overviewProjectTabFragment.setProjectOverview(project);
             });
         } catch (Exception e) {
             log.warn("Invalid projectId in URL: {}", projectIdStr, e);
@@ -366,8 +368,12 @@ public class AuditView extends StandardView{
         // Restore file tabs without auto-selecting them
         // need to get list first and then ensure that the files section is visable
         List<UUID> fileIds = state.openFileTabsIds();
+        List<UUID> inventoryIds = state.openInventoryTabsIds();
         if (!fileIds.isEmpty()) {
             filesSection.setVisible(true);
+        }
+        if(!inventoryIds.isEmpty()){
+            inventoryItemSection.setVisible(true);
         }
         fileIds.stream()
                 .flatMap(id -> fileRepository.findById(id).stream())
@@ -526,7 +532,7 @@ public class AuditView extends StandardView{
         } else {
             switchProject(event.getValue());
         }
-//        overviewProjectTabFragment.setProject(event.getValue()); TODO comment
+        overviewProjectTabFragment.setProjectOverview(event.getValue());
     }
 
     private void switchProject(Project project) {
@@ -538,6 +544,7 @@ public class AuditView extends StandardView{
     @Subscribe("inventoryItemDataGrid")
     public void onInventoryItemDataGridClick(final ItemClickEvent<InventoryItem> event) {
         if (event.getClickCount() == 2) {
+            inventoryItemSection.setVisible(true);
             tabManager.openInventoryItemTab(event.getItem(), true);
         } else {
             treeGridHelper.toggleExpansion(inventoryItemDataGrid, event.getItem());
@@ -550,14 +557,20 @@ public class AuditView extends StandardView{
         tabManager.closeAllTabs();
     }
 
+    public void handleInventoryItemFromOverview(InventoryItem item){
+        if(!inventoryItemSection.isVisible()){
+            inventoryItemSection.setVisible(true);
+        }
+        tabManager.openInventoryItemTab(item,true);
+    }
+
     @Install(to = "inventoryItemDataGrid.create", subject = "initializer")
     private void inventoryItemDataGridCreateActionInitializer(final InventoryItem inventoryItem) {
         inventoryItem.setProject(projectComboBox.getValue());
     }
 
-
-
     public TabManager getTabManager() {
         return tabManager;
     }
+
 }
