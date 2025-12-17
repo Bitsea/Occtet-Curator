@@ -158,10 +158,11 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
 
         ValueLoadContext context = new ValueLoadContext()
                 .setQuery(new ValueLoadContext.Query("""
-                            select cr.id as copyrightId, count(cr) as countCL
+                            select cr.id as copyrightId, count(distinct cl) as countCL
                             from InventoryItem i
                             join i.softwareComponent s
                             join s.copyrights cr
+                            join cr.codeLocations cl
                             join i.project p
                             where p.id = :project_id
                             group by cr.id

@@ -368,8 +368,12 @@ public class AuditView extends StandardView{
         // Restore file tabs without auto-selecting them
         // need to get list first and then ensure that the files section is visable
         List<UUID> fileIds = state.openFileTabsIds();
+        List<UUID> inventoryIds = state.openInventoryTabsIds();
         if (!fileIds.isEmpty()) {
             filesSection.setVisible(true);
+        }
+        if(!inventoryIds.isEmpty()){
+            inventoryItemSection.setVisible(true);
         }
         fileIds.stream()
                 .flatMap(id -> fileRepository.findById(id).stream())
