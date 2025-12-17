@@ -246,6 +246,7 @@ public class AuditView extends StandardView{
                 projectComboBox.setValue(project);
                 refreshAllDataForProject(project);
                 restoreTabsAndState();
+                overviewProjectTabFragment.setProjectOverview(project);
             });
         } catch (Exception e) {
             log.warn("Invalid projectId in URL: {}", projectIdStr, e);
@@ -564,9 +565,8 @@ public class AuditView extends StandardView{
         inventoryItem.setProject(projectComboBox.getValue());
     }
 
-
-
     public TabManager getTabManager() {
         return tabManager;
     }
+
 }

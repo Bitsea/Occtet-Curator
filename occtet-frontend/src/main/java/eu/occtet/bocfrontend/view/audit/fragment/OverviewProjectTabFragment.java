@@ -146,44 +146,37 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
         this.hostView = hostView;
     }
 
-    private void setAllProjectInformation(Project project){
-        //setCopyrights(softwareComponents,locations);
+    private void setAllProjectInformation(Project project ){
+        setCopyrights(project);
         setLicenses(project);
         setVulnerabilities(project);
     }
 
-    private void setCopyrights(List<SoftwareComponent> softwareComponents, List<CodeLocation> locations){
+    private void setCopyrights(Project project){
 
         List<AuditCopyrightDTO> auditCopyrightDTOs = new ArrayList<>();
-        Set<Copyright> allCopyrights = new HashSet<>();
-        Set<Copyright> filteredCopyrights = new HashSet<>();
 
-        allCopyrights.addAll(softwareComponents.stream().map(SoftwareComponent::getCopyrights)
-                .filter(Objects::nonNull)
-                .flatMap(List::stream)
-                .collect(Collectors.toSet()));
+        ValueLoadContext context = new ValueLoadContext()
+                .setQuery(new ValueLoadContext.Query("""
+                            select cr.id as copyrightId, count(cr) as countCL
+                            from InventoryItem i
+                            join i.softwareComponent s
+                            join s.copyrights cr
+                            join i.project p
+                            where p.id = :project_id
+                            group by cr.id
+                      \s""")
+                        .setParameter("project_id",project.getId()))
+                .addProperty("copyrightId")
+                .addProperty("countCL");
 
-        filteredCopyrights.addAll(allCopyrights.stream()
-                .collect(Collectors.toMap(
-                        Copyright::getCopyrightText,
-                        copyright->copyright,
-                        (c1, c2) -> c1))
-                .values());
 
-        for(Copyright copyright : filteredCopyrights){
-            int count = 0;
-            for(CodeLocation location : locations){
-                List<Copyright> copyrightsFromLocation = location.getCopyrights();
-                if(copyrightsFromLocation != null){
-                   for(Copyright copyright1 : copyrightsFromLocation){
-                       if(copyright.getCopyrightText().equals(copyright1.getCopyrightText())){
-                           count++;
-                       }
-                   }
-                }
-            }
-            auditCopyrightDTOs.add(new AuditCopyrightDTO(copyright.getCopyrightText(),count));
-        }
+        List<KeyValueEntity> values = dataManager.loadValues(context);
+        values.forEach(s -> {
+            Copyright copyright = copyrightRepository.findCopyrightById(s.getValue("copyrightId"));
+            Long value = s.getValue("countCL");
+            auditCopyrightDTOs.add(new AuditCopyrightDTO(copyright.getCopyrightText(),value.intValue()));
+        });
 
         auditCopyrightDc.setItems(auditCopyrightDTOs);
         copyrightAccordion.setSummaryText("Copyrights ("+auditCopyrightDTOs.size()+")");
@@ -228,7 +221,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
                             select v.id as vulnerabilityId, count(s) as countV
                             from InventoryItem i
                             join i.softwareComponent s
-                            join s.vulnerabilites v
+                            join s.vulnerabilities v
                             join i.project p
                             where p.id = :project_id
                             group by v.id

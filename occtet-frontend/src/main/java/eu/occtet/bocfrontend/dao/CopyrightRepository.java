@@ -32,6 +32,6 @@ import java.util.UUID;
 public interface CopyrightRepository extends JmixDataRepository<Copyright, UUID> {
 
    List<Copyright> findAll();
-
+   Copyright findCopyrightById(UUID uuid);
    List<Copyright> findCopyrightsByCodeLocationsIn(List<CodeLocation> codeLocations);
 }
