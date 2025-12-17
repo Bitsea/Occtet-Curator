@@ -8,10 +8,11 @@
 
 
     <changeSet id="10" author="occtet" context="!cuba">
+
         <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <and>
-                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM SUGGESTION</sqlCheck>
+                <tableExists tableName="SUGGESTION" schemaName="public"/>
             </and>
         </preConditions>
 
