@@ -96,8 +96,9 @@
                                    width="100px"/>
                     </hbox>
                     <hbox spacing="true">
-                        <checkbox id="curatedID" property="curated" label="Curated"/>
-                        <checkbox id="combinedID" property="wasCombined" label="Combined"/>
+                        <checkbox id="curatedID" property="curated"  dataContainer="inventoryItemDc" label="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
+                        <checkbox id="combinedID" property="wasCombined" dataContainer="inventoryItemDc" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.wasCombined"/>
+                        <checkbox id="licenseAIControlled" property="softwareComponent.licenseAiControlled" dataContainer="inventoryItemDc" label="msg://eu.occtet.bocfrontend.view.softwareComponent/licenseAiControlled"/>
                     </hbox>
                     <htmlObject colspan="2">
                         <hr></hr>
