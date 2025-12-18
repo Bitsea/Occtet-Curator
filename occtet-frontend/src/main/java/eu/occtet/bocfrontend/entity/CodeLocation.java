@@ -38,7 +38,7 @@ public class CodeLocation {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY,cascade = {CascadeType.REFRESH})
-    @JoinColumn(name = "INVENTORYITEM_ID")
+    @JoinColumn(name = "INVENTORY_ITEM_ID")
     private InventoryItem inventoryItem;
 
     @Column(name = "FILE_PATH", columnDefinition = "Text")
