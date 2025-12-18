@@ -36,7 +36,7 @@ import java.util.Map;
  * /
  *
  */
-public class OrtClientServiceTest extends TestCase {
+public class OrtClientServiceTest  {
 
     /**
      * test&demonstrate how to access ORT server via OrtClientService.
