@@ -217,7 +217,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=sha,prefix={{branch}}-
+            type=sha,prefix={{branch}}_
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
       
       - name: Debug - Show build context
