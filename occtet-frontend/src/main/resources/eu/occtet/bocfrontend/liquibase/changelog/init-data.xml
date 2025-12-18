@@ -5,17 +5,18 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-
-
     <changeSet id="11" author="occtet">
 
         <validCheckSum>ANY</validCheckSum>
-       <preConditions onFail="HALT">
-            <sqlCheck expectedResult="0">
-                SELECT COUNT(*) FROM suggestion
-            </sqlCheck>
-        </preConditions>
 
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="SUGGESTION"/>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) FROM suggestion
+                </sqlCheck>
+            </and>
+        </preConditions>
         <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
             <column name="ID" value="3f2b4e5c-8c1e-4e57-bc3f-2ad8f4a9c1d2"/>
             <column name="CONTEXT" value="auditNotes"/>
