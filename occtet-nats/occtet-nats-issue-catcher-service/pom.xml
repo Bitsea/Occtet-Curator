@@ -50,8 +50,13 @@
         </dependency>
         <dependency>
             <groupId>eu.occtet.boc</groupId>
+            <artifactId>occtet-common-jpa</artifactId>
+            <version>${common-jpa-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-ort-client</artifactId>
-            <version>0.3.2-SNAPSHOT</version>
+            <version>${ort-client-version}</version>
         </dependency>
         <dependency>
             <groupId>org.keycloak</groupId>
@@ -119,12 +124,6 @@
             <artifactId>hsqldb</artifactId>
             <version>2.7.4</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>eu.occtet.boc</groupId>
-            <artifactId>occtet-common-jpa</artifactId>
-            <version>2025.10.1</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 

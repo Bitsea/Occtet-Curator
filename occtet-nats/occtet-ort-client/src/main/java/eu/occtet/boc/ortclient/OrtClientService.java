@@ -2,6 +2,8 @@ package eu.occtet.boc.ortclient;
 
 import org.openapitools.client.ApiClient;
 
+import java.io.IOException;
+
 /*
  *
  *  Copyright (C) 2025 Bitsea GmbH
@@ -23,12 +25,37 @@ import org.openapitools.client.ApiClient;
  * /
  *
  */
+
+/**
+ * Service class to interact with an ORT server via its REST API.
+ */
 public class OrtClientService {
 
-    private String ortBaseUrl;
+    private String ortBaseUrl = "https://ort.bitsea.de";
+    private String keycloakTokenUrl = "https://keycloak.bitsea.de/realms/master/protocol/openid-connect/token";
+    private String clientId="ort-server";
+    private String scope="offline_access";
+
+
+    public OrtClientService() {
+    }
 
     public OrtClientService(String ortBaseUrl) {
         this.ortBaseUrl = ortBaseUrl;
+    }
+
+
+    /**
+     * Authenticate against Keycloak to obtain a TokenResponse for further API access.
+     * @param username
+     * @param password
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public TokenResponse authenticate(String username, String password) throws IOException, InterruptedException {
+        AuthService authService = new AuthService(keycloakTokenUrl);
+        return authService.requestToken(clientId,username,password,scope);
     }
 
     /**
