@@ -51,12 +51,11 @@ public class OrtClientServiceTest  {
         //AuthService authService = new AuthService("http://localhost:8081/realms/master/protocol/openid-connect/token");
 
         // get bearer token from Keycloak
-        AuthService authService = new AuthService("https://keycloak.bitsea.de/realms/master/protocol/openid-connect/token");
-        TokenResponse tokenResponse = authService.requestToken("ort-server","ort-admin","password","offline_access");
+        OrtClientService ortClientService = new OrtClientService("https://ort.bitsea.de");
+        TokenResponse tokenResponse = ortClientService.authenticate("ort-admin","password");;
         System.out.println("Obtained TokenResponse: " + tokenResponse);
 
         // start working with ORT API
-        OrtClientService ortClientService = new OrtClientService("https://ort.bitsea.de");
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
 
         // how to access version api
