@@ -7,10 +7,13 @@
 
 
 
-    <changeSet id="10" author="occtet" context="!cuba">
+    <changeSet id="11" author="occtet">
+
         <validCheckSum>ANY</validCheckSum>
-        <preConditions onFail="MARK_RAN">
-            <tableExists tableName="SUGGESTION" schemaName="public"/>
+       <preConditions onFail="HALT">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM suggestion
+            </sqlCheck>
         </preConditions>
 
         <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">

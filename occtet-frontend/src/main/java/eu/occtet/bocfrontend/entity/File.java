@@ -65,7 +65,7 @@ public class File {
     private File parent;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "CODELOCATION_ID", nullable = true)
+    @JoinColumn(name = "CODE_LOCATION_ID", nullable = true)
     @OnDelete(DeletePolicy.UNLINK)
     private CodeLocation codeLocation;
 

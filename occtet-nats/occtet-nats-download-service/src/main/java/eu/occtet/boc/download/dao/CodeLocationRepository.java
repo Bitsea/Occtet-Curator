@@ -29,5 +29,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CodeLocationRepository  extends JpaRepository<CodeLocation, UUID> {
-    List<CodeLocation> findCodeLocationsByInventoryItem(InventoryItem inventoryItem);
+    List<CodeLocation> findCodeLocationByInventoryItem(InventoryItem inventoryItem);
 }
