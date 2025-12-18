@@ -265,6 +265,328 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="10-spdx-v2-core-entities" author="OcctetBackend">
+
+        <createTable tableName="CREATION_INFO_ENTITY" ifNotExists="true">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_CREATION_INFO_ENTITY"/>
+            </column>
+            <column name="CREATED" type="VARCHAR(255)"/>
+            <column name="CREATORS" type="TEXT"/>
+            <column name="LICENSE_LIST_VERSION" type="VARCHAR(255)"/>
+            <column name="COMMENT" type="TEXT"/>
+        </createTable>
+
+        <createTable tableName="SPDX_DOCUMENT_ROOT" ifNotExists="true">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SPDX_DOCUMENT_ROOT"/>
+            </column>
+            <column name="SPDX_ID" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="SPDX_VERSION" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DATA_LICENSE" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="NAME" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="COMMENT" type="TEXT"/>
+            <column name="DOCUMENT_URI" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CREATION_INFO_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="SPDX_DOCUMENT_ROOT"
+                                 baseColumnNames="CREATION_INFO_ID"
+                                 constraintName="FK_SPDX_DOC_CREATION_INFO"
+                                 referencedTableName="CREATION_INFO_ENTITY"
+                                 referencedColumnNames="ID"/>
+
+        <createTable tableName="SPDX_PACKAGE_ENTITY" ifNotExists="true">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SPDX_PACKAGE_ENTITY"/>
+            </column>
+            <column name="SPDX_ID" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SPDX_DOCUMENT_ID" type="BIGINT"/>
+            <column name="NAME" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DOWNLOAD_LOCATION" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="FILES_ANALYZED" type="BOOLEAN"/>
+            <column name="VERSION_INFO" type="TEXT"/>
+            <column name="LICENSE_CONCLUDED" type="TEXT"/>
+            <column name="LICENSE_DECLARED" type="TEXT"/>
+            <column name="COPYRIGHT_TEXT" type="TEXT"/>
+            <column name="HOMEPAGE" type="TEXT"/>
+            <column name="SUMMARY" type="TEXT"/>
+            <column name="DESCRIPTION" type="TEXT"/>
+            <column name="ORIGINATOR" type="TEXT"/>
+            <column name="SUPPLIER" type="TEXT"/>
+            <column name="PACKAGE_VERIFICATION_CODE_VALUE" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="SPDX_PACKAGE_ENTITY"
+                                 baseColumnNames="SPDX_DOCUMENT_ID"
+                                 constraintName="FK_SPDX_PACKAGE_DOC"
+                                 referencedTableName="SPDX_DOCUMENT_ROOT"
+                                 referencedColumnNames="ID"/>
+
+        <createTable tableName="PACKAGE_LICENSE_INFO_FROM_FILES" ifNotExists="true">
+            <column name="PACKAGE_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LICENSE_INFO_FROM_FILES" type="VARCHAR(255)"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="PACKAGE_LICENSE_INFO_FROM_FILES" baseColumnNames="PACKAGE_ID"
+                                 constraintName="FK_PKG_LIC_INFO_PKG" referencedTableName="SPDX_PACKAGE_ENTITY" referencedColumnNames="ID"/>
+
+        <createTable tableName="PACKAGE_FILE_NAMES" ifNotExists="true">
+            <column name="PACKAGE_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="FILE_NAME" type="VARCHAR(255)"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="PACKAGE_FILE_NAMES" baseColumnNames="PACKAGE_ID"
+                                 constraintName="FK_PKG_FILE_NAMES_PKG" referencedTableName="SPDX_PACKAGE_ENTITY" referencedColumnNames="ID"/>
+
+        <createTable tableName="PACKAGE_VERIFICATION_EXCLUDED_FILES" ifNotExists="true">
+            <column name="PACKAGE_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="EXCLUDED_FILE_NAME" type="VARCHAR(255)"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="PACKAGE_VERIFICATION_EXCLUDED_FILES" baseColumnNames="PACKAGE_ID"
+                                 constraintName="FK_PKG_VERIF_EXCL_PKG" referencedTableName="SPDX_PACKAGE_ENTITY" referencedColumnNames="ID"/>
+
+        <createTable tableName="SPDX_FILE_ENTITY" ifNotExists="true">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SPDX_FILE_ENTITY"/>
+            </column>
+            <column name="SPDX_ID" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SPDX_DOCUMENT_ID" type="BIGINT"/>
+            <column name="FILE_NAME" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LICENSE_CONCLUDED" type="TEXT"/>
+            <column name="COPYRIGHT_TEXT" type="TEXT"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="SPDX_FILE_ENTITY"
+                                 baseColumnNames="SPDX_DOCUMENT_ID"
+                                 constraintName="FK_SPDX_FILE_DOC"
+                                 referencedTableName="SPDX_DOCUMENT_ROOT"
+                                 referencedColumnNames="ID"/>
+
+        <createTable tableName="FILE_TYPES" ifNotExists="true">
+            <column name="SPDX_FILE_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="FILE_TYPE" type="VARCHAR(255)"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="FILE_TYPES" baseColumnNames="SPDX_FILE_ID"
+                                 constraintName="FK_FILE_TYPES_FILE" referencedTableName="SPDX_FILE_ENTITY" referencedColumnNames="ID"/>
+
+        <createTable tableName="FILE_LICENSE_INFO" ifNotExists="true">
+            <column name="SPDX_FILE_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LICENSE_INFO_IN_FILES" type="VARCHAR(255)"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="FILE_LICENSE_INFO" baseColumnNames="SPDX_FILE_ID"
+                                 constraintName="FK_FILE_LIC_INFO_FILE" referencedTableName="SPDX_FILE_ENTITY" referencedColumnNames="ID"/>
+
+        <createTable tableName="SNIPPET" ifNotExists="true">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SNIPPET"/>
+            </column>
+            <column name="SPDX_ID" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SPDX_DOCUMENT_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="NAME" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SNIPPET_FROM_FILE" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LICENSE_CONCLUDED" type="TEXT"/>
+            <column name="COPYRIGHT_TEXT" type="TEXT"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="SNIPPET"
+                                 baseColumnNames="SPDX_DOCUMENT_ID"
+                                 constraintName="FK_SNIPPET_DOC"
+                                 referencedTableName="SPDX_DOCUMENT_ROOT"
+                                 referencedColumnNames="ID"/>
+
+        <createTable tableName="SNIPPET_LICENSES" ifNotExists="true">
+            <column name="SNIPPET_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LICENSE_INFO_IN_SNIPPETS" type="VARCHAR(255)"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="SNIPPET_LICENSES" baseColumnNames="SNIPPET_ID"
+                                 constraintName="FK_SNIP_LIC_SNIP" referencedTableName="SNIPPET" referencedColumnNames="ID"/>
+
+        <createTable tableName="SNIPPET_RANGES" ifNotExists="true">
+            <column name="SNIPPET_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="START_REFERENCE" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="START_OFFSET" type="INT"/>
+            <column name="START_LINE_NUMBER" type="INT"/>
+            <column name="END_REFERENCE" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="END_OFFSET" type="INT"/>
+            <column name="END_LINE_NUMBER" type="INT"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="SNIPPET_RANGES" baseColumnNames="SNIPPET_ID"
+                                 constraintName="FK_SNIP_RANGES_SNIP" referencedTableName="SNIPPET" referencedColumnNames="ID"/>
+
+        <createTable tableName="RELATIONSHIP_ENTITY" ifNotExists="true">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_RELATIONSHIP_ENTITY"/>
+            </column>
+            <column name="SPDX_DOCUMENT_ID" type="BIGINT"/>
+            <column name="SPDX_ELEMENT_ID" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="RELATED_SPDX_ELEMENT" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="RELATIONSHIP_TYPE" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="COMMENT" type="TEXT"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="RELATIONSHIP_ENTITY"
+                                 baseColumnNames="SPDX_DOCUMENT_ID"
+                                 constraintName="FK_RELATIONSHIP_DOC"
+                                 referencedTableName="SPDX_DOCUMENT_ROOT"
+                                 referencedColumnNames="ID"/>
+    </changeSet>
+
+    <changeSet id="11-spdx-v2-fk-patches" author="OcctetBackend">
+
+        <createTable tableName="ANNOTATION_ENTITY" ifNotExists="true">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_ANNOTATION_ENTITY"/>
+            </column>
+            <column name="SPDX_DOCUMENT_ID" type="BIGINT"/>
+            <column name="SPDX_PACKAGE_ID" type="BIGINT"/>
+            <column name="SPDX_FILE_ID" type="BIGINT"/>
+            <column name="ANNOTATOR" type="VARCHAR(255)"/>
+            <column name="ANNOTATION_DATE" type="VARCHAR(255)"/>
+            <column name="ANNOTATION_TYPE" type="VARCHAR(255)"/>
+            <column name="COMMENT" type="TEXT"/>
+        </createTable>
+
+        <createTable tableName="CHECKSUM_ENTITY" ifNotExists="true">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_CHECKSUM_ENTITY"/>
+            </column>
+            <column name="PACKAGE_ID" type="BIGINT"/>
+            <column name="FILE_ID" type="BIGINT"/>
+            <column name="ALGORITHM" type="VARCHAR(255)"/>
+            <column name="CHECKSUM_VALUE" type="VARCHAR(255)"/>
+        </createTable>
+
+        <createTable tableName="EXTERNAL_DOCUMENT_REF_ENTITY" ifNotExists="true">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_EXTERNAL_DOCUMENT_REF_ENTITY"/>
+            </column>
+            <column name="SPDX_DOCUMENT_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="EXTERNAL_DOC_ID" type="VARCHAR(255)"/>
+            <column name="SPDX_DOCUMENT_URI" type="VARCHAR(255)"/>
+            <column name="CHECKSUM_ALGORITHM" type="VARCHAR(255)"/>
+            <column name="CHECKSUM_VALUE" type="VARCHAR(255)"/>
+        </createTable>
+
+        <createTable tableName="EXTERNAL_REF_ENTITY" ifNotExists="true">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_EXTERNAL_REF_ENTITY"/>
+            </column>
+            <column name="PACKAGE_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="REFERENCE_CATEGORY" type="VARCHAR(255)"/>
+            <column name="REFERENCE_TYPE" type="VARCHAR(255)"/>
+            <column name="REFERENCE_LOCATOR" type="VARCHAR(255)"/>
+            <column name="COMMENT" type="TEXT"/>
+        </createTable>
+
+        <createTable tableName="EXTRACTED_LICENSING_INFO_ENTITY" ifNotExists="true">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_EXTRACTED_LICENSING_INFO_ENTITY"/>
+            </column>
+            <column name="SPDX_DOCUMENT_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LICENSE_ID" type="VARCHAR(255)"/>
+            <column name="EXTRACTED_TEXT" type="TEXT"/>
+            <column name="LICENSE_NAME" type="VARCHAR(255)"/>
+            <column name="COMMENT" type="TEXT"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="ANNOTATION_ENTITY"
+                                 baseColumnNames="SPDX_PACKAGE_ID"
+                                 constraintName="FK_ANNOTATION_PACKAGE"
+                                 referencedTableName="SPDX_PACKAGE_ENTITY"
+                                 referencedColumnNames="ID"/>
+
+        <addForeignKeyConstraint baseTableName="CHECKSUM_ENTITY"
+                                 baseColumnNames="PACKAGE_ID"
+                                 constraintName="FK_CHECKSUM_PACKAGE"
+                                 referencedTableName="SPDX_PACKAGE_ENTITY"
+                                 referencedColumnNames="ID"/>
+
+        <addForeignKeyConstraint baseTableName="CHECKSUM_ENTITY"
+                                 baseColumnNames="FILE_ID"
+                                 constraintName="FK_CHECKSUM_FILE"
+                                 referencedTableName="SPDX_FILE_ENTITY"
+                                 referencedColumnNames="ID"/>
+
+        <addForeignKeyConstraint baseTableName="EXTERNAL_DOCUMENT_REF_ENTITY"
+                                 baseColumnNames="SPDX_DOCUMENT_ID"
+                                 constraintName="FK_EXT_DOC_REF_ROOT"
+                                 referencedTableName="SPDX_DOCUMENT_ROOT"
+                                 referencedColumnNames="ID"/>
+
+        <addForeignKeyConstraint baseTableName="EXTERNAL_REF_ENTITY"
+                                 baseColumnNames="PACKAGE_ID"
+                                 constraintName="FK_EXT_REF_PACKAGE"
+                                 referencedTableName="SPDX_PACKAGE_ENTITY"
+                                 referencedColumnNames="ID"/>
+
+        <addForeignKeyConstraint baseTableName="EXTRACTED_LICENSING_INFO_ENTITY"
+                                 baseColumnNames="SPDX_DOCUMENT_ID"
+                                 constraintName="FK_EXT_LIC_INFO_ROOT"
+                                 referencedTableName="SPDX_DOCUMENT_ROOT"
+                                 referencedColumnNames="ID"/>
+    </changeSet>
+
     <!-- MODIFICATIONS-->
 
 </databaseChangeLog>
