@@ -22,6 +22,8 @@
 
 package eu.occtet.boc.download.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,102 +34,126 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Duration;
 
+/**
+ * Controller responsible for resolving GitHub repository tags to download URLs.
+ * <p>
+ * Instead of guessing URLs, this controller queries the GitHub Tags API to retrieve
+ * available versions and matches them against the requested version string using
+ * fuzzy matching logic (e.g., handling 'v' prefixes, underscores, and release suffixes).
+ */
 @RestController
 public class GitRepoController {
 
-    private final static String GIT_API = "https://api.github.com/repos/";
+    private final static String GIT_API_TAGS = "https://api.github.com/repos/%s/%s/tags";
     private final static int SUCCESS_STATUS_CODE = 200;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final HttpClient httpClient;
     private static final Logger log = LoggerFactory.getLogger(GitRepoController.class);
 
+    public GitRepoController() {
+        this.httpClient = HttpClient.newBuilder()
+                .followRedirects(HttpClient.Redirect.ALWAYS)
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+    }
+
     /**
-     * Retrieves the download URL of a GitHub repository ZIP file for a specific version or tag.
-     * The method constructs possible tag candidates based on the provided version and
-     * attempts to locate a valid tag in the GitHub repository. If a valid tag is found,
-     * the corresponding download URL is returned.
+     * Retrieves the download URL of a GitHub repository ZIP file for a specific version.
+     * <p>
+     * This method fetches the list of tags from the repository and iterates through them
+     * to find a match for the provided version string. It handles common versioning
+     * discrepancies such as 'v' prefixes (v1.0 vs 1.0) or different separators.
      *
-     * @param owner the owner or organization of the GitHub repository
-     * @param repo the name of the GitHub repository
-     * @param version the version or tag to be checked in the repository
-     * @return the download URL of the repository ZIP file for*/
+     * @param owner   the owner or organization of the GitHub repository
+     * @param repo    the name of the GitHub repository
+     * @param version the version identifier to locate
+     * @return the URL of the zipball for the matching tag, or an empty string if not found
+     */
     public String getGitRepository(String owner, String repo, String version) throws IOException, InterruptedException {
         if (version == null || version.isEmpty()) {
             return "";
         }
 
-        List<String> tagCandidates = new ArrayList<>();
+        String apiUrl = String.format(GIT_API_TAGS, owner, repo);
+        log.debug("Fetching tags from API: {}", apiUrl);
 
-        // Case 1: Exact Version
-        tagCandidates.add(version);
+        HttpResponse<InputStream> response = getHttpResponse(apiUrl);
 
-        // Case 2: 'v' prefix logic
-        String versionNoV = version;
-        if (version.toLowerCase().startsWith("v")) {
-            versionNoV = version.substring(1);
-            tagCandidates.add(versionNoV);
-        } else {
-            tagCandidates.add("v" + version);
+        if (response.statusCode() != SUCCESS_STATUS_CODE) {
+            log.warn("Failed to fetch tags for {}/{}. Status: {}", owner, repo, response.statusCode());
+            return "";
         }
 
-        // Case 3: Repo-Prefix combinations (e.g. "awaitility-4.3.0")
-        tagCandidates.add(repo + "-" + version);
+        try (InputStream body = response.body()) {
+            JsonNode tagsArray = objectMapper.readTree(body);
 
-        if (!version.equals(versionNoV)) {
-            tagCandidates.add(repo + "-" + versionNoV);
-        }
-        if (!version.toLowerCase().startsWith("v")) {
-            tagCandidates.add(repo + "-v" + version);
-        }
+            // Iterate through tags to find a match
+            for (JsonNode tagNode : tagsArray) {
+                String tagName = tagNode.get("name").asText();
 
-        // Case 4:  Underscore variation (e.g. logback "v_1.5.18")
-        if (version.toLowerCase().startsWith("v")) {
-            tagCandidates.add(version.replace("v", "v_"));
-        } else {
-            tagCandidates.add("v_" + version);
-        }
-
-        // Case 5: Apache/Groovy Style (e.g. "GROOVY_4_0_26")
-        // Logic: REPO (UPPER) + "_" + VERSION (dots -> underscores)
-        String underscoreVersion = versionNoV.replace(".", "_");
-        tagCandidates.add(repo.toUpperCase() + "_" + underscoreVersion);
-
-        // Case 6: "rel/" prefix (Common in some older repos)
-        tagCandidates.add("rel/" + version);
-        tagCandidates.add("release/" + version);
-
-        for (String tag : tagCandidates) {
-            String url = constructZipUrl(owner, repo, tag);
-            log.info("Checking API-Url: {}", url);
-
-            HttpResponse<InputStream> response = getHttpResponse(url);
-
-            if (response.statusCode() == SUCCESS_STATUS_CODE) {
-                log.info("Found valid tag: {}", tag);
-                return response.uri().toString();
+                if (matchesVersion(tagName, version, repo)) {
+                    String zipUrl = tagNode.get("zipball_url").asText();
+                    log.info("Found matching tag '{}' for version '{}'. URL: {}", tagName, version, zipUrl);
+                    return zipUrl;
+                }
             }
         }
 
-        log.warn("No valid tag found for {}/{} version {}", owner, repo, version);
+        log.warn("No matching tag found for {}/{} version {}", owner, repo, version);
         return "";
     }
 
-    private String constructZipUrl(String owner, String repo, String tag) {
-        return GIT_API + owner + "/" + repo + "/zipball/" + tag;
+    /**
+     * Determines if a Git tag matches the requested version string.
+     * <p>
+     * Implements heuristics to handle common versioning variations:
+     * <ul>
+     * <li>Exact match (e.g., "1.0" == "1.0")</li>
+     * <li>'v' prefix (e.g., "v1.0" == "1.0")</li>
+     * <li>Repo name prefix (e.g., "gson-2.8.0" == "2.8.0")</li>
+     * <li>Underscore substitution (e.g., "GROOVY_2_4" == "2.4")</li>
+     * <li>Release folder prefixes (e.g., "release/1.0" == "1.0")</li>
+     * </ul>
+     */
+    private boolean matchesVersion(String tagName, String targetVersion, String repoName) {
+        String cleanTag = tagName.toLowerCase();
+        String cleanTarget = targetVersion.toLowerCase();
+        String cleanRepo = repoName.toLowerCase();
+
+        // 1. Exact Match
+        if (cleanTag.equals(cleanTarget)) return true;
+
+        // 2. 'v' prefix logic (v1.0 == 1.0)
+        if (cleanTag.equals("v" + cleanTarget)) return true;
+
+        // 3. Repo-Prefix (gson-2.8.0 == 2.8.0)
+        if (cleanTag.equals(cleanRepo + "-" + cleanTarget)) return true;
+        if (cleanTag.equals(cleanRepo + "-v" + cleanTarget)) return true;
+
+        // 4. Underscore variation (GROOVY_4_0_26 == 4.0.26)
+        String underscoreTarget = cleanTarget.replace(".", "_");
+        if (cleanTag.equals(underscoreTarget)) return true;
+        if (cleanTag.equals("v_" + underscoreTarget)) return true;
+        if (cleanTag.equals(cleanRepo + "_" + underscoreTarget)) return true;
+
+        // 5. Release/Rel prefix
+        if (cleanTag.equals("rel/" + cleanTarget)) return true;
+        if (cleanTag.equals("release/" + cleanTarget)) return true;
+
+        return false;
     }
 
     private HttpResponse<InputStream> getHttpResponse(String apiUrl) throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newBuilder()
-                .followRedirects(HttpClient.Redirect.ALWAYS)
-                .build();
-
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(apiUrl))
                 .GET()
                 .header("Accept", "application/vnd.github+json")
+                .header("User-Agent", "Occtet-Downloader") // GitHub requires a User-Agent
                 .build();
 
-        return client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
     }
 }

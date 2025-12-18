@@ -32,6 +32,7 @@ import eu.occtet.boc.service.BaseWorkDataProcessor;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,13 +62,13 @@ import java.util.zip.ZipInputStream;
  * <ul>
  * <li>Handles protocol normalization (e.g., git+ssh to git+https).</li>
  * <li>Resolves GitHub tags to archive URLs via {@link GitRepoController}.</li>
- * <li>Skips invalid or unsupported protocols (e.g., CVS, SVN, NONE).</li>
+ * <li><b>Security:</b> Enforces a strict protocol whitelist (HTTP/HTTPS/GIT) to prevent crashes on unsupported schemes (SVN/CVS/HG).</li>
  * </ul>
  * </li>
  * <li><b>Download & Extraction:</b>
  * <ul>
  * <li>Downloads the artifact to a temporary sandbox directory.</li>
- * <li>Extracts the contents (supporting ZIP and TAR.GZ formats).</li>
+ * <li>Extracts the contents securely (preventing Zip Slip).</li>
  * <li>Flattens the directory structure if a single wrapper folder is detected (e.g., from GitHub archives).</li>
  * <li>Moves the files to the final destination directory structure.</li>
  * </ul>
@@ -90,40 +91,56 @@ public class DownloadService extends BaseWorkDataProcessor {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
 
+    /**
+     * Orchestrates the download workflow for a specific {@link DownloadServiceWorkData} task.
+     * <p>
+     * This method validates the existence of the target Project and InventoryItem,
+     * resolves the appropriate download URL, and triggers the physical download and extraction.
+     * If successful, it delegates to {@link FileService} to map the file system to database entities.
+     *
+     * @param workData contains the contextual information (URL, version, project ID) required for the download
+     * @return true if the process completes successfully or is skipped intentionally; false if validation fails
+     * @throws RuntimeException if the download or extraction process encounters an unrecoverable error
+     */
     @Override
     public boolean process(DownloadServiceWorkData workData) {
-        log.debug("DownloadService: downloading data from {} to {}", workData.getUrl(), workData.getLocation());
+        log.debug("Processing download task for URL: {} -> {}", workData.getUrl(), workData.getLocation());
 
         try {
             Project project = projectRepository.findById(UUID.fromString(workData.getProjectId())).orElse(null);
-            InventoryItem inventoryItem =
-                    inventoryItemRepository.findById(UUID.fromString(workData.getInventoryItemId())).orElse(null);
+            InventoryItem inventoryItem = inventoryItemRepository.findById(UUID.fromString(workData.getInventoryItemId())).orElse(null);
+
             if (project == null) {
-                log.error("Project not found for id: {}", workData.getProjectId());
+                log.error("Aborting download: Project not found for ID {}", workData.getProjectId());
                 return false;
             }
-            if (inventoryItem == null){
-                log.warn("InventoryItem not found for id: {}", workData.getInventoryItemId());
+            if (inventoryItem == null) {
+                log.warn("Proceeding with warning: InventoryItem not found for ID {}", workData.getInventoryItemId());
             }
-            // Execute download logic
+
             Path downloadedPath = performDownload(workData);
+
             if (downloadedPath == null) {
-                return true;
-            } else {
-                fileService.createEntitiesFromPath(project, inventoryItem, downloadedPath, workData.getIsMainPackage());
-                return true;
+                return true; // Handled (skipped intentionally)
             }
+
+            fileService.createEntitiesFromPath(project, inventoryItem, downloadedPath, workData.getIsMainPackage());
+            return true;
+
         } catch (Exception e) {
-            log.error("Download failed: {}", e.getMessage());
-            throw new RuntimeException(e);
+            log.error("Download workflow failed for {}: {}", workData.getUrl(), e.getMessage());
+            throw new RuntimeException("Download failed", e);
         }
     }
 
     /**
-     * Downloads and extracts a package to a target directory based on the specified work data.
+     * Executes the physical download and extraction of the artifact.
      *
-     * @param workData the data containing details such as URL, version, and target location
-     * @return the path to the directory where the package was downloaded*/
+     * @param workData the task details
+     * @return the {@link Path} to the final directory containing the extracted files, or null if skipped
+     * @throws IOException if file system operations fail
+     * @throws InterruptedException if the Git resolution process is interrupted
+     */
     private Path performDownload(DownloadServiceWorkData workData) throws IOException, InterruptedException {
         String url = workData.getUrl();
         String version = workData.getVersion();
@@ -131,64 +148,67 @@ public class DownloadService extends BaseWorkDataProcessor {
         String downloadUrl = resolveDownloadUrl(url, version);
 
         if (downloadUrl == null) {
-            log.warn("Skipping download. Invalid or empty URL: '{}'", url);
+            log.warn("Skipping download: URL resolved to null or is unsupported for '{}'", url);
             return null;
         }
-        // Calculate clean target dir; structure: [BasePath]/?dependencies?/[LibName]/[Version]
+
+        // Calculate target path: [BasePath] / [dependencies?] / [LibName] / [Version]
         Path baseLocation = Paths.get(workData.getLocation());
         if (Boolean.FALSE.equals(workData.getIsMainPackage())) {
             baseLocation = baseLocation.resolve("dependencies");
         }
 
         String libName = extractCleanLibraryName(url);
-        Path targetDir = baseLocation.resolve(libName).resolve(version); // /[LibName]/[Version]
+        Path targetDir = baseLocation.resolve(libName).resolve(version);
 
         return downloadAndUnpack(downloadUrl, targetDir);
     }
 
     /**
-     * Resolves a download URL based on the provided raw URL and version. This method handles
-     * various URL formats, such as git-based URLs, legacy VCS URLs, and standard file download URLs.
-     * Unsupported or invalid URLs will resolve to null.
+     * Resolves the raw input URL into a direct HTTP download link.
+     * <p>
+     * This method normalizes Git URLs to HTTP, handles version-tag resolution via the GitHub API,
+     * and filters out unsupported legacy VCS protocols (CVS, SVN, Mercurial, Bazaar) to prevent
+     * runtime crashes.
      *
-     * @param rawUrl the raw URL to be resolved; it may correspond to links like
-     *               git repositories, file downloads, or legacy VCS schemes.
-     * @param version the version to use for constructing a specific URL in the case of git-based repositories.
-     * @return the resolved download URL as a String, or null if the input is invalid or corresponds to
-     *         unsupported legacy VCS formats.
-     * @throws IOException if an IO exception occurs during URL resolution processing.
-     * @throws InterruptedException if the current thread is interrupted during processing.
+     * @param rawUrl  the URL provided by the upstream service (e.g., "git+ssh://...")
+     * @param version the version tag to resolve if the URL is a Git repository
+     * @return a valid HTTP/HTTPS URL string for the archive, or null if the protocol is unsupported
      */
     private String resolveDownloadUrl(String rawUrl, String version) throws IOException, InterruptedException {
-        if (rawUrl == null ||
-                rawUrl.equalsIgnoreCase("NONE") ||
-                rawUrl.equalsIgnoreCase("NOASSERTION") ||
-                rawUrl.isEmpty()) {
-            return null;
-        }
-        // Handle Legacy/Unsupported VCS immediately
-        if (rawUrl.startsWith("cvs") || rawUrl.contains("cvs.codehaus.org") || rawUrl.startsWith("svn")) {
-            log.warn("Skipping Unsupported Legacy VCS (CVS/SVN): {}", rawUrl);
+        if (rawUrl == null || rawUrl.isEmpty() ||
+                "NONE".equalsIgnoreCase(rawUrl) ||
+                "NOASSERTION".equalsIgnoreCase(rawUrl)) {
             return null;
         }
 
-        String effectiveUrl = rawUrl;
-        // Normalization: Treat "git+ssh" and plain "https://... .git" as "git+" logic
+        String effectiveUrl = rawUrl.trim();
+
+        // Normalize SSH/Git schemes to HTTP for easier handling
         if (effectiveUrl.startsWith("git+ssh://")) {
             effectiveUrl = effectiveUrl.replace("git+ssh://", "git+https://");
-        }
-        else if (effectiveUrl.startsWith("ssh://")) {
+        } else if (effectiveUrl.startsWith("ssh://")) {
             effectiveUrl = effectiveUrl.replace("ssh://", "git+https://");
-        }
-        // Handle plain "https://github.com/foo/bar.git" as if it were "git+https"
-        else if (effectiveUrl.startsWith("https://") && effectiveUrl.endsWith(".git")) {
+        } else if (effectiveUrl.startsWith("https://") && effectiveUrl.endsWith(".git")) {
             effectiveUrl = "git+" + effectiveUrl;
         }
-        // If it is (or became) a "git+" URL, resolve it via API to get the ZIP URL
+
+        // Whitelist Check: Only allow protocols we explicitly know how to handle.
+        // This implicitly drops CVS, SVN, HG, BZR, etc.
+        boolean isSupported = effectiveUrl.startsWith("http://") ||
+                effectiveUrl.startsWith("https://") ||
+                effectiveUrl.startsWith("git+https://") ||
+                effectiveUrl.startsWith("git+http://");
+
+        if (!isSupported) {
+            log.warn("Skipping unsupported protocol: {}", rawUrl);
+            return null;
+        }
+
         if (effectiveUrl.startsWith("git+")) {
             return resolveGitToZipUrl(effectiveUrl, version);
         }
-        // Standard File Download (Maven artifacts, etc.)
+
         return effectiveUrl;
     }
 
@@ -200,15 +220,16 @@ public class DownloadService extends BaseWorkDataProcessor {
         // Basic parsing for expected format: https://github.com/owner/repo.git or https://github.com/owner/repo
         if (!cleanUrl.contains("github.com")) {
             log.warn("Non-GitHub Git URLs are not fully supported yet for Zip download: {}", gitUrl);
+            // Return cleanUrl to attempt a direct download (fallback), though likely to fail if it's a repo page
             return cleanUrl;
         }
-        // split to parts
+
         String[] parts = cleanUrl.split("/");
         if (parts.length < 2) throw new IOException("Invalid Git URL structure: " + gitUrl);
         String repoWithGit = parts[parts.length - 1];
         String owner = parts[parts.length - 2];
         String repo = repoWithGit.endsWith(".git") ? repoWithGit.substring(0, repoWithGit.length() - 4) : repoWithGit;
-        // find actual ZIP URL
+
         String resolved = gitRepoController.getGitRepository(owner, repo, version);
         if (resolved == null || resolved.isEmpty()) {
             throw new IOException("GitRepoController returned 404 for " + owner + "/" + repo + " @ " + version);
@@ -238,47 +259,45 @@ public class DownloadService extends BaseWorkDataProcessor {
     }
 
     /**
-     * Downloads to a temp folder, unpacks, flattens, and moves to target.
-     * This approach ensures the final folder structure is clean.
+     * Downloads an archive to a temporary sandbox, extracts it, and moves the content to the final location.
+     * <p>
+     * This method uses a "sandbox" approach: files are never extracted directly to the target.
+     * Instead, they are extracted to a temp folder, allowing us to inspect the structure
+     * (e.g., flattening wrapper folders) before committing to the final path.
      */
     private Path downloadAndUnpack(String downloadUrl, Path targetDir) throws IOException {
         Path tempDownloadDir = null;
         Path downloadTmpFile = null;
 
         try {
-            // Create a fresh temp directory and file for this operation
             tempDownloadDir = Files.createTempDirectory("occtet_sandbox_");
-            String fileName = downloadUrl.substring(downloadUrl.lastIndexOf('/') + 1);
-            downloadTmpFile = tempDownloadDir.resolve("archive_" + UUID.randomUUID() + "_" + fileName);
+            String fileName = FilenameUtils.getName(downloadUrl);
+            if (fileName == null || fileName.isEmpty()) fileName = "downloaded_archive";
 
-            log.info("Downloading from: {}", downloadUrl);
+            downloadTmpFile = tempDownloadDir.resolve(fileName);
 
-            // Perform Download
+            log.info("Downloading artifact from: {}", downloadUrl);
             downloadToPath(downloadUrl, downloadTmpFile);
 
-            // Unpack into the Sandbox Dir
             if (fileName.endsWith(".tar.gz") || fileName.endsWith(".tgz")) {
                 unpackTar(downloadTmpFile, tempDownloadDir);
             } else {
                 unpackZip(downloadTmpFile, tempDownloadDir);
             }
 
-            // Delete the archive file so it doesn't get moved to destination
-            Files.delete(downloadTmpFile);
+            Files.deleteIfExists(downloadTmpFile);
 
-            // Flatten and Move to Final Destination
             moveToFinalDestination(tempDownloadDir, targetDir);
 
-            log.info("Successfully installed to: {}", targetDir);
+            log.info("Installation successful at: {}", targetDir);
             return targetDir;
 
         } finally {
-            // Cleanup Temp Dir (Sandbox)
             if (tempDownloadDir != null) {
                 try {
                     FileSystemUtils.deleteRecursively(tempDownloadDir);
                 } catch (IOException e) {
-                    log.warn("Failed to delete temp dir: {}", tempDownloadDir);
+                    log.warn("Failed to clean up temp directory: {}", tempDownloadDir);
                 }
             }
         }
@@ -288,9 +307,15 @@ public class DownloadService extends BaseWorkDataProcessor {
         URL url = new URL(urlString);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setConnectTimeout(10000);
-        connection.setReadTimeout(60000*3); // 3min read timeout for larger files
+        connection.setReadTimeout(180000); // 3 minutes
 
         int responseCode = connection.getResponseCode();
+
+        if (responseCode == HttpURLConnection.HTTP_MOVED_PERM || responseCode == HttpURLConnection.HTTP_MOVED_TEMP) {
+            String newUrl = connection.getHeaderField("Location");
+            downloadToPath(newUrl, destination);
+            return;
+        }
 
         if (responseCode != HttpURLConnection.HTTP_OK) {
             throw new IOException("Server returned HTTP " + responseCode + " for URL: " + urlString);
@@ -314,14 +339,12 @@ public class DownloadService extends BaseWorkDataProcessor {
                     .toList();
         }
 
-        // Logic to flatten "Wrapper Folder" (e.g. google-auto-86f3a0)
+        // Logic to flatten "Wrapper Folder" (e.g., github-repo-v1.0/)
         if (contents.size() == 1 && Files.isDirectory(contents.get(0))) {
             Path wrapperDir = contents.get(0);
-            log.debug("Detected wrapper folder: {}. Flattening...", wrapperDir.getFileName());
-            // Move children of wrapper to target
+            log.debug("Wrapper folder detected ({}); flattening structure.", wrapperDir.getFileName());
             moveRecursive(wrapperDir, targetDir);
         } else {
-            // Move everything directly
             moveRecursive(sourceDir, targetDir);
         }
     }
@@ -334,28 +357,32 @@ public class DownloadService extends BaseWorkDataProcessor {
         try (Stream<Path> stream = Files.list(source)) {
             for (Path srcPath : stream.toList()) {
                 Path destinationPath = target.resolve(srcPath.getFileName());
-
                 if (Files.isDirectory(srcPath)) {
                     moveRecursive(srcPath, destinationPath);
                 } else {
-                    // Move file (replace if exists to handle re-downloads)
                     Files.move(srcPath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
                 }
             }
         }
     }
 
-
+    /**
+     * Extracts a ZIP archive while protecting against Zip Slip vulnerabilities.
+     */
     private void unpackZip(Path archive, Path outputDir) throws IOException {
         try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(archive))) {
             ZipEntry entry;
             String canonicalDest = outputDir.toFile().getCanonicalPath();
 
             while ((entry = zis.getNextEntry()) != null) {
+                if (shouldSkipEntry(entry.getName())) {
+                    continue;
+                }
+
                 File outFile = outputDir.resolve(entry.getName()).toFile();
                 String canonicalOut = outFile.getCanonicalPath();
 
-                // Security Check
+                // Security Check: Ensure the file is inside the target directory
                 if (!canonicalOut.startsWith(canonicalDest + File.separator)) {
                     throw new IOException("Security Error: Zip Slip detected for entry " + entry.getName());
                 }
@@ -382,6 +409,10 @@ public class DownloadService extends BaseWorkDataProcessor {
             String canonicalDest = outputDir.toFile().getCanonicalPath();
 
             while ((entry = ti.getNextTarEntry()) != null) {
+                if (shouldSkipEntry(entry.getName())) {
+                    continue;
+                }
+
                 File outFile = outputDir.resolve(entry.getName()).toFile();
                 String canonicalOut = outFile.getCanonicalPath();
 
@@ -401,5 +432,10 @@ public class DownloadService extends BaseWorkDataProcessor {
                 }
             }
         }
+    }
+
+    // Helper to identify purely metadata entries in archives
+    private boolean shouldSkipEntry(String name) {
+        return name.equals(".") || name.equals("./") || name.equals("..") || name.equals("../");
     }
 }
