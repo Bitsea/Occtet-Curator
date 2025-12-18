@@ -90,7 +90,6 @@ public class DownloadServiceApp {
         microserviceDescriptor.setVersion(applicationVersion);
         log.info("Occtet Microservice INIT: {} (version {}), listening on NATS stream '{}'",
                 microserviceDescriptor.getName(), microserviceDescriptor.getVersion(), streamName );
-
         systemHandler = new SystemHandler(natsConnection, microserviceDescriptor, downloadWorkConsumer);
         systemHandler.subscribeToSystemSubject();
         executor.execute(()->{

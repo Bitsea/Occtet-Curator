@@ -95,6 +95,7 @@
             <column name="SOFTWARE_COMPONENT_NAME" type="VARCHAR(255)"/>
             <column name="VERSION" type="varchar(255)"/>
             <column name="PURL" type="varchar(255)"/>
+            <column name="LICENSE_AI_CONTROLLED" type="BOOLEAN"/>
             <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
             <column name="DETAILS_URL" type="TEXT"/>
         </createTable>
@@ -194,9 +195,9 @@
                              references="FILE(ID)"
                              deleteCascade="true"/>
             </column>
-            <column name="CODELOCATION_ID" type="UUID">
+            <column name="CODE_LOCATION_ID" type="UUID">
                 <constraints nullable="true"
-                             foreignKeyName="FK_FILE_CODELOCATION"
+                             foreignKeyName="FK_FILE_CODE_LOCATION"
                              references="CODE_LOCATION(ID)"/>
             </column>
             <column name="INVENTORY_ITEM_ID" type="UUID">
@@ -244,6 +245,7 @@
             <column name="COPYRIGHT_TEXT" type="TEXT"/>
             <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
             <column name="GARBAGE" type="BOOLEAN"/>
+            <column name="AI_CONTROLLED" type="BOOLEAN"/>
         </createTable>
         <createTable tableName="COPYRIGHT_CODE_LOCATION_LINK" ifNotExists="true">
             <column name="COPYRIGHT_ID" type="UUID">
@@ -258,7 +260,6 @@
     <changeSet id="9" author="">
         <createTable tableName="SUGGESTION">
             <column name="ID" type="UUID">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SUGGESTION" />
             </column>
             <column name="CONTEXT" type="varchar(255)"/>
             <column name="SENTENCE" type="text"/>

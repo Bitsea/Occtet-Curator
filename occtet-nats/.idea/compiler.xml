@@ -29,7 +29,6 @@
       <module name="occtet-nats-issue-catcher-service" target="21" />
       <module name="occtet-nats-licenseMatcher-service" target="21" />
       <module name="occtet-nats-ort-run-starter-service" target="21" />
-      <module name="occtet-nats-spdx-export" target="21" />
       <module name="occtet-nats-vulnerablity-microservice" target="21" />
       <module name="occtet-ort-client" target="21" />
     </bytecodeTargetLevel>

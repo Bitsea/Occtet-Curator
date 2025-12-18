@@ -95,7 +95,7 @@ public class FileService {
     private CodeLocationRepository codeLocationRepository;
 
     @Value("${occtet.scanner.ignored-names}")
-    private List<String> ignoredNames;
+    private final List<String> ignoredNames = Collections.emptyList();
 
     /**
      * Scans a directory located at the given path and creates corresponding File entities
@@ -115,26 +115,27 @@ public class FileService {
 
             Map<String, File> projectFileCache = fileRepository.findAllByProject(project).stream()
                     .collect(Collectors.toMap(File::getAbsolutePath, Function.identity(), (a, b) -> a));
-
+            log.debug("test1");
             Map<String, CodeLocation> codeLocationMap = new HashMap<>();
             if (inventoryItem != null) {
-                List<CodeLocation> cls = codeLocationRepository.findCodeLocationsByInventoryItem(inventoryItem);
+                log.debug("test2");
+                List<CodeLocation> cls = codeLocationRepository.findCodeLocationByInventoryItem(inventoryItem);
                 for (CodeLocation cl : cls) {
                     codeLocationMap.put(cl.getFilePath(), cl);
                 }
             }
-
+            log.debug("test3");
             List<File> batchBuffer = new ArrayList<>();
             int batchSize = 500;
             java.io.File rootDirectory = rootPath.toFile();
-
+            log.debug("test4");
             // Ensure parent hierarchy exists (using Cache)
             File parentForRoot = ensureParentHierarchy(project, rootDirectory.getParentFile(), projectFileCache, batchBuffer);
-
+            log.debug("test5");
             File rootEntity;
             String relativePath = getRelativePath(rootPath, rootDirectory);
             CodeLocation rootCodeLocation = determineCodeLocation(relativePath, codeLocationMap);
-
+            log.debug("test6");
             if (!projectFileCache.containsKey(rootDirectory.getAbsolutePath())) {
                 rootEntity = fileFactory.create(
                         project,
@@ -146,9 +147,11 @@ public class FileService {
                         rootCodeLocation != null ? inventoryItem : null,
                         rootCodeLocation
                 );
+                log.debug("test7");
                 addToBatch(rootEntity, batchBuffer, batchSize);
                 projectFileCache.put(rootEntity.getAbsolutePath(), rootEntity);
             } else {
+                log.debug("test8");
                 rootEntity = projectFileCache.get(rootDirectory.getAbsolutePath());
                 updateFileLinkage(rootEntity, rootCodeLocation, batchBuffer, batchSize);
             }
@@ -189,17 +192,19 @@ public class FileService {
             String absPath = file.getAbsolutePath();
             String calculatedRelativePath = getRelativePath(relativeAnchor, file);
             CodeLocation codeLocation = determineCodeLocation(calculatedRelativePath, codeLocationMap);
-
+            log.debug("fetched code location");
             if (projectFileCache.containsKey(absPath)) {
+                log.debug("contains key");
                 File existingFile = projectFileCache.get(absPath);
                 updateFileLinkage(existingFile, codeLocation, batchBuffer, batchSize);
 
                 if (file.isDirectory()) {
+                    log.debug("is directory");
                     scanDir(project, file, existingFile, batchBuffer, projectFileCache, batchSize, inventoryItem, relativeAnchor, codeLocationMap);
                 }
                 continue;
             }
-
+            log.debug("creating file");
             File fileEntity = fileFactory.create(
                     project,
                     file.getName(),
@@ -210,13 +215,14 @@ public class FileService {
                     codeLocation != null ? inventoryItem : null,
                     codeLocation
             );
-
+            log.debug("adding to batch");
             addToBatch(fileEntity, batchBuffer, batchSize);
             projectFileCache.put(absPath, fileEntity);
-
+            log.debug("added to cache");
             if (file.isDirectory()) {
                 scanDir(project, file, fileEntity, batchBuffer, projectFileCache, batchSize, inventoryItem, relativeAnchor, codeLocationMap);
             }
+            log.debug("end");
         }
     }
 
@@ -257,15 +263,17 @@ public class FileService {
      * to find a matching folder CodeLocation (Partial Match).
      */
     private CodeLocation determineCodeLocation(String currentPath, Map<String, CodeLocation> map) {
+        log.debug("determineCodeLocation for path {}", currentPath);
         if (map.isEmpty()) return null;
 
         if (map.containsKey(currentPath)) {
+            log.debug("found exact match for path {}", currentPath);
             return map.get(currentPath);
         }
-
+        log.debug("no exact match, checking parent paths for {}", currentPath);
         Path pathObj = Paths.get(currentPath);
         Path parent = pathObj.getParent();
-
+        log.debug("before while");
         while (parent != null) {
             String parentStr = FilenameUtils.separatorsToUnix(parent.toString());
             if (map.containsKey(parentStr)) {
@@ -285,7 +293,7 @@ public class FileService {
         if (newCodeLocation == null) return;
 
         CodeLocation current = fileEntity.getCodeLocation();
-        if (current != null && current.getId().equals(newCodeLocation.getId())) {
+        if (java.util.Objects.equals(current == null ? null : current.getId(), newCodeLocation.getId())) {
             return;
         }
 
@@ -311,13 +319,8 @@ public class FileService {
     }
 
     private boolean shouldIgnore(java.io.File file) {
-        if (Files.isSymbolicLink(file.toPath())) {
-            return true;
-        }
-        if (ignoredNames.contains(file.getName())) {
-            return true;
-        }
-        return false;
+        // skip symbolic links and configured ignored names
+        return Files.isSymbolicLink(file.toPath()) || ignoredNames.contains(file.getName());
     }
 
     private String getRelativePath(Path anchor, java.io.File file) {
@@ -342,7 +345,7 @@ public class FileService {
         }
 
         File depFolder = fileFactory.create(project, "dependencies", depFolderPath,
-                "dependencies", true, null, null, null);
+                "dependencies", true);
         addToBatch(depFolder, batchBuffer, 500);
         existingPaths.add(depFolderPath);
 
