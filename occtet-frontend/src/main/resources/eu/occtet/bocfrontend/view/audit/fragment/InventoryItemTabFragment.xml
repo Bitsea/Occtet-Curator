@@ -78,21 +78,22 @@
         <tabSheet id="mainTabSheet" width="100%" height="100%">
             <tab id="inventoriesTab" label="Inventory item" >
                 <vbox id="form"  height="100%">
-                    <vbox id="inventoryNameField" width="100%"/>
+                    <vbox id="inventoryNameField" margin="false" padding="false"/>
                     <hbox spacing="true" width="100%" alignItems="BASELINE">
                         <comboBox id="parentField" property="parent.inventoryName"
-                                  label="msg://eu.occtet.bocfrontend.entity/InventoryItem.parent" width="25em" dataContainer="inventoryItemDc"/>
+                                  label="msg://eu.occtet.bocfrontend.entity/InventoryItem.parent" width="50%" dataContainer="inventoryItemDc"/>
                         <button id="parentButton" icon="INFO_CIRCLE_O" title="Show parent details"/>
                     </hbox>
                     <hbox spacing="true" width="100%" alignItems="BASELINE">
                         <textField id="softwareComponentField" label="Software component"
-                                   property="softwareComponent" dataContainer="inventoryItemDc" width="100%"/>
+                                   property="softwareComponent" dataContainer="inventoryItemDc" width="50%"/>
                         <button id="softwareComponentButton" title="Show component details" icon="INFO_CIRCLE_O"/>
                     </hbox>
                     <textField id="detailsUrlTextField" property="detailsUrl" label="url"
-                               dataContainer="softwareComponentDc"/>
+                               dataContainer="softwareComponentDc" width="100%"/>
                     <hbox spacing="true" width="100%" alignItems="BASELINE">
-                        <textField id="priorityField" label="Priority" property="priority" dataContainer="inventoryItemDc" width="70px"/>
+                        <textField id="priorityField" label="Priority" property="priority" dataContainer="inventoryItemDc"
+                                   width="100px"/>
                     </hbox>
                     <hbox spacing="true">
                         <checkbox id="curatedID" property="curated"  dataContainer="inventoryItemDc" label="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>

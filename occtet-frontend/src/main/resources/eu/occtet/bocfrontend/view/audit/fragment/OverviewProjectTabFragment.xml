@@ -22,66 +22,50 @@
 
 <fragment xmlns="http://jmix.io/schema/flowui/fragment">
     <data>
-        <collection id="copyrightsDc"
-                    class="eu.occtet.bocfrontend.entity.Copyright">
-            <fetchPlan extends="_base">
-                <property name="codeLocations"/>
-            </fetchPlan>
-            <loader id="copyrightsDl" readOnly="true">
-                <query>
-                    <![CDATA[select e from Copyright e]]>
-                </query>
-            </loader>
-        </collection>
-        <collection id="licensesDc"
-                    class="eu.occtet.bocfrontend.entity.License">
+        <collection id="auditCopyrightDc"
+                    class="eu.occtet.bocfrontend.dto.AuditCopyrightDTO">
             <fetchPlan extends="_base"/>
-            <loader id="licensesDl" readOnly="true">
-                <query>
-                    <![CDATA[select e from License e]]>
-                </query>
-            </loader>
         </collection>
-        <collection id="vulnerabilitiesDc"
-                    class="eu.occtet.bocfrontend.entity.Vulnerability">
+        <collection id="auditLicensesDc"
+                    class="eu.occtet.bocfrontend.dto.AuditLicenseDTO">
             <fetchPlan extends="_base"/>
-            <loader id="vulnerabilitiesDl" readOnly="true">
-                <query>
-                    <![CDATA[select e from Vulnerability e]]>
-                </query>
-            </loader>
+        </collection>
+        <collection id="auditVulnerabilitiesDc"
+                    class="eu.occtet.bocfrontend.dto.AuditVulnerabilityDTO">
+            <fetchPlan extends="_base"/>
         </collection>
     </data>
     <content>
         <vbox>
             <accordion id="mainAccordion" height="100%" width="100%">
                 <accordionPanel id="copyrightAccordion"  opened="false">
-                    <dataGrid id="copyrightDataGrid"
-                              dataContainer="copyrightsDc"
-                              width="100%"
-                              minHeight="15em">
-                        <columns>
-                            <column property="copyrightText"/>
+                    <dataGrid id="auditCopyrightDataGrid"
+                              dataContainer="auditCopyrightDc"
+                              width="100%">
+                        <columns resizable="true">
+                            <column property="copyrightName" header="Copyright"/>
+                            <column property="numFiles" header="Number in files"/>
                         </columns>
                     </dataGrid>
                 </accordionPanel>
                 <accordionPanel id="licensesAccordion" opened="false">
-                    <dataGrid id="licensesDataGrid"
-                              dataContainer="licensesDc"
-                              width="100%"
-                              minHeight="15em">
-                        <columns>
-                            <column property="licenseName"/>
+                    <dataGrid id="auditLicensesDataGrid"
+                              dataContainer="auditLicensesDc"
+                              width="100%">
+                        <columns resizable="true">
+                            <column property="licenseName" header="License"/>
+                            <column property="numSc" header="Number in software components"/>
                         </columns>
                     </dataGrid>
                 </accordionPanel>
                 <accordionPanel id="vulnerabilityAccordion" opened="false">
-                    <dataGrid id="vulnerabilityDataGrid"
-                              dataContainer="vulnerabilitiesDc"
-                              width="100%"
-                              minHeight="15em">
-                        <columns>
-                            <column property="vulnerabilityId"/>
+                    <dataGrid id="auditVulnerabilityDataGrid"
+                              dataContainer="auditVulnerabilitiesDc"
+                              width="100%">
+                        <columns resizable="true">
+                            <column property="vulnerabilityName" header="Vulnerability"/>
+                            <column property="riskScore" header="Risk score of vulnerability"/>
+                            <column property="numSc" header="Number in software components"/>
                         </columns>
                     </dataGrid>
                 </accordionPanel>

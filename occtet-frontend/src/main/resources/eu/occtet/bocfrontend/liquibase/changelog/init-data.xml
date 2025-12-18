@@ -10,7 +10,7 @@
     <changeSet id="11" author="occtet">
 
         <validCheckSum>ANY</validCheckSum>
-        <preConditions onFail="HALT">
+       <preConditions onFail="HALT">
             <sqlCheck expectedResult="0">
                 SELECT COUNT(*) FROM suggestion
             </sqlCheck>
