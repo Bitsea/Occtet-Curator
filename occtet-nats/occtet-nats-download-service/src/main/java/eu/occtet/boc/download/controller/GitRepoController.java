@@ -46,8 +46,9 @@ import java.time.Duration;
 @RestController
 public class GitRepoController {
 
-    private final static String GIT_API_TAGS = "https://api.github.com/repos/%s/%s/tags";
+    private final static String GIT_API_TAGS_TEMPLATE = "https://api.github.com/repos/%s/%s/tags?per_page=100&page=%d";
     private final static int SUCCESS_STATUS_CODE = 200;
+    private final static int MAX_PAGES_TO_SCAN = 5;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient;
@@ -77,32 +78,39 @@ public class GitRepoController {
             return "";
         }
 
-        String apiUrl = String.format(GIT_API_TAGS, owner, repo);
-        log.debug("Fetching tags from API: {}", apiUrl);
+        for (int page = 1; page <= MAX_PAGES_TO_SCAN; page++) {
+            String apiUrl = String.format(GIT_API_TAGS_TEMPLATE, owner, repo, page);
+            log.debug("Fetching tags for {}/{} (Page {})", owner, repo, page);
 
-        HttpResponse<InputStream> response = getHttpResponse(apiUrl);
+            HttpResponse<InputStream> response = getHttpResponse(apiUrl);
 
-        if (response.statusCode() != SUCCESS_STATUS_CODE) {
-            log.warn("Failed to fetch tags for {}/{}. Status: {}", owner, repo, response.statusCode());
-            return "";
-        }
+            if (response.statusCode() != SUCCESS_STATUS_CODE) {
+                log.warn("Failed to fetch tags for {}/{} on page {}. Status: {}", owner, repo, page, response.statusCode());
+                break;
+            }
 
-        try (InputStream body = response.body()) {
-            JsonNode tagsArray = objectMapper.readTree(body);
+            try (InputStream body = response.body()) {
+                JsonNode tagsArray = objectMapper.readTree(body);
 
-            // Iterate through tags to find a match
-            for (JsonNode tagNode : tagsArray) {
-                String tagName = tagNode.get("name").asText();
+                if (tagsArray.isEmpty()) {
+                    log.debug("No more tags found on page {}. Stopping search.", page);
+                    break;
+                }
 
-                if (matchesVersion(tagName, version, repo)) {
-                    String zipUrl = tagNode.get("zipball_url").asText();
-                    log.info("Found matching tag '{}' for version '{}'. URL: {}", tagName, version, zipUrl);
-                    return zipUrl;
+                // Iterate tags on this page
+                for (JsonNode tagNode : tagsArray) {
+                    String tagName = tagNode.get("name").asText();
+
+                    if (matchesVersion(tagName, version, repo)) {
+                        String zipUrl = tagNode.get("zipball_url").asText();
+                        log.info("Found matching tag '{}' for version '{}'. URL: {}", tagName, version, zipUrl);
+                        return zipUrl;
+                    }
                 }
             }
         }
 
-        log.warn("No matching tag found for {}/{} version {}", owner, repo, version);
+        log.warn("No matching tag found for {}/{} version {} after scanning {} pages.", owner, repo, version, MAX_PAGES_TO_SCAN);
         return "";
     }
 
@@ -123,23 +131,30 @@ public class GitRepoController {
         String cleanTarget = targetVersion.toLowerCase();
         String cleanRepo = repoName.toLowerCase();
 
-        // 1. Exact Match
+        // 1. Exact Match (e.g. "1.0")
         if (cleanTag.equals(cleanTarget)) return true;
 
-        // 2. 'v' prefix logic (v1.0 == 1.0)
+        // 2. 'v' prefix (e.g. "v1.0")
         if (cleanTag.equals("v" + cleanTarget)) return true;
 
-        // 3. Repo-Prefix (gson-2.8.0 == 2.8.0)
+        // 3. Repo-Prefix (e.g. "gson-2.8.0")
         if (cleanTag.equals(cleanRepo + "-" + cleanTarget)) return true;
         if (cleanTag.equals(cleanRepo + "-v" + cleanTarget)) return true;
 
-        // 4. Underscore variation (GROOVY_4_0_26 == 4.0.26)
+        // 4. "Parent" naming convention (fixes Gson issue: "gson-parent-2.8.0")
+        if (cleanTag.endsWith("-" + cleanTarget)) {
+            if (cleanTag.endsWith("-" + cleanTarget) || cleanTag.endsWith("-v" + cleanTarget)) {
+                return true;
+            }
+        }
+
+        // 5. Underscore variation (e.g. "GROOVY_4_0_26")
         String underscoreTarget = cleanTarget.replace(".", "_");
         if (cleanTag.equals(underscoreTarget)) return true;
         if (cleanTag.equals("v_" + underscoreTarget)) return true;
         if (cleanTag.equals(cleanRepo + "_" + underscoreTarget)) return true;
 
-        // 5. Release/Rel prefix
+        // 6. Release/Rel prefix
         if (cleanTag.equals("rel/" + cleanTarget)) return true;
         if (cleanTag.equals("release/" + cleanTarget)) return true;
 
@@ -151,7 +166,7 @@ public class GitRepoController {
                 .uri(URI.create(apiUrl))
                 .GET()
                 .header("Accept", "application/vnd.github+json")
-                .header("User-Agent", "Occtet-Downloader") // GitHub requires a User-Agent
+                .header("User-Agent", "Occtet-Downloader")
                 .build();
 
         return httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
