@@ -345,7 +345,7 @@ public class FileService {
         }
 
         File depFolder = fileFactory.create(project, "dependencies", depFolderPath,
-                "dependencies", true, null, null, null);
+                "dependencies", true);
         addToBatch(depFolder, batchBuffer, 500);
         existingPaths.add(depFolderPath);
 
