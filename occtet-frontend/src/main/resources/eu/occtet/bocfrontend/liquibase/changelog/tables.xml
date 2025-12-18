@@ -43,6 +43,7 @@
             </column>
             <column name="PROJECT_NAME" type="VARCHAR(255)"/>
             <column name="BASEPATH" type="text"/>
+            <column name="SPDX_DOCUMENT_ID" type="text"/>
         </createTable>
         <createTable tableName="SCANNER_INITIALIZER" ifNotExists="true">
             <column name="ID" type="UUID">
