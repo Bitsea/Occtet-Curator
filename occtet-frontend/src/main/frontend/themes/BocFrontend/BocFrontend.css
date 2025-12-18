@@ -90,3 +90,11 @@ vaadin-text-field[readonly].read-only::part(input-field) {
     border-radius: 6px;
     padding: var(--lumo-space-s);
 }
+
+/* dim-row style for filtered out items */
+.dim-row {
+    opacity: 0.5;
+    filter: grayscale(100%);
+    color: var(--lumo-disabled-text-color);
+}
+

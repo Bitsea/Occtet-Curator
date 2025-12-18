@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -190,6 +191,16 @@ public class NatsService {
             return oInfo;
         }catch (JetStreamApiException | IOException | NoSuchAlgorithmException e){
             log.error("Error while trying to put {} into objectStore:{}",metaInformation.getObjectName(), e.toString());
+            return null;
+        }
+    }
+
+    public byte[] getFileFromBucket(String fileId){
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            objectStore.get(fileId, out);
+            return out.toByteArray();
+        } catch (Exception e) {
             return null;
         }
     }

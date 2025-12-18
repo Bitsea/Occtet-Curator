@@ -25,10 +25,12 @@ package eu.occtet.boc.ai.licenseMatcher.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.ai.licenseMatcher.dao.InventoryItemRepository;
+import eu.occtet.boc.ai.licenseMatcher.dao.SoftwareComponentRepository;
 import eu.occtet.boc.ai.licenseMatcher.factory.PromptFactory;
 import eu.occtet.boc.ai.licenseMatcher.postprocessing.PostProcessor;
 import eu.occtet.boc.ai.licenseMatcher.tools.LicenseTool;
 import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.model.*;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
@@ -63,6 +65,8 @@ public class LLMService extends BaseWorkDataProcessor {
 
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
+    @Autowired
+    private SoftwareComponentRepository softwareComponentRepository;
 
 
     @Autowired
@@ -158,6 +162,8 @@ public class LLMService extends BaseWorkDataProcessor {
         }else{
             item.setExternalNotes(item.getExternalNotes()+"\n"+response);
         }
+        item.getSoftwareComponent().setLicenseAiControlled(true);
+        softwareComponentRepository.save(item.getSoftwareComponent());
         inventoryItemRepository.save(item);
     }
 

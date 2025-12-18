@@ -54,10 +54,13 @@ public class SoftwareComponent {
     @Column(name= "CURATED")
     private Boolean curated;
 
+    @Column(name= "LICENSE_AI_CONTROLLED")
+    private Boolean licenseAiControlled;
+
     @Column(name= "DETAILS_URL")
     private String detailsUrl;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name= "SOFTWARECOMPONENT_ID")
     private List<Copyright> copyrights;
 
@@ -117,6 +120,14 @@ public class SoftwareComponent {
         this.curated = curated;
         this.licenses = licenses==null? new ArrayList<>() : licenses;
         this.detailsUrl= url;
+    }
+
+    public Boolean getLicenseAiControlled() {
+        return licenseAiControlled;
+    }
+
+    public void setLicenseAiControlled(Boolean licenseAiControlled) {
+        this.licenseAiControlled = licenseAiControlled;
     }
 
     public UUID getId() {

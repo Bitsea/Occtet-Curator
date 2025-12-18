@@ -26,8 +26,10 @@ package eu.occtet.boc.spdx.service;
 
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.License;
+import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
+import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
 import eu.occtet.boc.spdx.dao.ProjectRepository;
@@ -46,12 +48,15 @@ import org.spdx.storage.simple.InMemSpdxStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -59,6 +64,8 @@ public class SpdxService extends BaseWorkDataProcessor{
 
     private static final Logger log = LogManager.getLogger(SpdxService.class);
 
+    @Autowired
+    SpdxConverter spdxConverter;
     @Autowired
     private SoftwareComponentService softwareComponentService;
     @Autowired
@@ -107,6 +114,8 @@ public class SpdxService extends BaseWorkDataProcessor{
             InputStream inputStream = new ByteArrayInputStream(spdxJsonBytes);
             SpdxDocument spdxDocument = inputStore.deSerialize(inputStream, false);
 
+            SpdxDocumentRoot spdxDocumentRoot = spdxConverter.convertSpdxV2DocumentInformation(spdxDocument);
+
             UUID projectId = UUID.fromString(spdxWorkData.getProjectId());
             Optional<Project> projectOptional = projectRepository.findById(projectId);
             if(projectOptional.isEmpty()) {
@@ -114,6 +123,8 @@ public class SpdxService extends BaseWorkDataProcessor{
                 return false;
             }
             Project project = projectOptional.get();
+            project.setDocumentID(spdxDocument.getId());
+            projectRepository.save(project);
 
 
             List<InventoryItem> inventoryItems = new ArrayList<>();
@@ -123,12 +134,23 @@ public class SpdxService extends BaseWorkDataProcessor{
             HashSet<String> seenPackages = new HashSet<>();
             licenseInfosExtractedSpdxDoc = spdxDocument.getExtractedLicenseInfos();
 
+            //get the list of described packages for the download-service to differentiate between them and dependencies
+            Set<String> mainPackageIds = new HashSet<>();
+            try {
+                Set<String> ids = spdxDocument.getDocumentDescribes().stream()
+                        .map(SpdxElement::getId)
+                        .collect(Collectors.toSet());
+                mainPackageIds.addAll(ids);
+            } catch (InvalidSPDXAnalysisException e) {
+                log.warn("Could not read DocumentDescribes: {}", e.getMessage());
+            }
+
             for (TypedValue uri : packageUri) {
                 SpdxModelFactory.getSpdxObjects(spdxDocument.getModelStore(), null, "Package", uri.getObjectUri(), null).forEach(
                         spdxPackage -> {
                             try {
                                 if (!seenPackages.contains(spdxPackage.toString())) {
-                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project));
+                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,mainPackageIds, spdxDocumentRoot));
                                     spdxPackages.add((SpdxPackage) spdxPackage);
                                     seenPackages.add((spdxPackage).toString());
                                 }
@@ -140,6 +162,9 @@ public class SpdxService extends BaseWorkDataProcessor{
             }
             for (SpdxPackage spdxPackage : spdxPackages) {
                 parseRelationships(spdxPackage, spdxPackage.getRelationships().stream().toList(), project);
+                for(Relationship relationship: spdxPackage.getRelationships()) {
+                    spdxConverter.convertRelationShip(relationship, spdxDocumentRoot, spdxPackage);
+                }
             }
 
             log.info("processed spdx with {} items", inventoryItems.size());
@@ -153,10 +178,12 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
     }
 
-    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project)
+    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project, Set<String> mainPackageIds, SpdxDocumentRoot spdxDocumentRoot)
             throws Exception {
 
         log.info("Looking at package: {}", spdxPackage.getId());
+        //Convert to entities
+        spdxConverter.convertPackage(spdxPackage, spdxDocumentRoot);
 
         String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
         List<CodeLocation> codeLocations = new ArrayList<>();
@@ -203,6 +230,7 @@ public class SpdxService extends BaseWorkDataProcessor{
 
         spdxPackage.getFiles().forEach(f -> {
             try {
+                spdxConverter.convertFile(f, spdxDocumentRoot);
                 parseFiles(f, inventoryItem, codeLocations, copyrights);
             } catch (InvalidSPDXAnalysisException e) {
                 throw new RuntimeException(e);
@@ -232,18 +260,39 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
 
         String version = spdxPackage.getVersionInfo().orElse("");
-        if (!version.isEmpty() && !downloadLocation.isEmpty()) {
-            if(answerService.sendToDownload(downloadLocation ,project.getBasePath(), version)){
-                log.info("sending to DownloadService was successful");
-            }else{
-                log.error("failed to send to Downloadservice");
-            }
-        }
+
 
         softwareComponentService.update(component);
         inventoryItemService.update(inventoryItem);
         log.info("created inventoryItem: {}", inventoryName);
         log.info("created softwareComponent: {}", component.getName());
+
+        if (!version.isEmpty() && !downloadLocation.isEmpty() && !"NOASSERTION".equals(downloadLocation)) {
+                // Register logic to run AFTER the database commit
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            boolean success = answerService.sendToDownload(
+                                    downloadLocation,
+                                    project.getBasePath(),
+                                    version,
+                                    project.getId().toString(),
+                                    mainPackageIds.contains(spdxPackage.getId()),
+                                    inventoryItem.getId().toString()
+                            );
+
+                            if (success) {
+                                log.info("Sent to DownloadService (After Commit): {}", downloadLocation);
+                            } else {
+                                log.error("Failed to send to DownloadService: {}", downloadLocation);
+                            }
+                        } catch (Exception e) {
+                            log.error("Error sending to NATS after commit", e);
+                        }
+                    }
+                });
+        }
 
         return inventoryItem;
     }
@@ -261,12 +310,13 @@ public class SpdxService extends BaseWorkDataProcessor{
                 if(licenseId.isEmpty()){
                     licenseId= "Unknown";
                 }
-                log.debug("adding license {}", licenseId);
+
                 String licenseText = license.getLicenseText();
                 License licenseEntity = licenseService.findOrCreateLicense(licenseId, licenseText, licenseId);
                 licenseEntity.setSpdx(true);
                 //save changes to spdx status
                 licenseRepository.save(licenseEntity);
+                log.debug("adding license {}", licenseId);
                 allLicenses.add(licenseEntity);
             } else if (individualLicenseInfo instanceof ExtractedLicenseInfo) {
                 Optional<ExtractedLicenseInfo> extractedLicense = licenseInfosExtractedSpdxDoc.stream().filter(s -> s.getLicenseId().equals(individualLicenseInfo.getId())).findFirst();
@@ -275,7 +325,6 @@ public class SpdxService extends BaseWorkDataProcessor{
                     if(licenseId.isEmpty()){
                         licenseId= "Unknown";
                     }
-                    log.debug("adding license {}", licenseId);
                     String licenseText = extractedLicense.get().getExtractedText();
                     allLicenses.add(licenseService.findOrCreateLicense(licenseId, licenseText, licenseId));
                 }
@@ -315,7 +364,8 @@ public class SpdxService extends BaseWorkDataProcessor{
             if (!codeLocations.contains(fileLocation)) {
                 codeLocations.add(fileLocation);
             }
-            Copyright fileCopyright = copyrightService.findOrCreateCopyright(copyrightText, fileLocation);
+
+            Copyright fileCopyright = copyrightService.findOrCreateCopyright(copyrightText, codeLocations);
             if (!copyrights.contains(fileCopyright)) {
                 copyrights.add(fileCopyright);
                 log.info("Created codeLocation: {} for Copyright: {}", fileLocation.getFilePath(), copyrightText);

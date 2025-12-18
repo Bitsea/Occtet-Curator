@@ -32,7 +32,6 @@ import java.util.List;
 @Repository
 public interface CopyrightRepository extends JpaRepository<Copyright, Long> {
 
-    List<Copyright> findByCopyrightTextAndCodeLocation(String copyrightText, CodeLocation codeLocation);
     List<Copyright> findByCopyrightText(String copyrightText);
-    List<Copyright> findByCodeLocation(CodeLocation codeLocation);
+    List<Copyright> findByCodeLocationsIn(List<CodeLocation> codeLocation);
 }

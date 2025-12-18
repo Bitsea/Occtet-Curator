@@ -56,3 +56,6 @@ an unknown bug it does not build in production mode.
 
 
 
+*Autocomplete*
+
+under Resources suggestions.json you will find String for the autocomplete feature

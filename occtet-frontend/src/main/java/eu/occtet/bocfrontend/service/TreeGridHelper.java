@@ -21,64 +21,72 @@
 
 package eu.occtet.bocfrontend.service;
 
+import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.data.provider.DataProvider;
-import com.vaadin.flow.data.provider.Query;
-import com.vaadin.flow.data.provider.hierarchy.TreeData;
-import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
+import eu.occtet.bocfrontend.dao.FileRepository;
+import eu.occtet.bocfrontend.engine.TabManager;
+import eu.occtet.bocfrontend.entity.File;
+import eu.occtet.bocfrontend.entity.InventoryItem;
+import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.factory.UiComponentFactory;
+import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
+import eu.occtet.bocfrontend.view.audit.FileHierarchyProvider;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.UiComponentUtils;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.kit.component.grid.JmixTreeGrid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
- * A helper class for managing the expansion and collapsing of nodes in a tree grid.
- * Provides methods to perform operations like expanding all child nodes of root items,
- * collapsing all child nodes of root items, and toggling the expansion state of a specific item.
+ * A helper class to facilitate operations and interactions with tree grid components, focusing on tasks
+ * such as expanding/collapsing nodes, applying filters, configuring context menus, and managing nodes'
+ * expansion states.
  */
 @Service
 public class TreeGridHelper {
 
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+
     @Autowired
     private Notifications notifications;
+    @Autowired
+    private FileRepository fileRepository;
+    @Autowired
+    private UiComponentFactory uiComponentFactory;
 
     public <T> void expandChildrenOfRoots(JmixTreeGrid<T> grid) {
-        if (grid == null)
-            return;
-
-        DataProvider<T, ?> dataProvider = grid.getDataProvider();
-        if (dataProvider instanceof TreeDataProvider) {
-            grid.expandRecursively(grid.getTreeData().getRootItems(), Integer.MAX_VALUE);
-        } else {
-            try (Stream<T> stream = dataProvider.fetch(new Query<>())) {
-                stream.forEach(item -> {
-                    grid.expandRecursively(List.of(item), Integer.MAX_VALUE);
-                });
-            }
-        }
+        handleCollapseAndExpand(grid, false);
     }
 
     public <T> void collapseChildrenOfRoots(JmixTreeGrid<T> grid) {
-        if (grid == null)
-            return;
+        handleCollapseAndExpand(grid, true);
+    }
 
+    private <T> void handleCollapseAndExpand(JmixTreeGrid<T> grid, boolean collapse) {
+        if (grid == null) return;
         DataProvider<T, ?> dataProvider = grid.getDataProvider();
-        if (dataProvider instanceof TreeDataProvider) {
-            grid.collapseRecursively(grid.getTreeData().getRootItems(), Integer.MAX_VALUE);
-        } else {
-            try (Stream<T> stream = dataProvider.fetch(new Query<>())) {
-                stream.forEach(item -> {
-                    grid.collapseRecursively(List.of(item), Integer.MAX_VALUE);
-                });
-            }
+        if (dataProvider instanceof HierarchicalDataProvider<T,?> hierarchicalDataProvider) {
+            Stream<T> rootStream = hierarchicalDataProvider.fetch(new HierarchicalQuery<>(null,null));
+            rootStream.forEach(root -> {
+                if (collapse)
+                    grid.collapseRecursively(List.of(root), Integer.MAX_VALUE);
+                else
+                    grid.expandRecursively(List.of(root), Integer.MAX_VALUE);
+            });
         }
     }
 
@@ -88,92 +96,6 @@ public class TreeGridHelper {
         } else {
             grid.expand(item);
         }
-    }
-
-    /**
-     * Applies a filter to a JmixTreeGrid, updates the displayed data, and expands the matching nodes along
-     * with their ancestors and descendants.
-     *
-     * @param <T>           the type of the items in the tree grid
-     * @param grid          the JmixTreeGrid instance to which the filter and expansion should be applied
-     * @param provider      the TreeDataProvider used to manage the data of the tree grid
-     * @param filterText    the text used as a filter to search and identify matching nodes
-     * @param nameExtractor a function that extracts the name or text representation of the nodes for filtering
-     */
-    public <T> void applyFilterAndExpand(JmixTreeGrid<T> grid,
-                                         TreeDataProvider<T> provider,
-                                         String filterText,
-                                         Function<T, String> nameExtractor) {
-        String text = filterText.toLowerCase().trim();
-        TreeData<T> treeData = provider.getTreeData();
-
-        if (text.isEmpty()) {
-            provider.clearFilters();
-            grid.setClassNameGenerator(item -> null); // Clear highlights
-            return;
-        }
-
-        List<T> allNodes = treeData.getRootItems().stream()
-                .flatMap(root -> flattenTree(provider, root).stream()).toList();
-        Predicate<T> directMatchPrediacate = node -> nameExtractor.apply(node).toLowerCase().contains(text);
-        List<T> directMatches = allNodes.stream().filter(directMatchPrediacate).toList();
-        Set<T> nodesToShow = new HashSet<>();
-        for (T match : directMatches) {
-            nodesToShow.add(match);
-            collectAncestors(nodesToShow, treeData, match);
-            collectDescendants(nodesToShow, provider, match);
-        }
-
-        provider.setFilter(nodesToShow::contains);
-
-        // Expand all parents of the target
-        collapseChildrenOfRoots(grid);
-        for (T root : treeData.getRootItems()){
-            expandAncestorsOfMatches(root, grid, provider, directMatchPrediacate);
-        }
-    }
-
-    private <T> List<T> flattenTree(TreeDataProvider<T> provider, T node) {
-        List<T> nodes = new ArrayList<>();
-        nodes.add(node);
-        provider.getTreeData().getChildren(node).forEach(child -> nodes.addAll(flattenTree(provider, child)));
-        return nodes;
-    }
-
-    private <T> void collectAncestors(Set<T> set, TreeData<T> treeData, T node) {
-        T parent = treeData.getParent(node);
-        while (parent != null) {
-            if (!set.add(parent)) {
-                break;
-            }
-            parent = treeData.getParent(parent);
-        }
-    }
-
-    private <T> void collectDescendants(Set<T> set, TreeDataProvider<T> provider, T node) {
-        provider.getTreeData().getChildren(node).forEach(child -> {
-            if (set.add(child)) {
-                collectDescendants(set, provider, child);
-            }
-        });
-    }
-
-    private <T> boolean expandAncestorsOfMatches(T node, JmixTreeGrid<T> grid, TreeDataProvider<T> provider, Predicate<T> filter) {
-        boolean matches = filter.test(node);
-        List<T> children = provider.getTreeData().getChildren(node);
-
-        boolean descendantMatches = false;
-        for (T child : children) {
-            if (expandAncestorsOfMatches(child, grid, provider, filter)) {
-                descendantMatches = true;
-            }
-        }
-
-        if (descendantMatches) {
-            grid.expand(node); // expand ancestors only
-        }
-
-        return matches || descendantMatches;
     }
 
     public void copyToClipboard(String text) {
@@ -186,5 +108,112 @@ public class TreeGridHelper {
                                 .withPosition(Notification.Position.BOTTOM_END)
                                 .withThemeVariant(NotificationVariant.LUMO_ERROR)
                                 .show());
+    }
+
+    /**
+     * Sets up a context menu for a file grid. The context menu dynamically provides options
+     * based on the selected file, such as opening the file, copying its details, or accessing related inventory items.
+     *
+     * @param grid       the file grid component to which the context menu is attached
+     * @param tabManager the tab manager responsible for managing and opening tabs for files and related items
+     */
+    public void setupFileGridContextMenu(TreeDataGrid<File> grid, TabManager tabManager) {
+        GridContextMenu<File> contextMenu = grid.getContextMenu();
+
+        contextMenu.setDynamicContentHandler(file -> {
+            if (file == null) return false;
+
+            contextMenu.removeAll();
+
+            if (Boolean.FALSE.equals(file.getIsDirectory())) {
+                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.FILE_TEXT_O, "Open File"),
+                        event -> tabManager.openFileTab(file, true));
+
+                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CUBE, "Open Inventory Item"), event -> {
+                    InventoryItem item = null;
+                    if (file.getCodeLocation() != null) {
+                        item = file.getCodeLocation().getInventoryItem();
+                    }
+                    if (item != null) {
+                        log.debug("Opening inventory: {}", item.getInventoryName());
+                        tabManager.openInventoryItemTab(item, true);
+                    } else {
+                        Notification.show("No inventory item found.", 3000, Notification.Position.BOTTOM_END)
+                                .addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    }
+                });
+                contextMenu.add(new Hr());
+            }
+
+            if (Boolean.TRUE.equals(file.getIsDirectory())) {
+                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.EXPAND_FULL, "Expand All"), event -> {
+                    // add logic...
+                }).setEnabled(false);
+                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.COMPRESS, "Collapse All"), event -> {
+                    // add logic...
+                }).setEnabled(false);
+                contextMenu.add(new Hr());
+            }
+
+            contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.COPY, "Copy Name"),
+                    event -> copyToClipboard(file.getFileName()));
+            contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CLIPBOARD_TEXT, "Copy Path"),
+
+                    event -> copyToClipboard(file.getAbsolutePath()));
+            boolean isReviewed = Boolean.TRUE.equals(file.getReviewed());
+
+            if (isReviewed) {
+                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.THIN_SQUARE, "Mark as Unreviewed"),
+                        event -> updateFileReviewStatus(file, false, grid));
+            } else {
+                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CHECK_SQUARE, "Mark as Reviewed"),
+                        event -> updateFileReviewStatus(file, true, grid));
+            }
+
+            return true;
+        });
+    }
+
+    /**
+     * Handles the change in value of the reviewed filter for the file view.
+     * Updates the data sorting behavior based on the selected filter mode
+     * and modifies the visual representation (e.g., dimming rows) to reflect
+     * the active filter selection.
+     *
+     * @param event the value change event containing the source component and the new selected value
+     * @param currentProject the current project being displayed, used to ensure the context is valid
+     * @param fileTreeGrid the tree data grid displaying the files, which will have its data provider and
+     *                     visual representation updated based on the filter mode
+     */
+    public void reviewedFilterChangeValueListenerAction(
+            AbstractField.ComponentValueChangeEvent<ComboBox<FileReviewedFilterMode>, FileReviewedFilterMode> event,
+            Project currentProject,
+            TreeDataGrid<File> fileTreeGrid) {
+
+        if (currentProject == null) return;
+
+        FileReviewedFilterMode mode = event.getValue();
+        DataProvider<File, ?> dataProvider = fileTreeGrid.getDataProvider();
+
+        if (dataProvider instanceof FileHierarchyProvider provider) {
+            provider.setReviewedFilter(mode);
+
+            if (mode == FileReviewedFilterMode.SHOW_ALL) {
+                fileTreeGrid.setClassNameGenerator(file -> null);
+            } else {
+                Boolean targetStatus = mode.asBoolean();
+                fileTreeGrid.setClassNameGenerator(file -> {
+                    boolean matches = Objects.equals(file.getReviewed(), targetStatus);
+                    return matches ? null : "dim-row";
+                });
+            }
+        }
+    }
+
+    private void updateFileReviewStatus(File file, boolean status, TreeDataGrid<File> grid) {
+        file.setReviewed(status);
+        fileRepository.save(file);
+
+        grid.getDataProvider().refreshItem(file);
     }
 }

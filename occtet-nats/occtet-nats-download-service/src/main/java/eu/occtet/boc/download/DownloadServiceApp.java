@@ -35,7 +35,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import java.nio.file.Files;
@@ -43,6 +47,10 @@ import java.nio.file.Paths;
 import java.util.concurrent.Executor;
 
 @SpringBootApplication
+@EnableJpaAuditing
+@EnableJpaRepositories(basePackages = "eu.occtet.boc.download.dao")
+@EntityScan({"eu.occtet.boc.entity", "eu.occtet.boc.converter"})
+@Profile("!test")
 public class DownloadServiceApp {
 
     @Autowired
@@ -82,7 +90,6 @@ public class DownloadServiceApp {
         microserviceDescriptor.setVersion(applicationVersion);
         log.info("Occtet Microservice INIT: {} (version {}), listening on NATS stream '{}'",
                 microserviceDescriptor.getName(), microserviceDescriptor.getVersion(), streamName );
-
         systemHandler = new SystemHandler(natsConnection, microserviceDescriptor, downloadWorkConsumer);
         systemHandler.subscribeToSystemSubject();
         executor.execute(()->{

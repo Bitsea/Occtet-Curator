@@ -56,8 +56,6 @@ public class LicenseMatcherServiceApp {
     @Autowired
     private Connection natsConnection;
 
-    @Autowired
-    private LicenseMatcherService licenseMatcherService;
 
     @Autowired
     private LicenseMatcherWorkConsumer licenseMatcherWorkConsumer;

@@ -24,6 +24,8 @@ package eu.occtet.boc.entity;
 
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.List;
@@ -49,19 +51,35 @@ public class Copyright {
     @Column(name= "GARBAGE")
     private Boolean garbage;
 
-    @ManyToOne (fetch = FetchType.LAZY)
-    @JoinColumn(name = "CODE_LOCATION_ID", columnDefinition = "TEXT")
-    private CodeLocation codeLocation;
+    @Column(name= "AI_CONTROLLED")
+    private Boolean aiControlled;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "COPYRIGHT_CODE_LOCATION_LINK",
+            joinColumns = @JoinColumn(name = "COPYRIGHT_ID", referencedColumnName = "ID"),
+            inverseJoinColumns = @JoinColumn(name = "CODE_LOCATION_ID", referencedColumnName = "ID"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private List<CodeLocation> codeLocations;
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name= "COPYRIGHT_ID")
     private List<License> licenses;
 
-    public Copyright(String copyrightText, CodeLocation cl) {
+    public Copyright(String copyrightText, List<CodeLocation> cl) {
         this.copyrightText = copyrightText;
-        this.codeLocation = cl;
+        this.codeLocations = cl;
         this.curated = false;
         this.garbage = false;
+        this.aiControlled=false;
+    }
+
+    public Boolean getAiControlled() {
+        return aiControlled;
+    }
+
+    public void setAiControlled(Boolean aiControlled) {
+        this.aiControlled = aiControlled;
     }
 
     public Copyright() {}
@@ -94,12 +112,12 @@ public class Copyright {
         this.curated = curated;
     }
 
-    public CodeLocation getCodeLocation() {
-        return codeLocation;
+    public List<CodeLocation> getCodeLocations() {
+        return codeLocations;
     }
 
-    public void setCodeLocation(CodeLocation codeLocation) {
-        this.codeLocation = codeLocation;
+    public void setCodeLocations(List<CodeLocation> codeLocation) {
+        this.codeLocations = codeLocation;
     }
 
     public boolean isGarbage() {

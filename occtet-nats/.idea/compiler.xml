@@ -22,6 +22,7 @@
         <module name="occtet-common" />
         <module name="occtet-nats-spdx-service" />
         <module name="occtet-nats-download-service" />
+        <module name="occtet-nats-spdx-export" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

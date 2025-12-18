@@ -1,0 +1,8 @@
+{
+  "type": "descriptor",
+  "name": "occtet-nats-spdx-export",
+  "version": "0.3.1",
+  "description": "A microservice for creating an SPDX SBOM which can be exported",
+  "usageType": "RUNNABLE_BY_SERVICE",
+  "acceptableWorkData": "SpdxExportWorkData"
+}

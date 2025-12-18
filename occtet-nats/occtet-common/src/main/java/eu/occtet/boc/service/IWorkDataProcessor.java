@@ -37,5 +37,6 @@ public interface IWorkDataProcessor {
     boolean process(AICopyrightFilterWorkData workData);
     boolean process(ORTRunWorkData workData);
     boolean process(DownloadServiceWorkData workData);
+    boolean process(SpdxExportWorkData workData);
 
 }

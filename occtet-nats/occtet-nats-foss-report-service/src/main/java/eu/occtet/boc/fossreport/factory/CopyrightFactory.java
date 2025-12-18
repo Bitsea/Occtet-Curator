@@ -30,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class CopyrightFactory {
 
@@ -38,9 +40,9 @@ public class CopyrightFactory {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public Copyright create(String copyrightString, CodeLocation codeLocation){
-        log.debug("Creating Copyright with copyright text: {} and code location: {}", copyrightString, codeLocation);
-        return copyrightRepository.save(new Copyright(copyrightString, codeLocation));
+    public Copyright create(String copyrightString, List<CodeLocation> codeLocations){
+        log.debug("Creating Copyright with copyright text: {} and code location: {}", copyrightString, codeLocations);
+        return copyrightRepository.save(new Copyright(copyrightString, codeLocations));
     }
 
 

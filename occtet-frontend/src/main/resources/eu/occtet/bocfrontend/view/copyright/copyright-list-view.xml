@@ -26,18 +26,26 @@
         <collection id="copyrightsDc"
                     class="eu.occtet.bocfrontend.entity.Copyright">
             <fetchPlan extends="_base">
-                <property name="codeLocation" fetchPlan="_base">
+                <property name="codeLocations" fetchPlan="_base">
                     <property name="inventoryItem" fetchPlan="_base">
                         <property name="softwareComponent" fetchPlan="_base"/>
+
                     </property>
                 </property>
             </fetchPlan>
             <fetchPlan extends="_base">
-                <property name="codeLocation" fetch="AUTO"/>
+                <property name="codeLocations" fetch="AUTO"/>
             </fetchPlan>
-            <loader id="copyrightsDl" >
+
+            <loader id="copyrightsDl">
                 <query>
-                    <![CDATA[select e from Copyright e]]>
+                    <![CDATA[
+                        select distinct c
+                        from Copyright c
+                        left join c.codeLocations cl
+                        left join cl.inventoryItem ii
+                        left join ii.softwareComponent sc
+                    ]]>
                 </query>
             </loader>
         </collection>
@@ -74,11 +82,11 @@
                     <column property="copyrightText" header="Name"/>
                     <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated" editable="true"/>
                     <column property="garbage" header="msg://eu.occtet.bocfrontend.entity/Copyright.garbage" editable="true"/>
-                    <column property="codeLocation.filePath" header="msg://FilePath" key="filePath"/>
-                    <column property="codeLocation.inventoryItem.softwareComponent" header="msg://SoftwareComponent" key="softwareComponent"/>
+                    <column property="aiControlled" header="msg://aiControlled" editable="true"/>
+                    <column property="codeLocations.filePath" header="msg://FilePath" key="filePath"/>
+                    <column property="codeLocations.inventoryItem.softwareComponent.name" header="msg://SoftwareComponent" key="softwareComponent"/>
                     <editorActionsColumn key="nonBufferedEditorColumn">
                         <editButton icon="PENCIL" text="msg:///actions.Edit"/>
-                        <closeButton icon="CLOSE" />
                         <saveButton icon="CHECK"/>
                     </editorActionsColumn>
                 </columns>

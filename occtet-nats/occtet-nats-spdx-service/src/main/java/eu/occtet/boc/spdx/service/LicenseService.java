@@ -49,10 +49,18 @@ public class LicenseService {
 
 
     public License findOrCreateLicense(String licenseId, String licenseText, String licenseName ) {
+        log.debug("before getting licenses");
         List<License> license = licenseRepository.findByLicenseTypeAndLicenseText(licenseId, licenseText);
+        log.debug("after getting licenses {}", license.size());
         if (!license.isEmpty()) {
             return license.getFirst();
         } else {
+            List<License> licenses = licenseRepository.findByLicenseType(licenseId);
+            if(!licenses.isEmpty()){
+                if(!license.getFirst().getLicenseText().equals(licenseText)){
+                    return licenseFactory.createWithName(licenseId, licenseText, licenseName+"-variant");
+                }
+            }
             return licenseFactory.createWithName(licenseId, licenseText, licenseName);
         }
     }

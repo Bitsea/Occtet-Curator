@@ -24,6 +24,7 @@ import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
 
+import java.util.List;
 import java.util.UUID;
 
 @JmixEntity
@@ -37,9 +38,8 @@ public class CodeLocation {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY,cascade = {CascadeType.REFRESH})
-    @JoinColumn(name = "INVENTORYITEM_ID")
+    @JoinColumn(name = "INVENTORY_ITEM_ID")
     private InventoryItem inventoryItem;
-
 
     @Column(name = "FILE_PATH", columnDefinition = "Text")
     private String filePath;
@@ -49,6 +49,10 @@ public class CodeLocation {
 
     @Column(name= "LINE_NUMBER_TO")
     private Integer lineNumberTo;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name= "CODE_LOCATION_ID")
+    private List<Copyright> copyrights;
 
     public CodeLocation(){}
 
@@ -91,4 +95,8 @@ public class CodeLocation {
     public void setInventoryItem(InventoryItem inventoryItem) {
         this.inventoryItem = inventoryItem;
     }
+
+    public List<Copyright> getCopyrights() {return copyrights;}
+
+    public void setCopyrights(List<Copyright> copyrights) {this.copyrights = copyrights;}
 }
