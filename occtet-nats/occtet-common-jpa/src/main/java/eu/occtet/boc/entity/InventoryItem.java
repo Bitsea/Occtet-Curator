@@ -47,6 +47,9 @@ public class InventoryItem {
     @Column(name= "SIZE")
     private Integer size;
 
+    @Column(name= "ISSUE")
+    private Boolean issue;
+
     @Column(name= "SPDX_ID", columnDefinition = "TEXT")
     private String spdxId;
 
