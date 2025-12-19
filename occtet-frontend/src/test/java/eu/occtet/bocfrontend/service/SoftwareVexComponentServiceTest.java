@@ -71,16 +71,16 @@ public class SoftwareVexComponentServiceTest {
 
     @BeforeEach
     void setUp() {
-        project = projectFactory.create("SoftwareComponentServiceTestProject");
+        project = projectFactory.create("SoftwareComponentServiceTestProject","any basepath");
         license = licenseFactory.create("SoftwareComponentServiceTestLicenseType",
                 "SoftwareComponentServiceTestLicenseText","SoftwareComponentServiceTestLicenseName");
         List<License> licenses = new ArrayList<>(List.of(license));
         softwareComponent1 = softwareComponentFactory.create("SoftwareComponentServiceTestSc1", "1.0",
-                "","CVE-2003-2034","","",true,licenses);
+                "",true,licenses);
         softwareComponent2 = softwareComponentFactory.create("SoftwareComponentServiceTestSc2", "2.0",
-                "","CVE-2005-1234","","",false,licenses);
+                "",false,licenses);
         softwareComponent3 = softwareComponentFactory.create("SoftwareComponentServiceTestSc3", "3.0",
-                "","","","",false,new ArrayList<>());
+                "",false,new ArrayList<>());
         item1 = inventoryItemFactory.create("SoftwareComponentServiceTestItem1", softwareComponent1, project);
         item2 = inventoryItemFactory.create("SoftwareComponentServiceTestItem2", softwareComponent2, project);
     }
