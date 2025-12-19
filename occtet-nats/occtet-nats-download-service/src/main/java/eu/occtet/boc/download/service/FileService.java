@@ -68,13 +68,13 @@ public class FileService {
     /**
      * Scans a directory located at the given path and creates corresponding File entities.
      * <p>
-     * This method is memory-optimized: it does not load the entire project file tree into memory.
-     * Instead, it resolves the root anchor and then recursively persists children in batches.
+     * <b>Performance Note:</b> This method pre-loads all existing files for the project into a Map.
+     * This reduces the time complexity of checking for existing files from O(N*Query) to O(1).
      *
-     * @param project       the Project entity to which the scanned files belong
-     * @param inventoryItem the InventoryItem associated with this scan (if applicable)
-     * @param rootPath      the physical path on disk to start scanning
-     * @param isMainPackage flag indicating if this is the main package or a dependency
+     * @param project       the Project entity
+     * @param inventoryItem the associated InventoryItem
+     * @param rootPath      the physical path on disk
+     * @param isMainPackage flag indicating if this is the main package
      */
     @Transactional
     public void createEntitiesFromPath(Project project, InventoryItem inventoryItem, Path rootPath, Boolean isMainPackage) {
@@ -82,7 +82,9 @@ public class FileService {
         try {
             log.info("Starting scan for project {} in path {}", project.getId(), rootPath);
 
-            // Prepare CodeLocations (Lookup Map)
+            Map<String, File> projectFileCache = fileRepository.findAllByProject(project).stream()
+                    .collect(Collectors.toMap(File::getAbsolutePath, Function.identity(), (a, b) -> a));
+
             Map<String, CodeLocation> codeLocationMap = new HashMap<>();
             if (inventoryItem != null) {
                 List<CodeLocation> cls = codeLocationRepository.findCodeLocationByInventoryItem(inventoryItem);
@@ -95,37 +97,33 @@ public class FileService {
             int batchSize = 500;
             java.io.File rootDirectory = rootPath.toFile();
 
-            // Ensure the parent hierarchy exists (Anchor the scan to the project root)
-            // We pass the batchBuffer so intermediate folders are created and saved if missing.
-            File parentForRoot = ensureParentHierarchy(project, rootDirectory.getParentFile(), batchBuffer);
+            File parentForRoot = ensureParentHierarchy(project, rootDirectory.getParentFile(), projectFileCache, batchBuffer);
 
-            // Handle the Root Entity of this scan
             String relativePath = getRelativePath(rootPath, rootDirectory);
             CodeLocation rootCodeLocation = determineCodeLocation(relativePath, codeLocationMap);
+            String rootAbsPath = rootDirectory.getAbsolutePath();
 
-            File rootEntity = fileRepository.findByProjectAndAbsolutePath(project, rootDirectory.getAbsolutePath());
+            File rootEntity = projectFileCache.get(rootAbsPath);
 
             if (rootEntity == null) {
                 rootEntity = fileFactory.create(
                         project,
                         rootDirectory.getName(),
-                        rootDirectory.getAbsolutePath(),
+                        rootAbsPath,
                         relativePath,
                         true,
                         parentForRoot,
                         rootCodeLocation != null ? inventoryItem : null,
                         rootCodeLocation
                 );
+                projectFileCache.put(rootAbsPath, rootEntity);
                 addToBatch(rootEntity, batchBuffer, batchSize);
             } else {
-                // Update existing linkage if necessary
                 updateFileLinkage(rootEntity, rootCodeLocation, batchBuffer, batchSize);
             }
 
-            // Recursive Scan starting from the root
-            scanDir(project, rootDirectory, rootEntity, batchBuffer, batchSize, inventoryItem, rootPath, codeLocationMap);
+            scanDir(project, rootDirectory, rootEntity, batchBuffer, projectFileCache, batchSize, inventoryItem, rootPath, codeLocationMap);
 
-            // Final Flush
             if (!batchBuffer.isEmpty()) {
                 fileRepository.saveAll(batchBuffer);
                 fileRepository.flush();
@@ -139,11 +137,8 @@ public class FileService {
         }
     }
 
-    /**
-     * Recursively scans a directory and adds found files to the persistence batch.
-     */
     private void scanDir(Project project, java.io.File directory, File parentEntity,
-                         List<File> batchBuffer, int batchSize,
+                         List<File> batchBuffer, Map<String, File> projectFileCache, int batchSize,
                          InventoryItem inventoryItem, Path relativeAnchor, Map<String, CodeLocation> codeLocationMap) {
 
         java.io.File[] files = directory.listFiles();
@@ -153,16 +148,15 @@ public class FileService {
             if (shouldIgnore(file)) continue;
 
             String absPath = file.getAbsolutePath();
-
-            File existingFile = fileRepository.findByProjectAndAbsolutePath(project, absPath);
-
             String calculatedRelativePath = getRelativePath(relativeAnchor, file);
             CodeLocation codeLocation = determineCodeLocation(calculatedRelativePath, codeLocationMap);
+
+            File existingFile = projectFileCache.get(absPath);
 
             if (existingFile != null) {
                 updateFileLinkage(existingFile, codeLocation, batchBuffer, batchSize);
                 if (file.isDirectory()) {
-                    scanDir(project, file, existingFile, batchBuffer, batchSize, inventoryItem, relativeAnchor, codeLocationMap);
+                    scanDir(project, file, existingFile, batchBuffer, projectFileCache, batchSize, inventoryItem, relativeAnchor, codeLocationMap);
                 }
                 continue;
             }
@@ -178,41 +172,31 @@ public class FileService {
                     codeLocation
             );
 
+            projectFileCache.put(absPath, fileEntity);
             addToBatch(fileEntity, batchBuffer, batchSize);
 
             if (file.isDirectory()) {
-                scanDir(project, file, fileEntity, batchBuffer, batchSize, inventoryItem, relativeAnchor, codeLocationMap);
+                scanDir(project, file, fileEntity, batchBuffer, projectFileCache, batchSize, inventoryItem, relativeAnchor, codeLocationMap);
             }
         }
     }
 
-    /**
-     * Ensures that the folder structure leading up to the scan root exists in the database.
-     * <p>
-     * This climbs up the directory tree until it finds a folder that is already persisted
-     * (or hits the project base path) and creates the missing links.
-     */
-    private File ensureParentHierarchy(Project project, java.io.File startDirectory, List<File> batchBuffer) {
+    private File ensureParentHierarchy(Project project, java.io.File startDirectory, Map<String, File> projectFileCache, List<File> batchBuffer) {
         if (startDirectory == null) return null;
 
         String projectBasePath = project.getBasePath();
         String currentPath = startDirectory.getAbsolutePath();
 
-        // Stop if we went above the project base path
         if (!currentPath.startsWith(projectBasePath) || currentPath.equals(projectBasePath)) {
             return null;
         }
 
-        // Check if this specific parent already exists
-        File existing = fileRepository.findByProjectAndAbsolutePath(project, currentPath);
-        if (existing != null) {
-            return existing;
+        if (projectFileCache.containsKey(currentPath)) {
+            return projectFileCache.get(currentPath);
         }
 
-        // Recursively ensure the parent of this directory exists
-        File parentOfThis = ensureParentHierarchy(project, startDirectory.getParentFile(), batchBuffer);
+        File parentOfThis = ensureParentHierarchy(project, startDirectory.getParentFile(), projectFileCache, batchBuffer);
 
-        // Create the missing directory entity
         File newEntity = fileFactory.create(
                 project,
                 startDirectory.getName(),
@@ -224,6 +208,7 @@ public class FileService {
                 null
         );
 
+        projectFileCache.put(currentPath, newEntity);
         addToBatch(newEntity, batchBuffer, 500);
 
         return newEntity;
@@ -236,7 +221,6 @@ public class FileService {
             return map.get(currentPath);
         }
 
-        // Climb up relative path to find nearest CodeLocation match
         Path pathObj = Paths.get(currentPath);
         Path parent = pathObj.getParent();
 

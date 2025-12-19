@@ -230,7 +230,7 @@ public class DownloadService extends BaseWorkDataProcessor {
         String owner = parts[parts.length - 2];
         String repo = repoWithGit.endsWith(".git") ? repoWithGit.substring(0, repoWithGit.length() - 4) : repoWithGit;
 
-        String resolved = gitRepoController.getGitRepository(owner, repo, version);
+        String resolved = gitRepoController.resolveGitToZipUrl(owner, repo, version);
         if (resolved == null || resolved.isEmpty()) {
             throw new IOException("GitRepoController returned 404 for " + owner + "/" + repo + " @ " + version);
         }

@@ -155,11 +155,11 @@ public class DownloadServiceTest {
 
         when(projectRepository.findById(any())).thenReturn(Optional.of(new Project()));
         when(inventoryItemRepository.findById(any())).thenReturn(Optional.of(new InventoryItem()));
-        when(gitRepoController.getGitRepository("fake", "repo", "v1.0")).thenReturn(resolvedZipUrl);
+        when(gitRepoController.resolveGitToZipUrl("fake", "repo", "v1.0")).thenReturn(resolvedZipUrl);
 
         boolean result = downloadService.process(workData);
         assertTrue(result);
-        verify(gitRepoController).getGitRepository("fake", "repo", "v1.0");
+        verify(gitRepoController).resolveGitToZipUrl("fake", "repo", "v1.0");
         verify(fileService).createEntitiesFromPath(any(), any(), any(), eq(true));
     }
 
