@@ -21,15 +21,13 @@
 
 package eu.occtet.boc.download.factory;
 
-import eu.occtet.boc.download.dao.FileRepository;
 import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
 
 
 @Component
@@ -42,10 +40,13 @@ public class FileFactory {
                        boolean isDirectory,
                        File parentEntity,
                        InventoryItem inventoryItem,
-                       CodeLocation codeLocation
-    ) {
-        File file = new File();
+                       CodeLocation codeLocation) {
 
+        Objects.requireNonNull(project, "Project cannot be null");
+        Objects.requireNonNull(fileName, "File name cannot be null");
+        Objects.requireNonNull(absolutePath, "Absolute path cannot be null");
+
+        File file = new File();
         file.setProject(project);
         file.setFileName(fileName);
         file.setAbsolutePath(absolutePath);
@@ -60,19 +61,7 @@ public class FileFactory {
         return file;
     }
 
-    public File create(Project project, String fileName, String absolutePath, String relativePath,
-                       boolean isDirectory ){
-        File file = new File();
-
-        file.setProject(project);
-        file.setFileName(fileName);
-        file.setAbsolutePath(absolutePath);
-        file.setRelativePath(relativePath);
-        file.setIsDirectory(isDirectory);
-
-        file.setReviewed(false);
-
-        return file;
-
+    public File create(Project project, String fileName, String absolutePath, String relativePath, boolean isDirectory) {
+        return create(project, fileName, absolutePath, relativePath, isDirectory, null, null, null);
     }
 }
