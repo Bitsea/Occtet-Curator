@@ -265,6 +265,7 @@ public class SpdxService extends BaseWorkDataProcessor{
 
         inventoryItem.setSize(spdxPackage.getFiles().size());
 
+        log.info("Converting {} files", spdxPackage.getFiles().size());
         spdxPackage.getFiles().forEach(f -> {
             try {
                 spdxConverter.convertFile(f, spdxDocumentRoot);
@@ -368,7 +369,6 @@ public class SpdxService extends BaseWorkDataProcessor{
 
                 // Cache Put
                 licenseCache.put(licenseId, licenseEntity);
-                log.debug("cached license {}", licenseId);
             }
 
             allLicenses.add(licenseEntity);

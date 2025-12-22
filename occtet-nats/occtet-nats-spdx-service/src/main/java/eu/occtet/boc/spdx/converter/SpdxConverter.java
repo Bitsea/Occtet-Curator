@@ -317,7 +317,6 @@ public class SpdxConverter {
      */
     public SpdxFileEntity convertFile(SpdxFile spdxFile, SpdxDocumentRoot spdxDocumentRoot) {
         try {
-            log.info("converting file: {}", spdxFile.getId());
 
             if (spdxDocumentRoot.getFiles() == null) {
                 spdxDocumentRoot.setFiles(new ArrayList<>());
