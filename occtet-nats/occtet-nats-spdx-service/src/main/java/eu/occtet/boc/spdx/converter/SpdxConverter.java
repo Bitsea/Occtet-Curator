@@ -38,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -167,17 +168,18 @@ public class SpdxConverter {
      * @param spdxDocumentRoot The parent {@link SpdxDocumentRoot} entity to which this package belongs.
      * @return The persisted {@link SpdxPackageEntity} (either newly created or updated).
      */
-    public SpdxPackageEntity convertPackage(SpdxPackage spdxPackage, SpdxDocumentRoot spdxDocumentRoot) {
-        log.info("converting package");
+    public SpdxPackageEntity convertPackage(SpdxPackage spdxPackage,
+                                            SpdxDocumentRoot spdxDocumentRoot,
+                                            Map<String, SpdxPackageEntity> packageLookupMap) { // Added Map param
+        log.info("converting package: {}", spdxPackage.getId());
         try {
             if (spdxDocumentRoot.getPackages() == null) {
                 spdxDocumentRoot.setPackages(new ArrayList<>());
             }
 
-            SpdxPackageEntity spdxPackageEntity = spdxDocumentRoot.getPackages().stream()
-                    .filter(p -> p.getSpdxId() != null && p.getSpdxId().equals(spdxPackage.getId()))
-                    .findFirst()
-                    .orElse(null);
+            // OPTIMIZATION: Instant lookup from Map instead of scanning List
+            String spdxId = spdxPackage.getId();
+            SpdxPackageEntity spdxPackageEntity = packageLookupMap.get(spdxId);
 
             boolean isNew = false;
             if (spdxPackageEntity == null) {
@@ -185,9 +187,10 @@ public class SpdxConverter {
                 isNew = true;
             }
 
+            // Set standard fields
             spdxPackageEntity.setSpdxDocument(spdxDocumentRoot);
             spdxPackageEntity.setName(spdxPackage.getName().orElse(""));
-            spdxPackageEntity.setSpdxId(spdxPackage.getId());
+            spdxPackageEntity.setSpdxId(spdxId);
             spdxPackageEntity.setVersionInfo(spdxPackage.getVersionInfo().orElse(""));
             spdxPackageEntity.setCopyrightText(spdxPackage.getCopyrightText());
             spdxPackageEntity.setDownloadLocation(spdxPackage.getDownloadLocation().orElse(""));
@@ -199,7 +202,7 @@ public class SpdxConverter {
             spdxPackageEntity.setOriginator(spdxPackage.getOriginator().orElse(""));
             spdxPackageEntity.setSupplier(spdxPackage.getSupplier().orElse(""));
 
-
+            // Handle External Refs
             if (spdxPackageEntity.getExternalRefs() == null) {
                 spdxPackageEntity.setExternalRefs(new ArrayList<>());
             }
@@ -214,11 +217,11 @@ public class SpdxConverter {
                 spdxPackageEntity.getExternalRefs().add(externalRefEntity);
             }
 
+            // Handle Annotations
             if (spdxPackageEntity.getAnnotations() == null) {
                 spdxPackageEntity.setAnnotations(new ArrayList<>());
             }
             spdxPackageEntity.getAnnotations().clear();
-
             for (Annotation annotation : spdxPackage.getAnnotations()) {
                 AnnotationEntity annotationEntity = new AnnotationEntity();
                 annotationEntity.setAnnotationDate(annotation.getAnnotationDate());
@@ -230,11 +233,11 @@ public class SpdxConverter {
                 spdxPackageEntity.getAnnotations().add(annotationEntity);
             }
 
+            // Handle Checksums
             if (spdxPackageEntity.getChecksums() == null) {
                 spdxPackageEntity.setChecksums(new ArrayList<>());
             }
             spdxPackageEntity.getChecksums().clear();
-
             for (Checksum checksum : spdxPackage.getChecksums()) {
                 ChecksumEntity checksumEntity = new ChecksumEntity();
                 checksumEntity.setAlgorithm(checksum.getAlgorithm().toString());
@@ -243,6 +246,7 @@ public class SpdxConverter {
                 spdxPackageEntity.getChecksums().add(checksumEntity);
             }
 
+            // Handle License Info From Files
             List<String> licenseInfoFiles = new ArrayList<>();
             for (AnyLicenseInfo anyLicenseInfo : spdxPackage.getLicenseInfoFromFiles()) {
                 licenseInfoFiles.add(anyLicenseInfo.toString());
@@ -253,16 +257,15 @@ public class SpdxConverter {
             spdxPackageEntity.setPackageVerificationCode(packageVerificationCodeEntity);
 
             List<String> fileNames = new ArrayList<>();
-            spdxPackage.getFiles().forEach(
-                    spdxFile -> fileNames.add(spdxFile.getId())
-            );
+            spdxPackage.getFiles().forEach(spdxFile -> fileNames.add(spdxFile.getId()));
             spdxPackageEntity.setFileNames(fileNames);
-
             spdxPackageEntity.setFilesAnalyzed(spdxPackage.isFilesAnalyzed());
 
             if (isNew) {
                 spdxDocumentRoot.getPackages().add(spdxPackageEntity);
+                packageLookupMap.put(spdxId, spdxPackageEntity);
             }
+
 
             return spdxPackageEntity;
 
@@ -314,8 +317,9 @@ public class SpdxConverter {
      * @return The persisted {@link SpdxFileEntity} (either newly created or updated).
      */
     public SpdxFileEntity convertFile(SpdxFile spdxFile, SpdxDocumentRoot spdxDocumentRoot) {
-        log.info("converting file");
         try {
+            log.info("converting file: {}", spdxFile.getName().orElse(""));
+
             if (spdxDocumentRoot.getFiles() == null) {
                 spdxDocumentRoot.setFiles(new ArrayList<>());
             }

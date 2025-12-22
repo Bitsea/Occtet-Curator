@@ -111,7 +111,7 @@ public class SpdxServiceTest {
            Mockito.when(spdxConverter.convertSpdxV2DocumentInformation(Mockito.any()))
                    .thenReturn(new SpdxDocumentRoot());
 
-           Mockito.when(spdxConverter.convertPackage(Mockito.any(), Mockito.any()))
+           Mockito.when(spdxConverter.convertPackage(Mockito.any(), Mockito.any(), Mockito.any()))
                    .thenReturn(new SpdxPackageEntity());
 
            Mockito.when(spdxConverter.convertFile(Mockito.any(), Mockito.any()))

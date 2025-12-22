@@ -27,6 +27,7 @@ package eu.occtet.boc.spdx.service;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
+import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
@@ -148,12 +149,21 @@ public class SpdxService extends BaseWorkDataProcessor{
                 log.warn("Could not read DocumentDescribes: {}", e.getMessage());
             }
 
+            Map<String, SpdxPackageEntity> packageLookupMap = new HashMap<>();
+            if (spdxDocumentRoot.getPackages() != null) {
+                for (SpdxPackageEntity entity : spdxDocumentRoot.getPackages()) {
+                    if (entity.getSpdxId() != null) {
+                        packageLookupMap.put(entity.getSpdxId(), entity);
+                    }
+                }
+            }
+
             for (TypedValue uri : packageUri) {
                 SpdxModelFactory.getSpdxObjects(spdxDocument.getModelStore(), null, "Package", uri.getObjectUri(), null).forEach(
                         spdxPackage -> {
                             try {
                                 if (!seenPackages.contains(spdxPackage.toString())) {
-                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,mainPackageIds, spdxDocumentRoot));
+                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,mainPackageIds, spdxDocumentRoot, packageLookupMap));
                                     spdxPackages.add((SpdxPackage) spdxPackage);
                                     seenPackages.add((spdxPackage).toString());
                                 }
@@ -183,12 +193,12 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
     }
 
-    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project, Set<String> mainPackageIds, SpdxDocumentRoot spdxDocumentRoot)
+    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project, Set<String> mainPackageIds, SpdxDocumentRoot spdxDocumentRoot, Map<String, SpdxPackageEntity> packageLookupMap)
             throws Exception {
 
         log.info("Looking at package: {}", spdxPackage.getId());
         //Convert to entities
-        spdxConverter.convertPackage(spdxPackage, spdxDocumentRoot);
+        spdxConverter.convertPackage(spdxPackage, spdxDocumentRoot, packageLookupMap);
 
         String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
         List<CodeLocation> codeLocations = new ArrayList<>();
