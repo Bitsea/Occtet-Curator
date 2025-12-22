@@ -140,7 +140,6 @@ public class SpdxConverter {
                 infoEntities.add(infoEntity);
             }
 
-            spdxDocumentRootRepository.save(spdxDocumentRoot);
             return spdxDocumentRoot;
 
         } catch (InvalidSPDXAnalysisException e) {
@@ -265,7 +264,6 @@ public class SpdxConverter {
                 spdxDocumentRoot.getPackages().add(spdxPackageEntity);
             }
 
-            spdxDocumentRootRepository.save(spdxDocumentRoot);
             return spdxPackageEntity;
 
         } catch (Exception e) {
@@ -368,7 +366,6 @@ public class SpdxConverter {
                 spdxDocumentRoot.getFiles().add(spdxFileEntity);
             }
 
-            spdxDocumentRootRepository.save(spdxDocumentRoot);
             return spdxFileEntity;
 
         } catch (InvalidSPDXAnalysisException e) {
@@ -424,7 +421,6 @@ public class SpdxConverter {
             relationshipEntity.setRelationshipType(type);
 
             spdxDocumentRoot.getRelationships().add(relationshipEntity);
-            spdxDocumentRootRepository.save(spdxDocumentRoot);
             return relationshipEntity;
         } catch (InvalidSPDXAnalysisException e) {
             log.error("error while converting spdx relationship to entity: {}", e.toString());

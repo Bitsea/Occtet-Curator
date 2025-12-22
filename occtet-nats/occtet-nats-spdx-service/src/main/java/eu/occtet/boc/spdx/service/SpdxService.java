@@ -33,6 +33,7 @@ import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
 import eu.occtet.boc.spdx.dao.ProjectRepository;
+import eu.occtet.boc.spdx.dao.spdxV2.SpdxDocumentRootRepository;
 import io.nats.client.JetStreamApiException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -84,6 +85,8 @@ public class SpdxService extends BaseWorkDataProcessor{
     private ProjectRepository projectRepository;
     @Autowired
     private AnswerService answerService;
+    @Autowired
+    private SpdxDocumentRootRepository spdxDocumentRootRepository;
 
 
 
@@ -166,6 +169,8 @@ public class SpdxService extends BaseWorkDataProcessor{
                     spdxConverter.convertRelationShip(relationship, spdxDocumentRoot, spdxPackage);
                 }
             }
+
+            spdxDocumentRootRepository.save(spdxDocumentRoot);
 
             log.info("processed spdx with {} items", inventoryItems.size());
             boolean sent = answerService.prepareAnswers(inventoryItems, spdxWorkData.isUseCopyrightAi(), spdxWorkData.isUseLicenseMatcher());
