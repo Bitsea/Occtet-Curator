@@ -177,7 +177,6 @@ public class SpdxConverter {
                 spdxDocumentRoot.setPackages(new ArrayList<>());
             }
 
-            // OPTIMIZATION: Instant lookup from Map instead of scanning List
             String spdxId = spdxPackage.getId();
             SpdxPackageEntity spdxPackageEntity = packageLookupMap.get(spdxId);
 
@@ -318,7 +317,7 @@ public class SpdxConverter {
      */
     public SpdxFileEntity convertFile(SpdxFile spdxFile, SpdxDocumentRoot spdxDocumentRoot) {
         try {
-            log.info("converting file: {}", spdxFile.getName().orElse(""));
+            log.info("converting file: {}", spdxFile.getId());
 
             if (spdxDocumentRoot.getFiles() == null) {
                 spdxDocumentRoot.setFiles(new ArrayList<>());

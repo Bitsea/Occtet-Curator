@@ -158,12 +158,16 @@ public class SpdxService extends BaseWorkDataProcessor{
                 }
             }
 
+            //Caches for component and license
+            Map<String, SoftwareComponent> componentCache = new HashMap<>();
+            Map<String, License> licenseCache = new HashMap<>();
+
             for (TypedValue uri : packageUri) {
                 SpdxModelFactory.getSpdxObjects(spdxDocument.getModelStore(), null, "Package", uri.getObjectUri(), null).forEach(
                         spdxPackage -> {
                             try {
                                 if (!seenPackages.contains(spdxPackage.toString())) {
-                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,mainPackageIds, spdxDocumentRoot, packageLookupMap));
+                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,mainPackageIds, spdxDocumentRoot, packageLookupMap, componentCache, licenseCache));
                                     spdxPackages.add((SpdxPackage) spdxPackage);
                                     seenPackages.add((spdxPackage).toString());
                                 }
@@ -199,7 +203,11 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
     }
 
-    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project, Set<String> mainPackageIds, SpdxDocumentRoot spdxDocumentRoot, Map<String, SpdxPackageEntity> packageLookupMap)
+    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project, Set<String> mainPackageIds,
+                                        SpdxDocumentRoot spdxDocumentRoot,
+                                        Map<String, SpdxPackageEntity> packageLookupMap,
+                                        Map<String, SoftwareComponent> componentCache,
+                                        Map<String, License> licenseCache)
             throws Exception {
 
         log.info("Looking at package: {}", spdxPackage.getId());
@@ -207,12 +215,19 @@ public class SpdxService extends BaseWorkDataProcessor{
         spdxConverter.convertPackage(spdxPackage, spdxDocumentRoot, packageLookupMap);
 
         String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
+        String version = spdxPackage.getVersionInfo().orElse("");
         List<CodeLocation> codeLocations = new ArrayList<>();
         List<Copyright> copyrights = new ArrayList<>();
 
-        // Creation
-        // Use the method from service instead of factory to avoid duplicated software components
-        SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(packageName, spdxPackage.getVersionInfo().orElse(""));
+        String componentKey = packageName + ":" + version;
+        SoftwareComponent component = componentCache.get(componentKey);
+
+        if (component == null) {
+            // Cache Miss: Hit the DB
+            component = softwareComponentService.getOrCreateSoftwareComponent(packageName, version);
+            // Cache Put
+            componentCache.put(componentKey, component);
+        }
 
         //get License from package
         AnyLicenseInfo spdxPkgLicense = spdxPackage.getLicenseConcluded();
@@ -220,13 +235,14 @@ public class SpdxService extends BaseWorkDataProcessor{
             spdxPkgLicense = spdxPackage.getLicenseDeclared();
         }
 
-        List<License> pkgLicenses = createLicenses(spdxPkgLicense);
+        List<License> pkgLicenses = createLicenses(spdxPkgLicense, licenseCache);
         if(component.getLicenses() != null) {
             //make double sure there are no doubles
             Set<License> lSet= new HashSet<>( component.getLicenses());
             component.setLicenses(new ArrayList<>(lSet));
+            SoftwareComponent finalComponent = component;
             pkgLicenses.stream()
-                    .filter(license -> !component.getLicenses().contains(license))
+                    .filter(license -> !finalComponent.getLicenses().contains(license))
                     .forEach(component::addLicense);
         } else {
             component.setLicenses(pkgLicenses);
@@ -260,10 +276,9 @@ public class SpdxService extends BaseWorkDataProcessor{
 
 
         if (component.getCopyrights() == null){
-            component.setCopyrights(copyrights);
-        }else{
-            Set<Copyright> uniqueCopyrights = new HashSet<>();
-            uniqueCopyrights.addAll(component.getCopyrights());
+            component.setCopyrights(new ArrayList<>(copyrights)); // Copy to new list
+        } else {
+            Set<Copyright> uniqueCopyrights = new HashSet<>(component.getCopyrights());
             uniqueCopyrights.addAll(copyrights);
             component.setCopyrights(new ArrayList<>(uniqueCopyrights));
         }
@@ -280,10 +295,6 @@ public class SpdxService extends BaseWorkDataProcessor{
             }
         }
 
-        String version = spdxPackage.getVersionInfo().orElse("");
-
-
-        softwareComponentService.update(component);
         inventoryItemService.update(inventoryItem);
         log.info("created inventoryItem: {}", inventoryName);
         log.info("created softwareComponent: {}", component.getName());
@@ -318,38 +329,50 @@ public class SpdxService extends BaseWorkDataProcessor{
         return inventoryItem;
     }
 
-    private List<License> createLicenses(AnyLicenseInfo spdxLicenseInfo) throws InvalidSPDXAnalysisException {
+    private List<License> createLicenses(AnyLicenseInfo spdxLicenseInfo, Map<String, License> licenseCache)
+            throws InvalidSPDXAnalysisException {
 
         Set<License> allLicenses = new HashSet<>();
         List<AnyLicenseInfo> allLicenseInfo = new ArrayList<>();
         parseLicenseText(spdxLicenseInfo, allLicenseInfo);
 
         for (AnyLicenseInfo individualLicenseInfo : allLicenseInfo) {
+            String licenseId = "";
+            String licenseText = "";
+            boolean isListed = false;
+
             if (individualLicenseInfo instanceof SpdxListedLicense) {
                 ListedLicense license = LicenseInfoFactory.getListedLicenseById(individualLicenseInfo.getId());
-                String licenseId = license.getId();
-                if(licenseId.isEmpty()){
-                    licenseId= "Unknown";
-                }
-
-                String licenseText = license.getLicenseText();
-                License licenseEntity = licenseService.findOrCreateLicense(licenseId, licenseText, licenseId);
-                licenseEntity.setSpdx(true);
-                //save changes to spdx status
-                licenseRepository.save(licenseEntity);
-                log.debug("adding license {}", licenseId);
-                allLicenses.add(licenseEntity);
+                licenseId = license.getId();
+                licenseText = license.getLicenseText();
+                isListed = true;
             } else if (individualLicenseInfo instanceof ExtractedLicenseInfo) {
-                Optional<ExtractedLicenseInfo> extractedLicense = licenseInfosExtractedSpdxDoc.stream().filter(s -> s.getLicenseId().equals(individualLicenseInfo.getId())).findFirst();
-                if (extractedLicense.isPresent()) {
-                    String licenseId = extractedLicense.get().getId();
-                    if(licenseId.isEmpty()){
-                        licenseId= "Unknown";
-                    }
-                    String licenseText = extractedLicense.get().getExtractedText();
-                    allLicenses.add(licenseService.findOrCreateLicense(licenseId, licenseText, licenseId));
+                Optional<ExtractedLicenseInfo> extracted = licenseInfosExtractedSpdxDoc.stream()
+                        .filter(s -> s.getLicenseId().equals(individualLicenseInfo.getId())).findFirst();
+                if (extracted.isPresent()) {
+                    licenseId = extracted.get().getId();
+                    licenseText = extracted.get().getExtractedText();
                 }
             }
+
+            if (licenseId.isEmpty()) licenseId = "Unknown";
+
+            License licenseEntity = licenseCache.get(licenseId);
+
+            if (licenseEntity == null) {
+                licenseEntity = licenseService.findOrCreateLicense(licenseId, licenseText, licenseId);
+
+                if (isListed) {
+                    licenseEntity.setSpdx(true);
+                    licenseRepository.save(licenseEntity);
+                }
+
+                // Cache Put
+                licenseCache.put(licenseId, licenseEntity);
+                log.debug("cached license {}", licenseId);
+            }
+
+            allLicenses.add(licenseEntity);
         }
 
         return allLicenses.stream().toList();
