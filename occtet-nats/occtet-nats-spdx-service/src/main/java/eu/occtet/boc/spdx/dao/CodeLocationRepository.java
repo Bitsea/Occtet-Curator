@@ -33,6 +33,5 @@ import java.util.List;
 
 @Repository
 public interface CodeLocationRepository extends JpaRepository<CodeLocation, Long> {
-
-    List<CodeLocation> findByInventoryItem(InventoryItem inventoryItem);
+    ;
 }

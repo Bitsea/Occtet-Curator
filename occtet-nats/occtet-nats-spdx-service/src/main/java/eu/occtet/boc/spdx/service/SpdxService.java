@@ -173,8 +173,14 @@ public class SpdxService extends BaseWorkDataProcessor{
                         }
                 );
             }
+
+            List<InventoryItem> allItems = inventoryItemRepository.findAllByProject(project);
+            Map<String, InventoryItem> inventoryCache = allItems.stream()
+                    .filter(i -> i.getSpdxId() != null)
+                    .collect(Collectors.toMap(InventoryItem::getSpdxId, item -> item, (p1, p2) -> p1));
+
             for (SpdxPackage spdxPackage : spdxPackages) {
-                parseRelationships(spdxPackage, spdxPackage.getRelationships().stream().toList(), project);
+                parseRelationships(spdxPackage, spdxPackage.getRelationships().stream().toList(), inventoryCache);
                 for(Relationship relationship: spdxPackage.getRelationships()) {
                     spdxConverter.convertRelationShip(relationship, spdxDocumentRoot, spdxPackage);
                 }
@@ -388,42 +394,51 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
     }
 
-    private void parseRelationships(SpdxPackage spdxPackage, List<Relationship> relationships, Project project) throws InvalidSPDXAnalysisException {
+    private void parseRelationships(SpdxPackage spdxPackage, List<Relationship> relationships
+            , Map<String, InventoryItem> inventoryCache) throws InvalidSPDXAnalysisException {
+
+        InventoryItem sourceItem = inventoryCache.get(spdxPackage.getId());
+
+        if (sourceItem == null) {
+            log.error("Relationship source package not found in inventory: {}", spdxPackage.getId());
+            return;
+        }
+
         for (Relationship relationship : relationships) {
+            Optional<SpdxElement> targetOpt = relationship.getRelatedSpdxElement();
+            if (targetOpt.isEmpty()) continue;
+
+            SpdxElement targetElement = targetOpt.get();
+
+            InventoryItem targetItem = inventoryCache.get(targetElement.getId());
+
+            if (targetItem == null) {
+                continue;
+            }
+
             switch (relationship.getRelationshipType()) {
                 case CONTAINS, DEPENDS_ON, ANCESTOR_OF -> {
-                    Optional<SpdxElement> target = relationship.getRelatedSpdxElement();
-                    if (target.isPresent() && target.get().getType().equals("Package")) {
-                        InventoryItem sourceItem = inventoryItemRepository.findBySpdxIdAndProject(spdxPackage.getId(), project).getFirst();
-                        InventoryItem targetItem = inventoryItemRepository.findBySpdxIdAndProject(target.get().getId(), project).getFirst();
+                    if (targetElement.getType().equals("Package")) {
                         targetItem.setParent(sourceItem);
                         inventoryItemService.update(targetItem);
                         log.info("identified {} as parent of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
-                        log.debug("child has project {}", targetItem.getProject().getProjectName());
                     }
                 }
                 case CONTAINED_BY, DEPENDENCY_OF, DESCENDANT_OF -> {
-                    Optional<SpdxElement> target = relationship.getRelatedSpdxElement();
-                    if (target.isPresent() && target.get().getType().equals("Package")) {
-                        InventoryItem sourceItem = inventoryItemRepository.findBySpdxIdAndProject(spdxPackage.getId(), project).getFirst();
-                        InventoryItem targetItem = inventoryItemRepository.findBySpdxIdAndProject(target.get().getId(), project).getFirst();
+                    if (targetElement.getType().equals("Package")) {
                         sourceItem.setParent(targetItem);
                         inventoryItemService.update(sourceItem);
                         log.info("identified {} as child of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
                     }
                 }
                 case STATIC_LINK -> {
-                    Optional<SpdxElement> target = relationship.getRelatedSpdxElement();
-                    if (target.isPresent() && target.get().getType().equals("Package")) {
-                        InventoryItem targetItem = inventoryItemRepository.findBySpdxIdAndProject(target.get().getId(), project).getFirst();
+                    if (targetElement.getType().equals("Package")) {
                         targetItem.setLinking("Static");
                         inventoryItemService.update(targetItem);
                     }
                 }
                 case DYNAMIC_LINK -> {
-                    Optional<SpdxElement> target = relationship.getRelatedSpdxElement();
-                    if (target.isPresent() && target.get().getType().equals("Package")) {
-                        InventoryItem targetItem = inventoryItemRepository.findBySpdxIdAndProject(target.get().getId(), project).getFirst();
+                    if (targetElement.getType().equals("Package")) {
                         targetItem.setLinking("Dynamic");
                         inventoryItemService.update(targetItem);
                     }
@@ -432,8 +447,7 @@ public class SpdxService extends BaseWorkDataProcessor{
                 }
             }
         }
+
     }
-
-
 
 }
