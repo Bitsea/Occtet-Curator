@@ -51,6 +51,7 @@ import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
+import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.*;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
@@ -99,6 +100,7 @@ public class AuditView extends StandardView{
 
     @Autowired private FileContentService fileContentService;
     @Autowired private AuditViewStateService viewStateService;
+    @Autowired private FileSearchService fileSearchService;
 
     @Autowired private TreeGridHelper treeGridHelper;
 
@@ -167,13 +169,33 @@ public class AuditView extends StandardView{
         fileTreeGridLayout.addComponentAsFirst(toolboxWrapper);
 
         toolboxWrapper.getChildren()
-                .filter(component -> component instanceof TextField &&
-                        UiComponentFactory.SEARCH_FIELD_ID.equals(component.getId().orElse(null)))
-                .map(component -> (TextField) component)
-                .findFirst()
-                .ifPresent(searchField -> {
-                    // add search listener
-                });
+                .filter(component -> component instanceof HorizontalLayout &&
+                        UiComponentFactory.SEARCH_LAYOUT_ID.equals(component.getId().orElse(null)))
+                .map(component -> (HorizontalLayout) component)
+                .findFirst().ifPresent(layout -> {
+                    layout.getChildren()
+                            .filter(component -> component instanceof TextField &&
+                                    UiComponentFactory.SEARCH_FIELD_ID.equals(component.getId().orElse(null)))
+                            .map(component -> (TextField) component)
+                            .findFirst().ifPresent(textField -> {
+                                textField.addValueChangeListener(e -> {
+                                    fileSearchService.performSearch(e.getValue());
+                                })};
+                    layout.getChildren()
+                            .filter(component -> component instanceof JmixButton &&
+                                    UiComponentFactory.FIND_NEXT_ID.equals(component.getId().orElse(null)))
+                            .map(component -> (JmixButton) component)
+                            .findFirst().ifPresent(jmixButton -> {jmixButton.addClickListener(e -> {
+
+                            })});
+                    layout.getChildren()
+                            .filter(component -> component instanceof JmixButton &&
+                                    UiComponentFactory.FIND_PREVIOUS_ID.equals(component.getId().orElse(null)))
+                            .map(component -> (JmixButton) component)
+                            .findFirst().ifPresent(jmixButton -> {jmixButton.addClickListener(e -> {
+
+                            })});
+                        });
         toolboxWrapper.getChildren()
                 .filter(component -> component instanceof JmixComboBox &&
                         UiComponentFactory.REVIEWED_FILTER_ID.equals(component.getId().orElse(null)))

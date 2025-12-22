@@ -40,9 +40,6 @@ public interface FileRepository extends JmixDataRepository<File, UUID> {
             "where f.project = :project and f.parent is null " +
             "order by " +
             "   CASE WHEN lower(f.fileName) = '" + DEPENDENCY_FOLDER_NAME + "' THEN 1 ELSE 0 END ASC, " +
-            "   CASE WHEN (:targetStatus is null) THEN 0 " +
-            "        WHEN (f.reviewed = :targetStatus) THEN 0 " +        // Matches go to Top
-            "        ELSE 1 END ASC, " +                                 // Others go to Bottom
             "   f.isDirectory desc, " +
             "   f.fileName asc")
     List<File> findRootsSorted(@Param("project") Project project,
@@ -54,9 +51,6 @@ public interface FileRepository extends JmixDataRepository<File, UUID> {
             "where f.parent = :parent " +
             "order by " +
             "   CASE WHEN lower(f.fileName) = '" + DEPENDENCY_FOLDER_NAME + "' THEN 1 ELSE 0 END ASC, " +
-            "   CASE WHEN (:targetStatus is null) THEN 0 " +
-            "        WHEN (f.reviewed = :targetStatus) THEN 0 " +
-            "        ELSE 1 END ASC, " +
             "   f.isDirectory desc, " +
             "   f.fileName asc")
     List<File> findChildrenSorted(@Param("parent") File parent,
@@ -73,4 +67,27 @@ public interface FileRepository extends JmixDataRepository<File, UUID> {
 
     @Query("select f from File f where f.project = :project and f.fileName = :fileName")
     List<File> findCandidates(@Param("project") Project project, @Param("fileName") String fileName);
+
+    // Methods related to the file tree search mechanism
+    // TODO
+    long countAllByFileNameContainingIgnoreCase(String fileName);
+
+
+    @Query("""
+            select f.id from file f
+            where f.project = :project 
+            and lower(f.fileName) like lower(concat('%', :term, '%'))
+            order by f.relativePath asc
+            """)
+    List<UUID> searchIdsByFileName(@Param("term") String fileName, @Param("project") Project project, Pageable pageable);
+
+    @Query("select f.id from File f " +
+            "where f.project = :project " +
+            "and lower(f.relativePath) like lower(concat('%', :term, '%')) " +
+            "order by f.relativePath asc")
+    List<UUID> searchIdsByPath(@Param("project") Project project,
+                               @Param("term") String term,
+                               Pageable pageable);
+    // Method for searching for full/relative pathes (e.g. a/b.txt)
+
 }

@@ -55,6 +55,11 @@ public class UiComponentFactory {
 
     public static final String SEARCH_FIELD_ID = "search-field";
     public static final String REVIEWED_FILTER_ID = "reviewed-filter";
+    public static final String FIND_NEXT_ID = "find-next";
+    public static final String FIND_PREVIOUS_ID = "find-previous";
+    public static final String FILTER_BUTTON_ID = "filter-button";
+    public static final String SEARCH_LAYOUT_ID = "search-layout";
+    public static final String COUNT_LABEL_ID = "count-label";
 
     private final String vulnerabilityFilterId = "vulnerability-filter";
 
@@ -168,6 +173,9 @@ public class UiComponentFactory {
         layout.setAlignItems(FlexComponent.Alignment.END);
         layout.setJustifyContentMode(FlexComponent.JustifyContentMode.START);
 
+        // Search layout
+        HorizontalLayout searchHl = uiComponents.create(HorizontalLayout.class);
+        searchHl.setId(SEARCH_LAYOUT_ID);
         // Search Field
         TextField searchField = uiComponents.create(TextField.class);
         searchField.setPrefixComponent(VaadinIcon.SEARCH.create());
@@ -175,7 +183,18 @@ public class UiComponentFactory {
         searchField.setPlaceholder("Search files...");
         searchField.setClearButtonVisible(true);
         searchField.setWidth("300px");
-        searchField.isReadOnly(); // remove once logic exists
+        JmixButton findNext = uiComponents.create(JmixButton.class);
+        findNext.setId(FIND_NEXT_ID);
+        findNext.setIcon(VaadinIcon.ARROW_RIGHT.create());
+        findNext.setThemeName("icon small tertiary-inline");
+        JmixButton findPrevious = uiComponents.create(JmixButton.class);
+        findPrevious.setId(FIND_PREVIOUS_ID);
+        findPrevious.setIcon(VaadinIcon.ARROW_LEFT.create());
+        findPrevious.setThemeName("icon small tertiary-inline");
+        NativeLabel countLabel = new NativeLabel("0:0");
+        countLabel.setId(COUNT_LABEL_ID);
+
+        searchHl.add(searchField, findNext, findPrevious, countLabel);
 
         // Reviewed Filter ComboBox
         JmixComboBox<FileReviewedFilterMode> reviewedFilter = uiComponents.create(JmixComboBox.class);
@@ -193,7 +212,7 @@ public class UiComponentFactory {
         reviewedFilter.setValue(FileReviewedFilterMode.SHOW_ALL);
         reviewedFilter.setWidth("150px");
 
-        layout.add(searchField, reviewedFilter);
+        layout.add(searchHl, reviewedFilter);
 
         return layout;
     }

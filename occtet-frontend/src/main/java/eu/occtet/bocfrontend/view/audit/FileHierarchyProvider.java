@@ -87,4 +87,7 @@ public class FileHierarchyProvider extends AbstractBackEndHierarchicalDataProvid
     public boolean hasChildren(File file) {
         return Boolean.TRUE.equals(file.getIsDirectory());
     }
+
+    // TODO method for realtime highlighting/marking currently visable nodes
+    // TODO See if autocomplete can be used for the search
 }
