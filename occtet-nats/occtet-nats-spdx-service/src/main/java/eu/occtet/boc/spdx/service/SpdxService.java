@@ -31,10 +31,13 @@ import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
+import eu.occtet.boc.spdx.dao.CopyrightRepository;
 import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
 import eu.occtet.boc.spdx.dao.ProjectRepository;
 import eu.occtet.boc.spdx.dao.spdxV2.SpdxDocumentRootRepository;
+import eu.occtet.boc.spdx.factory.CodeLocationFactory;
+import eu.occtet.boc.spdx.factory.CopyrightFactory;
 import io.nats.client.JetStreamApiException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -88,10 +91,13 @@ public class SpdxService extends BaseWorkDataProcessor{
     private AnswerService answerService;
     @Autowired
     private SpdxDocumentRootRepository spdxDocumentRootRepository;
+    @Autowired
+    private CopyrightRepository copyrightRepository;
 
 
 
     private Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc = new ArrayList<>();
+
 
     @Override
     public boolean process(SpdxWorkData workData) {
@@ -188,6 +194,7 @@ public class SpdxService extends BaseWorkDataProcessor{
                 for(Relationship relationship: spdxPackage.getRelationships()) {
                     spdxConverter.convertRelationShip(relationship, spdxDocumentRoot, spdxPackage);
                 }
+                log.info("Converted {} relationships for package {}", spdxPackage.getRelationships().size(), spdxPackage.getId());
             }
 
             spdxDocumentRootRepository.save(spdxDocumentRoot);
@@ -267,13 +274,15 @@ public class SpdxService extends BaseWorkDataProcessor{
 
         log.info("Converting {} files", spdxPackage.getFiles().size());
         spdxPackage.getFiles().forEach(f -> {
-            try {
-                spdxConverter.convertFile(f, spdxDocumentRoot);
-                parseFiles(f, inventoryItem, codeLocations, copyrights);
-            } catch (InvalidSPDXAnalysisException e) {
-                throw new RuntimeException(e);
-            }
+            spdxConverter.convertFile(f, spdxDocumentRoot);
         });
+
+        try {
+            // parseFiles(f, inventoryItem, codeLocations, copyrights); -- old call
+            parseFiles(spdxPackage, inventoryItem);
+        } catch (InvalidSPDXAnalysisException e) {
+            log.error("Error batch processing files", e);
+        }
 
 
         if (component.getCopyrights() == null){
@@ -399,22 +408,55 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
     }
 
-    private void parseFiles(SpdxFile spdxFile, InventoryItem inventoryItem, List<CodeLocation> codeLocations, List<Copyright> copyrights) throws InvalidSPDXAnalysisException {
-        String copyrightText = spdxFile.getCopyrightText();
-        if (!copyrightText.equals("NONE") && spdxFile.getName().isPresent()) {
-            CodeLocation fileLocation =
-                    codeLocationService.findOrCreateCodeLocationWithInventory(spdxFile.getName().get(), inventoryItem);
-            if (!codeLocations.contains(fileLocation)) {
-                codeLocations.add(fileLocation);
-            }
-
-            Copyright fileCopyright = copyrightService.findOrCreateCopyright(copyrightText, codeLocations);
-            if (!copyrights.contains(fileCopyright)) {
-                copyrights.add(fileCopyright);
-                log.info("Created codeLocation: {} for Copyright: {}", fileLocation.getFilePath(), copyrightText);
+    private void parseFiles(SpdxPackage spdxPackage, InventoryItem inventoryItem) throws InvalidSPDXAnalysisException {
+        List<String> allFileNames = new ArrayList<>();
+        Set<String> allCopyrightsTexts = new HashSet<>();
+        Map<String, String> fileToCopyrightMap = new HashMap<>();
+        for (SpdxFile f : spdxPackage.getFiles()) {
+            if (f.getName().isPresent()){
+                String path = f.getName().get();
+                allFileNames.add(path);
+                String copyright = f.getCopyrightText();
+                if (!"NONE".equals(copyright) && !"NOASSERTION".equals(copyright)){
+                    allCopyrightsTexts.add(copyright);
+                    fileToCopyrightMap.put(path, copyright);
+                }
             }
         }
+        Map<String, CodeLocation> locationMap = codeLocationService.findOrCreateBatch(allFileNames, inventoryItem);
+        Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts);
+
+        List<Copyright> copyrightsToUpdate = new ArrayList<>();
+        for (Map.Entry<String, String> entry : fileToCopyrightMap.entrySet()) {
+            String path = entry.getKey();
+            String copyrightText = entry.getValue();
+            CodeLocation loc = locationMap.get(path);
+            Copyright copyright = copyrightMap.get(copyrightText);
+            if (loc != null && copyright != null) {
+                copyright.getCodeLocations().add(loc);
+                copyrightsToUpdate.add(copyright);
+            }
+        }
+        copyrightRepository.saveAll(copyrightsToUpdate);
+
     }
+
+//    private void parseFiles(SpdxFile spdxFile, InventoryItem inventoryItem, List<CodeLocation> codeLocations, List<Copyright> copyrights) throws InvalidSPDXAnalysisException {
+//        String copyrightText = spdxFile.getCopyrightText();
+//        if (!copyrightText.equals("NONE") && spdxFile.getName().isPresent()) {
+//            CodeLocation fileLocation =
+//                    codeLocationService.findOrCreateCodeLocationWithInventory(spdxFile.getName().get(), inventoryItem);
+//            if (!codeLocations.contains(fileLocation)) {
+//                codeLocations.add(fileLocation);
+//            }
+//
+//            Copyright fileCopyright = copyrightService.findOrCreateCopyright(copyrightText, codeLocations);
+//            if (!copyrights.contains(fileCopyright)) {
+//                copyrights.add(fileCopyright);
+//                log.debug("Created codeLocation: {} for Copyright: {}", fileLocation.getFilePath(), copyrightText);
+//            }
+//        }
+//    }
 
     private void parseRelationships(SpdxPackage spdxPackage, List<Relationship> relationships
             , Map<String, InventoryItem> inventoryCache) throws InvalidSPDXAnalysisException {

@@ -394,7 +394,7 @@ public class SpdxConverter {
      * @return The persisted {@link RelationshipEntity} (either newly created or the existing match).
      */
     public RelationshipEntity convertRelationShip(Relationship relationship, SpdxDocumentRoot spdxDocumentRoot, SpdxPackage spdxPackage) {
-        log.info("converting relationship");
+        // log.info("converting relationship");
         try {
             if (spdxDocumentRoot.getRelationships() == null) {
                 spdxDocumentRoot.setRelationships(new ArrayList<>());
