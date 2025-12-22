@@ -127,7 +127,7 @@ public class SpdxService extends BaseWorkDataProcessor{
                 return false;
             }
             Project project = projectOptional.get();
-            project.setDocumentID(spdxDocument.getId());
+            project.setDocumentID(spdxDocument.getDocumentUri());
             projectRepository.save(project);
 
 
@@ -300,7 +300,6 @@ public class SpdxService extends BaseWorkDataProcessor{
         log.info("created softwareComponent: {}", component.getName());
 
         if (!version.isEmpty() && !downloadLocation.isEmpty() && !"NOASSERTION".equals(downloadLocation)) {
-                // Register logic to run AFTER the database commit
                 TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                     @Override
                     public void afterCommit() {

@@ -199,6 +199,7 @@ public class NatsService {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             objectStore.get(fileId, out);
+            objectStore.delete(fileId);
             return out.toByteArray();
         } catch (Exception e) {
             return null;

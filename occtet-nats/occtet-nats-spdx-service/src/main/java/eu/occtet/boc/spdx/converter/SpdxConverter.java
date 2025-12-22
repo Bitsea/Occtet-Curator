@@ -66,7 +66,7 @@ public class SpdxConverter {
      *
      * @param spdxDocument The source SPDX document model to be converted.
      * @return The persisted {@link SpdxDocumentRoot} entity (either newly created or updated).
-     * @see SpdxDocumentRootRepository#findBySpdxId(String)
+     * @see SpdxDocumentRootRepository#findByDocumentUri(String) (String)
      */
     public SpdxDocumentRoot convertSpdxV2DocumentInformation(SpdxDocument spdxDocument) {
         log.info("converting document");
@@ -77,7 +77,7 @@ public class SpdxConverter {
                 docId = "SPDXRef-DOCUMENT";
             }
 
-            SpdxDocumentRoot spdxDocumentRoot = spdxDocumentRootRepository.findBySpdxId(docId)
+            SpdxDocumentRoot spdxDocumentRoot = spdxDocumentRootRepository.findByDocumentUri(spdxDocument.getDocumentUri())
                     .orElse(new SpdxDocumentRoot());
 
             spdxDocumentRoot.setSpdxVersion(spdxDocument.getSpecVersion());
