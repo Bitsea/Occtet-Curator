@@ -35,9 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class DownloadWorkConsumer extends WorkConsumer {
@@ -50,16 +47,6 @@ public class DownloadWorkConsumer extends WorkConsumer {
     @Override
     protected void handleMessage(Message msg) {
         log.debug("handleMessage called");
-
-        ScheduledExecutorService keepAliveExecutor = Executors.newSingleThreadScheduledExecutor();
-        keepAliveExecutor.scheduleAtFixedRate(() -> {
-            try {
-                log.trace("Sending NATS heartbeat (inProgress)...");
-                msg.inProgress();
-            } catch (Exception e) {
-                log.warn("Failed to send inProgress heartbeat", e);
-            }
-        }, 2, 2, TimeUnit.SECONDS);
 
         try {
             String jsonData = new String(msg.getData(), StandardCharsets.UTF_8);
@@ -75,8 +62,7 @@ public class DownloadWorkConsumer extends WorkConsumer {
                     try {
                         return downloadService.process(workData);
                     } catch (Exception e) {
-                        log.error("Could not process workData of type {} with error message: ",
-                                workData.getClass().getName(), e);
+                        log.error("Could not process workData of type {} with error message: ", workData.getClass().getName(), e);
                         return false;
                     }
                 }
@@ -84,14 +70,9 @@ public class DownloadWorkConsumer extends WorkConsumer {
 
             if (!result) {
                 log.error("Could not process workData of type {}", workData.getClass().getName());
-            } else {
-                msg.ack();
             }
-
         } catch (Exception e) {
-            log.error("Fatal error in consumer", e);
-        } finally {
-            keepAliveExecutor.shutdownNow();
+            throw new RuntimeException(e);
         }
     }
 }
