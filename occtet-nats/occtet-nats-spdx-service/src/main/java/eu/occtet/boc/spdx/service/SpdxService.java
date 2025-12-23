@@ -27,12 +27,17 @@ package eu.occtet.boc.spdx.service;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
+import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
+import eu.occtet.boc.spdx.dao.CopyrightRepository;
 import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
 import eu.occtet.boc.spdx.dao.ProjectRepository;
+import eu.occtet.boc.spdx.dao.spdxV2.SpdxDocumentRootRepository;
+import eu.occtet.boc.spdx.factory.CodeLocationFactory;
+import eu.occtet.boc.spdx.factory.CopyrightFactory;
 import io.nats.client.JetStreamApiException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -84,10 +89,15 @@ public class SpdxService extends BaseWorkDataProcessor{
     private ProjectRepository projectRepository;
     @Autowired
     private AnswerService answerService;
+    @Autowired
+    private SpdxDocumentRootRepository spdxDocumentRootRepository;
+    @Autowired
+    private CopyrightRepository copyrightRepository;
 
 
 
     private Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc = new ArrayList<>();
+
 
     @Override
     public boolean process(SpdxWorkData workData) {
@@ -123,7 +133,7 @@ public class SpdxService extends BaseWorkDataProcessor{
                 return false;
             }
             Project project = projectOptional.get();
-            project.setDocumentID(spdxDocument.getId());
+            project.setDocumentID(spdxDocument.getDocumentUri());
             projectRepository.save(project);
 
 
@@ -145,12 +155,25 @@ public class SpdxService extends BaseWorkDataProcessor{
                 log.warn("Could not read DocumentDescribes: {}", e.getMessage());
             }
 
+            Map<String, SpdxPackageEntity> packageLookupMap = new HashMap<>();
+            if (spdxDocumentRoot.getPackages() != null) {
+                for (SpdxPackageEntity entity : spdxDocumentRoot.getPackages()) {
+                    if (entity.getSpdxId() != null) {
+                        packageLookupMap.put(entity.getSpdxId(), entity);
+                    }
+                }
+            }
+
+            //Caches for component and license
+            Map<String, SoftwareComponent> componentCache = new HashMap<>();
+            Map<String, License> licenseCache = new HashMap<>();
+
             for (TypedValue uri : packageUri) {
                 SpdxModelFactory.getSpdxObjects(spdxDocument.getModelStore(), null, "Package", uri.getObjectUri(), null).forEach(
                         spdxPackage -> {
                             try {
                                 if (!seenPackages.contains(spdxPackage.toString())) {
-                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,mainPackageIds, spdxDocumentRoot));
+                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,mainPackageIds, spdxDocumentRoot, packageLookupMap, componentCache, licenseCache));
                                     spdxPackages.add((SpdxPackage) spdxPackage);
                                     seenPackages.add((spdxPackage).toString());
                                 }
@@ -160,12 +183,21 @@ public class SpdxService extends BaseWorkDataProcessor{
                         }
                 );
             }
+
+            List<InventoryItem> allItems = inventoryItemRepository.findAllByProject(project);
+            Map<String, InventoryItem> inventoryCache = allItems.stream()
+                    .filter(i -> i.getSpdxId() != null)
+                    .collect(Collectors.toMap(InventoryItem::getSpdxId, item -> item, (p1, p2) -> p1));
+
             for (SpdxPackage spdxPackage : spdxPackages) {
-                parseRelationships(spdxPackage, spdxPackage.getRelationships().stream().toList(), project);
+                parseRelationships(spdxPackage, spdxPackage.getRelationships().stream().toList(), inventoryCache);
                 for(Relationship relationship: spdxPackage.getRelationships()) {
                     spdxConverter.convertRelationShip(relationship, spdxDocumentRoot, spdxPackage);
                 }
+                log.info("Converted {} relationships for package {}", spdxPackage.getRelationships().size(), spdxPackage.getId());
             }
+
+            spdxDocumentRootRepository.save(spdxDocumentRoot);
 
             log.info("processed spdx with {} items", inventoryItems.size());
             boolean sent = answerService.prepareAnswers(inventoryItems, spdxWorkData.isUseCopyrightAi(), spdxWorkData.isUseLicenseMatcher());
@@ -178,20 +210,31 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
     }
 
-    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project, Set<String> mainPackageIds, SpdxDocumentRoot spdxDocumentRoot)
+    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project, Set<String> mainPackageIds,
+                                        SpdxDocumentRoot spdxDocumentRoot,
+                                        Map<String, SpdxPackageEntity> packageLookupMap,
+                                        Map<String, SoftwareComponent> componentCache,
+                                        Map<String, License> licenseCache)
             throws Exception {
 
         log.info("Looking at package: {}", spdxPackage.getId());
         //Convert to entities
-        spdxConverter.convertPackage(spdxPackage, spdxDocumentRoot);
+        spdxConverter.convertPackage(spdxPackage, spdxDocumentRoot, packageLookupMap);
 
         String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
+        String version = spdxPackage.getVersionInfo().orElse("");
         List<CodeLocation> codeLocations = new ArrayList<>();
         List<Copyright> copyrights = new ArrayList<>();
 
-        // Creation
-        // Use the method from service instead of factory to avoid duplicated software components
-        SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(packageName, spdxPackage.getVersionInfo().orElse(""));
+        String componentKey = packageName + ":" + version;
+        SoftwareComponent component = componentCache.get(componentKey);
+
+        if (component == null) {
+            // Cache Miss: Hit the DB
+            component = softwareComponentService.getOrCreateSoftwareComponent(packageName, version);
+            // Cache Put
+            componentCache.put(componentKey, component);
+        }
 
         //get License from package
         AnyLicenseInfo spdxPkgLicense = spdxPackage.getLicenseConcluded();
@@ -199,13 +242,14 @@ public class SpdxService extends BaseWorkDataProcessor{
             spdxPkgLicense = spdxPackage.getLicenseDeclared();
         }
 
-        List<License> pkgLicenses = createLicenses(spdxPkgLicense);
+        List<License> pkgLicenses = createLicenses(spdxPkgLicense, licenseCache);
         if(component.getLicenses() != null) {
             //make double sure there are no doubles
             Set<License> lSet= new HashSet<>( component.getLicenses());
             component.setLicenses(new ArrayList<>(lSet));
+            SoftwareComponent finalComponent = component;
             pkgLicenses.stream()
-                    .filter(license -> !component.getLicenses().contains(license))
+                    .filter(license -> !finalComponent.getLicenses().contains(license))
                     .forEach(component::addLicense);
         } else {
             component.setLicenses(pkgLicenses);
@@ -228,21 +272,23 @@ public class SpdxService extends BaseWorkDataProcessor{
 
         inventoryItem.setSize(spdxPackage.getFiles().size());
 
+        log.info("Converting {} files", spdxPackage.getFiles().size());
         spdxPackage.getFiles().forEach(f -> {
-            try {
-                spdxConverter.convertFile(f, spdxDocumentRoot);
-                parseFiles(f, inventoryItem, codeLocations, copyrights);
-            } catch (InvalidSPDXAnalysisException e) {
-                throw new RuntimeException(e);
-            }
+            spdxConverter.convertFile(f, spdxDocumentRoot);
         });
+
+        try {
+            // parseFiles(f, inventoryItem, codeLocations, copyrights); -- old call
+            parseFiles(spdxPackage, inventoryItem);
+        } catch (InvalidSPDXAnalysisException e) {
+            log.error("Error batch processing files", e);
+        }
 
 
         if (component.getCopyrights() == null){
-            component.setCopyrights(copyrights);
-        }else{
-            Set<Copyright> uniqueCopyrights = new HashSet<>();
-            uniqueCopyrights.addAll(component.getCopyrights());
+            component.setCopyrights(new ArrayList<>(copyrights)); // Copy to new list
+        } else {
+            Set<Copyright> uniqueCopyrights = new HashSet<>(component.getCopyrights());
             uniqueCopyrights.addAll(copyrights);
             component.setCopyrights(new ArrayList<>(uniqueCopyrights));
         }
@@ -259,16 +305,11 @@ public class SpdxService extends BaseWorkDataProcessor{
             }
         }
 
-        String version = spdxPackage.getVersionInfo().orElse("");
-
-
-        softwareComponentService.update(component);
         inventoryItemService.update(inventoryItem);
         log.info("created inventoryItem: {}", inventoryName);
         log.info("created softwareComponent: {}", component.getName());
 
         if (!version.isEmpty() && !downloadLocation.isEmpty() && !"NOASSERTION".equals(downloadLocation)) {
-                // Register logic to run AFTER the database commit
                 TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                     @Override
                     public void afterCommit() {
@@ -297,38 +338,49 @@ public class SpdxService extends BaseWorkDataProcessor{
         return inventoryItem;
     }
 
-    private List<License> createLicenses(AnyLicenseInfo spdxLicenseInfo) throws InvalidSPDXAnalysisException {
+    private List<License> createLicenses(AnyLicenseInfo spdxLicenseInfo, Map<String, License> licenseCache)
+            throws InvalidSPDXAnalysisException {
 
         Set<License> allLicenses = new HashSet<>();
         List<AnyLicenseInfo> allLicenseInfo = new ArrayList<>();
         parseLicenseText(spdxLicenseInfo, allLicenseInfo);
 
         for (AnyLicenseInfo individualLicenseInfo : allLicenseInfo) {
+            String licenseId = "";
+            String licenseText = "";
+            boolean isListed = false;
+
             if (individualLicenseInfo instanceof SpdxListedLicense) {
                 ListedLicense license = LicenseInfoFactory.getListedLicenseById(individualLicenseInfo.getId());
-                String licenseId = license.getId();
-                if(licenseId.isEmpty()){
-                    licenseId= "Unknown";
-                }
-
-                String licenseText = license.getLicenseText();
-                License licenseEntity = licenseService.findOrCreateLicense(licenseId, licenseText, licenseId);
-                licenseEntity.setSpdx(true);
-                //save changes to spdx status
-                licenseRepository.save(licenseEntity);
-                log.debug("adding license {}", licenseId);
-                allLicenses.add(licenseEntity);
+                licenseId = license.getId();
+                licenseText = license.getLicenseText();
+                isListed = true;
             } else if (individualLicenseInfo instanceof ExtractedLicenseInfo) {
-                Optional<ExtractedLicenseInfo> extractedLicense = licenseInfosExtractedSpdxDoc.stream().filter(s -> s.getLicenseId().equals(individualLicenseInfo.getId())).findFirst();
-                if (extractedLicense.isPresent()) {
-                    String licenseId = extractedLicense.get().getId();
-                    if(licenseId.isEmpty()){
-                        licenseId= "Unknown";
-                    }
-                    String licenseText = extractedLicense.get().getExtractedText();
-                    allLicenses.add(licenseService.findOrCreateLicense(licenseId, licenseText, licenseId));
+                Optional<ExtractedLicenseInfo> extracted = licenseInfosExtractedSpdxDoc.stream()
+                        .filter(s -> s.getLicenseId().equals(individualLicenseInfo.getId())).findFirst();
+                if (extracted.isPresent()) {
+                    licenseId = extracted.get().getId();
+                    licenseText = extracted.get().getExtractedText();
                 }
             }
+
+            if (licenseId.isEmpty()) licenseId = "Unknown";
+
+            License licenseEntity = licenseCache.get(licenseId);
+
+            if (licenseEntity == null) {
+                licenseEntity = licenseService.findOrCreateLicense(licenseId, licenseText, licenseId);
+
+                if (isListed) {
+                    licenseEntity.setSpdx(true);
+                    licenseRepository.save(licenseEntity);
+                }
+
+                // Cache Put
+                licenseCache.put(licenseId, licenseEntity);
+            }
+
+            allLicenses.add(licenseEntity);
         }
 
         return allLicenses.stream().toList();
@@ -356,59 +408,101 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
     }
 
-    private void parseFiles(SpdxFile spdxFile, InventoryItem inventoryItem, List<CodeLocation> codeLocations, List<Copyright> copyrights) throws InvalidSPDXAnalysisException {
-        String copyrightText = spdxFile.getCopyrightText();
-        if (!copyrightText.equals("NONE") && spdxFile.getName().isPresent()) {
-            CodeLocation fileLocation =
-                    codeLocationService.findOrCreateCodeLocationWithInventory(spdxFile.getName().get(), inventoryItem);
-            if (!codeLocations.contains(fileLocation)) {
-                codeLocations.add(fileLocation);
-            }
-
-            Copyright fileCopyright = copyrightService.findOrCreateCopyright(copyrightText, codeLocations);
-            if (!copyrights.contains(fileCopyright)) {
-                copyrights.add(fileCopyright);
-                log.info("Created codeLocation: {} for Copyright: {}", fileLocation.getFilePath(), copyrightText);
+    private void parseFiles(SpdxPackage spdxPackage, InventoryItem inventoryItem) throws InvalidSPDXAnalysisException {
+        List<String> allFileNames = new ArrayList<>();
+        Set<String> allCopyrightsTexts = new HashSet<>();
+        Map<String, String> fileToCopyrightMap = new HashMap<>();
+        for (SpdxFile f : spdxPackage.getFiles()) {
+            if (f.getName().isPresent()){
+                String path = f.getName().get();
+                allFileNames.add(path);
+                String copyright = f.getCopyrightText();
+                if (!"NONE".equals(copyright) && !"NOASSERTION".equals(copyright)){
+                    allCopyrightsTexts.add(copyright);
+                    fileToCopyrightMap.put(path, copyright);
+                }
             }
         }
+        Map<String, CodeLocation> locationMap = codeLocationService.findOrCreateBatch(allFileNames, inventoryItem);
+        Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts);
+
+        List<Copyright> copyrightsToUpdate = new ArrayList<>();
+        for (Map.Entry<String, String> entry : fileToCopyrightMap.entrySet()) {
+            String path = entry.getKey();
+            String copyrightText = entry.getValue();
+            CodeLocation loc = locationMap.get(path);
+            Copyright copyright = copyrightMap.get(copyrightText);
+            if (loc != null && copyright != null) {
+                copyright.getCodeLocations().add(loc);
+                copyrightsToUpdate.add(copyright);
+            }
+        }
+        copyrightRepository.saveAll(copyrightsToUpdate);
+
     }
 
-    private void parseRelationships(SpdxPackage spdxPackage, List<Relationship> relationships, Project project) throws InvalidSPDXAnalysisException {
+//    private void parseFiles(SpdxFile spdxFile, InventoryItem inventoryItem, List<CodeLocation> codeLocations, List<Copyright> copyrights) throws InvalidSPDXAnalysisException {
+//        String copyrightText = spdxFile.getCopyrightText();
+//        if (!copyrightText.equals("NONE") && spdxFile.getName().isPresent()) {
+//            CodeLocation fileLocation =
+//                    codeLocationService.findOrCreateCodeLocationWithInventory(spdxFile.getName().get(), inventoryItem);
+//            if (!codeLocations.contains(fileLocation)) {
+//                codeLocations.add(fileLocation);
+//            }
+//
+//            Copyright fileCopyright = copyrightService.findOrCreateCopyright(copyrightText, codeLocations);
+//            if (!copyrights.contains(fileCopyright)) {
+//                copyrights.add(fileCopyright);
+//                log.debug("Created codeLocation: {} for Copyright: {}", fileLocation.getFilePath(), copyrightText);
+//            }
+//        }
+//    }
+
+    private void parseRelationships(SpdxPackage spdxPackage, List<Relationship> relationships
+            , Map<String, InventoryItem> inventoryCache) throws InvalidSPDXAnalysisException {
+
+        InventoryItem sourceItem = inventoryCache.get(spdxPackage.getId());
+
+        if (sourceItem == null) {
+            log.error("Relationship source package not found in inventory: {}", spdxPackage.getId());
+            return;
+        }
+
         for (Relationship relationship : relationships) {
+            Optional<SpdxElement> targetOpt = relationship.getRelatedSpdxElement();
+            if (targetOpt.isEmpty()) continue;
+
+            SpdxElement targetElement = targetOpt.get();
+
+            InventoryItem targetItem = inventoryCache.get(targetElement.getId());
+
+            if (targetItem == null) {
+                continue;
+            }
+
             switch (relationship.getRelationshipType()) {
                 case CONTAINS, DEPENDS_ON, ANCESTOR_OF -> {
-                    Optional<SpdxElement> target = relationship.getRelatedSpdxElement();
-                    if (target.isPresent() && target.get().getType().equals("Package")) {
-                        InventoryItem sourceItem = inventoryItemRepository.findBySpdxIdAndProject(spdxPackage.getId(), project).getFirst();
-                        InventoryItem targetItem = inventoryItemRepository.findBySpdxIdAndProject(target.get().getId(), project).getFirst();
+                    if (targetElement.getType().equals("Package")) {
                         targetItem.setParent(sourceItem);
                         inventoryItemService.update(targetItem);
                         log.info("identified {} as parent of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
-                        log.debug("child has project {}", targetItem.getProject().getProjectName());
                     }
                 }
                 case CONTAINED_BY, DEPENDENCY_OF, DESCENDANT_OF -> {
-                    Optional<SpdxElement> target = relationship.getRelatedSpdxElement();
-                    if (target.isPresent() && target.get().getType().equals("Package")) {
-                        InventoryItem sourceItem = inventoryItemRepository.findBySpdxIdAndProject(spdxPackage.getId(), project).getFirst();
-                        InventoryItem targetItem = inventoryItemRepository.findBySpdxIdAndProject(target.get().getId(), project).getFirst();
+                    if (targetElement.getType().equals("Package")) {
                         sourceItem.setParent(targetItem);
                         inventoryItemService.update(sourceItem);
                         log.info("identified {} as child of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
                     }
                 }
                 case STATIC_LINK -> {
-                    Optional<SpdxElement> target = relationship.getRelatedSpdxElement();
-                    if (target.isPresent() && target.get().getType().equals("Package")) {
-                        InventoryItem targetItem = inventoryItemRepository.findBySpdxIdAndProject(target.get().getId(), project).getFirst();
+                    if (targetElement.getType().equals("Package")) {
                         targetItem.setLinking("Static");
                         inventoryItemService.update(targetItem);
                     }
                 }
                 case DYNAMIC_LINK -> {
-                    Optional<SpdxElement> target = relationship.getRelatedSpdxElement();
-                    if (target.isPresent() && target.get().getType().equals("Package")) {
-                        InventoryItem targetItem = inventoryItemRepository.findBySpdxIdAndProject(target.get().getId(), project).getFirst();
+                    if (targetElement.getType().equals("Package")) {
                         targetItem.setLinking("Dynamic");
                         inventoryItemService.update(targetItem);
                     }
@@ -417,8 +511,7 @@ public class SpdxService extends BaseWorkDataProcessor{
                 }
             }
         }
+
     }
-
-
 
 }

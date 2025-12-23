@@ -33,6 +33,7 @@ import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
 import eu.occtet.boc.spdx.dao.ProjectRepository;
 import eu.occtet.boc.spdx.dao.SoftwareComponentRepository;
+import eu.occtet.boc.spdx.dao.spdxV2.SpdxDocumentRootRepository;
 import eu.occtet.boc.spdx.factory.*;
 import eu.occtet.boc.spdx.service.*;
 import io.nats.client.JetStreamApiException;
@@ -77,6 +78,8 @@ public class SpdxServiceTest {
 
     @MockitoBean
     private SpdxConverter spdxConverter;
+    @MockitoBean
+    private SpdxDocumentRootRepository spdxDocumentRootRepository;
 
     @Autowired
     private SpdxService spdxService;
@@ -108,7 +111,7 @@ public class SpdxServiceTest {
            Mockito.when(spdxConverter.convertSpdxV2DocumentInformation(Mockito.any()))
                    .thenReturn(new SpdxDocumentRoot());
 
-           Mockito.when(spdxConverter.convertPackage(Mockito.any(), Mockito.any()))
+           Mockito.when(spdxConverter.convertPackage(Mockito.any(), Mockito.any(), Mockito.any()))
                    .thenReturn(new SpdxPackageEntity());
 
            Mockito.when(spdxConverter.convertFile(Mockito.any(), Mockito.any()))
@@ -116,6 +119,8 @@ public class SpdxServiceTest {
 
            Mockito.when(spdxConverter.convertRelationShip(Mockito.any(), Mockito.any(), Mockito.any()))
                    .thenReturn(new RelationshipEntity());
+
+           Mockito.when(spdxDocumentRootRepository.save(Mockito.any())).thenReturn(new SpdxDocumentRoot());
 
            SpdxWorkData spdxWorkData = new SpdxWorkData();
            byte[] bytes = Thread.currentThread().getContextClassLoader().getResourceAsStream("synthetic-scan-result-expected-output.spdx.json").readAllBytes();

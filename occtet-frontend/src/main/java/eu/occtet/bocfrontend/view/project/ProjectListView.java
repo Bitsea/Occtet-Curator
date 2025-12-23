@@ -101,7 +101,7 @@ public class ProjectListView extends StandardListView<Project> {
             String fileId = project.getDocumentID(); // Assuming this is the key in the bucket
 
             CompletableFuture.runAsync(() -> {
-                waitForFileAndDownload(ui, fileId);
+                waitForFileAndDownload(ui, fileId, project.getProjectName()+".json");
             });
 
         }catch(Exception e){
@@ -109,7 +109,7 @@ public class ProjectListView extends StandardListView<Project> {
         }
     }
 
-    private void waitForFileAndDownload(UI ui, String fileId) {
+    private void waitForFileAndDownload(UI ui, String fileId, String fileName) {
         int timeoutSeconds = 300000;
         int pollIntervalMillis = 1000;
         long endTime = System.currentTimeMillis() + (timeoutSeconds * 1000);
@@ -137,7 +137,7 @@ public class ProjectListView extends StandardListView<Project> {
         ui.access(() -> {
             if (finalFileData != null) {
                 downloader.download(finalFileData1
-                        , "spdx_export.json"
+                        , fileName
                 );
         }
     });

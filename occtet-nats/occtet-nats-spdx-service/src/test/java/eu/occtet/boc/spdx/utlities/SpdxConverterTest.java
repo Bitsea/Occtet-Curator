@@ -47,7 +47,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -65,9 +67,6 @@ import java.util.List;
 })
 @ExtendWith(MockitoExtension.class)
 public class SpdxConverterTest {
-
-    @MockitoBean
-    private SpdxDocumentRootRepository spdxDocumentRootRepository;
 
     @Autowired
     SpdxConverter spdxConverter;
@@ -95,8 +94,6 @@ public class SpdxConverterTest {
 
     @Test
     public void convertDocument(){
-        Mockito.when(spdxDocumentRootRepository.save(Mockito.any()))
-                .thenReturn(new SpdxDocumentRoot());
 
         SpdxDocumentRoot spdxDocumentRoot = spdxConverter.convertSpdxV2DocumentInformation(spdxDocument);
         //Check correctness of base info
@@ -135,13 +132,12 @@ public class SpdxConverterTest {
     @Test
     public void convertPackage(){
         try {
-            Mockito.when(spdxDocumentRootRepository.save(Mockito.any()))
-                    .thenReturn(new SpdxDocumentRoot());
 
             SpdxDocumentRoot spdxDocumentRoot = new SpdxDocumentRoot();
             SpdxPackage spdxPackage = (SpdxPackage) spdxDocument.getDocumentDescribes().toArray()[0];
 
-            SpdxPackageEntity pkg = spdxConverter.convertPackage(spdxPackage, spdxDocumentRoot);
+            Map<String, SpdxPackageEntity> packageLookupMap = new HashMap<>();
+            SpdxPackageEntity pkg = spdxConverter.convertPackage(spdxPackage, spdxDocumentRoot, packageLookupMap);
 
             Assertions.assertEquals(spdxDocumentRoot, pkg.getSpdxDocument());
             Assertions.assertEquals("proj1", pkg.getName());
@@ -164,9 +160,6 @@ public class SpdxConverterTest {
     @Test
     public void convertFileTest(){
         try {
-            Mockito.when(spdxDocumentRootRepository.save(Mockito.any()))
-                    .thenReturn(new SpdxDocumentRoot());
-
             SpdxDocumentRoot spdxDocumentRoot = new SpdxDocumentRoot();
             SpdxPackage spdxPackage = (SpdxPackage) spdxDocument.getDocumentDescribes().toArray()[0];
             SpdxFile spdxFile = (SpdxFile) spdxPackage.getFiles().toArray()[0];
@@ -192,8 +185,6 @@ public class SpdxConverterTest {
     @Test
     public void convertRelationshipTest(){
         try {
-            Mockito.when(spdxDocumentRootRepository.save(Mockito.any()))
-                    .thenReturn(new SpdxDocumentRoot());
 
             SpdxDocumentRoot spdxDocumentRoot = new SpdxDocumentRoot();
             Relationship relationship = (Relationship) spdxDocument.getRelationships().toArray()[0];

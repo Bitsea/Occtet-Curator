@@ -84,7 +84,7 @@ public class ExportService extends BaseWorkDataProcessor {
             if (project.isEmpty()) return false;
 
             log.info("fetching document with id: {}", spdxExportWorkData.getSpdxDocumentId());
-            Optional<SpdxDocumentRoot> spdxDocumentRootOpt = spdxDocumentRootRepository.findBySpdxId(spdxExportWorkData.getSpdxDocumentId());
+            Optional<SpdxDocumentRoot> spdxDocumentRootOpt = spdxDocumentRootRepository.findByDocumentUri(spdxExportWorkData.getSpdxDocumentId());
             if (spdxDocumentRootOpt.isEmpty()) return false;
 
             SpdxDocumentRoot spdxDocumentRoot = spdxDocumentRootOpt.get();
