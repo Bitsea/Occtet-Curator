@@ -61,7 +61,7 @@
         <action id="closeAction" type="detail_close"/>
     </actions>
     <layout>
-        <tabSheet width="100%" themeNames="bordered" height="100%">
+        <tabSheet width="100%" themeNames="no-padding" height="100%">
             <tab id="generalInformationTab" label="msg://generalInformationTab.label">
                 <vbox alignItems="CENTER" justifyContent="START" alignSelf="START" height="100%">
                     <formLayout id="form" dataContainer="softwareComponentDc">

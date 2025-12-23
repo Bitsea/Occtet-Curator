@@ -93,9 +93,6 @@ public class CopyrightDetailView extends StandardDetailView<Copyright> {
             window.addAfterCloseListener(close ->
                     updateLicenseGrid());
 
-        notifications.create("Licenses added.")
-                .withPosition(Notification.Position.BOTTOM_END)
-                .show();
     }
 
     public void updateLicenseGrid(){
