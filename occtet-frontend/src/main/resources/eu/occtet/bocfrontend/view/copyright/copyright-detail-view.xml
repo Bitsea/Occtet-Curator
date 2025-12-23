@@ -59,7 +59,7 @@
         <vbox id="form" width="100%">
             <vbox >
                 <textField id="copyrightTextField" property="copyrightText" dataContainer="copyrightDc" label="Name" minWidth="100%"/>
-                <dataGrid id="codeLocationsGrid"
+                <dataGrid classNames="occtet-grid" id="codeLocationsGrid"
                           dataContainer="codeLocationsDc"
                           width="100%">
                     <columns>
@@ -72,7 +72,7 @@
                 <checkbox id="garbageField" dataContainer="copyrightDc" property="garbage" label="msg://eu.occtet.bocfrontend.entity/Copyright.garbage"/>
                 <checkbox id="aiControlledField" dataContainer="copyrightDc" property="aiControlled" label="msg://aiControlled"/>
             </hbox>
-                <dataGrid dataContainer="licenseDc"  id="licensesDataGrid" width="100%" >
+                <dataGrid classNames="occtet-grid" dataContainer="licenseDc"  id="licensesDataGrid" width="100%" >
                     <columns resizable="true">
                         <column header="msg://eu.occtet.bocfrontend.entity/License.licenseName" property="licenseName"> </column>
                         <column header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseId" property="licenseType"/>

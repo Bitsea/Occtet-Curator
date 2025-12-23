@@ -101,7 +101,7 @@
             </tab>
             <tab id="copyrightTab" label="msg://copyrightsTab.label">
             <vbox width="100%" alignItems="CENTER" alignSelf="END" height="100%">
-                <dataGrid id="copyrightDataContainer" dataContainer="copyrightDc" themeNames="">
+                <dataGrid classNames="occtet-grid" id="copyrightDataContainer" dataContainer="copyrightDc" themeNames="">
                     <columns resizable="true" sortable="true">
                         <column property="copyrightText"/>
                         <column property="curated"/>
@@ -120,7 +120,7 @@
             </tab>
             <tab id="licensestab" label="Licenses">
                 <vbox width="100%" alignItems="CENTER" alignSelf="END" height="100%">
-                    <dataGrid id="licensesDataGrid"
+                    <dataGrid classNames="occtet-grid" id="licensesDataGrid"
                               width="100%"
                               height="40em"
                               dataContainer="licenseDc"

@@ -242,7 +242,7 @@
                         <hbox width="100%" height="30%" alignItems="CENTER" classNames="border rounded-m border-contrast-20" >
                            <vbox width="100%" height="100%" >
                                <nativeLabel text="msg://eu.occtet.bocfrontend.view.audit.fragment.InventoryItemTabFragment/reuseItems"/>
-                            <dataGrid id="inventoryDataGridReuse"
+                            <dataGrid classNames="occtet-grid" id="inventoryDataGridReuse"
                                       width="100%"
                                       height="100%"
                                       dataContainer="inventoryItemDcReuse"

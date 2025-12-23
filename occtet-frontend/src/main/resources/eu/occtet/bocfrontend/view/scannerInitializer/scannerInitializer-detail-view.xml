@@ -61,7 +61,7 @@
                         <button id="removeBtn" enabled="false" text="remove" action="configurationsDataGrid.remove" />
                         <simplePagination/>
                     </hbox>
-                    <dataGrid id="configurationsDataGrid"  width="100%" metaClass="Configuration"  editorBuffered="true" themeNames="row-stripes">
+                    <dataGrid classNames="occtet-grid" id="configurationsDataGrid"  width="100%" metaClass="Configuration"  editorBuffered="true" themeNames="row-stripes">
                         <columns>
                             <column property="name" resizable="true" editable="false"/>
                             <column property="value" resizable="true" editable="true"/>

@@ -57,7 +57,7 @@
             <button id="removeBtn" action="configurationsDataGrid.remove"/>
             <simplePagination id="pagination" dataLoader="configurationsDl"/>
         </hbox>
-        <dataGrid id="configurationsDataGrid"
+        <dataGrid classNames="occtet-grid" id="configurationsDataGrid"
                   width="100%"
                   minHeight="20em"
                   dataContainer="configurationsDc"

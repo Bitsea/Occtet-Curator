@@ -63,7 +63,7 @@
                         <comboBox id="projectComboBox" label="Choose project" width="97%" alignSelf="CENTER"/>
                         <vbox id="fileTreeGridLayout" width="100%" height="100%" margin="false" padding="false"
                               spacing="false">
-                            <treeDataGrid id="fileTreeGrid"
+                            <treeDataGrid classNames="occtet-grid" id="fileTreeGrid"
                                           dataContainer="fileDc"
                                           height="100%"
                                           width="100%"
@@ -106,7 +106,7 @@
                           justifyContent="CENTER"
                           margin="false">
                     </hbox>
-                    <treeDataGrid id="inventoryItemDataGrid"
+                    <treeDataGrid classNames="occtet-grid" id="inventoryItemDataGrid"
                                   dataContainer="inventoryItemDc"
                                   height="100%"
                                   width="100%"

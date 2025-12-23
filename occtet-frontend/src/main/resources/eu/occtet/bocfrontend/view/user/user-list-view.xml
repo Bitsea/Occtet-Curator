@@ -62,7 +62,7 @@
             </dropdownButton>
             <simplePagination id="pagination" dataLoader="usersDl"/>
         </hbox>
-        <dataGrid id="usersDataGrid"
+        <dataGrid classNames="occtet-grid" id="usersDataGrid"
                   width="100%"
                   columnReorderingAllowed="true"
                   minHeight="20em"

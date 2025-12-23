@@ -54,7 +54,7 @@
             </genericFilter>
             <simplePagination id="pagination" dataLoader="inventoryItemsDl" alignSelf="END"/>
         </hbox>
-        <dataGrid id="inventoryItemsDataGrid"
+        <dataGrid classNames="occtet-grid" id="inventoryItemsDataGrid"
                   width="100%"
                   minHeight="20em"
                   dataContainer="inventoryItemsDc"

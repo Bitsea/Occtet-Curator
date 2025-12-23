@@ -21,6 +21,35 @@
  */
 
 /* Define your styles here */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap');
+body, .c-app,.vaadin-grid .cell,
+vaadin-button, .jmix-login-main-layout, vaadin-text-field, vaadin-button, dataGrid, vaadin-combo-box, vaadin-select, vaadin-combo-box-overlay {
+    font-family: 'Roboto Condensed', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+    line-height: 1.0;
+}
+
+vaadin-app-layout {
+    /* Standardbreite ist oft ca. 16em oder 300px */
+    --vaadin-app-layout-drawer-width: 200px;
+}
+.occtet-grid {
+    font-family: 'Roboto Condensed', sans-serif !important;
+    font-size: 12px;
+    --vaadin-grid-cell-padding: 4px;
+}
+.occtet-grid::part(cell) {
+    min-height: 25px;
+    display: flex;
+    align-items: center;
+}
+vaadin-grid vaadin-button {
+    margin: 0;
+    height: var(24px);
+    min-height: unset;
+}
+
 
 .scanner-layout{
 border: 1px solid;
