@@ -45,8 +45,6 @@
                     class="eu.occtet.bocfrontend.entity.License">
             <fetchPlan extends="_base"/>
         </collection>
-
-
     </data>
     <facets>
         <dataLoadCoordinator auto="true"/>
@@ -56,37 +54,49 @@
         <action id="closeAction" type="detail_close"/>
     </actions>
     <layout width="100%">
-        <vbox id="form" width="100%">
-            <vbox >
-                <textField id="copyrightTextField" property="copyrightText" dataContainer="copyrightDc" label="Name" minWidth="100%"/>
-                <dataGrid classNames="occtet-grid" id="codeLocationsGrid"
-                          dataContainer="codeLocationsDc"
-                          width="100%">
-                    <columns>
-                        <column property="filePath" header="msg://eu.occtet.bocfrontend.entity/CodeLocation.filePath"/>
-                    </columns>
-                </dataGrid>
-            </vbox>
-            <hbox>
-                <checkbox id="curatedField" dataContainer="copyrightDc" property="curated" label="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
-                <checkbox id="garbageField" dataContainer="copyrightDc" property="garbage" label="msg://eu.occtet.bocfrontend.entity/Copyright.garbage"/>
-                <checkbox id="aiControlledField" dataContainer="copyrightDc" property="aiControlled" label="msg://aiControlled"/>
-            </hbox>
-                <dataGrid classNames="occtet-grid" dataContainer="licenseDc"  id="licensesDataGrid" width="100%" >
-                    <columns resizable="true">
-                        <column header="msg://eu.occtet.bocfrontend.entity/License.licenseName" property="licenseName"> </column>
-                        <column header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseId" property="licenseType"/>
-                        <column header="msg://eu.occtet.bocfrontend.entity/LicenseType.detailsUrl" property="detailsUrl"/>
-                        <column header="msg://licensetype.isSpdx" property="isSpdx"/>
-                    </columns>
-                </dataGrid>
-                <hbox id="detailActions">
-                    <button id="saveAndCloseButton" action="saveAction"/>
-                    <button id="closeButton" action="closeAction"/>
-                    <button id="addLicense" text="msg://addLicense"/>
-                    <button id="removeLicenseButton" icon="TRASH" themeNames="error small"/>
-                </hbox>
-
-        </vbox>
+        <tabSheet width="100%" themeNames="no-padding" height="100%">
+            <tab id="generalInformationTab" label="General information">
+                <vbox id="form" width="100%">
+                    <vbox>
+                        <textField id="copyrightTextField" property="copyrightText" dataContainer="copyrightDc"
+                                   label="Name" minWidth="100%"/>
+                        <hbox>
+                            <checkbox id="curatedField" dataContainer="copyrightDc" property="curated" label="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
+                            <checkbox id="garbageField" dataContainer="copyrightDc" property="garbage" label="msg://eu.occtet.bocfrontend.entity/Copyright.garbage"/>
+                            <checkbox id="aiControlledField" dataContainer="copyrightDc" property="aiControlled"
+                                      label="msg://aiControlled"/>
+                        </hbox>
+                        <dataGrid classNames="occtet-grid" id="codeLocationsGrid"
+                                  dataContainer="codeLocationsDc"
+                                  width="100%"
+                                  height="40em">
+                            <columns>
+                                <column property="filePath" header="msg://eu.occtet.bocfrontend.entity/CodeLocation.filePath"/>
+                            </columns>
+                        </dataGrid>
+                        <hbox id="detailActions">
+                            <button id="saveAndCloseButton" action="saveAction"/>
+                            <button id="closeButton" action="closeAction"/>
+                        </hbox>
+                    </vbox>
+                </vbox>
+            </tab>
+            <tab id="licensesTab" label="Licenses">
+                <vbox width="100%" alignItems="CENTER" alignSelf="END" height="100%">
+                    <dataGrid classNames="occtet-grid" dataContainer="licenseDc" id="licensesDataGrid" width="100%">
+                        <columns resizable="true">
+                            <column header="msg://eu.occtet.bocfrontend.entity/License.licenseName" property="licenseName"/>
+                            <column header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseId" property="licenseType"/>
+                            <column header="msg://eu.occtet.bocfrontend.entity/LicenseType.detailsUrl" property="detailsUrl"/>
+                            <column header="msg://licensetype.isSpdx" property="isSpdx"/>
+                        </columns>
+                    </dataGrid>
+                    <hbox>
+                        <button id="addLicense" text="Add license" themeNames="primary"/>
+                        <button id="removeLicenseButton" icon="TRASH" themeNames="error"/>
+                    </hbox>
+                </vbox>
+            </tab>
+        </tabSheet>
     </layout>
 </view>
