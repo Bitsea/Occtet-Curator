@@ -44,6 +44,10 @@ vaadin-app-layout {
     display: flex;
     align-items: center;
 }
+.occtet-dialog-title{
+    font-family: 'Roboto Condensed', sans-serif !important;
+    margin-left: 20px;
+}
 vaadin-grid vaadin-button {
     margin: 0;
     height: var(24px);
