@@ -284,7 +284,7 @@
                 <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SPDX_DOCUMENT_ROOT"/>
             </column>
             <column name="SPDX_ID" type="VARCHAR(255)">
-                <constraints nullable="false" unique="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="SPDX_VERSION" type="VARCHAR(255)">
                 <constraints nullable="false"/>
