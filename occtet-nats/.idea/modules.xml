@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/occtet-nats-ai-licensematcher-service/occtet-nats-ai-licensematcher-service.iml" filepath="$PROJECT_DIR$/occtet-nats-ai-licensematcher-service/occtet-nats-ai-licensematcher-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/occtet-nats-subscriber-sample/occtet-nats-subscriber-sample.iml" filepath="$PROJECT_DIR$/occtet-nats-subscriber-sample/occtet-nats-subscriber-sample.iml" />
     </modules>
   </component>
 </project>
