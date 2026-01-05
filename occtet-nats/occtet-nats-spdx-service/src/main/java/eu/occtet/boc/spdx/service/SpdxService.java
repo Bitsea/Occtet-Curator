@@ -36,8 +36,6 @@ import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
 import eu.occtet.boc.spdx.dao.ProjectRepository;
 import eu.occtet.boc.spdx.dao.spdxV2.SpdxDocumentRootRepository;
-import eu.occtet.boc.spdx.factory.CodeLocationFactory;
-import eu.occtet.boc.spdx.factory.CopyrightFactory;
 import io.nats.client.JetStreamApiException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -278,7 +276,6 @@ public class SpdxService extends BaseWorkDataProcessor{
         });
 
         try {
-            // parseFiles(f, inventoryItem, codeLocations, copyrights); -- old call
             copyrights = parseFiles(spdxPackage, inventoryItem);
         } catch (InvalidSPDXAnalysisException e) {
             log.error("Error batch processing files", e);
@@ -441,23 +438,6 @@ public class SpdxService extends BaseWorkDataProcessor{
 
         return new ArrayList<>(copyrightMap.values());
     }
-
-//    private void parseFiles(SpdxFile spdxFile, InventoryItem inventoryItem, List<CodeLocation> codeLocations, List<Copyright> copyrights) throws InvalidSPDXAnalysisException {
-//        String copyrightText = spdxFile.getCopyrightText();
-//        if (!copyrightText.equals("NONE") && spdxFile.getName().isPresent()) {
-//            CodeLocation fileLocation =
-//                    codeLocationService.findOrCreateCodeLocationWithInventory(spdxFile.getName().get(), inventoryItem);
-//            if (!codeLocations.contains(fileLocation)) {
-//                codeLocations.add(fileLocation);
-//            }
-//
-//            Copyright fileCopyright = copyrightService.findOrCreateCopyright(copyrightText, codeLocations);
-//            if (!copyrights.contains(fileCopyright)) {
-//                copyrights.add(fileCopyright);
-//                log.debug("Created codeLocation: {} for Copyright: {}", fileLocation.getFilePath(), copyrightText);
-//            }
-//        }
-//    }
 
     private void parseRelationships(SpdxPackage spdxPackage, List<Relationship> relationships
             , Map<String, InventoryItem> inventoryCache) throws InvalidSPDXAnalysisException {
