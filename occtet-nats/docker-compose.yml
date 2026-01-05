@@ -1,4 +1,4 @@
-#version: '2025.10.1'
+#version: '0.3.3'
 services:
     db:
         image: pgvector/pgvector:pg17-trixie
@@ -50,7 +50,7 @@ services:
         - mynet
 
     licensematcher-service:
-      image: occtet-nats-licensematcher-service:2025.9.1
+      image: occtet-nats-licensematcher-service:latest
       depends_on:
         - frontend
         - db
@@ -59,7 +59,7 @@ services:
         - mynet
 
     ai-copyrightfilter-service:
-      image: occtet-nats-ai-copyrightfilter-service:2025.9.1
+      image: occtet-nats-ai-copyrightfilter-service:latest
       depends_on:
         - frontend
         - ollama
@@ -69,7 +69,7 @@ services:
         - mynet
 
     copyrightfilter-service:
-      image: occtet-nats-copyrightfilter-service:2025.9.1
+      image: occtet-nats-copyrightfilter-service:latest
       depends_on:
         - frontend
         - db
@@ -78,7 +78,7 @@ services:
         - mynet
 
     foss-report-service:
-      image: occtet-nats-foss-report-service:2025.9.1
+      image: occtet-nats-foss-report-service:latest
       depends_on:
         - frontend
         - db
@@ -87,7 +87,7 @@ services:
         - mynet
 
     vulnerability-service:
-      image: occtet-nats-vulnerability-service:2025.9.1
+      image: occtet-nats-vulnerability-service:latest
       depends_on:
         - frontend
         - db
@@ -96,7 +96,7 @@ services:
         - mynet
 
     ai-licensematcher-service:
-      image: occtet-nats-ai-licensematcher-service:2025.10.1
+      image: occtet-nats-ai-licensematcher-service:latest
       depends_on:
         - ollama
         - frontend
@@ -105,7 +105,7 @@ services:
         - mynet
 
     spdx-service:
-      image: occtet-nats-spdx-service:2025.9.1
+      image: occtet-nats-spdx-service:latest
       depends_on:
         - frontend
         - nats
