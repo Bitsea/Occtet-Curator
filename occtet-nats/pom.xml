@@ -27,6 +27,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>occtet-common</module>
+        <module>occtet-ort-client</module>
         <module>occtet-common-jpa</module>
         <module>occtet-nats-template</module>
         <module>occtet-nats-subscriber-sample</module>
@@ -38,6 +39,8 @@
         <module>occtet-nats-ai-copyrightfilter-service</module>
         <module>occtet-nats-copyrightfilter-service</module>
         <module>occtet-nats-vulnerability-service</module>
+        <module>occtet-nats-issue-catcher-service</module>
+        <module>occtet-nats-ort-run-starter-service</module>
         <module>occtet-nats-download-service</module>
     </modules>
 
@@ -60,6 +63,7 @@
         <springboot.version>3.5.5</springboot.version>
         <common-version>0.3.3-SNAPSHOT</common-version>
         <common-jpa-version>0.3.5-SNAPSHOT</common-jpa-version>
+        <ort-client-version>0.3.2-SNAPSHOT</ort-client-version>
 	</properties>
 
 	<dependencies>

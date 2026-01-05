@@ -1,7 +1,7 @@
 {
   "type": "descriptor",
   "name": "occtet-nats-download-service",
-  "description": "A microservice for downloading source code from repos",
+  "description": "A microservice responsible for downloading files from a given download url, important for file grid.",
   "usesAI": false,
   "acceptableWorkData": "DownloadServiceWorkData"
 }

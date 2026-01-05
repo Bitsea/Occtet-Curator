@@ -41,7 +41,7 @@ import java.util.Set;
 
 @ViewController("overviewContentInfoDialog")
 @ViewDescriptor("overview-content-info-dialog.xml")
-@DialogMode(width = "1000px", height = "700px")
+@DialogMode(width = "1000px", height = "650px")
 public class OverviewContentInfoDialog extends StandardView {
 
     private static final Logger log = LogManager.getLogger(OverviewContentInfoDialog.class);
@@ -84,7 +84,7 @@ public class OverviewContentInfoDialog extends StandardView {
                     }
                 }
             });
-            title.setText("License: "+license.getLicenseName());
+            title.setText(license.getLicenseName());
         }else if(content instanceof Vulnerability vulnerability){
             components.forEach(softwareComponent -> {
                 List<Vulnerability> vulnerabilities = softwareComponent.getVulnerabilities();
@@ -94,7 +94,7 @@ public class OverviewContentInfoDialog extends StandardView {
                     }
                 }
             });
-            title.setText("Vulnerability: "+vulnerability.getVulnerabilityId());
+            title.setText(vulnerability.getVulnerabilityId());
         }
         softwareComponents.forEach(softwareComponent -> {
             items.addAll(inventoryItemRepository.findBySoftwareComponent(softwareComponent));

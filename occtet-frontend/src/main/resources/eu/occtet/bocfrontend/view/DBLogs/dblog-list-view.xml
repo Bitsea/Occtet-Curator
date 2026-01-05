@@ -43,7 +43,7 @@
     <layout>
 
         <simplePagination dataLoader="dbLogLoader"/>
-        <dataGrid id="dataGrid"
+        <dataGrid classNames="occtet-grid" id="dataGrid"
                   width="100%"
                   minHeight="20em"
                   dataContainer="dbLogDc">

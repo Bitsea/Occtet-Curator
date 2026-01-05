@@ -34,9 +34,6 @@ import java.util.UUID;
 @Repository
 public interface SoftwareComponentRepository extends JpaRepository<SoftwareComponent, Long> {
 
-    List<SoftwareComponent> findByName(String softwareName);
-
     List<SoftwareComponent> findByNameAndVersion(String softwareName, String version);
 
-    List<SoftwareComponent> findById(UUID id);
 }

@@ -39,7 +39,7 @@
         <vbox>
             <accordion id="mainAccordion" height="100%" width="100%">
                 <accordionPanel id="copyrightAccordion"  opened="false">
-                    <dataGrid id="auditCopyrightDataGrid"
+                    <dataGrid classNames="occtet-grid" id="auditCopyrightDataGrid"
                               dataContainer="auditCopyrightDc"
                               width="100%">
                         <columns resizable="true">
@@ -49,7 +49,7 @@
                     </dataGrid>
                 </accordionPanel>
                 <accordionPanel id="licensesAccordion" opened="false">
-                    <dataGrid id="auditLicensesDataGrid"
+                    <dataGrid classNames="occtet-grid" id="auditLicensesDataGrid"
                               dataContainer="auditLicensesDc"
                               width="100%">
                         <columns resizable="true">
@@ -59,7 +59,7 @@
                     </dataGrid>
                 </accordionPanel>
                 <accordionPanel id="vulnerabilityAccordion" opened="false">
-                    <dataGrid id="auditVulnerabilityDataGrid"
+                    <dataGrid classNames="occtet-grid" id="auditVulnerabilityDataGrid"
                               dataContainer="auditVulnerabilitiesDc"
                               width="100%">
                         <columns resizable="true">

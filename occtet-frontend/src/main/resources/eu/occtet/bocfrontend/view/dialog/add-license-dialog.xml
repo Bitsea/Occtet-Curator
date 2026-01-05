@@ -39,9 +39,10 @@
             </hbox>
             <dataGrid id="licensesDataGrid"
                       width="100%"
-                      height="25em"
+                      height="30em"
                       dataContainer="licenseDc"
                       columnReorderingAllowed="true"
+                      classNames="occtet-grid"
                       selectionMode="MULTI">
                 <columns resizable="true">
                     <column property="licenseType" header="Licence type"/>

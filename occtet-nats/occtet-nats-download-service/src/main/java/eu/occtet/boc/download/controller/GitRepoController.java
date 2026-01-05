@@ -22,112 +22,132 @@
 
 package eu.occtet.boc.download.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
 
+import java.util.Locale;
+
+/**
+ * Controller responsible for resolving GitHub repository tags to download URLs.
+ * <p>
+ * Instead of guessing URLs, this controller queries the GitHub Tags API to retrieve
+ * available versions and matches them against the requested version string using
+ * fuzzy matching logic (e.g., handling 'v' prefixes, underscores, and release suffixes).
+ */
 @RestController
 public class GitRepoController {
 
-    private final static String GIT_API = "https://api.github.com/repos/";
-    private final static int SUCCESS_STATUS_CODE = 200;
-    private static final Logger log = LoggerFactory.getLogger(GitRepoController.class);
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+
+    private static final String GITHUB_API_BASE = "https://api.github.com/repos";
+
+    public GitRepoController() {
+        this.restTemplate = new RestTemplate();
+        this.objectMapper = new ObjectMapper();
+    }
+
+    public String resolveGitToZipUrl(String repoOwner, String repoName, String version) throws IOException {
+        // target api url "https://api.github.com/repos/%s/%s/tags?per_page=100&page=%d";
+        String tagsUrl = String.format("%s/%s/%s/tags", GITHUB_API_BASE, repoOwner, repoName);
+        log.debug("Fetching tags for {}/{} to find version {}", repoOwner, repoName, version);
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(tagsUrl + "?per_page=100", String.class);
+            JsonNode tags = objectMapper.readTree(response.getBody());
+
+            for (JsonNode tag : tags) {
+                String tagName = tag.get("name").asText();
+
+                if (isMatch(tagName, version)) {
+                    log.info("Found matching tag '{}' for version '{}'.", tagName, version);
+                    if (tag.has("zipball_url")) {
+                        return tag.get("zipball_url").asText();
+                    }
+                    // Fallback construction
+                    return String.format("%s/%s/%s/zipball/%s", "https://api.github.com/repos", repoOwner, repoName, tagName);
+                }
+            }
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new IOException("Repository not found or private: " + repoOwner + "/" + repoName, e);
+        }
+        throw new IOException(String.format("GitRepoController returned 404 for %s/%s @ %s (No matching tag found)", repoOwner, repoName, version));
+    }
+
 
     /**
-     * Retrieves the download URL of a GitHub repository ZIP file for a specific version or tag.
-     * The method constructs possible tag candidates based on the provided version and
-     * attempts to locate a valid tag in the GitHub repository. If a valid tag is found,
-     * the corresponding download URL is returned.
+     * Robustly determines if a tag matches a version string using aggressive normalization.
+     * <p>
+     * <b>Normalization Logic:</b>
+     * <ol>
+     * <li>Strips non-digit prefixes (e.g., "v1.2", "release-1.2" -> "1.2").</li>
+     * <li>Unifies separators: Replaces underscores and hyphens with dots.</li>
+     * <li><b>Alphanumeric Boundaries:</b> Inserts dots between digits and letters.
+     * <ul>
+     * <li>"1.2.0a1" becomes "1.2.0.a.1"</li>
+     * <li>"1.0rc1" becomes "1.0.rc.1"</li>
+     * </ul>
+     * </li>
+     * </ol>
+     * This ensures that "1.2.0-a.1", "1.2.0a1", and "1.2.0.a.1" all match each other.
      *
-     * @param owner the owner or organization of the GitHub repository
-     * @param repo the name of the GitHub repository
-     * @param version the version or tag to be checked in the repository
-     * @return the download URL of the repository ZIP file for*/
-    public String getGitRepository(String owner, String repo, String version) throws IOException, InterruptedException {
-        if (version == null || version.isEmpty()) {
-            return "";
-        }
+     * @param tagName the tag name from git
+     * @param version the requested version
+     * @return true if the tag matches the version
+     */
+    private boolean isMatch(String tagName, String version) {
+        if (tagName.equalsIgnoreCase(version)) return true;
 
-        List<String> tagCandidates = new ArrayList<>();
+        String normalizedTag = normalizeVersion(tagName);
+        String normalizedVersion = normalizeVersion(version);
 
-        // Case 1: Exact Version
-        tagCandidates.add(version);
+        // Check A: Exact match of normalized strings
+        if (normalizedTag.equals(normalizedVersion)) return true;
 
-        // Case 2: 'v' prefix logic
-        String versionNoV = version;
-        if (version.toLowerCase().startsWith("v")) {
-            versionNoV = version.substring(1);
-            tagCandidates.add(versionNoV);
-        } else {
-            tagCandidates.add("v" + version);
-        }
-
-        // Case 3: Repo-Prefix combinations (e.g. "awaitility-4.3.0")
-        tagCandidates.add(repo + "-" + version);
-
-        if (!version.equals(versionNoV)) {
-            tagCandidates.add(repo + "-" + versionNoV);
-        }
-        if (!version.toLowerCase().startsWith("v")) {
-            tagCandidates.add(repo + "-v" + version);
-        }
-
-        // Case 4:  Underscore variation (e.g. logback "v_1.5.18")
-        if (version.toLowerCase().startsWith("v")) {
-            tagCandidates.add(version.replace("v", "v_"));
-        } else {
-            tagCandidates.add("v_" + version);
-        }
-
-        // Case 5: Apache/Groovy Style (e.g. "GROOVY_4_0_26")
-        // Logic: REPO (UPPER) + "_" + VERSION (dots -> underscores)
-        String underscoreVersion = versionNoV.replace(".", "_");
-        tagCandidates.add(repo.toUpperCase() + "_" + underscoreVersion);
-
-        // Case 6: "rel/" prefix (Common in some older repos)
-        tagCandidates.add("rel/" + version);
-        tagCandidates.add("release/" + version);
-
-        for (String tag : tagCandidates) {
-            String url = constructZipUrl(owner, repo, tag);
-            log.info("Checking API-Url: {}", url);
-
-            HttpResponse<InputStream> response = getHttpResponse(url);
-
-            if (response.statusCode() == SUCCESS_STATUS_CODE) {
-                log.info("Found valid tag: {}", tag);
-                return response.uri().toString();
-            }
-        }
-
-        log.warn("No valid tag found for {}/{} version {}", owner, repo, version);
-        return "";
+        // Check B: Boundary match (handling suffixes like -RELEASE, -RC1)
+        return isPrefixWithBoundary(normalizedTag, normalizedVersion);
     }
 
-    private String constructZipUrl(String owner, String repo, String tag) {
-        return GIT_API + owner + "/" + repo + "/zipball/" + tag;
+    /**
+     * Converts a raw version string into a canonical dot-separated format.
+     * <p>
+     * Examples:
+     * <ul>
+     * <li>"v1.2-3" -> "1.2.3"</li>
+     * <li>"1_5_18" -> "1.5.18"</li>
+     * <li>"1.2.0alpha1" -> "1.2.0.alpha.1"</li>
+     * </ul>
+     */
+    private String normalizeVersion(String input) {
+        String s = input.toLowerCase(Locale.ROOT);
+
+        s = input.replaceAll("^[^0-9]+", "");
+        s = s.replaceAll("[_\\-]", ".");
+        s = s.replaceAll("(?<=\\d)(?=[a-zA-Z])", ".");
+        s = s.replaceAll("(?<=[a-zA-Z])(?=\\d)", ".");
+
+        return s;
     }
 
-    private HttpResponse<InputStream> getHttpResponse(String apiUrl) throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newBuilder()
-                .followRedirects(HttpClient.Redirect.ALWAYS)
-                .build();
+    /**
+     * Checks if 'text' starts with 'prefix', ensuring a clean boundary.
+     * <p>
+     * Prevents false positives like "1.50" matching "1.5".
+     */
+    private boolean isPrefixWithBoundary(String text, String prefix) {
+        if (!text.startsWith(prefix)) return false;
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(apiUrl))
-                .GET()
-                .header("Accept", "application/vnd.github+json")
-                .build();
+        if (text.length() == prefix.length()) return true;
 
-        return client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+        char nextChar = text.charAt(prefix.length());
+        return !Character.isDigit(nextChar);
     }
 }

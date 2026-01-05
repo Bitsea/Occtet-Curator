@@ -44,5 +44,7 @@ public class CodeLocationFactory {
         return codeLocationRepository.save(new CodeLocation(inventoryItem, filePath));
     }
 
-
+    public CodeLocation createTransient(String filePath, InventoryItem inventoryItem) {
+        return new CodeLocation(inventoryItem, filePath);
+    }
 }

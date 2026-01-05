@@ -42,4 +42,8 @@ public class CopyrightFactory {
 
         return copyrightRepository.save(copyright);
     }
+
+    public Copyright createTransient(String copyrightString, List<CodeLocation> codeLocations){
+        return new Copyright(copyrightString, codeLocations);
+    }
 }

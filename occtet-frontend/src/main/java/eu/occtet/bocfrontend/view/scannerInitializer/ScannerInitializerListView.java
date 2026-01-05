@@ -157,7 +157,7 @@ public class ScannerInitializerListView extends StandardListView<ScannerInitiali
         List<String> scanners = scannerManager.getAvailableScanners();
         availableScannerBox.removeAll();
         scanners.forEach(scanner -> {
-            if(!scanner.contains("Dumb"))
+            if(!scanner.contains("Dumb") && !scanner.contains("Flexera_Report_Scanner"))
                 availableScannerBox.add(createScannerIcon(scanner + "Id", scanner, false));
         });
     }
