@@ -194,7 +194,7 @@ public class UiComponentFactory {
         NativeLabel countLabel = new NativeLabel("0:0");
         countLabel.setId(COUNT_LABEL_ID);
 
-        searchHl.add(searchField, findNext, findPrevious, countLabel);
+        searchHl.add(searchField, findPrevious, findNext, countLabel);
 
         // Reviewed Filter ComboBox
         JmixComboBox<FileReviewedFilterMode> reviewedFilter = uiComponents.create(JmixComboBox.class);

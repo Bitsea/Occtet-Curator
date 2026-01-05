@@ -26,11 +26,13 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.ItemClickEvent;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.*;
 import eu.occtet.bocfrontend.dao.FileRepository;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
@@ -41,6 +43,7 @@ import eu.occtet.bocfrontend.factory.UiComponentFactory;
 import eu.occtet.bocfrontend.factory.RendererFactory;
 import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
 import eu.occtet.bocfrontend.service.*;
+import eu.occtet.bocfrontend.view.audit.fragment.FileTreeSearchHelper;
 import eu.occtet.bocfrontend.view.audit.fragment.OverviewProjectTabFragment;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
@@ -100,7 +103,6 @@ public class AuditView extends StandardView{
 
     @Autowired private FileContentService fileContentService;
     @Autowired private AuditViewStateService viewStateService;
-    @Autowired private FileSearchService fileSearchService;
 
     @Autowired private TreeGridHelper treeGridHelper;
 
@@ -128,6 +130,8 @@ public class AuditView extends StandardView{
     private Map<UUID, Long> fileCounts = new HashMap<>();
     private boolean suppressNavigation = false;
     private final Set<UUID> expandedItemIds = new HashSet<>();
+
+    private FileTreeSearchHelper searchHelper;
 
     /**
      * Handles actions to be performed before the view is entered. This method ensures
@@ -168,43 +172,57 @@ public class AuditView extends StandardView{
         HorizontalLayout toolboxWrapper = componentFactory.createFileTreeToolbox(fileTreeGrid);
         fileTreeGridLayout.addComponentAsFirst(toolboxWrapper);
 
-        toolboxWrapper.getChildren()
-                .filter(component -> component instanceof HorizontalLayout &&
-                        UiComponentFactory.SEARCH_LAYOUT_ID.equals(component.getId().orElse(null)))
-                .map(component -> (HorizontalLayout) component)
-                .findFirst().ifPresent(layout -> {
-                    layout.getChildren()
-                            .filter(component -> component instanceof TextField &&
-                                    UiComponentFactory.SEARCH_FIELD_ID.equals(component.getId().orElse(null)))
-                            .map(component -> (TextField) component)
-                            .findFirst().ifPresent(textField -> {
-                                textField.addValueChangeListener(e -> {
-                                    fileSearchService.performSearch(e.getValue());
-                                })};
-                    layout.getChildren()
-                            .filter(component -> component instanceof JmixButton &&
-                                    UiComponentFactory.FIND_NEXT_ID.equals(component.getId().orElse(null)))
-                            .map(component -> (JmixButton) component)
-                            .findFirst().ifPresent(jmixButton -> {jmixButton.addClickListener(e -> {
-
-                            })});
-                    layout.getChildren()
-                            .filter(component -> component instanceof JmixButton &&
-                                    UiComponentFactory.FIND_PREVIOUS_ID.equals(component.getId().orElse(null)))
-                            .map(component -> (JmixButton) component)
-                            .findFirst().ifPresent(jmixButton -> {jmixButton.addClickListener(e -> {
-
-                            })});
-                        });
-        toolboxWrapper.getChildren()
-                .filter(component -> component instanceof JmixComboBox &&
-                        UiComponentFactory.REVIEWED_FILTER_ID.equals(component.getId().orElse(null)))
-                .map(component -> (JmixComboBox<FileReviewedFilterMode>) component)
+        JmixComboBox<FileReviewedFilterMode> filterBox = toolboxWrapper.getChildren()
+                .filter(c -> c instanceof JmixComboBox && UiComponentFactory.REVIEWED_FILTER_ID.equals(c.getId().orElse(null)))
+                .map(c -> (JmixComboBox<FileReviewedFilterMode>) c)
                 .findFirst()
-                .ifPresent(comboBox -> comboBox.addValueChangeListener(e ->
-                        treeGridHelper.reviewedFilterChangeValueListenerAction(e, projectComboBox.getValue(),
-                                fileTreeGrid)
-                ));
+                .orElse(null);
+        if (filterBox != null) {
+            filterBox.addValueChangeListener(e ->
+                    treeGridHelper.reviewedFilterChangeValueListenerAction(e, projectComboBox.getValue(), fileTreeGrid)
+            );
+        }
+
+        toolboxWrapper.getChildren()
+                .filter(c -> c instanceof HorizontalLayout && UiComponentFactory.SEARCH_LAYOUT_ID.equals(c.getId().orElse(null)))
+                .map(c -> (HorizontalLayout) c)
+                .findFirst().ifPresent(layout -> {
+
+                    TextField searchField = (TextField) layout.getChildren()
+                            .filter(c -> UiComponentFactory.SEARCH_FIELD_ID.equals(c.getId().orElse(null))).findFirst().orElse(null);
+                    JmixButton nextBtn = (JmixButton) layout.getChildren()
+                            .filter(c -> UiComponentFactory.FIND_NEXT_ID.equals(c.getId().orElse(null))).findFirst().orElse(null);
+                    JmixButton prevBtn = (JmixButton) layout.getChildren()
+                            .filter(c -> UiComponentFactory.FIND_PREVIOUS_ID.equals(c.getId().orElse(null))).findFirst().orElse(null);
+                    NativeLabel countLabel = (NativeLabel) layout.getChildren()
+                            .filter(c -> UiComponentFactory.COUNT_LABEL_ID.equals(c.getId().orElse(null))).findFirst().orElse(null);
+
+                    if (searchField != null && countLabel != null) {
+
+                        this.searchHelper = new FileTreeSearchHelper(
+                                fileRepository,
+                                fileTreeGrid,
+                                countLabel,
+                                expandedItemIds,
+                                () -> {
+                                    return filterBox.getValue().asBoolean();
+                                }
+                        );
+
+                        searchField.setValueChangeMode(ValueChangeMode.LAZY);
+                        searchField.addValueChangeListener(e ->
+                                searchHelper.performSearch(e.getValue(), projectComboBox.getValue()));
+                    }
+
+                    if (nextBtn != null && searchHelper != null) {
+                        nextBtn.addClickListener(e -> searchHelper.next(projectComboBox.getValue()));
+                    }
+
+                    if (prevBtn != null && searchHelper != null) {
+                        prevBtn.addClickListener(e -> searchHelper.previous(projectComboBox.getValue()));
+                    }
+                });
+
 
         treeGridHelper.setupFileGridContextMenu(fileTreeGrid, tabManager);
         fileTreeGrid.addItemClickListener(event -> {

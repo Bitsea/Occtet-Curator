@@ -38,6 +38,7 @@ public interface FileRepository extends JmixDataRepository<File, UUID> {
     // Root Nodes (Reviewed Filter)
     @Query("select f from File f " +
             "where f.project = :project and f.parent is null " +
+            "and (:targetStatus is null or f.reviewed = :targetStatus) " +
             "order by " +
             "   CASE WHEN lower(f.fileName) = '" + DEPENDENCY_FOLDER_NAME + "' THEN 1 ELSE 0 END ASC, " +
             "   f.isDirectory desc, " +
@@ -49,6 +50,7 @@ public interface FileRepository extends JmixDataRepository<File, UUID> {
     // Child Nodes (Reviewed Filter)
     @Query("select f from File f " +
             "where f.parent = :parent " +
+            "and (:targetStatus is null or f.reviewed = :targetStatus) " +
             "order by " +
             "   CASE WHEN lower(f.fileName) = '" + DEPENDENCY_FOLDER_NAME + "' THEN 1 ELSE 0 END ASC, " +
             "   f.isDirectory desc, " +
@@ -68,26 +70,16 @@ public interface FileRepository extends JmixDataRepository<File, UUID> {
     @Query("select f from File f where f.project = :project and f.fileName = :fileName")
     List<File> findCandidates(@Param("project") Project project, @Param("fileName") String fileName);
 
-    // Methods related to the file tree search mechanism
-    // TODO
-    long countAllByFileNameContainingIgnoreCase(String fileName);
-
-
-    @Query("""
-            select f.id from file f
-            where f.project = :project 
-            and lower(f.fileName) like lower(concat('%', :term, '%'))
-            order by f.relativePath asc
-            """)
-    List<UUID> searchIdsByFileName(@Param("term") String fileName, @Param("project") Project project, Pageable pageable);
+    long countAllByProjectAndFileNameContainingIgnoreCase(Project project, String fileName);
 
     @Query("select f.id from File f " +
             "where f.project = :project " +
-            "and lower(f.relativePath) like lower(concat('%', :term, '%')) " +
-            "order by f.relativePath asc")
-    List<UUID> searchIdsByPath(@Param("project") Project project,
-                               @Param("term") String term,
-                               Pageable pageable);
-    // Method for searching for full/relative pathes (e.g. a/b.txt)
+            "and lower(f.fileName) like lower(concat('%', :term, '%')) " +
+            "order by " +
+            "   CASE WHEN lower(f.fileName) = 'dependencies' THEN 1 ELSE 0 END ASC, " +
+            "   f.isDirectory desc, " +
+            "   f.fileName asc")
+    List<UUID> searchIdsByFileName(@Param("project") Project project,
+                                   @Param("term") String term);
 
 }
