@@ -54,7 +54,7 @@
                 </genericFilter>
                 <simplePagination id="pagination" dataLoader="licensesDl" alignSelf="END"/>
             </hbox>
-            <dataGrid id="licensesDataGrid"
+            <dataGrid classNames="occtet-grid" id="licensesDataGrid"
                       width="100%"
                       height="30em"
                       dataContainer="licensesDc"

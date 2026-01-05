@@ -78,7 +78,7 @@
                     <simplePagination id="pagination" dataLoader="scannerInitializerDl"/>
                 </hbox>
             </vbox>
-            <dataGrid id="scannerInitializerDataGrid"
+            <dataGrid classNames="occtet-grid" id="scannerInitializerDataGrid"
                       width="100%"
                       minHeight="20em"
                       dataContainer="scannerInitializerDc"

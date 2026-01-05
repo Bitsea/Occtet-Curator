@@ -72,7 +72,7 @@
                 <button id="saveButton" text="Save" enabled="false" alignSelf="END" themeNames="warning" icon="vaadin:safe"/>
                 <simplePagination id="pagination" dataLoader="copyrightsDl" alignSelf="END" />
             </hbox>
-            <dataGrid id="copyrightsDataGrid"
+            <dataGrid classNames="occtet-grid" id="copyrightsDataGrid"
                       width="100%"
                       minHeight="30em"
                       dataContainer="copyrightsDc"

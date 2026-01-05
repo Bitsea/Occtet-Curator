@@ -39,16 +39,17 @@
             </hbox>
             <dataGrid id="copyrightDataGrid"
                       width="100%"
-                      height="25em"
+                      height="30em"
                       dataContainer="copyrightDc"
                       columnReorderingAllowed="true"
-                      selectionMode="MULTI">
+                      selectionMode="MULTI"
+                      classNames="occtet-grid">
                 <columns resizable="true">
                     <column property="copyrightText" header="Copyright name"/>
                 </columns>
             </dataGrid>
             <hbox>
-                <button id="addCopyrightButton" text="Add copyright" themeNames="primary"/>
+                <button id="addCopyrightButton" text="Add" themeNames="primary"/>
                 <button id="cancelButton" text="Cancel"/>
             </hbox>
         </vbox>
