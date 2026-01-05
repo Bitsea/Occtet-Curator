@@ -279,7 +279,7 @@ public class SpdxService extends BaseWorkDataProcessor{
 
         try {
             // parseFiles(f, inventoryItem, codeLocations, copyrights); -- old call
-            parseFiles(spdxPackage, inventoryItem);
+            copyrights = parseFiles(spdxPackage, inventoryItem);
         } catch (InvalidSPDXAnalysisException e) {
             log.error("Error batch processing files", e);
         }
@@ -408,7 +408,7 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
     }
 
-    private void parseFiles(SpdxPackage spdxPackage, InventoryItem inventoryItem) throws InvalidSPDXAnalysisException {
+    private List<Copyright> parseFiles(SpdxPackage spdxPackage, InventoryItem inventoryItem) throws InvalidSPDXAnalysisException {
         List<String> allFileNames = new ArrayList<>();
         Set<String> allCopyrightsTexts = new HashSet<>();
         Map<String, String> fileToCopyrightMap = new HashMap<>();
@@ -439,6 +439,7 @@ public class SpdxService extends BaseWorkDataProcessor{
         }
         copyrightRepository.saveAll(copyrightsToUpdate);
 
+        return new ArrayList<>(copyrightMap.values());
     }
 
 //    private void parseFiles(SpdxFile spdxFile, InventoryItem inventoryItem, List<CodeLocation> codeLocations, List<Copyright> copyrights) throws InvalidSPDXAnalysisException {
