@@ -19,6 +19,7 @@
         */
   -->
 <view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:charts="http://jmix.io/schema/charts/ui"
       title="msg://dashboardView.title">
     <data>
         <collection id="projectsDc" class="eu.occtet.bocfrontend.entity.Project">
@@ -54,12 +55,14 @@
 
             <entityComboBox id="projectSelector"
                             label="Select Project"
+                            themeNames="small"
                             itemsContainer="projectsDc"
                             metaClass="Project"
                             width="20em"/>
 
             <dataGrid id="vulnerabilitiesGrid"
                       dataContainer="vulnerabilitiesDc"
+                      classNames="occtet-grid"
                       width="100%"
                       minHeight="20em">
                 <columns>
@@ -69,6 +72,16 @@
                     <column property="summary" header="Summary"/>
                 </columns>
             </dataGrid>
+            <vbox width="100%" height="100%" alignItems="END">
+                <charts:chart id="chartVulnerabilites" width="100%" height="100%" justifySelf="CENTER">
+                    <charts:title text="Vulnerability risk scores"/>
+                    <charts:series>
+                        <charts:pie id="PieChart" startAngle="80" selectedMode="SINGLE">
+                            <charts:label formatter="{b}: {d}%"/>
+                        </charts:pie>
+                    </charts:series>
+                </charts:chart>
+            </vbox>
         </vbox>
     </layout>
 </view>
