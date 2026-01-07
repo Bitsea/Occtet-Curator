@@ -32,7 +32,7 @@
         <module>occtet-nats-template</module>
         <module>occtet-nats-subscriber-sample</module>
         <module>occtet-nats-spdx-service</module>
-        <module>occtet-nats-spdx-export</module>
+        <module>occtet-nats-spdx-export-service</module>
         <module>occtet-nats-licensematcher-service</module>
         <module>occtet-nats-ai-licensematcher-service</module>
         <module>occtet-nats-foss-report-service</module>

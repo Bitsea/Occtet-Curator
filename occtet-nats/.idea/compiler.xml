@@ -15,6 +15,7 @@
         <module name="occtet-nats-foss-report-service" />
         <module name="occtet-nats-ort-run-starter-service" />
         <module name="occtet-ort-client" />
+        <module name="occtet-nats-spdx-export-service" />
         <module name="occtet-nats-copyrightfilter-service" />
         <module name="occtet-nats-ai-licensematcher-service" />
         <module name="occtet-nats-template" />
@@ -22,7 +23,6 @@
         <module name="occtet-common" />
         <module name="occtet-nats-spdx-service" />
         <module name="occtet-nats-download-service" />
-        <module name="occtet-nats-spdx-export" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

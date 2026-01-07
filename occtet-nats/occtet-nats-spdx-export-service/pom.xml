@@ -22,7 +22,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>occtet-nats-spdx-export</artifactId>
+    <artifactId>occtet-nats-spdx-export-service</artifactId>
     <description>Occtet Nats service used to create new spdx SBOM</description>
     <version>0.3.1-SNAPSHOT</version>
 
