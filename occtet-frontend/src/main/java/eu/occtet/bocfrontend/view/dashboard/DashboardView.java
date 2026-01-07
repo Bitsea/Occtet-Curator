@@ -29,16 +29,17 @@ import eu.occtet.bocfrontend.view.vulnerability.VulnerabilityDetailView;
 import io.jmix.chartsflowui.component.Chart;
 import io.jmix.chartsflowui.data.item.MapDataItem;
 import io.jmix.chartsflowui.kit.component.model.DataSet;
+import io.jmix.chartsflowui.kit.component.model.shared.Color;
 import io.jmix.chartsflowui.kit.data.chart.ListChartItems;
 import io.jmix.core.DataManager;
 import io.jmix.core.ValueLoadContext;
 import io.jmix.flowui.DialogWindows;
-import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.combobox.EntityComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
-import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.view.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
@@ -51,12 +52,6 @@ public class DashboardView extends StandardView {
 
     @ViewComponent
     private CollectionLoader<Project> projectsDl;
-
-    @ViewComponent
-    private CollectionLoader<Vulnerability> vulnerabilitiesDl;
-
-    @ViewComponent
-    private CollectionContainer<Vulnerability> vulnerabilitiesDc;
 
     @ViewComponent
     private DataGrid<Vulnerability> vulnerabilitiesGrid;
@@ -73,7 +68,12 @@ public class DashboardView extends StandardView {
     @Autowired
     private DataManager dataManager;
 
+    private final static String sumRiskScore = "sumRiskScore";
+    private final static String sumRiskValue = "value";
+    private final static String sumRiskLevel = "Level";
+    private final static Boolean isNoneRisk = true;
 
+    private static final Logger log = LogManager.getLogger(DashboardView.class);
 
     @Subscribe
     public void onInit(InitEvent event) {
@@ -113,37 +113,39 @@ public class DashboardView extends StandardView {
                 .editEntity(vulnerability)
                 .build();
         dialog.setWidth("100%");
+        dialog.setHeight("100%");
         dialog.open();
     }
 
     private void setValuesForPieChart(Project project) {
 
-        Long noneRisk = dataManager.loadValues(getSpecificLoadContext(project,0,0,true))
-                .getFirst().getValue("sumRiskScore");
-        Long lowRisk = dataManager.loadValues(getSpecificLoadContext(project,0.1,3.9,false))
-                .getFirst().getValue("sumRiskScore");
-        Long mediumRisk = dataManager.loadValues(getSpecificLoadContext(project,4.0,6.9,false))
-                .getFirst().getValue("sumRiskScore");
-        Long highRisk = dataManager.loadValues(getSpecificLoadContext(project,7.0,8.9,false))
-                .getFirst().getValue("sumRiskScore");
-        Long criticalRisk = dataManager.loadValues(getSpecificLoadContext(project,9.0,10.0,false))
-                .getFirst().getValue("sumRiskScore");
+        Long noneRisk = dataManager.loadValues(getSpecificLoadContext(project,0,0,isNoneRisk))
+                .getFirst().getValue(sumRiskScore);
+        Long lowRisk = dataManager.loadValues(getSpecificLoadContext(project,0.1,3.9,!isNoneRisk))
+                .getFirst().getValue(sumRiskScore);
+        Long mediumRisk = dataManager.loadValues(getSpecificLoadContext(project,4.0,6.9,!isNoneRisk))
+                .getFirst().getValue(sumRiskScore);
+        Long highRisk = dataManager.loadValues(getSpecificLoadContext(project,7.0,8.9,!isNoneRisk))
+                .getFirst().getValue(sumRiskScore);
+        Long criticalRisk = dataManager.loadValues(getSpecificLoadContext(project,9.0,10.0,!isNoneRisk))
+                .getFirst().getValue(sumRiskScore);
 
         ListChartItems<MapDataItem> chartItems = new ListChartItems<>(
-                new MapDataItem(Map.of("description","None risk","value",noneRisk)),
-                new MapDataItem(Map.of("description","Low","value",lowRisk)),
-                new MapDataItem(Map.of("description","Medium","value",mediumRisk)),
-                new MapDataItem(Map.of("description","High","value",highRisk)),
-                new MapDataItem(Map.of("description","Critical","value",criticalRisk))
+                new MapDataItem(Map.of(sumRiskLevel,"None risk",sumRiskValue,noneRisk)),
+                new MapDataItem(Map.of(sumRiskLevel,"Low",sumRiskValue,lowRisk)),
+                new MapDataItem(Map.of(sumRiskLevel,"Medium",sumRiskValue,mediumRisk)),
+                new MapDataItem(Map.of(sumRiskLevel,"High",sumRiskValue,highRisk)),
+                new MapDataItem(Map.of(sumRiskLevel,"Critical",sumRiskValue,criticalRisk))
         );
+
+        chartVulnerabilites.setColorPalette(Color.DARKGREEN,Color.DARKORANGE,Color.ORANGERED,Color.FIREBRICK,Color.DARKRED);
 
         chartVulnerabilites.withDataSet(
                 new DataSet().withSource(
                         new DataSet.Source<MapDataItem>()
                                 .withDataProvider(chartItems)
-                                .withCategoryField("description")
-                                .withValueField("value")
-
+                                .withCategoryField(sumRiskLevel)
+                                .withValueField(sumRiskValue)
                 )
         );
     }
@@ -155,12 +157,11 @@ public class DashboardView extends StandardView {
         if(isNone){
             context = new ValueLoadContext()
                     .setQuery(new ValueLoadContext.Query("""
-                select count(distinct v) as sumRiskScore
+                select count(distinct s) as sumRiskScore
                 from InventoryItem i
                 join i.softwareComponent s
-                join s.vulnerabilities v
                 join i.project p
-                where p.id = :project_id and v.riskScore = 0.0
+                where p.id = :project_id and s.vulnerabilities is empty
                 """).setParameter("project_id",project.getId()))
                     .addProperty("sumRiskScore");
 

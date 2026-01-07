@@ -66,17 +66,18 @@
                       width="100%"
                       minHeight="20em">
                 <columns>
-                    <column property="vulnerabilityId" header="Vulnerability ID" autoWidth="true"/>
-                    <column property="riskScore" header="Risk Score"/>
-                    <column property="weightedSeverity" header="Severity"/>
-                    <column property="summary" header="Summary"/>
+                    <column property="vulnerabilityId" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.vulnerabilityId" autoWidth="true"/>
+                    <column property="riskScore" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.riskScore"/>
+                    <column property="weightedSeverity" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.weightedSeverity"/>
+                    <column property="summary" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.summary"/>
                 </columns>
             </dataGrid>
             <vbox width="100%" height="100%" alignItems="END">
                 <charts:chart id="chartVulnerabilites" width="100%" height="100%" justifySelf="CENTER">
-                    <charts:title text="Vulnerability risk scores"/>
+                    <charts:title text="Vulnerability overview"/>
+                    <charts:tooltip trigger="ITEM"/>
                     <charts:series>
-                        <charts:pie id="PieChart" startAngle="80" selectedMode="SINGLE">
+                        <charts:pie startAngle="80">
                             <charts:label formatter="{b}: {d}%"/>
                         </charts:pie>
                     </charts:series>
