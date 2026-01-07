@@ -1,4 +1,4 @@
-##Service for turning valid spdx json into entities
+## Service for turning valid spdx json into entities
 
 # Building
 

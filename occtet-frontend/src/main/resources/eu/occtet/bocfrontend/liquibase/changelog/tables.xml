@@ -277,7 +277,7 @@
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="SPDX_DOCUMENT_ROOT"/></not></preConditions>
         <createTable tableName="SPDX_DOCUMENT_ROOT">
             <column name="ID" type="BIGINT"><constraints nullable="false" primaryKey="true" primaryKeyName="PK_SPDX_DOCUMENT_ROOT"/></column>
-            <column name="SPDX_ID" type="VARCHAR(255)"><constraints nullable="false" unique="true"/></column>
+            <column name="SPDX_ID" type="VARCHAR(255)"><constraints nullable="false"/></column>
             <column name="SPDX_VERSION" type="VARCHAR(255)"><constraints nullable="false"/></column>
             <column name="DATA_LICENSE" type="VARCHAR(255)"><constraints nullable="false"/></column>
             <column name="NAME" type="VARCHAR(255)"><constraints nullable="false"/></column>

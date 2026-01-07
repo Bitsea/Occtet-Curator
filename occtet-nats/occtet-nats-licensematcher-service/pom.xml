@@ -205,7 +205,7 @@
                 <version>1.4.13</version>
                 <configuration>
                     <repository>${project.artifactId}</repository>
-                    <tag>${project.version}</tag>
+                    <tag>latest</tag>
                     <buildArgs>
                         <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
                     </buildArgs>
