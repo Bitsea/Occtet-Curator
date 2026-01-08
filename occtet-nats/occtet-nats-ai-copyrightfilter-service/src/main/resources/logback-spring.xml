@@ -42,9 +42,11 @@
     <springProfile name="live">
         <root level="error">
             <appender-ref ref="DB" />
+            <appender-ref ref="STDOUT" />
         </root>
         <logger name="eu.occtet" level="INFO" additivity="false">
             <appender-ref ref="DB" />
+            <appender-ref ref="STDOUT" />
         </logger>
     </springProfile>
     <springProfile name="dev">
