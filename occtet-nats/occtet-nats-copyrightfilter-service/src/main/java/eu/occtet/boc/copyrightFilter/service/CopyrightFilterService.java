@@ -83,7 +83,7 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
     }
 
 
-    private static final Path BASEPATH_JSON = Paths.get("occtet-nats-copyrightFilter-service","src", "main", "resources", "garbage-Copyrights", "garbage-copyrights.json");
+    private static final Path BASEPATH_JSON = Paths.get("src", "main", "resources", "garbage-Copyrights", "garbage-copyrights.json");
 
     @Override
     public boolean process(ScannerSendWorkData workData) {
@@ -93,7 +93,7 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
 
     private boolean initializeCopyrightFilter(ScannerSendWorkData scannerSendWorkData) {
         log.debug("inventoryItemId: {}", scannerSendWorkData.getInventoryItemId());
-        InventoryItem item = inventoryItemRepository.findById(scannerSendWorkData.getInventoryItemId()).get();
+        InventoryItem item = inventoryItemRepository.findById(scannerSendWorkData.getInventoryItemId()).getFirst();
         List<String> copyrightTexts = new ArrayList<>();
 
         if (item.getSoftwareComponent().getCopyrights() != null && !item.getSoftwareComponent().getCopyrights().isEmpty()) {
