@@ -21,6 +21,7 @@ package eu.occtet.boc.entity.spdxV2;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "CHECKSUM_ENTITY")
 public class ChecksumEntity {
 
     @Id

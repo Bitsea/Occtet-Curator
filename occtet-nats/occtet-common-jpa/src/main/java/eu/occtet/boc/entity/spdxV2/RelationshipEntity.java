@@ -21,6 +21,7 @@ package eu.occtet.boc.entity.spdxV2;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "RELATIONSHIP_ENTITY")
 public class RelationshipEntity {
 
     @Id
