@@ -21,6 +21,7 @@ package eu.occtet.boc.entity.spdxV2;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "EXTERNAL_REF_DOCUMENT_ENTITY")
 public class ExternalDocumentRefEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

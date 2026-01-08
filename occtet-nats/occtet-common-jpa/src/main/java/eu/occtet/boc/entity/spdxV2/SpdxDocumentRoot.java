@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "SPDX_DOCUMENT_ROOT")
 public class SpdxDocumentRoot {
 
     @Id
