@@ -20,9 +20,7 @@
 package eu.occtet.bocfrontend.view.audit;
 
 
-import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.ItemClickEvent;
@@ -32,7 +30,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.Renderer;
-import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.*;
 import eu.occtet.bocfrontend.dao.FileRepository;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
@@ -43,7 +40,6 @@ import eu.occtet.bocfrontend.factory.UiComponentFactory;
 import eu.occtet.bocfrontend.factory.RendererFactory;
 import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
 import eu.occtet.bocfrontend.service.*;
-import eu.occtet.bocfrontend.view.audit.fragment.FileTreeSearchHelper;
 import eu.occtet.bocfrontend.view.audit.fragment.OverviewProjectTabFragment;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
@@ -60,6 +56,7 @@ import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serializable;
 import java.util.*;
@@ -131,7 +128,9 @@ public class AuditView extends StandardView{
     private boolean suppressNavigation = false;
     private final Set<UUID> expandedItemIds = new HashSet<>();
 
-    private FileTreeSearchHelper searchHelper;
+    private FileTreeSearchHelper fileTreeSearchHelper;
+    @Autowired
+    private TransactionTemplate transactionTemplate; // important for fileTreeSearchHelper
 
     /**
      * Handles actions to be performed before the view is entered. This method ensures
@@ -168,63 +167,69 @@ public class AuditView extends StandardView{
         saveStateToSession();
     }
 
-    private void initializeFileTreeGrid(){
+    /**
+     * Initializes the file tree grid, including UI components, event listeners, and context menu setup.
+     * Configures the grid's behavior for filtering, searching, expanding, collapsing, and handling item selection.
+     *
+     * This method performs the following operations:
+     * - Creates a file tree toolbox layout and adds it to the grid layout.
+     * - Configures filter logic to handle file review filtering based on user selections.
+     * - Implements search functionalities, including field interaction, navigation between search results,
+     *   and counting matching items.
+     * - Sets up context menu options and double-click behavior for grid items.
+     * - Tracks the expansion and collapse state of items in the grid to maintain UI consistency.
+     */
+    private void initializeFileTreeGrid() {
         HorizontalLayout toolboxWrapper = componentFactory.createFileTreeToolbox(fileTreeGrid);
         fileTreeGridLayout.addComponentAsFirst(toolboxWrapper);
 
-        JmixComboBox<FileReviewedFilterMode> filterBox = toolboxWrapper.getChildren()
-                .filter(c -> c instanceof JmixComboBox && UiComponentFactory.REVIEWED_FILTER_ID.equals(c.getId().orElse(null)))
-                .map(c -> (JmixComboBox<FileReviewedFilterMode>) c)
-                .findFirst()
-                .orElse(null);
+        JmixComboBox<FileReviewedFilterMode> filterBox = (JmixComboBox<FileReviewedFilterMode>)
+                findComponentById(toolboxWrapper, UiComponentFactory.REVIEWED_FILTER_ID);
+        TextField searchField = (TextField) findComponentById(toolboxWrapper, UiComponentFactory.SEARCH_FIELD_ID);
+        JmixButton nextBtn = (JmixButton) findComponentById(toolboxWrapper, UiComponentFactory.FIND_NEXT_ID);
+        JmixButton prevBtn = (JmixButton) findComponentById(toolboxWrapper, UiComponentFactory.FIND_PREVIOUS_ID);
+        NativeLabel countLabel = (NativeLabel) findComponentById(toolboxWrapper, UiComponentFactory.COUNT_LABEL_ID);
+        JmixButton searchBtn = (JmixButton) findComponentById(toolboxWrapper, UiComponentFactory.SEARCH_BUTTON);
+
+        // Filter Logic
         if (filterBox != null) {
             filterBox.addValueChangeListener(e ->
                     treeGridHelper.reviewedFilterChangeValueListenerAction(e, projectComboBox.getValue(), fileTreeGrid)
             );
         }
 
-        toolboxWrapper.getChildren()
-                .filter(c -> c instanceof HorizontalLayout && UiComponentFactory.SEARCH_LAYOUT_ID.equals(c.getId().orElse(null)))
-                .map(c -> (HorizontalLayout) c)
-                .findFirst().ifPresent(layout -> {
+        // Search Logic
+        if (searchField != null && countLabel != null && filterBox != null) {
+            this.fileTreeSearchHelper = new FileTreeSearchHelper(
+                    fileRepository,
+                    fileTreeGrid,
+                    countLabel,
+                    expandedItemIds,
+                    () -> filterBox.getValue().asBoolean(),
+                    transactionTemplate
+            );
 
-                    TextField searchField = (TextField) layout.getChildren()
-                            .filter(c -> UiComponentFactory.SEARCH_FIELD_ID.equals(c.getId().orElse(null))).findFirst().orElse(null);
-                    JmixButton nextBtn = (JmixButton) layout.getChildren()
-                            .filter(c -> UiComponentFactory.FIND_NEXT_ID.equals(c.getId().orElse(null))).findFirst().orElse(null);
-                    JmixButton prevBtn = (JmixButton) layout.getChildren()
-                            .filter(c -> UiComponentFactory.FIND_PREVIOUS_ID.equals(c.getId().orElse(null))).findFirst().orElse(null);
-                    NativeLabel countLabel = (NativeLabel) layout.getChildren()
-                            .filter(c -> UiComponentFactory.COUNT_LABEL_ID.equals(c.getId().orElse(null))).findFirst().orElse(null);
+            searchField.addKeyDownListener(Key.ENTER, e -> {
+                if (e.getModifiers().contains(KeyModifier.SHIFT)) {
+                    fileTreeSearchHelper.previous(projectComboBox.getValue());
+                } else {
+                    fileTreeSearchHelper.onEnterKeyPressed(searchField.getValue(), projectComboBox.getValue());
+                }
+            });
+            searchBtn.addClickListener(e -> fileTreeSearchHelper.performSearch(searchField.getValue(),
+                    projectComboBox.getValue()));
+        }
 
-                    if (searchField != null && countLabel != null) {
+        if (nextBtn != null && fileTreeSearchHelper != null) {
+            nextBtn.addClickListener(e -> fileTreeSearchHelper.next(projectComboBox.getValue()));
+        }
+        if (prevBtn != null && fileTreeSearchHelper != null) {
+            prevBtn.addClickListener(e -> fileTreeSearchHelper.previous(projectComboBox.getValue()));
+        }
 
-                        this.searchHelper = new FileTreeSearchHelper(
-                                fileRepository,
-                                fileTreeGrid,
-                                countLabel,
-                                expandedItemIds,
-                                () -> {
-                                    return filterBox.getValue().asBoolean();
-                                }
-                        );
-
-                        searchField.setValueChangeMode(ValueChangeMode.LAZY);
-                        searchField.addValueChangeListener(e ->
-                                searchHelper.performSearch(e.getValue(), projectComboBox.getValue()));
-                    }
-
-                    if (nextBtn != null && searchHelper != null) {
-                        nextBtn.addClickListener(e -> searchHelper.next(projectComboBox.getValue()));
-                    }
-
-                    if (prevBtn != null && searchHelper != null) {
-                        prevBtn.addClickListener(e -> searchHelper.previous(projectComboBox.getValue()));
-                    }
-                });
-
-
+        // Grid Context Menu & Listeners
         treeGridHelper.setupFileGridContextMenu(fileTreeGrid, tabManager);
+
         fileTreeGrid.addItemClickListener(event -> {
             File clickedFile = event.getItem();
             if (event.getClickCount() == 2 && Boolean.FALSE.equals(clickedFile.getIsDirectory())) {
@@ -233,13 +238,32 @@ public class AuditView extends StandardView{
                 treeGridHelper.toggleExpansion(fileTreeGrid, clickedFile);
             }
         });
-        // important for keeping hold of the expand and collapse state of the grid
-        fileTreeGrid.addExpandListener(event ->{
-           event.getItems().forEach(item -> expandedItemIds.add(item.getId()));
+
+        // Track expansion state
+        fileTreeGrid.addExpandListener(event -> {
+            event.getItems().forEach(item -> expandedItemIds.add(item.getId()));
+            saveStateToSession();
         });
+
         fileTreeGrid.addCollapseListener(event -> {
             event.getItems().forEach(file -> expandedItemIds.remove(file.getId()));
+            saveStateToSession();
         });
+    }
+
+    /**
+     * Recursive helper to find a component by ID within a component tree.
+     * Necessary because in case UiComponentFactory nests components in sub-layouts
+     */
+    private Component findComponentById(Component root, String id) {
+        if (id.equals(root.getId().orElse(null))) {
+            return root;
+        }
+        return root.getChildren()
+                .map(child -> findComponentById(child, id))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -307,15 +331,25 @@ public class AuditView extends StandardView{
     private void restoreTabsAndState() {
         viewStateService.get().ifPresent(state -> {
             restoreSessionTabs(state);
+
             Set<UUID> idsToExpand = new HashSet<>(state.expandedNodeIds());
             this.expandedItemIds.addAll(idsToExpand);
 
-            log.debug("Restoring session state: {}", state);
+            log.debug("Restoring session state: {} expanded nodes to restore", idsToExpand.size());
+
+            if (!idsToExpand.isEmpty()) {
+                List<File> filesToExpand = fileRepository.findAllById(idsToExpand);
+
+                if (!filesToExpand.isEmpty()) {
+                    fileTreeGrid.expand(filesToExpand);
+                } else {
+                    log.warn("Session had expanded IDs, but DB returned 0 files. IDs: {}", idsToExpand);
+                }
+            }
+
             if (state.activeTabIdentifier() != null) {
                 UI ui = UI.getCurrent();
-                ui.access(() -> {
-                   tabManager.selectTab(state.activeTabIdentifier());
-                });
+                ui.access(() -> tabManager.selectTab(state.activeTabIdentifier()));
             }
         });
     }

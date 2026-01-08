@@ -19,7 +19,9 @@
 
 package eu.occtet.bocfrontend.factory;
 
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBoxVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.html.Span;
@@ -32,9 +34,11 @@ import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.popover.PopoverVariant;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.TextFieldVariant;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
+import io.jmix.core.Messages;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.TreeDataGrid;
@@ -52,12 +56,14 @@ public class UiComponentFactory {
 
     @Autowired
     private UiComponents uiComponents;
+    @Autowired
+    private Messages messages;
 
     public static final String SEARCH_FIELD_ID = "search-field";
     public static final String REVIEWED_FILTER_ID = "reviewed-filter";
     public static final String FIND_NEXT_ID = "find-next";
     public static final String FIND_PREVIOUS_ID = "find-previous";
-    public static final String FILTER_BUTTON_ID = "filter-button";
+    public static final String SEARCH_BUTTON = "search-button";
     public static final String SEARCH_LAYOUT_ID = "search-layout";
     public static final String COUNT_LABEL_ID = "count-label";
 
@@ -165,55 +171,73 @@ public class UiComponentFactory {
     }
 
     public HorizontalLayout createFileTreeToolbox(TreeDataGrid<File> grid) {
+        // MAIN LAYOUT
         HorizontalLayout layout = uiComponents.create(HorizontalLayout.class);
-        layout.setSpacing(true);
-        layout.setPadding(true);
         layout.setWidthFull();
         layout.setClassName("toolbox-audit-view");
-        layout.setAlignItems(FlexComponent.Alignment.END);
-        layout.setJustifyContentMode(FlexComponent.JustifyContentMode.START);
+        layout.setSpacing(false);
+        layout.setPadding(true);
+        layout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
-        // Search layout
-        HorizontalLayout searchHl = uiComponents.create(HorizontalLayout.class);
-        searchHl.setId(SEARCH_LAYOUT_ID);
+        // LEFT SIDE: Search Group
+        HorizontalLayout searchGroup = uiComponents.create(HorizontalLayout.class);
+        searchGroup.setSpacing(false);
+        searchGroup.setPadding(false);
+        searchGroup.setAlignItems(FlexComponent.Alignment.CENTER);
+        searchGroup.setId(SEARCH_LAYOUT_ID);
         // Search Field
+        JmixButton searchIconBtn = uiComponents.create(JmixButton.class);
+        searchIconBtn.setIcon(VaadinIcon.SEARCH.create());
+        searchIconBtn.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
+        searchIconBtn.getStyle().set("color", "var(--lumo-primary-color)");
+        searchIconBtn.setId(SEARCH_BUTTON);
         TextField searchField = uiComponents.create(TextField.class);
-        searchField.setPrefixComponent(VaadinIcon.SEARCH.create());
         searchField.setId(SEARCH_FIELD_ID);
-        searchField.setPlaceholder("Search files...");
+        searchField.setPlaceholder(messages.getMessage("eu.occtet.bocfrontend.view.audit/toolbox.searchPlaceholder"));
+        searchField.setPrefixComponent(searchIconBtn);
         searchField.setClearButtonVisible(true);
         searchField.setWidth("300px");
-        JmixButton findNext = uiComponents.create(JmixButton.class);
-        findNext.setId(FIND_NEXT_ID);
-        findNext.setIcon(VaadinIcon.ARROW_RIGHT.create());
-        findNext.setThemeName("icon small tertiary-inline");
+        searchField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
+        // Navigation Buttons
         JmixButton findPrevious = uiComponents.create(JmixButton.class);
         findPrevious.setId(FIND_PREVIOUS_ID);
-        findPrevious.setIcon(VaadinIcon.ARROW_LEFT.create());
-        findPrevious.setThemeName("icon small tertiary-inline");
-        NativeLabel countLabel = new NativeLabel("0:0");
+        findPrevious.setIcon(VaadinIcon.CHEVRON_UP.create());
+        findPrevious.setTooltipText(messages.getMessage("eu.occtet.bocfrontend.view.audit/toolbox.tooltip.findPrevious"));
+        findPrevious.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY_INLINE);
+
+        JmixButton findNext = uiComponents.create(JmixButton.class);
+        findNext.setId(FIND_NEXT_ID);
+        findNext.setIcon(VaadinIcon.CHEVRON_DOWN.create());
+        findNext.setTooltipText(messages.getMessage("eu.occtet.bocfrontend.view.audit/toolbox.tooltip.findNext"));
+        findNext.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY_INLINE);
+        // Counter Label
+        NativeLabel countLabel = new NativeLabel("");
         countLabel.setId(COUNT_LABEL_ID);
+        countLabel.getStyle().set("font-size", "var(--lumo-font-size-s)");
+        countLabel.getStyle().set("color", "var(--lumo-secondary-text-color)");
 
-        searchHl.add(searchField, findPrevious, findNext, countLabel);
+        searchGroup.add(searchField, findPrevious, findNext, countLabel);
 
-        // Reviewed Filter ComboBox
+        // RIGHT SIDE: Filter Group
+        HorizontalLayout filterGroup = uiComponents.create(HorizontalLayout.class);
+        filterGroup.setAlignItems(FlexComponent.Alignment.CENTER);
+
         JmixComboBox<FileReviewedFilterMode> reviewedFilter = uiComponents.create(JmixComboBox.class);
         reviewedFilter.setId(REVIEWED_FILTER_ID);
-        reviewedFilter.setLabel("Status");
-
+        reviewedFilter.setPlaceholder(messages.getMessage("eu.occtet.bocfrontend.view.audit/toolbox.statusFilterPlaceholder"));
         reviewedFilter.setItems(FileReviewedFilterMode.values());
-
         reviewedFilter.setItemLabelGenerator(item -> switch (item) {
-            case SHOW_ALL -> "Show All";
-            case REVIEWED_ONLY -> "Reviewed";
-            case NOT_REVIEWED_ONLY -> "Not Reviewed";
+            case SHOW_ALL -> messages.getMessage("eu.occtet.bocfrontend.view.audit/filter.option.showAll");
+            case REVIEWED_ONLY -> messages.getMessage("eu.occtet.bocfrontend.view.audit/filter.option.reviewed");
+            case NOT_REVIEWED_ONLY -> messages.getMessage("eu.occtet.bocfrontend.view.audit/filter.option.notReviewed");
         });
-
         reviewedFilter.setValue(FileReviewedFilterMode.SHOW_ALL);
-        reviewedFilter.setWidth("150px");
+        reviewedFilter.setWidth("160px");
+        reviewedFilter.addThemeVariants(ComboBoxVariant.LUMO_SMALL);
 
-        layout.add(searchHl, reviewedFilter);
+        filterGroup.add(reviewedFilter);
 
+        layout.add(searchGroup, filterGroup);
         return layout;
     }
 

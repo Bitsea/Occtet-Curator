@@ -78,16 +78,13 @@ public class FileHierarchyProvider extends AbstractBackEndHierarchicalDataProvid
     public int getChildCount(HierarchicalQuery<File, Void> query) {
         File parent = query.getParent();
         if (parent == null) {
-            return (int) fileRepository.countByProjectAndParentIsNull(project);
+            return (int) fileRepository.countRoots(project, targetStatus);
         }
-        return (int) fileRepository.countByParent(parent);
+        return (int) fileRepository.countChildren(parent, targetStatus);
     }
 
     @Override
     public boolean hasChildren(File file) {
         return Boolean.TRUE.equals(file.getIsDirectory());
     }
-
-    // TODO method for realtime highlighting/marking currently visable nodes
-    // TODO See if autocomplete can be used for the search
 }
