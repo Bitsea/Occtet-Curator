@@ -22,6 +22,7 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
+@Table(name = "EXTRACTED_LICENSING_INFO_ENTITY")
 public class ExtractedLicensingInfoEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
