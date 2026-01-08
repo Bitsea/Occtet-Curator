@@ -48,7 +48,7 @@ public class CopyrightPreprocessor {
      * @return list of garbage copyrights
      */
     public List<String> readGarbageCopyrightsFromJson(Path path) {
-
+        log.debug("readGarbageCopyrightsFromJson called with path: {}", path.toFile().getAbsolutePath());
         CopyrightText garbageCopyright= new CopyrightText();
         List<String> copyrightTexts= new ArrayList<>();
         File jsonFile = new File(path.toFile().getAbsolutePath());
