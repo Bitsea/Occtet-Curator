@@ -317,7 +317,7 @@
             <column name="ID" type="BIGINT"><constraints nullable="false" primaryKey="true" primaryKeyName="PK_SPDX_FILE_ENTITY"/></column>
             <column name="SPDX_ID" type="VARCHAR(255)"><constraints nullable="false"/></column>
             <column name="SPDX_DOCUMENT_ID" type="BIGINT"/>
-            <column name="FILE_NAME" type="VARCHAR(255)"><constraints nullable="false"/></column>
+            <column name="FILE_NAME" type="TEXT"><constraints nullable="false"/></column>
             <column name="LICENSE_CONCLUDED" type="TEXT"/>
             <column name="COPYRIGHT_TEXT" type="TEXT"/>
         </createTable>
@@ -328,7 +328,7 @@
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="PACKAGE_LICENSE_INFO_FROM_FILES"/></not></preConditions>
         <createTable tableName="PACKAGE_LICENSE_INFO_FROM_FILES">
             <column name="PACKAGE_ID" type="BIGINT"><constraints nullable="false"/></column>
-            <column name="LICENSE_INFO_FROM_FILES" type="VARCHAR(255)"/>
+            <column name="LICENSE_INFO_FROM_FILES" type="TEXT"/>
         </createTable>
         <addForeignKeyConstraint baseTableName="PACKAGE_LICENSE_INFO_FROM_FILES" baseColumnNames="PACKAGE_ID" constraintName="FK_PKG_LIC_INFO_PKG" referencedTableName="SPDX_PACKAGE_ENTITY" referencedColumnNames="ID"/>
 
@@ -379,6 +379,32 @@
             <column name="COMMENT" type="TEXT"/>
         </createTable>
         <addForeignKeyConstraint baseTableName="ANNOTATION_ENTITY" baseColumnNames="SPDX_PACKAGE_ID" constraintName="FK_ANNOTATION_PACKAGE" referencedTableName="SPDX_PACKAGE_ENTITY" referencedColumnNames="ID"/>
+    </changeSet>
+
+
+    <changeSet id="create-file-license-info" author="you">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="file_license_info"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="file_license_info">
+            <column name="spdx_file_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="license_info_in_files" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="file_license_info"
+                baseColumnNames="spdx_file_id"
+                referencedTableName="spdx_file_entity"
+                referencedColumnNames="id"
+                constraintName="fk_file_license_file"/>
     </changeSet>
 
 </databaseChangeLog>
