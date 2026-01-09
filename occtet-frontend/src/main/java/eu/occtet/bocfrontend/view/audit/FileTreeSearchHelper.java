@@ -77,6 +77,17 @@ public class FileTreeSearchHelper {
     }
 
     /**
+     * Resets the search helper state. Call this when the Project changes.
+     */
+    public void reset() {
+        this.searchResultIds.clear();
+        this.currentIndex = -1;
+        this.lastSearchText = "";
+        this.totalMatchesInDb = 0;
+        updateLabel();
+    }
+
+    /**
      * Handles the "Enter" key press event to trigger a search or navigate to the next result.
      * If the provided text differs from the last searched text, a new search is performed.
      * Otherwise, navigates to the next search result.
@@ -103,6 +114,8 @@ public class FileTreeSearchHelper {
     public void performSearch(String searchText, Project project) {
         log.info("Performing search for: {}", searchText);
 
+        boolean isNewSearch = !Objects.equals(searchText, lastSearchText);
+
         this.lastSearchText = searchText;
         this.currentIndex = -1;
         this.searchResultIds.clear();
@@ -114,28 +127,29 @@ public class FileTreeSearchHelper {
         }
 
         List<UUID> sortedIds = transactionTemplate.execute(status -> {
-
             List<File> candidates = fileRepository.findCandidates(
                     project,
                     searchText,
                     filterStatusSupplier.get()
             );
-
             candidates.sort(new TreePathComparator());
             return candidates.stream().map(File::getId).toList();
         });
 
         this.searchResultIds = new ArrayList<>(Objects.requireNonNull(sortedIds));
-
         this.totalMatchesInDb = fileRepository.countCandidates(
                 project, searchText, filterStatusSupplier.get()
         );
 
+        if (isNewSearch) {
+            treeGrid.getDataProvider().refreshAll();
+        }
+
         if (!searchResultIds.isEmpty()) {
-            jumpToMatch(0, project);
+            jumpToMatch(0, project, isNewSearch);
         } else {
             updateLabel();
-            treeGrid.getDataProvider().refreshAll();
+            if (!isNewSearch) treeGrid.getDataProvider().refreshAll();
         }
     }
 
@@ -145,8 +159,7 @@ public class FileTreeSearchHelper {
     public void next(Project project) {
         if (searchResultIds.isEmpty()) return;
         int nextIndex = (currentIndex + 1) % searchResultIds.size();
-        log.debug("Jumping to next match: {}", nextIndex);
-        jumpToMatch(nextIndex, project);
+        jumpToMatch(nextIndex, project, false);
     }
 
     /**
@@ -155,18 +168,10 @@ public class FileTreeSearchHelper {
     public void previous(Project project) {
         if (searchResultIds.isEmpty()) return;
         int prevIndex = (currentIndex - 1 + searchResultIds.size()) % searchResultIds.size();
-        log.debug("Jumping to previous match: {}", prevIndex);
-        jumpToMatch(prevIndex, project);
+        jumpToMatch(prevIndex, project, false);
     }
 
-    private void jumpToMatch(int index, Project project) {
-        if (this.currentIndex >= 0 && this.currentIndex < searchResultIds.size()) {
-            UUID oldId = searchResultIds.get(this.currentIndex);
-            fileRepository.findById(oldId).ifPresent(file -> {
-                treeGrid.getDataProvider().refreshItem(file);
-            });
-        }
-
+    private void jumpToMatch(int index, Project project, boolean isNewSearch) {
         this.currentIndex = index;
         UUID newId = searchResultIds.get(index);
         updateLabel();
@@ -176,14 +181,14 @@ public class FileTreeSearchHelper {
             treeGrid.deselectAll();
             treeGrid.select(file);
 
-            treeGrid.getDataProvider().refreshItem(file);
-            int[] pathToTreeIndex = calculatePath(file);
-             if (pathToTreeIndex.length > 0) {
-                 log.debug("Jumping to path: {}", Arrays.toString(pathToTreeIndex));
-                 treeGrid.scrollToIndex(pathToTreeIndex);
-             }
-        });
+            treeGrid.getDataProvider().refreshAll();
 
+            int[] pathToTreeIndex = calculatePath(file);
+            if (pathToTreeIndex.length > 0) {
+                log.debug("Jumping to path: {}", Arrays.toString(pathToTreeIndex));
+                treeGrid.scrollToIndex(pathToTreeIndex);
+            }
+        });
     }
 
     private void expandParents(File file) {
@@ -231,7 +236,7 @@ public class FileTreeSearchHelper {
                     if (isMatch) {
                         String color = isCurrent ? "#ff9900" : "#ffff00";
                         String html = text.replaceAll("(?i)(" + Pattern.quote(lastSearchText) + ")",
-                                "<span style='background-color: " + color + "; color: black;'>$1</span>");
+                                "<span style='background-color: " + color + "; color: black; display: inline-block; line-height: 1.2;'>$1</span>");
                         span.getElement().setProperty("innerHTML", html);
                     } else {
                         span.setText(text);

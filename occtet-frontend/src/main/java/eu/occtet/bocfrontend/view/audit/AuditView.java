@@ -307,6 +307,11 @@ public class AuditView extends StandardView{
             UUID projectId = UUID.fromString(projectIdStr);
             projectRepository.findById(projectId).ifPresent(project -> {
                 log.debug("Loading project {} from URL", project.getProjectName());
+
+                if (this.fileTreeSearchHelper != null) {
+                    this.fileTreeSearchHelper.reset();
+                }
+
                 projectComboBox.setValue(project);
                 refreshAllDataForProject(project);
                 restoreTabsAndState();
@@ -610,6 +615,9 @@ public class AuditView extends StandardView{
     }
 
     private void switchProject(Project project) {
+        if (this.fileTreeSearchHelper != null) {
+            this.fileTreeSearchHelper.reset();
+        }
         refreshAllDataForProject(project);
         saveStateToSession();
         updateUrl();
