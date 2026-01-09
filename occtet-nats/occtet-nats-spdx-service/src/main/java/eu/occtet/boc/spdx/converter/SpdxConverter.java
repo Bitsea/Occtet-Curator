@@ -322,7 +322,7 @@ public class SpdxConverter {
                 spdxDocumentRoot.setFiles(new ArrayList<>());
             }
 
-            log.debug("now converting spdxFile {}", spdxFile.getId());
+            log.info("now converting spdxFile {}", spdxFile.getId());
 
             SpdxFileEntity spdxFileEntity = spdxDocumentRoot.getFiles().stream()
                     .filter(f -> f.getSpdxId() != null && f.getSpdxId().equals(spdxFile.getId()))
