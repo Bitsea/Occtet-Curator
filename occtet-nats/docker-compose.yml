@@ -44,6 +44,8 @@ services:
       image: occtet-boc-frontend:latest
       ports:
         - "8090:8090"
+      volumes:
+        - /home/occtet/project_data:/project_data
       depends_on:
         - db
         - nats
@@ -120,6 +122,8 @@ services:
         - frontend
         - db
         - nats
+      volumes:
+        - /home/occtet/project_data:/project_data
       networks:
         - mynet
 
@@ -139,7 +143,6 @@ volumes:
     external: true
   ollama_data:
     external: true
-
 
 
 networks:
