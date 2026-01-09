@@ -9,11 +9,11 @@
   "name" : "Unnamed document",
   "dataLicense" : "CC0-1.0",
   "documentNamespace" : "spdx://d5e7797f-5c05-496f-bae9-6c7c44add48b",
-  "documentDescribes" : [ "SPDXRef-Project-Maven-me.numin-ElementalCompanions-0.3" ],
+  "documentDescribes" : [ "SPDXRef-Project-Maven-me.numin-ElementalCompanions-0.2" ],
   "packages" : [ {
-    "SPDXID" : "SPDXRef-Project-Maven-me.numin-ElementalCompanions-0.3",
+    "SPDXID" : "SPDXRef-Project-Maven-me.numin-ElementalCompanions-0.2",
     "copyrightText" : "NONE",
-    "downloadLocation" : "NONE",
+    "downloadLocation" : "https://github.com/xNuminousx/ElementalCompanions.git",
     "filesAnalyzed" : true,
     "homepage" : "NONE",
     "licenseConcluded" : "NOASSERTION",
@@ -22,7 +22,7 @@
     "packageVerificationCode" : {
       "packageVerificationCodeValue" : "3a83eee88a946d66f5b2e5dc968a2bd7da62b5dd"
     },
-    "versionInfo" : "0.3"
+    "versionInfo" : "0.2"
   }, {
     "SPDXID" : "SPDXRef-Package-Maven-com.google.code.gson-gson-2.8.0",
     "checksums" : [ {
@@ -8493,7 +8493,7 @@
     "relationshipType" : "GENERATED_FROM",
     "relatedSpdxElement" : "SPDXRef-Package-Maven-org.yaml-snakeyaml-1.25-vcs"
   }, {
-    "spdxElementId" : "SPDXRef-Project-Maven-me.numin-ElementalCompanions-0.3",
+    "spdxElementId" : "SPDXRef-Project-Maven-me.numin-ElementalCompanions-0.2",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-Package-Maven-com.projectkorra-projectkorra-1.12.1-PRE-RELEASE-1"
   }]
