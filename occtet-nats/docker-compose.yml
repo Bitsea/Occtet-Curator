@@ -2,6 +2,7 @@
 services:
     db:
         image: pgvector/pgvector:pg17-trixie
+        command: -c 'max_connections=200'
         container_name: db
         ports:
         - "5439:5432"
