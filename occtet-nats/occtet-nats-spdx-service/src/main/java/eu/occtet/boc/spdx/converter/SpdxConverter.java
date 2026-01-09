@@ -322,6 +322,8 @@ public class SpdxConverter {
                 spdxDocumentRoot.setFiles(new ArrayList<>());
             }
 
+            log.debug("now converting spdxFile {}", spdxFile.getId());
+
             SpdxFileEntity spdxFileEntity = spdxDocumentRoot.getFiles().stream()
                     .filter(f -> f.getSpdxId() != null && f.getSpdxId().equals(spdxFile.getId()))
                     .findFirst()
@@ -338,6 +340,7 @@ public class SpdxConverter {
             spdxFileEntity.setSpdxId(spdxFile.getId());
             spdxFileEntity.setCopyrightText(spdxFile.getCopyrightText());
             spdxFileEntity.setLicenseConcluded(spdxFile.getLicenseConcluded().toString());
+            log.debug("populated {}", spdxFileEntity);
 
 
             if (spdxFileEntity.getChecksums() == null) {
@@ -366,6 +369,7 @@ public class SpdxConverter {
 
             if (isNew) {
                 spdxDocumentRoot.getFiles().add(spdxFileEntity);
+                log.debug("added new spdxFileEntity to documentRoot: {}", spdxFileEntity);
             }
 
             return spdxFileEntity;

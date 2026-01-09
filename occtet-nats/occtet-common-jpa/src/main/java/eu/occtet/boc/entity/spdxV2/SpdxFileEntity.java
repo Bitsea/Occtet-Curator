@@ -131,4 +131,14 @@ public class SpdxFileEntity {
     public Long getId() {
         return id;
     }
+
+    @Override
+    public String toString() {
+        return "SpdxFileEntity{" +
+                "id=" + id +
+                ", spdxId='" + spdxId + '\'' +
+                ", spdxDocument=" + spdxDocument +
+                ", fileName='" + fileName + '\'' +
+                '}';
+    }
 }
