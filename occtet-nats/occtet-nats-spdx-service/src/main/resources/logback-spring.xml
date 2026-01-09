@@ -40,12 +40,12 @@
     </appender>
 
     <springProfile name="live">
-        <root level="debug">
-            <appender-ref ref="DB" />
+        <root level="info">
+            <!--appender-ref ref="DB" /-->
             <appender-ref ref="STDOUT" />
         </root>
         <logger name="eu.occtet" level="debug" additivity="false">
-            <appender-ref ref="DB" />
+            <!--appender-ref ref="DB" /-->
             <appender-ref ref="STDOUT" />
         </logger>
     </springProfile>
