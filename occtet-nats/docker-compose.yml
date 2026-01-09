@@ -128,7 +128,7 @@ services:
         - mynet
 
     spdx-export-service:
-      image: occtet-nats-spdx-export-service:0.3.2-SNAPSHOT
+      image: occtet-nats-spdx-export-service:0.3.6-SNAPSHOT
       depends_on:
         - frontend
         - db
