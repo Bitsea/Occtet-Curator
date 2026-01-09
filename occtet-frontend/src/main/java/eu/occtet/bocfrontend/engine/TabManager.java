@@ -98,6 +98,8 @@ public class TabManager {
 
         if (selectTab) {
             mainTabSheet.setSelectedTab(inventoryItemTabSection);
+            if (!inventoryItemTabSection.getElement().isVisible())
+                inventoryItemTabSection.getElement().setVisible(true);
         }
 
         openTabAction(
