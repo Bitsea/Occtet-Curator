@@ -24,8 +24,6 @@ package eu.occtet.boc.entity;
 
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.ArrayList;
@@ -64,20 +62,18 @@ public class SoftwareComponent {
     @JoinColumn(name= "SOFTWARECOMPONENT_ID")
     private List<Copyright> copyrights;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinTable(
             name = "SOFTWARE_COMPONENT_LICENSE_LINK",
             joinColumns = @JoinColumn(name = "SOFTWARE_COMPONENT_ID", referencedColumnName = "ID"),
             inverseJoinColumns = @JoinColumn(name = "LICENSE_ID", referencedColumnName = "ID"))
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<License> licenses;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinTable(
             name = "SOFTWARE_COMPONENT_VULNERABILITY_LINK",
             joinColumns = @JoinColumn(name = "SOFTWARE_COMPONENT_ID", referencedColumnName = "ID"),
             inverseJoinColumns = @JoinColumn(name = "VULNERABILITY_ID", referencedColumnName = "ID"))
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Vulnerability> vulnerabilities;
 
     public SoftwareComponent() {
