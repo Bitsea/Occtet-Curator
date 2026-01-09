@@ -85,7 +85,7 @@ public class SpdxExportApp {
         ClassPathResource resource = new ClassPathResource("microserviceDescriptor.json");
         String s = new String(Files.readAllBytes(Paths.get(resource.getURI())));
         microserviceDescriptor = (new ObjectMapper()).readValue(s, MicroserviceDescriptor.class);
-
+        microserviceDescriptor.setVersion(applicationVersion);
         log.info("Occtet Microservice INIT: {} (version {}), listening on NATS stream '{}'",
                 microserviceDescriptor.getName(), microserviceDescriptor.getVersion(), streamName );
 
