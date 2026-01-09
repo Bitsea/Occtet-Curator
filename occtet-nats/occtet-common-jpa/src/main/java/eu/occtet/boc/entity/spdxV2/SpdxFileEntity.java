@@ -23,6 +23,7 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
+@Table(name ="SPDX_FILE_ENTITY")
 public class SpdxFileEntity {
 
     @Id

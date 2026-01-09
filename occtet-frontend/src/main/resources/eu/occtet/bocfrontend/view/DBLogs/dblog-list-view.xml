@@ -29,7 +29,7 @@
             <loader id="dbLogLoader" readOnly="true">
 
                 <query>
-                    <![CDATA[select e from LoggingEvent e order by e.timestmp]]>
+                    <![CDATA[select e from LoggingEvent e order by e.timestmp desc]]>
                 </query>
             </loader>
         </collection>

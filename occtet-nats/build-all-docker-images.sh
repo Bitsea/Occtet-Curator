@@ -33,7 +33,7 @@ cd ..
 cd occtet-nats-ort-run-starter-service
 mvn clean package dockerfile:build
 cd ..
-cd occtet-nats-spdx-export
+cd occtet-nats-spdx-export-service
 mvn clean package dockerfile:build
 cd ..
 cd occtet-nats-spdx-service

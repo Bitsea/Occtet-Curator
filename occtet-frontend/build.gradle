@@ -71,6 +71,7 @@ dependencies {
     implementation 'io.jmix.datatools:jmix-datatools-flowui-starter'
     implementation 'io.jmix.rest:jmix-rest-starter'
     implementation 'io.jmix.gridexport:jmix-gridexport-flowui-starter'
+    implementation 'io.jmix.charts:jmix-charts-flowui-starter'
     implementation("org.apache.poi:poi-ooxml:5.4.1")
     implementation("org.springframework.ai:spring-ai-core:1.0.0-M6")
 

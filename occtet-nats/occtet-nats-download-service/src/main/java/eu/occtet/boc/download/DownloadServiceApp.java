@@ -40,6 +40,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import java.nio.file.Files;
@@ -48,6 +50,7 @@ import java.util.concurrent.Executor;
 
 @SpringBootApplication
 @EnableJpaAuditing
+@EnableAsync
 @EnableJpaRepositories(basePackages = "eu.occtet.boc.download.dao")
 @EntityScan({"eu.occtet.boc.entity", "eu.occtet.boc.converter"})
 @Profile("!test")
@@ -81,7 +84,7 @@ public class DownloadServiceApp {
         SpringApplication.run(DownloadServiceApp.class, args);
     }
 
-
+    @Async
     @PostConstruct
     public void onInit() throws Exception {
         ClassPathResource resource = new ClassPathResource("microserviceDescriptor.json");
@@ -103,6 +106,7 @@ public class DownloadServiceApp {
 
     @PreDestroy
     public void onShutdown() {
+        downloadWorkConsumer.terminate();
         log.info("Occtet Microservice SHUTDOWN: {}",microserviceDescriptor.getName());
     }
 

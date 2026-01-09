@@ -23,6 +23,7 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
+@Table(name = "SPDX_PACKAGE_ENTITY")
 public class SpdxPackageEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

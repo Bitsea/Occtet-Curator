@@ -22,6 +22,7 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
+@Table(name = "CREATION_INFO_ENTITY")
 public class CreationInfoEntity {
 
     @Id
