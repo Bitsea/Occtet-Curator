@@ -105,7 +105,8 @@ public class SpdxServiceTest {
                    Mockito.anyString()
            )).thenReturn(true);
 
-           Mockito.when(answerService.prepareAnswers(Mockito.anyList(), Mockito.eq(true), Mockito.eq(true)))
+           Mockito.when(answerService.prepareAnswers(Mockito.anyList(), Mockito.eq(true), Mockito.eq(true),
+                           Mockito.any()))
                    .thenReturn(true);
 
            Mockito.when(spdxConverter.convertSpdxV2DocumentInformation(Mockito.any()))
