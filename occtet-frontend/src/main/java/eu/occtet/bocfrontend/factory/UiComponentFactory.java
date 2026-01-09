@@ -196,7 +196,7 @@ public class UiComponentFactory {
         searchField.setPlaceholder(messages.getMessage("eu.occtet.bocfrontend.view.audit/toolbox.searchPlaceholder"));
         searchField.setPrefixComponent(searchIconBtn);
         searchField.setClearButtonVisible(true);
-        searchField.setWidth("300px");
+        searchField.setWidth("200px");
         searchField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
         // Navigation Buttons
         JmixButton findPrevious = uiComponents.create(JmixButton.class);

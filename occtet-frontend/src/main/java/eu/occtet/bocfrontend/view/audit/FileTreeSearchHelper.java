@@ -38,7 +38,11 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-
+/**
+ * Helper class for searching and navigating through a hierarchical file tree structure.
+ * This class is responsible for handling search functionality within a file tree,
+ * updating the view to highlight search results, and enabling navigation between matches.
+ */
 public class FileTreeSearchHelper {
 
     private final Logger log = LogManager.getLogger(this.getClass());
@@ -72,6 +76,14 @@ public class FileTreeSearchHelper {
         setupRenderer();
     }
 
+    /**
+     * Handles the "Enter" key press event to trigger a search or navigate to the next result.
+     * If the provided text differs from the last searched text, a new search is performed.
+     * Otherwise, navigates to the next search result.
+     *
+     * @param currentText the text currently entered that will be used to perform the search
+     * @param project the project in which the search or navigation should be performed
+     */
     public void onEnterKeyPressed(String currentText, Project project) {
         if (!Objects.equals(currentText, lastSearchText)) {
             performSearch(currentText, project);
@@ -80,6 +92,14 @@ public class FileTreeSearchHelper {
         }
     }
 
+    /**
+     * Executes a search operation for files within the given project based on the specified search text.
+     * Updates the list of search results and tracks the current position in the results.
+     * If the search text is empty or null, clears the current search results.
+     *
+     * @param searchText the text to search for in the file names. If null or empty, the search results are cleared.
+     * @param project the project to perform the search in. Must not be null.
+     */
     public void performSearch(String searchText, Project project) {
         log.info("Performing search for: {}", searchText);
 
@@ -119,6 +139,9 @@ public class FileTreeSearchHelper {
         }
     }
 
+    /**
+     * Jumps to the next search result
+     */
     public void next(Project project) {
         if (searchResultIds.isEmpty()) return;
         int nextIndex = (currentIndex + 1) % searchResultIds.size();
@@ -126,6 +149,9 @@ public class FileTreeSearchHelper {
         jumpToMatch(nextIndex, project);
     }
 
+    /**
+     * Jumps to the previous search result
+     */
     public void previous(Project project) {
         if (searchResultIds.isEmpty()) return;
         int prevIndex = (currentIndex - 1 + searchResultIds.size()) % searchResultIds.size();
@@ -134,6 +160,13 @@ public class FileTreeSearchHelper {
     }
 
     private void jumpToMatch(int index, Project project) {
+        if (this.currentIndex >= 0 && this.currentIndex < searchResultIds.size()) {
+            UUID oldId = searchResultIds.get(this.currentIndex);
+            fileRepository.findById(oldId).ifPresent(file -> {
+                treeGrid.getDataProvider().refreshItem(file);
+            });
+        }
+
         this.currentIndex = index;
         UUID newId = searchResultIds.get(index);
         updateLabel();
@@ -143,7 +176,7 @@ public class FileTreeSearchHelper {
             treeGrid.deselectAll();
             treeGrid.select(file);
 
-            treeGrid.getDataProvider().refreshAll();
+            treeGrid.getDataProvider().refreshItem(file);
             int[] pathToTreeIndex = calculatePath(file);
              if (pathToTreeIndex.length > 0) {
                  log.debug("Jumping to path: {}", Arrays.toString(pathToTreeIndex));
