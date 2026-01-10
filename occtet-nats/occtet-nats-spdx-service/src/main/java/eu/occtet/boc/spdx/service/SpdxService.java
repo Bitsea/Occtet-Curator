@@ -111,6 +111,7 @@ public class SpdxService extends BaseWorkDataProcessor{
      */
     public boolean parseDocument(SpdxWorkData spdxWorkData){
         try {
+            log.info("now processing spdx for project id: {}", spdxWorkData.getProjectId());
             // setup for spdx library need to be called once before any spdx model objects are accessed
             SpdxModelFactory.init();
             InMemSpdxStore modelStore = new InMemSpdxStore();
@@ -172,6 +173,7 @@ public class SpdxService extends BaseWorkDataProcessor{
                         spdxPackage -> {
                             try {
                                 if (!seenPackages.contains(spdxPackage.toString())) {
+                                    log.debug("Processing unseen package: {}", spdxPackage.toString());
                                     inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,
                                             spdxDocumentRoot, packageLookupMap, componentCache, licenseCache,
                                             mainInvetoryItems, mainPackageIds));

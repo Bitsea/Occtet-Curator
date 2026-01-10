@@ -19,9 +19,6 @@
 package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
-import org.hibernate.type.SqlTypes;
 
 import java.util.List;
 
@@ -58,7 +55,6 @@ public class SpdxFileEntity {
     @CollectionTable(name = "file_license_info", joinColumns = @JoinColumn(name = "spdx_file_id"))
     @Column(name = "license_info_in_files", columnDefinition = "TEXT")
     @Lob
-    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     private List<String> licenseInfoInFiles;
 
     @Lob
@@ -130,5 +126,15 @@ public class SpdxFileEntity {
 
     public Long getId() {
         return id;
+    }
+
+    @Override
+    public String toString() {
+        return "SpdxFileEntity{" +
+                "id=" + id +
+                ", spdxId='" + spdxId + '\'' +
+                ", spdxDocument=" + spdxDocument +
+                ", fileName='" + fileName + '\'' +
+                '}';
     }
 }
