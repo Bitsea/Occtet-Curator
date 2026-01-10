@@ -79,7 +79,6 @@
                 <button id="discardButton" action="discardAction"/>
             </hbox>
             <hbox id="buttonsPanel" classNames="buttons-panel">
-                <button id="createButton" action="vexDataDataGrid.createAction"/>
                 <button id="readButton" action="vexDataDataGrid.read"/>
                 <button id="removeButton" action="vexDataDataGrid.removeAction"/>
             </hbox>

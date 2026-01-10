@@ -47,7 +47,7 @@
     </facets>
     <layout padding="true">
         <hbox width="100%" spacing="true">
-                <button id="saveButton" text="saveAndDownload" themeNames="primary small" action="saveAction"/>
+                <button id="saveButton" text="msg://saveAndDownload" themeNames="primary small" action="saveAction"/>
                 <button id="closeButton" text="close" themeNames="small" action="closeAction"/>
         </hbox>
         <hbox>
