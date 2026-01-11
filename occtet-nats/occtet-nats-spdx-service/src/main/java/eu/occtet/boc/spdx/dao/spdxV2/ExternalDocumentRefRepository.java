@@ -19,7 +19,6 @@
 package eu.occtet.boc.spdx.dao.spdxV2;
 
 import eu.occtet.boc.entity.spdxV2.ExternalDocumentRefEntity;
-import org.spdx.library.model.v2.ExternalDocumentRef;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

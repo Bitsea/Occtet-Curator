@@ -1,3 +1,13 @@
+package eu.occtet.boc.spdx.utlities;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.util.Arrays;
+
 /*
  *
  *  Copyright (C) 2025 Bitsea GmbH
@@ -19,23 +29,19 @@
  * /
  *
  */
+@SpringBootTest
+@ActiveProfiles("test")
+public class BeanListerTest {
 
-package eu.occtet.boc.spdx.dao;
+    @Autowired
+    ApplicationContext ctx;
 
-
-import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.entity.Project;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
-
-@Repository
-public interface InventoryItemRepository extends JpaRepository<InventoryItem, Long> {
-
-    List<InventoryItem> findByProjectAndInventoryName(Project project, String inventoryName);
-
-    List<InventoryItem> findBySpdxIdAndProject(String spdxID, Project project);
-
-    List<InventoryItem> findAllByProject(Project project);
+    @Test
+    public void listBeans() {
+        String[] names = ctx.getBeanDefinitionNames();
+        Arrays.sort(names);
+        for (String n : names) {
+            System.out.println(n + " -> " + ctx.getBean(n).getClass().getName());
+        }
+    }
 }

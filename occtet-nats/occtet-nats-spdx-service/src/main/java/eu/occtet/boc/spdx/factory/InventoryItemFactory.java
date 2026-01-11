@@ -23,13 +23,12 @@
 package eu.occtet.boc.spdx.factory;
 
 
-
-import eu.occtet.boc.entity.*;
+import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.entity.Project;
+import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class InventoryItemFactory {
