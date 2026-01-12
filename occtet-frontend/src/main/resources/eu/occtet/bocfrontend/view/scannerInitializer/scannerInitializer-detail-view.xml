@@ -49,11 +49,6 @@
                 <comboBox id="projectComboBox"  allowCustomValue="false" title="Projects" colspan="1" css="margin-left: 15px"/>
             </formItem>
             <span colspan="2"/>
-            <formItem label="status">
-                <textField id="statusField" property="status"  visible="false" colspan="1" css="margin-left: 15px">CREATING
-                </textField>
-            </formItem>
-            <span colspan="2"/>
             <formItem colspan="2" label="configuration">
                 <vbox>
                     <hbox id="buttonsPanel">
