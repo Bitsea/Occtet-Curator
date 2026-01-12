@@ -116,7 +116,6 @@
                             <action id="create" type="list_create"/>
                         </actions>
                         <columns>
-                            <column property="inventoryName" header="Item" filterable="true"/>
                             <column key="fileNumCol" header="Files #" textAlign="END" sortable="false" autoWidth="true" flexGrow="0"/>
                             <column key="status" autoWidth="true" flexGrow="0" sortable="false" textAlign="CENTER"/>
                         </columns>

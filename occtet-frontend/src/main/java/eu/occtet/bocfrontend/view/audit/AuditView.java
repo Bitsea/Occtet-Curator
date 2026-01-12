@@ -25,6 +25,7 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.html.NativeLabel;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
@@ -48,6 +49,7 @@ import io.jmix.core.entity.KeyValueEntity;
 import io.jmix.flowui.*;
 import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.combobox.JmixComboBox;
+import io.jmix.flowui.component.grid.DataGridColumn;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.kit.component.button.JmixButton;
@@ -375,12 +377,37 @@ public class AuditView extends StandardView{
         projectComboBox.setItemLabelGenerator(Project::getProjectName);
     }
 
+    /**
+     * Initializes the inventory data grid for displaying and managing inventory items.
+     * Restricts data grid default behavior upon clicking and expanding.
+     * @See https://vaadin.com/forum/t/treegrid-possible-to-limit-expand-collapse-to-click-on-icon-only/160691
+     */
     private void initializeInventoryDataGrid() {
+        DataGridColumn<InventoryItem> hierarchyColumn = inventoryItemDataGrid.addComponentHierarchyColumn(item -> {
+            Span textSpan = new Span(item.getInventoryName());
+
+            textSpan.addClickListener(event -> {
+                if (event.getClickCount() == 1) {
+                    tabManager.openInventoryItemTab(item, true);
+                }
+            });
+            textSpan.getElement().addEventListener("click", e -> {})
+                    .addEventData("event.stopPropagation()");
+
+            return textSpan;
+        });
+        hierarchyColumn.setHeader("Inventory Name");
+        hierarchyColumn.setKey("inventoryName");
+        hierarchyColumn.setSortable(true);
+        hierarchyColumn.setSortProperty("inventoryName");
+        hierarchyColumn.setFlexGrow(1);
+        inventoryItemDataGrid.setColumnPosition(hierarchyColumn, 0);
+
         HorizontalLayout inventoryToolbox = componentFactory.createToolBox(
                 inventoryItemDataGrid, InventoryItem.class,
                 () -> treeGridHelper.expandChildrenOfRoots(inventoryItemDataGrid),
                 () -> treeGridHelper.collapseChildrenOfRoots(inventoryItemDataGrid));
-        // Find the vulnerability filter checkbox and add a value change listener to it.
+
         findCheckBoxById(inventoryToolbox, componentFactory.getVulnerabilityFilterId())
                 .ifPresentOrElse(checkbox -> {
                     checkbox.addValueChangeListener(event ->
