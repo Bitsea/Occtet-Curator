@@ -66,10 +66,10 @@
                     <action id="refreshAction" type="list_refresh"/>
                 </actions>
                 <columns resizable="true">
-                    <column property="bomFormat" header="Name"/>
-                    <column property="version" header="Version"/>
-                    <column property="specVersion" header="Purl"/>
-                    <column property="serialNumber" header="Curated"/>
+                    <column property="bomFormat" header="msg://eu.occtet.bocfrontend.entity/VexData.bomFormat"/>
+                    <column property="version" header="msg://version"/>
+                    <column property="specVersion" header="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.purl"/>
+                    <column property="serialNumber" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
                     <column property="softwareComponent.name"
                             header="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.name"/>
                 </columns>
@@ -79,7 +79,6 @@
                 <button id="discardButton" action="discardAction"/>
             </hbox>
             <hbox id="buttonsPanel" classNames="buttons-panel">
-                <button id="createButton" action="vexDataDataGrid.createAction"/>
                 <button id="readButton" action="vexDataDataGrid.read"/>
                 <button id="removeButton" action="vexDataDataGrid.removeAction"/>
             </hbox>
