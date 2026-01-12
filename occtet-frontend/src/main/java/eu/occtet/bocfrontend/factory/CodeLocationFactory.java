@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 
 @Component
 public class CodeLocationFactory {
@@ -41,6 +42,7 @@ public class CodeLocationFactory {
         codeLocation.setFilePath(filePath);
         codeLocation.setLineNumber(lineNumber);
         codeLocation.setLineNumberTo(lineNumberTo);
+        codeLocation.setCopyrights( new ArrayList<>());
         return dataManager.save(codeLocation);
     }
 
