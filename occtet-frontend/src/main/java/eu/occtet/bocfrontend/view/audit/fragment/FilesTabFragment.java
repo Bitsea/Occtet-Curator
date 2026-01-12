@@ -114,8 +114,10 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
                         String filePath = closeEvent.getValue("filePath");
                         Integer from = closeEvent.getValue("from");
                         Integer to = closeEvent.getValue("to");
-                        codeLocationFactory.create(inventoryItem, filePath, from, to);
-                        codeLocationDl.load();
+                        //TODO fix this!
+                        //codeLocationFactory.create(inventoryItem, filePath, from, to);
+                        //codeLocationDl.load();
+                        notifications.create("Not yet implemented").show();
                     }
                 }).open();
     }
@@ -201,9 +203,11 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
                 .withText(message)
                 .withActions(
                         new DialogAction(DialogAction.Type.YES).withHandler(event -> {
-                            codeLocationRepository.delete(codeLocation);
-                            copyrightRepository.deleteAll(associatedCopyrights);
-                            codeLocationDl.load();
+                            //TODO fix this!
+                            //codeLocationRepository.delete(codeLocation);
+                            //copyrightRepository.deleteAll(associatedCopyrights);
+                            //codeLocationDl.load();
+                            notifications.create("Not yet implemented").show();
                         }),
                         new DialogAction(DialogAction.Type.NO)
                 ).open();
