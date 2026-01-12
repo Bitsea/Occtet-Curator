@@ -25,7 +25,8 @@
 .jmix-login-main-layout {
   background-color: #E2F2FF;
   min-height: 100vh;
-      display: flex;
+  display: flex;
+  height: 100%;
 }
 
 

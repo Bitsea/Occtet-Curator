@@ -36,6 +36,19 @@
         </div>
 
 
+        <div>
+            <hbox>
+            <h2 id="applicationTitle"
+                classNames="jmix-main-view-application-title" text="msg://Occtet">
+                <image id="logoImage"
+                       resource="themes/BocFrontend/images/Occtet-Color.png"
+                       width="auto"
+                       height="80%"/>
+                <h2 text="msg://Occtet"/>
+            </h2>
+            </hbox>
+        </div>
+
         <!-- middle-->
         <div classNames="login-center">
 
