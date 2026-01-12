@@ -23,7 +23,6 @@
 package eu.occtet.boc.spdx.service;
 
 
-
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
@@ -36,7 +35,6 @@ import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
 import eu.occtet.boc.spdx.dao.ProjectRepository;
 import eu.occtet.boc.spdx.dao.spdxV2.SpdxDocumentRootRepository;
-import io.nats.client.JetStreamApiException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
