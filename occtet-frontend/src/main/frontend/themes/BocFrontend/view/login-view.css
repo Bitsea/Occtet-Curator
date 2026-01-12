@@ -23,5 +23,73 @@
 /* Predefined styles for the LoginView */
 
 .jmix-login-main-layout {
-  background-color: var(--lumo-shade-5pct);
+  background-color: #E2F2FF;
+  min-height: 100vh;
+      display: flex;
 }
+
+
+
+/* MIDDLE */
+.login-center {
+     flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-position: center;
+}
+
+
+.login-center jmix-login-form {
+    background-color: var(--lumo-base-color);
+    box-shadow: var(--lumo-box-shadow-s);
+    padding: var(--lumo-space-l);
+    border-radius: var(--lumo-border-radius-l);
+}
+
+/* FOOTER*/
+.login-footer {
+flex: 0 0 auto;
+    height: 200px;
+    width: 100% !important; /* Stellt sicher, dass es die volle Breite einnimmt */
+        left: 0 !important;    /* Fixiert es am linken Rand */
+        box-sizing: border-box;
+    font-size: var(--lumo-font-size-s);
+    background-color: #000;
+    color: #fff;
+}
+
+
+/* HEADER */
+.login-header {
+ flex: 0 0 auto;
+    height: 200px;
+    width: 100%;
+    position: relative;
+        width: 100%;
+        height: 260px;
+        overflow: hidden;
+}
+
+/* back pic */
+.image-back {
+   position: absolute;
+      inset: 0;
+      width: 100%;
+      object-fit: cover;
+      z-index: 1;
+}
+
+/* front picture with hole */
+.image-front {
+       position: absolute;
+          inset: 0;
+         width:100%
+          object-fit: cover;
+          z-index: 2;
+
+
+}
+
+
+
