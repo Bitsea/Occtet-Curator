@@ -98,20 +98,25 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
     private AutocompleteField autocompleteInventoryName;
 
     @Subscribe
-    public void onBeforeShow(final BeforeShowEvent event) {
-        inventoryItem = getEditedEntity();
-        log.debug("Inventory Detail View opened for inventory Item: {} ", inventoryItem.getInventoryName());
+    public void onInit(InitEvent event) {
         projectField.setItems(projectRepository.findAll());
-        projectField.setValue(inventoryItem.getProject());
         projectField.setItemLabelGenerator(Project::getProjectName);
         parentField.setItems(inventoryItemRepository.findAll());
         parentField.setItemLabelGenerator(InventoryItem::getInventoryName);
-        if(inventoryItem.getParent() != null) {
-            parentField.setValue(inventoryItem.getParent());
-
-        }
         softwareComponentField.setItems(softwareComponentRepository.findAll());
         softwareComponentField.setItemLabelGenerator(sc -> sc.getName() + " " + sc.getVersion());
+    }
+
+    @Subscribe
+    public void onBeforeShow(final BeforeShowEvent event) {
+        inventoryItem = getEditedEntity();
+
+        log.debug("Inventory Detail View opened for inventory Item: {} ", inventoryItem.getInventoryName());
+        projectField.setValue(inventoryItem.getProject());
+        if(inventoryItem.getParent() != null) {
+            parentField.setValue(inventoryItem.getParent());
+        }
+
         if(inventoryItem.getSoftwareComponent() != null) {
             softwareComponentField.setValue(inventoryItem.getSoftwareComponent());
             updateLicenses(inventoryItem.getSoftwareComponent(), licenseDc);
