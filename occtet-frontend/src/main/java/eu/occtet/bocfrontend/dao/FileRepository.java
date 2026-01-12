@@ -33,44 +33,65 @@ import java.util.List;
 import java.util.UUID;
 
 public interface FileRepository extends JmixDataRepository<File, UUID> {
-    final String DEPENDENCY_FOLDER_NAME = "dependencies";
+    final static String DEPENDENCY_FOLDER_NAME = "dependencies";
 
     // Root Nodes (Reviewed Filter)
     @Query("select f from File f " +
             "where f.project = :project and f.parent is null " +
+            "and (:targetStatus is null or f.reviewed = :targetStatus) " +
             "order by " +
             "   CASE WHEN lower(f.fileName) = '" + DEPENDENCY_FOLDER_NAME + "' THEN 1 ELSE 0 END ASC, " +
-            "   CASE WHEN (:targetStatus is null) THEN 0 " +
-            "        WHEN (f.reviewed = :targetStatus) THEN 0 " +        // Matches go to Top
-            "        ELSE 1 END ASC, " +                                 // Others go to Bottom
             "   f.isDirectory desc, " +
             "   f.fileName asc")
     List<File> findRootsSorted(@Param("project") Project project,
                                @Param("targetStatus") Boolean targetStatus,
                                Pageable pageable);
 
+    @Query("select count(f) from File f " +
+            "where f.project = :project and f.parent is null " +
+            "and (:targetStatus is null or f.reviewed = :targetStatus)")
+    long countRoots(@Param("project") Project project,
+                    @Param("targetStatus") Boolean targetStatus);
+
     // Child Nodes (Reviewed Filter)
     @Query("select f from File f " +
             "where f.parent = :parent " +
+            "and (:targetStatus is null or f.reviewed = :targetStatus) " +
             "order by " +
             "   CASE WHEN lower(f.fileName) = '" + DEPENDENCY_FOLDER_NAME + "' THEN 1 ELSE 0 END ASC, " +
-            "   CASE WHEN (:targetStatus is null) THEN 0 " +
-            "        WHEN (f.reviewed = :targetStatus) THEN 0 " +
-            "        ELSE 1 END ASC, " +
             "   f.isDirectory desc, " +
             "   f.fileName asc")
     List<File> findChildrenSorted(@Param("parent") File parent,
                                   @Param("targetStatus") Boolean targetStatus,
                                   Pageable pageable);
 
-    long countByProjectAndParentIsNull(Project project);
-    long countByParent(File parent);
-    long countByProjectAndParentIsNullAndReviewed(Project project, Boolean reviewed);
-    long countByParentAndReviewed(File parent, Boolean reviewed);
+    @Query("select count(f) from File f " +
+            "where f.parent = :parent " +
+            "and (:targetStatus is null or f.reviewed = :targetStatus)")
+    long countChildren(@Param("parent") File parent,
+                       @Param("targetStatus") Boolean targetStatus);
 
     // Methods for FileContentService & DownloadService
     File findByCodeLocation(CodeLocation codeLocation);
 
     @Query("select f from File f where f.project = :project and f.fileName = :fileName")
     List<File> findCandidates(@Param("project") Project project, @Param("fileName") String fileName);
+
+    @Query("select f from File f " +
+            "left join fetch f.parent " +
+            "where f.project = :project " +
+            "and lower(f.fileName) like lower(concat('%', :searchText, '%')) " +
+            "and (:targetStatus is null or f.reviewed = :targetStatus)")
+    List<File> findCandidates(@Param("project") Project project,
+                              @Param("searchText") String searchText,
+                              @Param("targetStatus") Boolean targetStatus);
+
+    @Query("select count(f) from File f " +
+            "where f.project = :project " +
+            "and lower(f.fileName) like lower(concat('%', :searchText, '%')) " +
+            "and (:targetStatus is null or f.reviewed = :targetStatus)")
+    long countCandidates(@Param("project") Project project,
+                         @Param("searchText") String searchText,
+                         @Param("targetStatus") Boolean targetStatus);
+
 }
