@@ -26,6 +26,7 @@ import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
@@ -182,7 +183,7 @@ public class AuditView extends StandardView{
      * - Tracks the expansion and collapse state of items in the grid to maintain UI consistency.
      */
     private void initializeFileTreeGrid() {
-        HorizontalLayout toolboxWrapper = componentFactory.createFileTreeToolbox(fileTreeGrid);
+        FlexLayout toolboxWrapper = componentFactory.createFileTreeToolbox(fileTreeGrid);
         fileTreeGridLayout.addComponentAsFirst(toolboxWrapper);
 
         JmixComboBox<FileReviewedFilterMode> filterBox = (JmixComboBox<FileReviewedFilterMode>)
@@ -379,30 +380,8 @@ public class AuditView extends StandardView{
 
     /**
      * Initializes the inventory data grid for displaying and managing inventory items.
-     * Restricts data grid default behavior upon clicking and expanding.
-     * @See https://vaadin.com/forum/t/treegrid-possible-to-limit-expand-collapse-to-click-on-icon-only/160691
      */
     private void initializeInventoryDataGrid() {
-        DataGridColumn<InventoryItem> hierarchyColumn = inventoryItemDataGrid.addComponentHierarchyColumn(item -> {
-            Span textSpan = new Span(item.getInventoryName());
-
-            textSpan.addClickListener(event -> {
-                if (event.getClickCount() == 1) {
-                    tabManager.openInventoryItemTab(item, true);
-                }
-            });
-            textSpan.getElement().addEventListener("click", e -> {})
-                    .addEventData("event.stopPropagation()");
-
-            return textSpan;
-        });
-        hierarchyColumn.setHeader("Inventory Name");
-        hierarchyColumn.setKey("inventoryName");
-        hierarchyColumn.setSortable(true);
-        hierarchyColumn.setSortProperty("inventoryName");
-        hierarchyColumn.setFlexGrow(1);
-        inventoryItemDataGrid.setColumnPosition(hierarchyColumn, 0);
-
         HorizontalLayout inventoryToolbox = componentFactory.createToolBox(
                 inventoryItemDataGrid, InventoryItem.class,
                 () -> treeGridHelper.expandChildrenOfRoots(inventoryItemDataGrid),
@@ -414,6 +393,13 @@ public class AuditView extends StandardView{
                                     onVulnerabilityFilterToggled(Boolean.TRUE.equals(event.getValue())));
                 }, () -> log.warn("Unable to find vulnerability filter checkbox in inventory toolbox")
                 );
+
+        // TODO is not listening due the default jmix listener
+        inventoryItemDataGrid.addItemClickListener(event -> {
+            if (event.getClickCount() == 2) {
+                tabManager.openInventoryItemTab(event.getItem(), true);
+            }
+        });
         toolbarBox.removeAll();
         toolbarBox.add(inventoryToolbox);
         componentFactory.createInfoButtonHeaderForInventoryGrid(inventoryItemDataGrid, "status");
@@ -650,15 +636,15 @@ public class AuditView extends StandardView{
         updateUrl();
     }
 
-    @Subscribe("inventoryItemDataGrid")
-    public void onInventoryItemDataGridClick(final ItemClickEvent<InventoryItem> event) {
-        if (event.getClickCount() == 2) {
-            inventoryItemSection.setVisible(true);
-            tabManager.openInventoryItemTab(event.getItem(), true);
-        } else {
-            treeGridHelper.toggleExpansion(inventoryItemDataGrid, event.getItem());
-        }
-    }
+//    @Subscribe("inventoryItemDataGrid")
+//    public void onInventoryItemDataGridClick(final ItemClickEvent<InventoryItem> event) {
+//        if (event.getClickCount() == 2) {
+//            inventoryItemSection.setVisible(true);
+//            tabManager.openInventoryItemTab(event.getItem(), true);
+//        } else {
+//            treeGridHelper.toggleExpansion(inventoryItemDataGrid, event.getItem());
+//        }
+//    }
 
     private void clearView() {
         inventoryItemDc.setItems(Collections.emptyList());

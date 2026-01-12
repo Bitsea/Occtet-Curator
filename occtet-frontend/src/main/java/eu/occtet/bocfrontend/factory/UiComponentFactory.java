@@ -28,6 +28,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.popover.Popover;
@@ -142,8 +143,6 @@ public class UiComponentFactory {
     public <T> HorizontalLayout createToolBox(TreeDataGrid<T> grid, Class<T> entityClass, Runnable onExpand, Runnable onCollapse) {
         if (entityClass.equals(InventoryItem.class)) {
             return createToolBoxForInventoryItemGrid(grid, onExpand, onCollapse);
-        } else if (entityClass.equals(File.class)) {
-            return createFileTreeToolbox((TreeDataGrid<File>) grid);
         }
         return null;
     }
@@ -170,14 +169,14 @@ public class UiComponentFactory {
         return toolbox;
     }
 
-    public HorizontalLayout createFileTreeToolbox(TreeDataGrid<File> grid) {
+    public FlexLayout createFileTreeToolbox(TreeDataGrid<File> grid) {
         // MAIN LAYOUT
-        HorizontalLayout layout = uiComponents.create(HorizontalLayout.class);
+        FlexLayout layout = uiComponents.create(FlexLayout.class);
         layout.setWidthFull();
         layout.setClassName("toolbox-audit-view");
-        layout.setSpacing(false);
-        layout.setPadding(true);
+        layout.setFlexDirection(FlexLayout.FlexDirection.COLUMN);
         layout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        layout.setAlignItems(FlexComponent.Alignment.STRETCH);
 
         // LEFT SIDE: Search Group
         HorizontalLayout searchGroup = uiComponents.create(HorizontalLayout.class);
