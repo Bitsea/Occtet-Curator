@@ -80,7 +80,7 @@
                 <vbox id="form"  height="100%">
                     <vbox id="inventoryNameField" margin="false" padding="false"/>
                     <hbox spacing="true" width="100%" alignItems="BASELINE">
-                        <comboBox id="parentField" property="parent.inventoryName"
+                        <comboBox id="parentField" property="parent"
                                   label="msg://eu.occtet.bocfrontend.entity/InventoryItem.parent" width="50%" dataContainer="inventoryItemDc"/>
                         <button id="parentButton" icon="INFO_CIRCLE_O" title="Show parent details"/>
                     </hbox>
