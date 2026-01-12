@@ -21,7 +21,24 @@
 <view xmlns="http://jmix.io/schema/flowui/view"
       focusComponent="login"
       title="msg://LoginView.title">
-    <layout justifyContent="CENTER" alignItems="CENTER" classNames="jmix-login-main-layout">
+    <layout justifyContent="CENTER" alignItems="CENTER" classNames="jmix-login-main-layout"
+            padding="false"
+            margin="false"
+            spacing="false">
+
+        <!-- HEADER with logo -->
+        <div classNames="login-header">
+            <image classNames="image-back"
+                   resource="themes/BocFrontend/images/hero-section-bg.webp"/>
+            <image classNames="image-front"
+                   resource="themes/BocFrontend/images/hero-bg-curve.webp"/>
+
+        </div>
+
+
+        <!-- middle-->
+        <div classNames="login-center">
+
         <loginForm id="login"
                    forgotPasswordButtonVisible="false">
             <form title="msg://loginForm.headerTitle"
@@ -35,5 +52,27 @@
                           username="msg://loginForm.errorUsername"
                           password="msg://loginForm.errorPassword"/>
         </loginForm>
+
+        </div>
+
+
+        <!-- FOOTER-->
+        <vbox classNames="login-footer" >
+            <vbox >
+            <span text="msg://Funding.title"/>
+            <span text="msg://Funding"/>
+            </vbox>
+            <hbox>
+            <image id="footerImage1"
+                resource="themes/BocFrontend/images/eccc.svg"
+                   width="auto"
+            height="20%"/>
+                <image id="footerImage2"
+                       resource="themes/BocFrontend/images/eu.png"
+                       width="auto"
+                       height="20%"/>
+            </hbox>
+        </vbox>
+
     </layout>
 </view>

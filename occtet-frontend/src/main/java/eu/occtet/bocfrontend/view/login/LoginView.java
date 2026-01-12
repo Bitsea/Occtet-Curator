@@ -20,6 +20,7 @@
 package eu.occtet.bocfrontend.view.login;
 
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.login.AbstractLogin.LoginEvent;
 import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
@@ -82,6 +83,7 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
         initLocales();
         initDefaultCredentials();
     }
+
 
     private void initLocales() {
         LinkedHashMap<Locale, String> locales = coreProperties.getAvailableLocales().stream()
