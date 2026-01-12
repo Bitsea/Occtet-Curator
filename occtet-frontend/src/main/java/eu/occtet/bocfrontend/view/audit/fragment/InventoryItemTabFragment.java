@@ -197,28 +197,34 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             this.softwareComponent = dataContext.merge(this.softwareComponent);
             softwareComponentDc.setItem(this.softwareComponent);
         }
+
         parentField.setItems(inventoryItemRepository.findAll());
         parentField.setItemLabelGenerator(InventoryItem::getInventoryName);
         if(inventoryItem.getParent() != null) {
             parentField.setValue(inventoryItem.getParent());
-
+            log.debug("Inventory Item Parent: {}", inventoryItem.getParent().getInventoryName());
         }
 
-        inventoryItemDc.setItem(this.inventoryItem);
-        updateCopyrights(this.inventoryItem, copyrightDc);
-        updateLicenses(this.softwareComponent, licenseDc);
 
+        log.debug("Set Inventory Item: {} class: {}", this.inventoryItem.getInventoryName(), this.inventoryItem.getClass().getSimpleName());
+        inventoryItemDc.setItem(this.inventoryItem);
+        log.debug("1");
+        updateCopyrights(this.inventoryItem, copyrightDc);
+        log.debug("2");
+        updateLicenses(this.softwareComponent, licenseDc);
+        log.debug("Updated copyrights and licenses for Inventory Item: {}", this.inventoryItem.getInventoryName());
         //Reuse of inventory
         setReuseOfInventory(inventoryItem);
 
         filesTabFragment.setInventoryItemId(this.inventoryItem);
         vulnerabilitytabfragment.setSoftwareComponent(this.softwareComponent);
-
+        log.debug("Set Inventory Item ID in Files Tab Fragment and Software Component in Vulnerability Tab Fragment.");
         // Handle disabling buttons to prevent errors
         parentButton.setEnabled(this.inventoryItem.getParent() != null);
         softwareComponentButton.setEnabled(softwareComponent != null);
         editLicense.setEnabled(softwareComponent != null);
         activateAutocomplete();
+        log.debug("Inventory Item Tab Fragment setup complete.");
     }
 
     /**
