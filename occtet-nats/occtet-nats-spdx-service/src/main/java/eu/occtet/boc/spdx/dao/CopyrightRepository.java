@@ -29,9 +29,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface CopyrightRepository extends JpaRepository<Copyright, Long> {
+public interface CopyrightRepository extends JpaRepository<Copyright, UUID> {
     List<Copyright> findByCopyrightText(String copyrightText);
     List<Copyright> findByCopyrightTextIn(Collection<String> copyrightTexts);
 }

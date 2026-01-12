@@ -28,9 +28,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface SoftwareComponentRepository extends JpaRepository<SoftwareComponent, Long> {
+public interface SoftwareComponentRepository extends JpaRepository<SoftwareComponent, UUID> {
 
     List<SoftwareComponent> findByNameAndVersion(String softwareName, String version);
 
