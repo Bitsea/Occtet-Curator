@@ -69,8 +69,7 @@ import java.util.UUID;
         LicenseFactory.class, SpdxConverter.class, EclipseLinkJpaConfiguration.class
 })
 @EnableJpaRepositories(basePackages = {
-        "eu.occtet.boc.spdx.dao"
-    },entityManagerFactoryRef = "occtetEntityManager")
+        "eu.occtet.boc.spdx.dao"})
 @EntityScan(basePackages = {
         "eu.occtet.boc.entity"
 })

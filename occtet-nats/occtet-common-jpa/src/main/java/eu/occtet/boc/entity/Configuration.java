@@ -34,7 +34,7 @@ public class Configuration {
     public enum Type {STRING, NUMERIC, FILE_UPLOAD, BASE_PATH, COMMA_SEPARATED_STRINGS, BOOLEAN}
 
     @Id
-    @Column(name = "ID", nullable = false)
+    @Column(name = "ID", nullable = false, columnDefinition = "UUID")
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 

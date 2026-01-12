@@ -42,7 +42,7 @@ import java.util.UUID;
 public class File {
 
     @Id
-    @Column(name = "ID", nullable = false)
+    @Column(name = "ID", nullable = false, columnDefinition = "UUID")
     @GeneratedValue(strategy= GenerationType.AUTO)
     private UUID id;
 
