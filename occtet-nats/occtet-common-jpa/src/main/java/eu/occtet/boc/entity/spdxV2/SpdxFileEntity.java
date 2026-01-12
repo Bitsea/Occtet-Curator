@@ -53,6 +53,8 @@ public class SpdxFileEntity {
 
     @ElementCollection
     @CollectionTable(name = "file_license_info", joinColumns = @JoinColumn(name = "spdx_file_id"))
+    @Column(name = "license_info_in_files", columnDefinition = "TEXT")
+    @Lob
     private List<String> licenseInfoInFiles;
 
     @Lob
@@ -124,5 +126,15 @@ public class SpdxFileEntity {
 
     public Long getId() {
         return id;
+    }
+
+    @Override
+    public String toString() {
+        return "SpdxFileEntity{" +
+                "id=" + id +
+                ", spdxId='" + spdxId + '\'' +
+                ", spdxDocument=" + spdxDocument +
+                ", fileName='" + fileName + '\'' +
+                '}';
     }
 }

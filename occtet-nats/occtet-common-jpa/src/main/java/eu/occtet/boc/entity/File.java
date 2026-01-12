@@ -22,8 +22,6 @@
 package eu.occtet.boc.entity;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -44,28 +42,24 @@ import java.util.UUID;
 public class File {
 
     @Id
-    @Column(name = "ID", nullable = false)
+    @Column(name = "ID", nullable = false, columnDefinition = "UUID")
     @GeneratedValue(strategy= GenerationType.AUTO)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "PROJECT_ID", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private Project project;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.REMOVE)
     @JoinColumn(name = "PARENT_ID")
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private File parent;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "CODE_LOCATION_ID", nullable = true)
-    @OnDelete(action = OnDeleteAction.SET_NULL)
     private CodeLocation codeLocation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "INVENTORY_ITEM_ID")
-    @OnDelete(action = OnDeleteAction.SET_NULL)
     private InventoryItem inventoryItem;
 
     @Column(name = "FILENAME", nullable = false)

@@ -23,7 +23,6 @@
 package eu.occtet.boc.spdx.service;
 
 
-
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
@@ -36,7 +35,6 @@ import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
 import eu.occtet.boc.spdx.dao.ProjectRepository;
 import eu.occtet.boc.spdx.dao.spdxV2.SpdxDocumentRootRepository;
-import io.nats.client.JetStreamApiException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
@@ -111,7 +109,7 @@ public class SpdxService extends BaseWorkDataProcessor{
      */
     public boolean parseDocument(SpdxWorkData spdxWorkData){
         try {
-
+            log.info("now processing spdx for project id: {}", spdxWorkData.getProjectId());
             // setup for spdx library need to be called once before any spdx model objects are accessed
             SpdxModelFactory.init();
             InMemSpdxStore modelStore = new InMemSpdxStore();
@@ -144,6 +142,8 @@ public class SpdxService extends BaseWorkDataProcessor{
 
             //get the list of described packages for the download-service to differentiate between them and dependencies
             Set<String> mainPackageIds = new HashSet<>();
+            Set<UUID> mainInvetoryItems = new HashSet<>();
+
             try {
                 Set<String> ids = spdxDocument.getDocumentDescribes().stream()
                         .map(SpdxElement::getId)
@@ -171,7 +171,10 @@ public class SpdxService extends BaseWorkDataProcessor{
                         spdxPackage -> {
                             try {
                                 if (!seenPackages.contains(spdxPackage.toString())) {
-                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,mainPackageIds, spdxDocumentRoot, packageLookupMap, componentCache, licenseCache));
+                                    log.debug("Processing unseen package: {}", spdxPackage.toString());
+                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,
+                                            spdxDocumentRoot, packageLookupMap, componentCache, licenseCache,
+                                            mainInvetoryItems, mainPackageIds));
                                     spdxPackages.add((SpdxPackage) spdxPackage);
                                     seenPackages.add((spdxPackage).toString());
                                 }
@@ -198,21 +201,40 @@ public class SpdxService extends BaseWorkDataProcessor{
             spdxDocumentRootRepository.save(spdxDocumentRoot);
 
             log.info("processed spdx with {} items", inventoryItems.size());
-            boolean sent = answerService.prepareAnswers(inventoryItems, spdxWorkData.isUseCopyrightAi(), spdxWorkData.isUseLicenseMatcher());
-            log.info(("SENT"));
-            return sent;
 
-        }catch (InvalidSPDXAnalysisException | IOException | JetStreamApiException e ){
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                        log.debug("Transaction committed, sending answers service");
+                    try {
+                        answerService.prepareAnswers(
+                                inventoryItems,
+                                spdxWorkData.isUseCopyrightAi(),
+                                spdxWorkData.isUseLicenseMatcher(),
+                                mainInvetoryItems
+                        );
+                    } catch (Exception e) {
+                        log.error("Error sending answers to the answers service", e);
+                    }
+                    log.debug(("SENT"));
+
+                    }
+            });
+
+            return true;
+
+        }catch (InvalidSPDXAnalysisException | IOException e ){
             log.error("An error occurred while trying to deserialize spdx: {}", e.toString());
             return false;
         }
     }
 
-    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project, Set<String> mainPackageIds,
+    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project,
                                         SpdxDocumentRoot spdxDocumentRoot,
                                         Map<String, SpdxPackageEntity> packageLookupMap,
                                         Map<String, SoftwareComponent> componentCache,
-                                        Map<String, License> licenseCache)
+                                        Map<String, License> licenseCache,Set<UUID> mainInvetoryItems,
+                                        Set<String> mainPackageIds)
             throws Exception {
 
         log.info("Looking at package: {}", spdxPackage.getId());
@@ -306,30 +328,8 @@ public class SpdxService extends BaseWorkDataProcessor{
         log.info("created inventoryItem: {}", inventoryName);
         log.info("created softwareComponent: {}", component.getName());
 
-        if (!version.isEmpty() && !downloadLocation.isEmpty() && !"NOASSERTION".equals(downloadLocation)) {
-                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        try {
-                            boolean success = answerService.sendToDownload(
-                                    downloadLocation,
-                                    project.getBasePath(),
-                                    version,
-                                    project.getId().toString(),
-                                    mainPackageIds.contains(spdxPackage.getId()),
-                                    inventoryItem.getId().toString()
-                            );
-
-                            if (success) {
-                                log.info("Sent to DownloadService (After Commit): {}", downloadLocation);
-                            } else {
-                                log.error("Failed to send to DownloadService: {}", downloadLocation);
-                            }
-                        } catch (Exception e) {
-                            log.error("Error sending to NATS after commit", e);
-                        }
-                    }
-                });
+        if (mainPackageIds.contains(spdxPackage.getId())) {
+            mainInvetoryItems.add(inventoryItem.getId());
         }
 
         return inventoryItem;

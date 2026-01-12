@@ -28,7 +28,7 @@
     <artifactId>occtet-nats-spdx-service</artifactId>
     <name>occtet-nats-spdx-service</name>
     <description>Occtet Nats Service for taking spdx json and turning it into entities</description>
-    <version>0.3.2-SNAPSHOT</version>
+    <version>0.3.3-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
@@ -44,6 +44,45 @@
 
 
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <version>${springboot.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>${springboot.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hibernate.orm</groupId>
+                    <artifactId>hibernate-entitymanager</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hibernate.orm</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-entitymanager</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.jpa</artifactId>
+            <version>4.0.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>${springboot.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-common</artifactId>
@@ -89,16 +128,12 @@
             <artifactId>java-spdx-library</artifactId>
             <version>2.0.0</version>
         </dependency>
+
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>5.10.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <version>${springboot.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/mockwebserver -->
@@ -133,6 +168,13 @@
             <artifactId>postgresql</artifactId>
             <version>42.7.8</version>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>5.3.1</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
 

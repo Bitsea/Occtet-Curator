@@ -24,8 +24,6 @@ package eu.occtet.boc.entity;
 
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.List;
@@ -38,7 +36,7 @@ public class Copyright {
 
 
     @Id
-    @Column(name = "ID", nullable = false)
+    @Column(name = "ID", nullable = false, columnDefinition = "UUID")
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
@@ -54,12 +52,11 @@ public class Copyright {
     @Column(name= "AI_CONTROLLED")
     private Boolean aiControlled;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinTable(
             name = "COPYRIGHT_CODE_LOCATION_LINK",
             joinColumns = @JoinColumn(name = "COPYRIGHT_ID", referencedColumnName = "ID"),
             inverseJoinColumns = @JoinColumn(name = "CODE_LOCATION_ID", referencedColumnName = "ID"))
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<CodeLocation> codeLocations;
 
     @OneToMany(fetch = FetchType.LAZY)

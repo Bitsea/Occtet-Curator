@@ -44,7 +44,9 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class AnswerService {
@@ -89,11 +91,13 @@ public class AnswerService {
      * @param inventoryItems list of entities to be included in messages
      * @param toCopyrightAi weather to send to copyright microservice
      * @param toLicenseMatcher weather to send to copyright microservice
+     * @param mainInventoryItemIds set of inventory item ids that belong to the main package
      * @return true if sending was successful otherwise false
      * @throws JetStreamApiException
      * @throws IOException
      */
-    public boolean prepareAnswers(List<InventoryItem> inventoryItems, boolean toCopyrightAi, boolean toLicenseMatcher) throws JetStreamApiException, IOException {
+    public boolean prepareAnswers(List<InventoryItem> inventoryItems, boolean toCopyrightAi, boolean toLicenseMatcher
+            , Set<UUID> mainInventoryItemIds) throws JetStreamApiException, IOException {
             log.debug("prepare answer size {}", inventoryItems.size());
         for (InventoryItem inventoryItem : inventoryItems) {
             log.debug("SEND inventoryId {}", inventoryItem.getId());
@@ -125,7 +129,21 @@ public class AnswerService {
             String message = mapper.writeValueAsString(workTask);
             log.debug("sending message to vulnerability service: {}", message);
             natsStreamSenderVulnerabilities().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
+
+            String detailsUrl = inventoryItem.getSoftwareComponent().getDetailsUrl(); // DownloadLocation
+            String version = inventoryItem.getSoftwareComponent().getVersion();
+            if (!version.isEmpty() && !detailsUrl.isEmpty() && !"NOASSERTION".equals(detailsUrl)) {
+                sendToDownload(
+                        detailsUrl,
+                        inventoryItem.getProject().getBasePath(),
+                        version,
+                        inventoryItem.getProject().getId().toString(),
+                        mainInventoryItemIds.contains(inventoryItem.getId()),
+                        inventoryItem.getId().toString()
+                );
+            }
         }
+
         return true;
     }
 
@@ -136,12 +154,13 @@ public class AnswerService {
      * @param version version of the component to be downloaded
      * @param projectId id of the project where the component belongs to
      * @param isMainPackage weather the component is a main package of the project or not -> important for
-     *                      differntiating between them and dependencies
+     *                      differentiating between them and dependencies
      * @return true if sending was successful otherwise false
      */
     public boolean sendToDownload(String url, String location, String version, String projectId,
                                   Boolean isMainPackage, String inventoryItemId){
         try {
+
             DownloadServiceWorkData payload = new DownloadServiceWorkData(url, location, version, projectId,
                     isMainPackage, inventoryItemId);
             LocalDateTime now = LocalDateTime.now();

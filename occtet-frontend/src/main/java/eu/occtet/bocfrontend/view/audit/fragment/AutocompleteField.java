@@ -99,6 +99,7 @@ public class AutocompleteField extends VerticalLayout {
     }
 
     public void setValue(String value) {
+        if (value == null) return;
         input.setValue(value);
     }
 

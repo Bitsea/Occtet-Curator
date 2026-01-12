@@ -27,7 +27,6 @@ import eu.occtet.boc.export.dao.ProjectRepository;
 import eu.occtet.boc.export.dao.spdxV2.SpdxDocumentRootRepository;
 import eu.occtet.boc.model.SpdxExportWorkData;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
-import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
@@ -44,6 +43,7 @@ import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
 import java.time.Instant;

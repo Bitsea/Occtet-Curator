@@ -142,6 +142,7 @@ public class DownloadService extends BaseWorkDataProcessor {
      * @throws InterruptedException if the Git resolution process is interrupted
      */
     private Path performDownload(DownloadServiceWorkData workData) throws IOException, InterruptedException {
+        log.debug("Performing download for URL: {} -> {}", workData.getUrl(), workData.getLocation());
         String url = workData.getUrl();
         String version = workData.getVersion();
 
@@ -176,6 +177,7 @@ public class DownloadService extends BaseWorkDataProcessor {
      * @return a valid HTTP/HTTPS URL string for the archive, or null if the protocol is unsupported
      */
     private String resolveDownloadUrl(String rawUrl, String version) throws IOException, InterruptedException {
+        log.debug("Resolving download URL for '{}' -> '{}'", rawUrl, version);
         if (rawUrl == null || rawUrl.isEmpty() ||
                 "NONE".equalsIgnoreCase(rawUrl) ||
                 "NOASSERTION".equalsIgnoreCase(rawUrl)) {
@@ -206,9 +208,11 @@ public class DownloadService extends BaseWorkDataProcessor {
         }
 
         if (effectiveUrl.startsWith("git+")) {
+            log.debug("Resolving Git URL to Archive: {}", effectiveUrl);
             return resolveGitToZipUrl(effectiveUrl, version);
         }
 
+        log.debug("Resolving direct URL: {}", effectiveUrl);
         return effectiveUrl;
     }
 
