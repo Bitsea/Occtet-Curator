@@ -47,19 +47,19 @@ public class File {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "PROJECT_ID", nullable = false)
+    @JoinColumn(name = "PROJECT_ID", nullable = false, columnDefinition = "UUID")
     private Project project;
 
     @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "PARENT_ID")
+    @JoinColumn(name = "PARENT_ID", columnDefinition = "UUID")
     private File parent;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "CODE_LOCATION_ID", nullable = true)
+    @JoinColumn(name = "CODE_LOCATION_ID", nullable = true, columnDefinition = "UUID")
     private CodeLocation codeLocation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "INVENTORY_ITEM_ID")
+    @JoinColumn(name = "INVENTORY_ITEM_ID", columnDefinition = "UUID")
     private InventoryItem inventoryItem;
 
     @Column(name = "FILENAME", nullable = false)

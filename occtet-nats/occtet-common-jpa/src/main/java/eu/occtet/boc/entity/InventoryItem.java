@@ -66,11 +66,11 @@ public class InventoryItem {
     private String externalNotes;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PARENT_INVENTORY_ITEM_ID")
+    @JoinColumn(name = "PARENT_INVENTORY_ITEM_ID", columnDefinition = "UUID")
     private InventoryItem parent;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = true)
-    @JoinColumn(name = "SOFTWARE_COMPONENT_ID", nullable = true)
+    @JoinColumn(name = "SOFTWARE_COMPONENT_ID", nullable = true, columnDefinition = "UUID")
     private SoftwareComponent softwareComponent;
 
     @Column(name= "WAS_COMBINED")
@@ -80,7 +80,7 @@ public class InventoryItem {
     private Boolean curated;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PROJECT_ID", nullable = false)
+    @JoinColumn(name = "PROJECT_ID", nullable = false, columnDefinition = "UUID")
     private Project project;
 
     @Column(name = "CREATED_AT", updatable = false)

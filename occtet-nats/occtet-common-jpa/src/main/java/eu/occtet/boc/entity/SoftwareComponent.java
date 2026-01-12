@@ -59,7 +59,7 @@ public class SoftwareComponent {
     private String detailsUrl;
 
     @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name= "SOFTWARECOMPONENT_ID")
+    @JoinColumn(name= "SOFTWARECOMPONENT_ID", columnDefinition = "UUID")
     private List<Copyright> copyrights;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)

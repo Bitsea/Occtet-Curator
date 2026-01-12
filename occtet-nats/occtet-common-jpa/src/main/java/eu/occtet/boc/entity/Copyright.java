@@ -60,7 +60,7 @@ public class Copyright {
     private List<CodeLocation> codeLocations;
 
     @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name= "COPYRIGHT_ID")
+    @JoinColumn(name= "COPYRIGHT_ID", columnDefinition = "UUID")
     private List<License> licenses;
 
     public Copyright(String copyrightText, List<CodeLocation> cl) {

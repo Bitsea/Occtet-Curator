@@ -45,7 +45,7 @@ public class ScannerInitializer {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PROJECT_ID", nullable = false)
+    @JoinColumn(name = "PROJECT_ID", nullable = false, columnDefinition = "UUID")
     private Project project;
 
     @Column(name = "SCANNER", nullable = false)
@@ -59,7 +59,7 @@ public class ScannerInitializer {
     private List<String> feedback;
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
-    @JoinColumn(name = "SCANNER_INITIALIZER_ID")
+    @JoinColumn(name = "SCANNER_INITIALIZER_ID", columnDefinition = "UUID")
     private List<Configuration> scannerConfiguration;
 
     @Column(name = "LAST_UPDATE")
