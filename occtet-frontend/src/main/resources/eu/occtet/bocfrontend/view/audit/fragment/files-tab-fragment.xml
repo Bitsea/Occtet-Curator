@@ -60,8 +60,6 @@
                 <fragment class="eu.occtet.bocfrontend.view.audit.fragment.CodeViewerFragment"
                           id="codeViewer"/>
             </vbox>
-            <button id="switchButton" text="switch to code viewer" icon="vaadin:code"
-                    themeNames="small primary"/>
         </vbox>
     </content>
 </fragment>
