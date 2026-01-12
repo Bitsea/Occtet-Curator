@@ -39,6 +39,7 @@ import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.factory.UiComponentFactory;
 import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
 import eu.occtet.bocfrontend.view.audit.FileHierarchyProvider;
+import io.jmix.core.Messages;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.UiComponentUtils;
 import io.jmix.flowui.component.grid.TreeDataGrid;
@@ -67,6 +68,8 @@ public class TreeGridHelper {
     private FileRepository fileRepository;
     @Autowired
     private UiComponentFactory uiComponentFactory;
+    @Autowired
+    private Messages messages;
 
     public <T> void expandChildrenOfRoots(JmixTreeGrid<T> grid) {
         handleCollapseAndExpand(grid, false);
@@ -100,11 +103,11 @@ public class TreeGridHelper {
 
     public void copyToClipboard(String text) {
         UiComponentUtils.copyToClipboard(text)
-                .then(success -> notifications.create("Text copied!")
+                .then(success -> notifications.create(messages.getMessage("eu.occtet.bocfrontend.view.audit/notification.copySuccess"))
                                 .withPosition(Notification.Position.BOTTOM_END)
                                 .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
                                 .show(),
-                        error -> notifications.create("Copy failed!")
+                        error -> notifications.create(messages.getMessage("eu.occtet.bocfrontend.view.audit/notification.copyFailed"))
                                 .withPosition(Notification.Position.BOTTOM_END)
                                 .withThemeVariant(NotificationVariant.LUMO_ERROR)
                                 .show());
@@ -122,14 +125,15 @@ public class TreeGridHelper {
 
         contextMenu.setDynamicContentHandler(file -> {
             if (file == null) return false;
-
             contextMenu.removeAll();
 
             if (Boolean.FALSE.equals(file.getIsDirectory())) {
-                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.FILE_TEXT_O, "Open File"),
+                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.FILE_TEXT_O,
+                                messages.getMessage("eu.occtet.bocfrontend.view.audit/context.openFile")),
                         event -> tabManager.openFileTab(file, true));
 
-                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CUBE, "Open Inventory Item"), event -> {
+                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CUBE,
+                        messages.getMessage("eu.occtet.bocfrontend.view.audit/context.openInventory")), event -> {
                     InventoryItem item = null;
                     if (file.getCodeLocation() != null) {
                         item = file.getCodeLocation().getInventoryItem();
@@ -138,7 +142,8 @@ public class TreeGridHelper {
                         log.debug("Opening inventory: {}", item.getInventoryName());
                         tabManager.openInventoryItemTab(item, true);
                     } else {
-                        Notification.show("No inventory item found.", 3000, Notification.Position.BOTTOM_END)
+                        Notification.show(messages.getMessage("eu.occtet.bocfrontend.view.audit/notification.noInventory"),
+                                        3000, Notification.Position.BOTTOM_END)
                                 .addThemeVariants(NotificationVariant.LUMO_WARNING);
                     }
                 });
@@ -146,30 +151,36 @@ public class TreeGridHelper {
             }
 
             if (Boolean.TRUE.equals(file.getIsDirectory())) {
-                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.EXPAND_FULL, "Expand All"), event -> {
-                    // add logic...
-                }).setEnabled(false);
-                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.COMPRESS, "Collapse All"), event -> {
-                    // add logic...
-                }).setEnabled(false);
+                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.EXPAND_FULL,
+                        messages.getMessage("eu.occtet.bocfrontend.view.audit/context.expandRecursive")), event -> {
+                    grid.expandRecursively(List.of(file), Integer.MAX_VALUE);
+                });
+
+                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.COMPRESS,
+                        messages.getMessage("eu.occtet.bocfrontend.view.audit/context.collapseRecursive")), event -> {
+                    grid.collapseRecursively(List.of(file), Integer.MAX_VALUE);
+                });
                 contextMenu.add(new Hr());
             }
 
-            contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.COPY, "Copy Name"),
+            contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.COPY,
+                            messages.getMessage("eu.occtet.bocfrontend.view.audit/context.copyName")),
                     event -> copyToClipboard(file.getFileName()));
-            contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CLIPBOARD_TEXT, "Copy Path"),
 
+            contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CLIPBOARD_TEXT,
+                            messages.getMessage("eu.occtet.bocfrontend.view.audit/context.copyPath")),
                     event -> copyToClipboard(file.getAbsolutePath()));
-            boolean isReviewed = Boolean.TRUE.equals(file.getReviewed());
 
+            boolean isReviewed = Boolean.TRUE.equals(file.getReviewed());
             if (isReviewed) {
-                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.THIN_SQUARE, "Mark as Unreviewed"),
+                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.THIN_SQUARE,
+                                messages.getMessage("eu.occtet.bocfrontend.view.audit/context.markUnreviewed")),
                         event -> updateFileReviewStatus(file, false, grid));
             } else {
-                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CHECK_SQUARE, "Mark as Reviewed"),
+                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CHECK_SQUARE,
+                                messages.getMessage("eu.occtet.bocfrontend.view.audit/context.markReviewed")),
                         event -> updateFileReviewStatus(file, true, grid));
             }
-
             return true;
         });
     }

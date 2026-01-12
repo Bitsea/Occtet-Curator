@@ -126,7 +126,7 @@ vaadin-text-field[readonly].read-only::part(input-field) {
 
 /* dim-row style for filtered out items */
 .dim-row {
-    opacity: 0.5;
+    opacity: 0.7;
     filter: grayscale(100%);
     color: var(--lumo-disabled-text-color);
 }
