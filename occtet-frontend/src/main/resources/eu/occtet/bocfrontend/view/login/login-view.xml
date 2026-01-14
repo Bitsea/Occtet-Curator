@@ -24,7 +24,7 @@
     <layout justifyContent="CENTER" alignItems="CENTER" classNames="jmix-login-main-layout"
             padding="false"
             margin="false"
-            spacing="false">
+            spacing="false" height="100%" width="100%">
 
         <!-- HEADER with logo -->
         <div classNames="login-header">
@@ -70,22 +70,21 @@
 
 
         <!-- FOOTER-->
-        <vbox classNames="login-footer" >
-            <vbox >
-            <span text="msg://Funding.title"/>
-            <span text="msg://Funding"/>
-            </vbox>
-            <hbox>
-            <image id="footerImage1"
-                resource="themes/BocFrontend/images/eccc.svg"
-                   width="auto"
-            height="20%"/>
+        <div classNames="login-footer" >
+            <vbox classNames="scanner-layout">
+               <span text="msg://Funding.title"/>
+               <span text="msg://Funding"/>
+               <hbox>
+                 <image id="footerImage1"
+                        resource="themes/BocFrontend/images/eccc.svg"
+                        width="20%"
+                        height="20%"/>
                 <image id="footerImage2"
                        resource="themes/BocFrontend/images/eu.png"
-                       width="auto"
+                       width="20%"
                        height="20%"/>
-            </hbox>
-        </vbox>
-
+               </hbox>
+            </vbox>
+        </div>
     </layout>
 </view>
