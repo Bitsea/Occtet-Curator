@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <view xmlns="http://jmix.io/schema/flowui/view"
       title="msg://helpView.title">
-    <layout>
-        <markdown content="msg://help.md"/>
+    <layout >
+        <vbox id="main" width="100%"/>
     </layout>
 </view>
