@@ -51,37 +51,35 @@
 
         <!-- middle-->
         <div classNames="login-center">
-
-        <loginForm id="login"
-                   forgotPasswordButtonVisible="false">
-            <form title="msg://loginForm.headerTitle"
-                  username="msg://loginForm.username"
-                  password="msg://loginForm.password"
-                  rememberMe="msg://loginForm.rememberMe"
-                  submit="msg://loginForm.submit"
-                  forgotPassword="msg://loginForm.forgotPassword"/>
-            <errorMessage title="msg://loginForm.errorTitle"
-                          message="msg://loginForm.badCredentials"
-                          username="msg://loginForm.errorUsername"
-                          password="msg://loginForm.errorPassword"/>
-        </loginForm>
-
+            <loginForm id="login"
+                       forgotPasswordButtonVisible="false">
+                <form title="msg://loginForm.headerTitle"
+                      username="msg://loginForm.username"
+                      password="msg://loginForm.password"
+                      rememberMe="msg://loginForm.rememberMe"
+                      submit="msg://loginForm.submit"
+                      forgotPassword="msg://loginForm.forgotPassword"/>
+                <errorMessage title="msg://loginForm.errorTitle"
+                              message="msg://loginForm.badCredentials"
+                              username="msg://loginForm.errorUsername"
+                              password="msg://loginForm.errorPassword"/>
+            </loginForm>
         </div>
 
 
         <!-- FOOTER-->
-        <div classNames="login-footer" >
-            <vbox classNames="scanner-layout">
+        <div classNames="login-footer">
+            <vbox>
                <span text="msg://Funding.title"/>
                <span text="msg://Funding"/>
                <hbox>
                  <image id="footerImage1"
                         resource="themes/BocFrontend/images/eccc.svg"
-                        width="20%"
+                        width="15%"
                         height="20%"/>
                 <image id="footerImage2"
                        resource="themes/BocFrontend/images/eu.png"
-                       width="20%"
+                       width="15%"
                        height="20%"/>
                </hbox>
             </vbox>

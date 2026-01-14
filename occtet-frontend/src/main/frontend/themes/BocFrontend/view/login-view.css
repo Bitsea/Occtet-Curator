@@ -33,7 +33,7 @@
 
 /* MIDDLE */
 .login-center {
-     flex: 1 1 auto;
+    flex: 1 1 auto;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -51,7 +51,8 @@
 /* FOOTER*/
 .login-footer {
 flex: 0 0 auto;
-    height: 200px;
+    margin-top: 20px;
+    height: 180px;
     width: 100% !important; /* Stellt sicher, dass es die volle Breite einnimmt */
         left: 0 !important;    /* Fixiert es am linken Rand */
         box-sizing: border-box;
