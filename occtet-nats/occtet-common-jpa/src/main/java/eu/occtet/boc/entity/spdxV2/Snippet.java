@@ -37,7 +37,7 @@ public class Snippet {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name= "snippet_from_file", length = 2048)
     private String snippetFromFile;
 
     @ElementCollection
@@ -45,6 +45,7 @@ public class Snippet {
     private List<Range> ranges;
 
     @Lob
+    @Column(name= "license_concluded")
     private String licenseConcluded;
 
     @ElementCollection
@@ -52,6 +53,7 @@ public class Snippet {
     private List<String> licenseInfoInSnippets;
 
     @Lob
+    @Column(name= "copyright_text")
     private String copyrightText;
 
     public SpdxDocumentRoot getSpdxDocument() {

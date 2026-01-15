@@ -25,6 +25,7 @@ import java.util.List;
 @Entity
 @Table(name = "SPDX_PACKAGE_ENTITY")
 public class SpdxPackageEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -80,7 +81,8 @@ public class SpdxPackageEntity {
     @CollectionTable(name = "package_license_info_from_files", joinColumns = @JoinColumn(name = "package_id"))
     private List<String> licenseInfoFromFiles;
 
-    @Embedded
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "package_verification_code_id")
     private PackageVerificationCodeEntity packageVerificationCodeEntity;
 
     @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -24,16 +24,16 @@ package eu.occtet.boc.entity;
 
 import jakarta.persistence.*;
 
-import java.util.UUID;
+
 
 @Entity
 @Table(name="INFORMATION_FILE",uniqueConstraints = { @UniqueConstraint(columnNames = { "FILE_NAME"}) })
 public class InformationFile {
 
     @Id
-    @Column(name="ID", nullable = false, columnDefinition = "UUID")
+    @Column(name="ID", nullable = false)
     @GeneratedValue(strategy= GenerationType.AUTO)
-    private UUID id;
+    private Long id;
 
     @Column(name= "FILE_NAME")
     private String fileName;
@@ -44,7 +44,8 @@ public class InformationFile {
     @Column(name="FILE_CONTEXT")
     private String context;
 
-    @Column(name="FILEINFORMATION_CONTENT", columnDefinition = "TEXT")
+    @Lob
+    @Column(name="FILEINFORMATION_CONTENT")
     private String content;
 
     public InformationFile(){}
@@ -56,11 +57,11 @@ public class InformationFile {
         this.filePath= path;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

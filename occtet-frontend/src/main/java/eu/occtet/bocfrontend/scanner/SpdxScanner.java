@@ -41,7 +41,6 @@ import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 
@@ -92,7 +91,7 @@ public class SpdxScanner extends Scanner{
                 }
             }
 
-            UUID projectId = scannerInitializer.getProject().getId();
+            Long projectId = scannerInitializer.getProject().getId();
 
             sendIntoStream(spdxJson, projectId, useCopyright ,useLicenseMatcher, filename);
             completionCallback.accept(scannerInitializer);
@@ -105,7 +104,7 @@ public class SpdxScanner extends Scanner{
 
     }
 
-    private void sendIntoStream(byte[] spdxJson, UUID projectId, boolean useCopyright, boolean useLicenseMatch, String filename) {
+    private void sendIntoStream(byte[] spdxJson, Long projectId, boolean useCopyright, boolean useLicenseMatch, String filename) {
 
         ByteArrayInputStream objectStoreInput = new ByteArrayInputStream(spdxJson);
 
@@ -116,7 +115,7 @@ public class SpdxScanner extends Scanner{
 
         ObjectInfo objectInfo = natsService.putDataIntoObjectStore(objectStoreInput, objectMeta);
 
-        SpdxWorkData spdxWorkData = new SpdxWorkData( objectInfo.getObjectName(), objectInfo.getBucket(), projectId.toString(), useCopyright, useLicenseMatch);
+        SpdxWorkData spdxWorkData = new SpdxWorkData( objectInfo.getObjectName(), objectInfo.getBucket(), projectId, useCopyright, useLicenseMatch);
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
         WorkTask workTask = new WorkTask("processing_spdx", "uploaded spdx report to be turned into entities by spdx-microservice", actualTimestamp, spdxWorkData);

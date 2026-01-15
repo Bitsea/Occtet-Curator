@@ -39,7 +39,7 @@ public class ChecksumEntity {
     @Column(nullable = false)
     private String algorithm;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "checksum_value")
     private String checksumValue;
 
     public void setId(Long id) {

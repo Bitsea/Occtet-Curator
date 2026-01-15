@@ -27,27 +27,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.occtet.boc.service.IWorkDataProcessor;
 
 import java.util.Map;
-import java.util.UUID;
+
 
 public class FossReportServiceWorkData extends BaseWorkData{
 
-    private UUID scannerInitializerId;
+    private Long scannerInitializerId;
     private Map<String, Object> rowData;
 
     @JsonCreator
     public FossReportServiceWorkData(
-            @JsonProperty("scannerInitializerId") UUID scannerInitializerId,
+            @JsonProperty("scannerInitializerId") Long scannerInitializerId,
             @JsonProperty("rowData") Map<String, Object> rowData
     ) {
         this.scannerInitializerId = scannerInitializerId;
         this.rowData = rowData;
     }
 
-    public UUID getScannerInitializerId() {
+    public Long getScannerInitializerId() {
         return scannerInitializerId;
     }
 
-    public void setScannerInitializerId(UUID scannerInitializerId) {
+    public void setScannerInitializerId(Long scannerInitializerId) {
         this.scannerInitializerId = scannerInitializerId;
     }
 

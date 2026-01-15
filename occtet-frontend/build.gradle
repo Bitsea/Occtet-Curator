@@ -32,7 +32,7 @@ jmix {
 }
 
 group = 'eu.occtet'
-version = '0.3.2-SNAPSHOT'
+version = '0.3.3-SNAPSHOT'
 
 repositories {
     mavenLocal()
@@ -56,7 +56,7 @@ dependencies {
     // if Gradle fails because this does not exist, please get and build the occtet-nats project
     // and install the nats-common library into your local maven repository using 'mvn install' as explained
     // in the README of the occtet-nats project
-    implementation 'eu.occtet.boc:occtet-common:0.3.3-SNAPSHOT'
+    implementation 'eu.occtet.boc:occtet-common:0.3.4-SNAPSHOT'
 
     implementation 'io.jmix.core:jmix-core-starter'
     implementation 'io.jmix.data:jmix-eclipselink-starter'
@@ -78,7 +78,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.postgresql:postgresql'
-    runtimeOnly 'org.hsqldb:hsqldb'
 
     implementation("com.vaadin.componentfactory:autocomplete:24.1.7")
     implementation("com.vaadin.componentfactory.webjar:vcf-autocomplete:1.2.2")

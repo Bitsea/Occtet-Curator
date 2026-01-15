@@ -31,10 +31,10 @@ public class ExternalDocumentRefEntity {
     @JoinColumn(name = "spdx_document_id", nullable = false)
     private SpdxDocumentRoot spdxDocument;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name="external_document_id")
     private String externalDocumentId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "spdx_document_external", length = 2048)
     private String spdxDocumentExternal;
 
     @OneToOne(cascade = CascadeType.ALL, optional = false)

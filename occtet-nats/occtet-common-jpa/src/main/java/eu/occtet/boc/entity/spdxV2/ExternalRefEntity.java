@@ -32,13 +32,13 @@ public class ExternalRefEntity {
     @JoinColumn(name = "package_id", nullable = false)
     private SpdxPackageEntity pkg;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name="reference_category")
     private String referenceCategory;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "reference_locator")
     private String referenceLocator;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "reference_type")
     private String referenceType;
 
     @Lob

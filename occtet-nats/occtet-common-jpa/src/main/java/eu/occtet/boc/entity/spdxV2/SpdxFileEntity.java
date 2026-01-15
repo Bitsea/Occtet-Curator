@@ -54,12 +54,12 @@ public class SpdxFileEntity {
 
     @ElementCollection
     @CollectionTable(name = "file_license_info", joinColumns = @JoinColumn(name = "spdx_file_id"))
-    @Column(name = "license_info_in_files", columnDefinition = "TEXT")
+    @Column(name = "license_info_in_files")
     @Lob
     private List<String> licenseInfoInFiles;
 
     @Lob
-    @Column(name = "copyright_text", columnDefinition = "TEXT")
+    @Column(name = "copyright_text")
     private String copyrightText;
 
     public String getSpdxId() {

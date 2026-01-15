@@ -23,7 +23,7 @@ import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
-import java.util.UUID;
+
 
 @JmixEntity
 @Table(name="INFORMATION_FILE",uniqueConstraints = { @UniqueConstraint(columnNames = { "FILE_NAME"}) })
@@ -33,7 +33,7 @@ public class InformationFile {
     @JmixGeneratedValue
     @Id
     @Column(name="ID", nullable = false)
-    private UUID id;
+    private Long id;
 
     @Column(name= "FILE_NAME")
     private String fileName;
@@ -56,11 +56,11 @@ public class InformationFile {
         this.filePath= path;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

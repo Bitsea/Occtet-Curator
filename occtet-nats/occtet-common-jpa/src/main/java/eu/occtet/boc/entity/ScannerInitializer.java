@@ -22,14 +22,14 @@
 
 package eu.occtet.boc.entity;
 
-import eu.occtet.boc.converter.ListStringConverter;
+import eu.occtet.boc.converter.StringListConverter;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
+
 
 @Table(name = "SCANNER_INITIALIZER", indexes = {
         @Index(columnList = "SCANNER"),
@@ -39,13 +39,14 @@ import java.util.UUID;
 @EntityListeners(AuditingEntityListener.class)
 public class ScannerInitializer {
 
+    public static final String DELIMITER = "|";
     @Id
-    @Column(name="ID", nullable = false, columnDefinition = "UUID")
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private UUID id;
+    @Column(name="ID", nullable = false)
+    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PROJECT_ID", nullable = false, columnDefinition = "UUID")
+    @JoinColumn(name = "PROJECT_ID", nullable = false)
     private Project project;
 
     @Column(name = "SCANNER", nullable = false)
@@ -54,12 +55,12 @@ public class ScannerInitializer {
     @Column(name = "STATUS", nullable = false)
     private String status;
 
-    @Convert(converter = ListStringConverter.class)
-    @Column(name = "FEEDBACK", columnDefinition = "TEXT")
-    private List<String> feedback;
+    @Column(name = "FEEDBACK")
+    @Lob
+    private String feedback;
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
-    @JoinColumn(name = "SCANNER_INITIALIZER_ID", columnDefinition = "UUID")
+    @JoinColumn(name = "SCANNER_INITIALIZER_ID")
     private List<Configuration> scannerConfiguration;
 
     @Column(name = "LAST_UPDATE")
@@ -74,11 +75,11 @@ public class ScannerInitializer {
         this.project= project;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -134,10 +135,10 @@ public class ScannerInitializer {
     }
 
     public List<String> getFeedback() {
-        return feedback;
+        return StringListConverter.nullableStringToList(this.feedback);
     }
 
     public void setFeedback(List<String> feedback) {
-        this.feedback = feedback;
+        this.feedback = StringListConverter.toStringOrNull(feedback);
     }
 }

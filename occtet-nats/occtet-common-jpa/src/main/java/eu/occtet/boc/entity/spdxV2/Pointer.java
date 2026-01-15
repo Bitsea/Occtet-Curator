@@ -26,8 +26,10 @@ public class Pointer {
     @Column(nullable = false)
     private String reference;
 
+    @Column
     private Integer offset;
 
+    @Column(name="line_number")
     private Integer lineNumber;
 
     public Integer getLineNumber() {

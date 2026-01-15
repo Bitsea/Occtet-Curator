@@ -33,10 +33,10 @@ public class ExtractedLicensingInfoEntity {
     private SpdxDocumentRoot spdxDocument;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, name = "extracted_text")
     private String extractedText;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "license_id")
     private String licenseId;
 
     private String name;

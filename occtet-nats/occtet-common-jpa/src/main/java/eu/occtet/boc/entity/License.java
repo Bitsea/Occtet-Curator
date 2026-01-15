@@ -26,7 +26,7 @@ package eu.occtet.boc.entity;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.UUID;
+
 
 @Entity
 @Table(name = "LICENSE")
@@ -35,9 +35,9 @@ public class License {
 
 
     @Id
-    @Column(name="ID", nullable = false, columnDefinition = "UUID")
+    @Column(name="ID", nullable = false)
     @GeneratedValue(strategy= GenerationType.AUTO)
-    private UUID id;
+    private Long id;
 
     @Column(name= "PRIORITY")
     private Integer priority;
@@ -45,7 +45,8 @@ public class License {
     @Column(name= "LICENSE_TYPE")
     private String licenseType;
 
-    @Column(name= "LICENSE_TEXT",columnDefinition = "TEXT")
+    @Column(name= "LICENSE_TEXT")
+    @Lob
     private String licenseText;
 
     @Column(name= "LICENSE_NAME")
@@ -84,11 +85,11 @@ public class License {
         this.isModified= modified;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

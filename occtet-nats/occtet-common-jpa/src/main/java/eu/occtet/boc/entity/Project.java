@@ -26,7 +26,7 @@ package eu.occtet.boc.entity;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.UUID;
+
 
 @Entity
 @Table(name = "PROJECT")
@@ -35,17 +35,17 @@ public class Project {
 
 
     @Id
-    @Column(name="ID", nullable = false, columnDefinition = "UUID")
+    @Column(name="ID", nullable = false)
     @GeneratedValue(strategy= GenerationType.AUTO)
-    private UUID id;
+    private Long id;
 
     @Column(name="PROJECT_NAME")
     private String projectName;
 
-    @Column(name = "BASEPATH", columnDefinition = "TEXT")
+    @Column(name = "BASEPATH", length=1024)
     private String basePath;
 
-    @Column(name = "SPDX_DOCUMENT_ID", columnDefinition = "TEXT")
+    @Column(name = "SPDX_DOCUMENT_ID", length=512)
     private String documentID;
 
     public Project() {
@@ -55,11 +55,11 @@ public class Project {
         this.projectName = projectName;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

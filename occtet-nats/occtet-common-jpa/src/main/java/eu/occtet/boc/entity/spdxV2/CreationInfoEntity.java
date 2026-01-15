@@ -33,14 +33,13 @@ public class CreationInfoEntity {
     @Column(nullable = false)
     private String created;
 
-    @ElementCollection
-    @CollectionTable(name = "creator", joinColumns = @JoinColumn(name = "creation_info_id"))
-    @Column(name = "creator_name", nullable = false)
-    private List<String> creators;
+    @Column(name = "creators", nullable = false)
+    private String creators;
 
     @Lob
     private String comment;
 
+    @Column(name = "license_list_version")
     private String licenseListVersion;
 
     public String getComment() {
@@ -55,7 +54,7 @@ public class CreationInfoEntity {
         return created;
     }
 
-    public List<String> getCreators() {
+    public String getCreators() {
         return creators;
     }
 
@@ -63,7 +62,7 @@ public class CreationInfoEntity {
         this.created = created;
     }
 
-    public void setCreators(List<String> creators) {
+    public void setCreators(String creators) {
         this.creators = creators;
     }
 

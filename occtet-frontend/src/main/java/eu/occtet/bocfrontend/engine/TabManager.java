@@ -309,7 +309,7 @@ public class TabManager {
             return;
         }
 
-        if (identifier instanceof UUID itemId) {
+        if (identifier instanceof Long itemId) {
             boolean foundInInv = selectInventoryItemTab(itemId);
             if (!foundInInv)
                 selectFileTab(itemId);
@@ -318,9 +318,9 @@ public class TabManager {
         }
     }
 
-    private boolean selectInventoryItemTab(UUID itemId) {
+    private boolean selectInventoryItemTab(Long itemId) {
         Optional<Map.Entry<InventoryItem, Tab>> match = openInventoryTabs.entrySet().stream()
-                .filter(inventoryItemTabEntry -> inventoryItemTabEntry.getKey().getId().equals(itemId))
+                .filter(inventoryItemTabEntry -> inventoryItemTabEntry.getKey().getId()==itemId)
                 .findFirst();
 
         if (match.isPresent()) {
@@ -333,9 +333,9 @@ public class TabManager {
         return false;
     }
 
-    private void selectFileTab(UUID fileId) {
+    private void selectFileTab(Long fileId) {
         openFileTabs.entrySet().stream()
-                .filter(entry -> entry.getKey().getId().equals(fileId))
+                .filter(entry -> entry.getKey().getId()==fileId)
                 .findFirst()
                 .ifPresentOrElse(
                         entry -> {
@@ -351,13 +351,13 @@ public class TabManager {
     /**
      * Returns the list of open inventory item IDs.
      */
-    public List<UUID> getOpenInventoryItemIds() {
+    public List<Long> getOpenInventoryItemIds() {
         return openInventoryTabs.keySet().stream()
                 .map(InventoryItem::getId)
                 .toList();
     }
 
-    public List<UUID> getOpenFileIds() {
+    public List<Long> getOpenFileIds() {
         return openFileTabs.keySet().stream()
                 .map(File::getId)
                 .toList();
@@ -380,7 +380,7 @@ public class TabManager {
         return null;
     }
 
-    private UUID getActiveInventoryItemId() {
+    private Long getActiveInventoryItemId() {
         Tab selectedTab = inventoryItemTabSheet.getSelectedTab();
         if (selectedTab == null) {
             return null;
@@ -393,7 +393,7 @@ public class TabManager {
                 .orElse(null);
     }
 
-    private UUID getActiveFileId() {
+    private Long getActiveFileId() {
         Tab selectedTab = filesTabSheet.getSelectedTab();
         if (selectedTab == null) {
             return null;
@@ -401,7 +401,7 @@ public class TabManager {
 
         return openFileTabs.entrySet().stream()
                 .filter(e -> e.getValue().equals(selectedTab))
-                .map(e -> e.getKey().getId()) // Return UUID
+                .map(e -> e.getKey().getId()) // Return Long
                 .findFirst()
                 .orElse(null);
     }

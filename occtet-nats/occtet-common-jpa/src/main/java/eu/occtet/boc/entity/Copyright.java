@@ -27,7 +27,7 @@ import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.List;
-import java.util.UUID;
+
 
 @Entity
 @Table(name = "COPYRIGHT")
@@ -36,11 +36,12 @@ public class Copyright {
 
 
     @Id
-    @Column(name = "ID", nullable = false, columnDefinition = "UUID")
+    @Column(name = "ID", nullable = false)
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
+    private Long id;
 
-    @Column(name = "COPYRIGHT_TEXT", columnDefinition = "TEXT")
+    @Column(name = "COPYRIGHT_TEXT")
+    @Lob
     private String copyrightText;
 
     @Column(name= "CURATED")
@@ -60,7 +61,7 @@ public class Copyright {
     private List<CodeLocation> codeLocations;
 
     @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name= "COPYRIGHT_ID", columnDefinition = "UUID")
+    @JoinColumn(name= "COPYRIGHT_ID")
     private List<License> licenses;
 
     public Copyright(String copyrightText, List<CodeLocation> cl) {
@@ -85,11 +86,11 @@ public class Copyright {
         this.copyrightText = copyrightText;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

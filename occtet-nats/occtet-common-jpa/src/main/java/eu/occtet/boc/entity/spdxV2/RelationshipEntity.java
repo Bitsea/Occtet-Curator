@@ -32,13 +32,13 @@ public class RelationshipEntity {
     @JoinColumn(name = "spdx_document_id")
     private SpdxDocumentRoot spdxDocument;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "spdx_element_id")
     private String spdxElementId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "related_spdx_element")
     private String relatedSpdxElement;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "relationship_type")
     private String relationshipType;
 
     @Lob

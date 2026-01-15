@@ -20,18 +20,17 @@
 package eu.occtet.bocfrontend.dao;
 
 
-import eu.occtet.bocfrontend.entity.Copyright;
-import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.Vulnerability;
 import io.jmix.core.repository.JmixDataRepository;
 import io.jmix.core.repository.Query;
 
 import java.util.List;
-import java.util.UUID;
 
 
-public interface SoftwareComponentRepository extends JmixDataRepository<SoftwareComponent, UUID> {
+
+
+public interface SoftwareComponentRepository extends JmixDataRepository<SoftwareComponent, Long> {
 
     SoftwareComponent findByName(String softwareComponentName);
     List<SoftwareComponent> findAll();

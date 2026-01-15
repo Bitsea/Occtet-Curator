@@ -28,6 +28,7 @@ import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.entity.spdxV2.SpdxFileEntity;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.model.SpdxWorkData;
+import eu.occtet.boc.spdx.config.EclipseLinkJpaConfiguration;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
@@ -65,7 +66,7 @@ import java.util.UUID;
         CopyrightService.class, InventoryItemService.class, LicenseService.class, CodeLocationService.class,
         ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class,
         CopyrightFactory.class, CodeLocationFactory.class, InventoryItemFactory.class,
-        LicenseFactory.class, SpdxConverter.class
+        LicenseFactory.class, SpdxConverter.class, EclipseLinkJpaConfiguration.class
 })
 @EnableJpaRepositories(basePackages = {
         "eu.occtet.boc.spdx.dao"})
@@ -75,6 +76,7 @@ import java.util.UUID;
 @ExtendWith(MockitoExtension.class)
 public class SpdxServiceTest {
 
+    private static final Long PROJECT_ID = 123456L;
     @MockitoBean
     private AnswerService answerService;
 
@@ -142,9 +144,9 @@ public class SpdxServiceTest {
            spdxWorkData.setJsonBytes(bytes);
 
            Project project = new Project();
-           project.setId(UUID.fromString("31013112-1111-4121-9181-012345678911"));
+           project.setId(PROJECT_ID);
 
-           spdxWorkData.setProjectId("31013112-1111-4121-9181-012345678911");
+           spdxWorkData.setProjectId(PROJECT_ID);
            spdxWorkData.setUseCopyrightAi(true);
            spdxWorkData.setUseLicenseMatcher(true);
 

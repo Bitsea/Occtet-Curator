@@ -28,7 +28,7 @@
     <changeSet id="DBLOG" author="OcctetFrontend" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="DBLOG"/></not></preConditions>
         <createTable tableName="DBLOG">
-            <column name="ID" type="UUID">
+            <column name="ID" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="PK_DBLOG"/>
             </column>
             <column name="EVENT_DATE" type="DATETIME"><constraints nullable="false"/></column>
@@ -40,7 +40,7 @@
     <changeSet id="PROJECT" author="OcctetFrontend" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="PROJECT"/></not></preConditions>
         <createTable tableName="PROJECT">
-            <column name="ID" type="UUID">
+            <column name="ID" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="PK_PROJECT"/>
             </column>
             <column name="PROJECT_NAME" type="VARCHAR(255)"/>
@@ -52,7 +52,7 @@
     <changeSet id="SOFTWARE_COMPONENT" author="OcctetFrontend" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="SOFTWARE_COMPONENT"/></not></preConditions>
         <createTable tableName="SOFTWARE_COMPONENT">
-            <column name="ID" type="UUID">
+            <column name="ID" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SOFTWARE_COMPONENT"/>
             </column>
             <column name="SOFTWARE_COMPONENT_NAME" type="VARCHAR(255)"/>
@@ -67,7 +67,7 @@
     <changeSet id="LICENSE" author="OcctetFrontend" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="LICENSE"/></not></preConditions>
         <createTable tableName="LICENSE">
-            <column name="ID" type="UUID">
+            <column name="ID" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="PK_LICENSE"/>
             </column>
             <column name="PRIORITY" type="INTEGER"/>
@@ -78,14 +78,14 @@
             <column name="MODIFIED" type="BOOLEAN"/>
             <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
             <column name="IS_SPDX" type="BOOLEAN"/>
-            <column name="COPYRIGHT_ID" type="UUID"/>
+            <column name="COPYRIGHT_ID" type="BIGINT"/>
         </createTable>
     </changeSet>
 
     <changeSet id="VULNERABILITY" author="OcctetFrontend" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="VULNERABILITY"/></not></preConditions>
         <createTable tableName="VULNERABILITY">
-            <column name="ID" type="UUID"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="ID" type="BIGINT"><constraints primaryKey="true" nullable="false"/></column>
             <column name="VULNERABILITY_ID" type="VARCHAR(255)"><constraints nullable="false"/></column>
             <column name="SUMMARY" type="TEXT"/>
             <column name="ALIASES" type="TEXT"/>
@@ -102,13 +102,13 @@
     <changeSet id="SCANNER_INITIALIZER" author="OcctetFrontend" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="SCANNER_INITIALIZER"/></not></preConditions>
         <createTable tableName="SCANNER_INITIALIZER">
-            <column name="ID" type="UUID">
+            <column name="ID" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SCANNER_INITIALIZER"/>
             </column>
             <column name="SCANNER" type="VARCHAR(255)"/>
             <column name="STATUS" type="VARCHAR(255)"/>
             <column name="FEEDBACK" type="TEXT"/>
-            <column name="PROJECT_ID" type="UUID"/>
+            <column name="PROJECT_ID" type="BIGINT"/>
             <column name="LAST_UPDATE" type="DATE"/>
         </createTable>
     </changeSet>
@@ -116,17 +116,17 @@
     <changeSet id="INVENTORY_ITEM" author="OcctetFrontend" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="INVENTORY_ITEM"/></not></preConditions>
         <createTable tableName="INVENTORY_ITEM">
-            <column name="ID" type="UUID">
+            <column name="ID" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="PK_INVENTORY_ITEM"/>
             </column>
-            <column name="PROJECT_ID" type="UUID"/>
-            <column name="PARENT_INVENTORY_ITEM_ID" type="UUID"/>
+            <column name="PROJECT_ID" type="BIGINT"/>
+            <column name="PARENT_INVENTORY_ITEM_ID" type="BIGINT"/>
             <column name="INVENTORY_NAME" type="TEXT"/>
             <column name="SIZE" type="INTEGER"/>
             <column name="LINKING" type="VARCHAR(255)"/>
             <column name="EXTERNAL_NOTES" type="TEXT"/>
             <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
-            <column name="SOFTWARE_COMPONENT_ID" type="UUID"/>
+            <column name="SOFTWARE_COMPONENT_ID" type="BIGINT"/>
             <column name="WAS_COMBINED" type="BOOLEAN"/>
             <column name="CREATED_AT" type="DATE"/>
             <column name="SPDX_ID" type="VARCHAR(255)"/>
@@ -138,12 +138,12 @@
     <changeSet id="CODE_LOCATION" author="OcctetFrontend" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="CODE_LOCATION"/></not></preConditions>
         <createTable tableName="CODE_LOCATION">
-            <column name="ID" type="UUID">
+            <column name="ID" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="PK_CODE_LOCATION" />
             </column>
             <column name="FILE_PATH" type="TEXT"/>
-            <column name="INVENTORY_ITEM_ID" type="UUID"/>
-            <column name="COPYRIGHT_ID" type="UUID"/>
+            <column name="INVENTORY_ITEM_ID" type="BIGINT"/>
+            <column name="COPYRIGHT_ID" type="BIGINT"/>
             <column name="LINE_NUMBER" type="INTEGER"/>
             <column name="LINE_NUMBER_TO" type="INTEGER"/>
         </createTable>
@@ -152,8 +152,8 @@
     <changeSet id="COPYRIGHT" author="db" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="COPYRIGHT"/></not></preConditions>
         <createTable tableName="COPYRIGHT">
-            <column name="ID" type="UUID"><constraints nullable="false" primaryKey="true" primaryKeyName="PK_COPYRIGHT"/></column>
-            <column name="SOFTWARE_COMPONENT_ID" type="UUID"/>
+            <column name="ID" type="BIGINT"><constraints nullable="false" primaryKey="true" primaryKeyName="PK_COPYRIGHT"/></column>
+            <column name="SOFTWARE_COMPONENT_ID" type="BIGINT"/>
             <column name="COPYRIGHT_TEXT" type="TEXT"/>
             <column name="CURATED" type="BOOLEAN" defaultValue="false"/>
             <column name="GARBAGE" type="BOOLEAN"/>
@@ -164,31 +164,31 @@
     <changeSet id="SOFTWARE_COMPONENT_LICENSE_LINK" author="OcctetFrontend" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="SOFTWARE_COMPONENT_LICENSE_LINK"/></not></preConditions>
         <createTable tableName="SOFTWARE_COMPONENT_LICENSE_LINK">
-            <column name="SOFTWARE_COMPONENT_ID" type="UUID"><constraints nullable="false"/></column>
-            <column name="LICENSE_ID" type="UUID"><constraints nullable="false"/></column>
+            <column name="SOFTWARE_COMPONENT_ID" type="BIGINT"><constraints nullable="false"/></column>
+            <column name="LICENSE_ID" type="BIGINT"><constraints nullable="false"/></column>
         </createTable>
     </changeSet>
 
     <changeSet id="SOFTWARE_COMPONENT_VULNERABILITY_LINK" author="OcctetFrontend" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="SOFTWARE_COMPONENT_VULNERABILITY_LINK"/></not></preConditions>
         <createTable tableName="SOFTWARE_COMPONENT_VULNERABILITY_LINK">
-            <column name="SOFTWARE_COMPONENT_ID" type="UUID"><constraints nullable="false"/></column>
-            <column name="VULNERABILITY_ID" type="UUID"><constraints nullable="false"/></column>
+            <column name="SOFTWARE_COMPONENT_ID" type="BIGINT"><constraints nullable="false"/></column>
+            <column name="VULNERABILITY_ID" type="BIGINT"><constraints nullable="false"/></column>
         </createTable>
     </changeSet>
 
     <changeSet id="COPYRIGHT_CODE_LOCATION_LINK" author="db" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="COPYRIGHT_CODE_LOCATION_LINK"/></not></preConditions>
         <createTable tableName="COPYRIGHT_CODE_LOCATION_LINK">
-            <column name="COPYRIGHT_ID" type="UUID"><constraints nullable="false"/></column>
-            <column name="CODE_LOCATION_ID" type="UUID"><constraints nullable="false"/></column>
+            <column name="COPYRIGHT_ID" type="BIGINT"><constraints nullable="false"/></column>
+            <column name="CODE_LOCATION_ID" type="BIGINT"><constraints nullable="false"/></column>
         </createTable>
     </changeSet>
 
     <changeSet id="VEX_DATA" author="OcctetFrontend" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="VEX_DATA"/></not></preConditions>
         <createTable tableName="VEX_DATA">
-            <column name="ID" type="UUID">
+            <column name="ID" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="PK_VEX_DATA" />
             </column>
             <column name="TITLE" type="TEXT"/>
@@ -200,26 +200,26 @@
             <column name="TIME_STAMP" type="DATE"/>
             <column name="META_DATA" type="TEXT"/>
             <column name="VULNERABILITIES" type="TEXT"/>
-            <column name="SOFTWARE_COMPONENT_ID" type="UUID"/>
+            <column name="SOFTWARE_COMPONENT_ID" type="BIGINT"/>
         </createTable>
     </changeSet>
 
     <changeSet id="VULNERABILITY_VEX_LINK" author="OcctetFrontend" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="VULNERABILITY_VEX_LINK"/></not></preConditions>
         <createTable tableName="VULNERABILITY_VEX_LINK">
-            <column name="VEX_DATA_ID" type="UUID"><constraints nullable="false"/></column>
-            <column name="VULNERABILITY_ID" type="UUID"><constraints nullable="false"/></column>
+            <column name="VEX_DATA_ID" type="BIGINT"><constraints nullable="false"/></column>
+            <column name="VULNERABILITY_ID" type="BIGINT"><constraints nullable="false"/></column>
         </createTable>
     </changeSet>
 
     <changeSet id="FILE" author="OcctetFrontend" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="FILE"/></not></preConditions>
         <createTable tableName="FILE">
-            <column name="ID" type="UUID"><constraints nullable="false" primaryKey="true" primaryKeyName="PK_FILE"/></column>
-            <column name="PROJECT_ID" type="UUID"><constraints nullable="false" foreignKeyName="FK_FILE_PROJECT" references="PROJECT(ID)" deleteCascade="true"/></column>
-            <column name="PARENT_ID" type="UUID"><constraints nullable="true" foreignKeyName="FK_FILE_PARENT" references="FILE(ID)" deleteCascade="true"/></column>
-            <column name="CODE_LOCATION_ID" type="UUID"><constraints nullable="true" foreignKeyName="FK_FILE_CODE_LOCATION" references="CODE_LOCATION(ID)"/></column>
-            <column name="INVENTORY_ITEM_ID" type="UUID"><constraints nullable="true" foreignKeyName="FK_FILE_INVENTORY_ITEM" references="INVENTORY_ITEM(ID)"/></column>
+            <column name="ID" type="BIGINT"><constraints nullable="false" primaryKey="true" primaryKeyName="PK_FILE"/></column>
+            <column name="PROJECT_ID" type="BIGINT"><constraints nullable="false" foreignKeyName="FK_FILE_PROJECT" references="PROJECT(ID)" deleteCascade="true"/></column>
+            <column name="PARENT_ID" type="BIGINT"><constraints nullable="true" foreignKeyName="FK_FILE_PARENT" references="FILE(ID)" deleteCascade="true"/></column>
+            <column name="CODE_LOCATION_ID" type="BIGINT"><constraints nullable="true" foreignKeyName="FK_FILE_CODE_LOCATION" references="CODE_LOCATION(ID)"/></column>
+            <column name="INVENTORY_ITEM_ID" type="BIGINT"><constraints nullable="true" foreignKeyName="FK_FILE_INVENTORY_ITEM" references="INVENTORY_ITEM(ID)"/></column>
             <column name="FILENAME" type="VARCHAR(255)"><constraints nullable="false"/></column>
             <column name="ABSOLUTE_PATH" type="TEXT"><constraints nullable="false"/></column>
             <column name="RELATIVE_PATH" type="TEXT"><constraints nullable="false"/></column>
@@ -243,20 +243,20 @@
     <changeSet id="CONFIGURATION" author="OcctetFrontend" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="CONFIGURATION"/></not></preConditions>
         <createTable tableName="CONFIGURATION">
-            <column name="ID" type="UUID">
+            <column name="ID" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="PK_CONFIGURATION"/>
             </column>
             <column name="NAME" type="VARCHAR(255)"/>
             <column name="VALUE" type="VARCHAR(255)"/>
             <column name="UPLOAD" type="BINARY"/>
-            <column name="SCANNER_INITIALIZER_ID" type="UUID"/>
+            <column name="SCANNER_INITIALIZER_ID" type="BIGINT"/>
         </createTable>
     </changeSet>
 
     <changeSet id="SUGGESTION" author="OcctetFrontend" runAlways="true">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="SUGGESTION"/></not></preConditions>
         <createTable tableName="SUGGESTION">
-            <column name="ID" type="UUID"></column>
+            <column name="ID" type="BIGINT"></column>
             <column name="CONTEXT" type="VARCHAR(255)"/>
             <column name="SENTENCE" type="TEXT"/>
         </createTable>

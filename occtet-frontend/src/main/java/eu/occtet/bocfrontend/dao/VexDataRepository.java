@@ -25,13 +25,11 @@ import eu.occtet.bocfrontend.entity.Vulnerability;
 import io.jmix.core.repository.JmixDataRepository;
 
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * Repository interface for managing VexData entities.
  */
-public interface VexDataRepository extends JmixDataRepository<VexData, UUID> {
+public interface VexDataRepository extends JmixDataRepository<VexData, Long> {
 
     List<VexData> findBySoftwareComponent(SoftwareComponent softwareComponent);
 

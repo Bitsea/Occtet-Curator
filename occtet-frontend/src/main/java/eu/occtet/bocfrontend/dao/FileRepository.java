@@ -30,9 +30,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.UUID;
 
-public interface FileRepository extends JmixDataRepository<File, UUID> {
+
+
+public interface FileRepository extends JmixDataRepository<File, Long> {
     final static String DEPENDENCY_FOLDER_NAME = "dependencies";
 
     // Root Nodes (Reviewed Filter)
