@@ -37,17 +37,17 @@
     </actions>
     <layout>
         <formLayout id="form" dataContainer="licenseDc" height="90%" width="100%">
-                    <textField id="licenseNameField" property="licenseName" label="License name"/>
-                    <textField id="licenseTypeField" property="licenseType" label="License Type"/>
-                    <textField id="detailsUrlField" property="detailsUrl" label="Detail url"/>
-                    <textField id="priorityField" property="priority" label="Priority"/>
+                    <textField id="licenseNameField" property="licenseName" label="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
+                    <textField id="licenseTypeField" property="licenseType" label="msg://eu.occtet.bocfrontend.entity/License.licenseType"/>
+                    <textField id="detailsUrlField" property="detailsUrl" label="msg://eu.occtet.bocfrontend.entity/License.detailsUrl"/>
+                    <textField id="priorityField" property="priority" label="msg://eu.occtet.bocfrontend.entity/License.priority"/>
             <hbox>
-                <checkbox id="isSpdxField" property="isSpdx" label="SPDX"/>
-                <checkbox id="isCuratedField" property="curated" label="Curated"/>
-                <checkbox id="isModifiedField" property="isModified" label="Modified"/>
+                <checkbox id="isSpdxField" property="isSpdx" label="msg://eu.occtet.bocfrontend.entity/License.isSpdx"/>
+                <checkbox id="isCuratedField" property="curated" label="msg://eu.occtet.bocfrontend.entity/License.curated"/>
+                <checkbox id="isModifiedField" property="isModified" label="msg://eu.occtet.bocfrontend.entity/License.isModified"/>
             </hbox>
                     <textArea id="licenseTextField"  property="licenseText"
-                              label="License text" minWidth="100%" maxRows="20"/>
+                              label="msg://eu.occtet.bocfrontend.entity/License.licenseText" minWidth="100%" maxRows="20"/>
         </formLayout>
         <hbox id="detailActions" alignSelf="CENTER">
             <button id="saveAndCloseButton" action="saveAction"/>
