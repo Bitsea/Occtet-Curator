@@ -35,6 +35,7 @@ import eu.occtet.bocfrontend.view.dialog.AddLicenseToCopyrightDialog;
 import eu.occtet.bocfrontend.view.main.MainView;
 import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
 import io.jmix.core.DataManager;
+import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.grid.DataGrid;
@@ -77,6 +78,8 @@ public class CopyrightDetailView extends StandardDetailView<Copyright> {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
+    @Autowired
+    private Messages messages;
 
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
@@ -118,7 +121,7 @@ public class CopyrightDetailView extends StandardDetailView<Copyright> {
             copyrightRepository.save(current);
             updateLicenseGrid();
 
-            notifications.create("Licenses removed.")
+            notifications.create(messages.getMessage("eu.occtet.bocfrontend.view.copyright/notification.remove"))
                     .withPosition(Notification.Position.BOTTOM_END)
                     .show();
         }
