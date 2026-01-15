@@ -30,14 +30,14 @@ public class SpdxFileEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name="SPDX_ID")
     private String spdxId;
 
     @ManyToOne
     @JoinColumn(name = "spdx_document_id")
     private SpdxDocumentRoot spdxDocument;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name="FILE_NAME")
     private String fileName;
 
     @OneToMany(mappedBy = "spdxFileEntity", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -49,6 +49,7 @@ public class SpdxFileEntity {
     private List<String> fileTypes;
 
     @Lob
+    @Column(name= "license_concluded")
     private String licenseConcluded;
 
     @ElementCollection
@@ -58,6 +59,7 @@ public class SpdxFileEntity {
     private List<String> licenseInfoInFiles;
 
     @Lob
+    @Column(name = "copyright_text", columnDefinition = "TEXT")
     private String copyrightText;
 
     public String getSpdxId() {

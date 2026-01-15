@@ -31,13 +31,13 @@ public class SpdxDocumentRoot {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name="SPDX_ID")
     private String spdxId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "SPDX_VERSION")
     private String spdxVersion;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "DATA_LICENSE")
     private String dataLicense;
 
     @Column(nullable = false)
@@ -46,7 +46,7 @@ public class SpdxDocumentRoot {
     @Lob
     private String comment;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "DOCUMENT_URI")
     private String documentUri;
 
     @OneToOne(cascade = CascadeType.ALL, optional = false)

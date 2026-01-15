@@ -1,4 +1,4 @@
-package eu.occtet.boc.spdx;
+package eu.occtet.boc.ai.copyrightFilter.config;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -39,22 +39,26 @@ public class SpdxPackageEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name="download_location")
     private String downloadLocation;
 
-    @Column
+    @Column(name="files_analyzed")
     private boolean filesAnalyzed;
 
     @Lob
+    @Column(name="version_info")
     private String versionInfo;
 
     @Lob
+    @Column(name="license_concluded")
     private String licenseConcluded;
 
     @Lob
+    @Column(name="license_declared")
     private String licenseDeclared;
 
     @Lob
+    @Column(name="copyright_text")
     private String copyrightText;
 
     @Lob

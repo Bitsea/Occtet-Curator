@@ -44,14 +44,19 @@
 
     <dependencies>
         <dependency>
-            <groupId>eu.occtet.boc</groupId>
-            <artifactId>occtet-common</artifactId>
-            <version>${common-version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <version>${springboot.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.jpa</artifactId>
+            <version>${eclipselink.version}</version>
         </dependency>
         <dependency>
             <groupId>eu.occtet.boc</groupId>
-            <artifactId>occtet-common-jpa</artifactId>
-            <version>${common-jpa-version}</version>
+            <artifactId>occtet-common</artifactId>
+            <version>${common-version}</version>
         </dependency>
         <dependency>
             <groupId>eu.occtet.boc</groupId>
