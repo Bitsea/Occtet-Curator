@@ -51,16 +51,16 @@ public class ImportTaskFactory {
         return dataManager.save(importer);
     }
 
-    public ImportTask saveWithFeedBack(ImportTask scannerInitializer, List<String> feedback, ImportStatus status){
+    public ImportTask saveWithFeedBack(ImportTask importTask, List<String> feedback, ImportStatus status){
         List<String> newFeedbacks= new ArrayList<>();
-        List<String> oldFeedbacks= scannerInitializer.getFeedback(); // get preexisting feedbacks
+        List<String> oldFeedbacks= importTask.getFeedback(); // get preexisting feedbacks
         if (oldFeedbacks!=null && !oldFeedbacks.isEmpty()) newFeedbacks.addAll(oldFeedbacks);
 
         // Add new feedback
         newFeedbacks.addAll(feedback);
 
-        scannerInitializer.setFeedback(newFeedbacks);
-        scannerInitializer.setStatus(status.getId());
-        return dataManager.save(scannerInitializer);
+        importTask.setFeedback(newFeedbacks);
+        importTask.setStatus(status.getId());
+        return dataManager.save(importTask);
     }
 }

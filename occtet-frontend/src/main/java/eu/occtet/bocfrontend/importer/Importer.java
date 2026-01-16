@@ -17,7 +17,7 @@ public abstract class Importer {
 
     /**
      *
-     * @return the name of this scanner
+     * @return the name of this importer
      */
     public String getName() {
         return name;
@@ -33,14 +33,14 @@ public abstract class Importer {
 
     /**
      *
-     * @return list of supported settings for this scanner
+     * @return list of supported settings for this import
      */
     public List<String> getSupportedConfigurationKeys() {return Collections.emptyList();
     }
 
     /**
      *
-     * @return list of required settings for this scanner
+     * @return list of required settings for this import
      */
     public List<String> getRequiredConfigurationKeys() {
         return Collections.emptyList();

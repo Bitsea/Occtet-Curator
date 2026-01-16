@@ -62,7 +62,7 @@ public class ImporterTest {
 
     @Test
     @Transactional
-    void test_getScannerByStatus(){
+    void test_getImportByStatus(){
         importTask1.setStatus(ImportStatus.IN_PROGRESS.getId());
         dataManager.save(importTask1);
         assertEquals(1, importTaskService.getImportByStatus(ImportStatus.IN_PROGRESS).size());
@@ -70,13 +70,13 @@ public class ImporterTest {
 
     @Test
     @Transactional
-    void test_getScannerByStatus_emptyOrNull(){
+    void test_getImportByStatus_emptyOrNull(){
         assertEquals(0, importTaskService.getImportByStatus(ImportStatus.IN_PROGRESS).size());
     }
 
     @Test
     @Transactional
-    void test_countScannerByStatus(){
+    void test_countImportByStatus(){
         assertEquals(0, importTaskService.countImportByStatus(ImportStatus.IN_PROGRESS));
         importTask1.setStatus(ImportStatus.IN_PROGRESS.getId());
         dataManager.save(importTask1);
@@ -88,7 +88,7 @@ public class ImporterTest {
 
     @Test
     @Transactional
-    void test_updateScannerFeedback(){
+    void test_updateImportFeedback(){
         dataManager.save(importTask);
         importTaskService.updateImportFeedback("test feedback", importTask);
         assertEquals(1, importTask.getFeedback().size());
@@ -97,7 +97,7 @@ public class ImporterTest {
 
     @Test
     @Transactional
-    void test_updateScannerStatus() {
+    void test_updateImportStatus() {
         dataManager.save(importTask);
         importTaskService.updateImportStatus(ImportStatus.IN_PROGRESS, importTask);
         assertEquals(ImportStatus.IN_PROGRESS.getId(), importTask.getStatus());

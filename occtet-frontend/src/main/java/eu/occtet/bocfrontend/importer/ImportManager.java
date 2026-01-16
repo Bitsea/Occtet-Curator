@@ -1,9 +1,7 @@
 package eu.occtet.bocfrontend.importer;
 
-import eu.occtet.bocfrontend.entity.ImportStatus;
-import eu.occtet.bocfrontend.entity.ImportTask;
 import eu.occtet.bocfrontend.service.ImportTaskService;
-import eu.occtet.bocfrontend.view.importer.ImporterListView;
+import eu.occtet.bocfrontend.view.importer.ImportTaskListView;
 import jakarta.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -31,7 +29,7 @@ public class ImportManager {
 
 
     private Importer preselectedImporter;
-    private ImporterListView importerListView;
+    private ImportTaskListView importTaskListView;
 
     /**
      * @return list of available import names (for dropdown when selecting which importer to create)
@@ -56,7 +54,7 @@ public class ImportManager {
      * @return the import with given name or null if not found
      */
     public Importer findImportByName(@Nonnull String name) {
-        log.debug("looking for scanner with name {}", name);
+        log.debug("looking for import with name {}", name);
         return importer.stream().filter(s -> StringUtils.equals(name, s.getName())).findFirst().orElse(null);
     }
 }

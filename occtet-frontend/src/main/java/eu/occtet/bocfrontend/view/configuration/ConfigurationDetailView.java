@@ -76,9 +76,9 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
     @Autowired
     private NumericValidator numericValidator;
 
-    // Scanner names for which the configuration requires
-    private final String FLEXERA = "Flexera_Report_Scanner";
-    private final String SPDX = "SPDX_Scanner";
+    // Importer names for which the configuration requires
+    private final String FLEXERA = "Flexera_Report_Import";
+    private final String SPDX = "SPDX_Import";
 
     private Configuration configPayload;
     private ImportTask importTask;
@@ -218,7 +218,7 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
         int maxFileSizeInBytes = 70 * 1024 * 1024; // 70MB
         uploadField.setMaxFileSize(maxFileSizeInBytes);
 
-        // Here the setup might vary depending on the scanner
+        // Here the setup might vary depending on the import
         if (importTask.getImportName().equals(FLEXERA)) {
             uploadField.setAcceptedFileTypes(".xlsx");
             uploadField.setHelperText("Upload a Flexera report in Excel format (.xlsx, max 70 MB)");

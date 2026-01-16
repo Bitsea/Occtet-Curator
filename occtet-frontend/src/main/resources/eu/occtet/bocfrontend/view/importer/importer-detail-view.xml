@@ -19,7 +19,7 @@
   -->
 
 <view xmlns="http://jmix.io/schema/flowui/view"
-      title="msg://scannerInitializerDetailView.title"
+      title="msg://eu.occtet.bocfrontend.view.importer/importTask.title"
       focusComponent="form">
     <data>
         <instance id="importerDc"
@@ -70,7 +70,7 @@
             </formItem>
         </formLayout>
         <hbox id="editActions" spacing="true">
-            <button id="saveAndCloseBtn" action="saveAction" text="start scanner"/>
+            <button id="saveAndCloseBtn" action="saveAction" text="msg://startImport"/>
             <button id="closeBtn" action="closeAction" />
         </hbox>
     </layout>

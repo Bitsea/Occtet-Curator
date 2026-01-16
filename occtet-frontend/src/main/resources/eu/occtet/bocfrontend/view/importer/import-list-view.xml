@@ -19,7 +19,7 @@
   -->
 
 <view xmlns="http://jmix.io/schema/flowui/view"
-      title="msg://scannerInitializerListView.title"
+      title="msg://eu.occtet.bocfrontend.view.importer/importTaskListView.title"
       focusComponent="importerDataGrid">
     <data readOnly="true">
         <collection id="importerDc"
@@ -34,7 +34,6 @@
     <facets>
         <dataLoadCoordinator auto="true"/>
         <timer id="refreshTimer" delay="3000" autostart="true" repeating="true"/>
-        <timer id="progressTimer" delay="100" autostart="false" repeating="true"/>
     </facets>
     <actions>
         <action id="lookupSelectAction"
@@ -47,8 +46,8 @@
     <layout spacing="true">
         <label value="msg://ImportDashBoard" css="font-weight: bold; font-size: 150%;"/>
         <vbox width="100%">
-            <vbox classNames="scanner-layout">
-                <h5 text="msg://eu.occtet.bocfrontend/ScannerInitializer.available"/>
+            <vbox classNames="import-layout">
+                <h5 text="msg://eu.occtet.bocfrontend/importTask.available"/>
                 <scroller scrollBarsDirection="BOTH" width="100%">
                     <hbox id="availableImportBox" spacing="true"/>
                 </scroller>
@@ -60,9 +59,9 @@
                     <button text="msg://removeStopped" id="removeStoppedBtn"/>
                 </hbox>
                 <hbox>
-                    <button text="msg://eu.occtet.bocfrontend/ScannerInitializer.feedback" id="showFeedback" enabled="false" themeNames="success"/>
+                    <button text="msg://eu.occtet.bocfrontend/ImportTask.feedback" id="showFeedback" enabled="false" themeNames="success"/>
                     <button text="msg://eu.occtet.bocfrontend.entity/Configuration" id="showConfig" enabled="false"/>
-                    <button text="msg://stop" id="stopScannerBtn" enabled="false" themeNames="error" visible="false"/>
+                    <button text="msg://stop" id="stopImportBtn" enabled="false" themeNames="error" visible="false"/>
                     <button id="removeBtn" action="importerDataGrid.remove"/>
                     <simplePagination id="pagination" dataLoader="importerDl"/>
                 </hbox>

@@ -26,7 +26,6 @@ import com.vaadin.flow.component.html.H6;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import eu.occtet.bocfrontend.dao.ImportTaskRepository;
@@ -60,10 +59,10 @@ import java.util.Set;
 @ViewDescriptor(value = "import-list-view.xml", path = "import-list-view.xml")
 @LookupComponent("ImporterDataGrid")
 @DialogMode(width = "600", height = "800")
-public class ImporterListView extends StandardListView<ImportTask> {
+public class ImportTaskListView extends StandardListView<ImportTask> {
 
 
-    private static final Logger log = LogManager.getLogger(ImporterListView.class);
+    private static final Logger log = LogManager.getLogger(ImportTaskListView.class);
 
 
     @ViewComponent
@@ -95,31 +94,17 @@ public class ImporterListView extends StandardListView<ImportTask> {
 
     @Autowired
     private ImportManager importManager;
-
-    private double runningScannerProgress = 0;
-
-
-    private static VerticalLayout runningVBoxLayout;
+;
     @Autowired
     private ImportTaskRepository importTaskRepository;
 
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
 
-        updateAvailableScannersBox();
+        updateAvailableImportsBox();
 
         importerDc.setItems(importTaskRepository.findByStatus(ImportStatus.COMPLETED.getId()));
 
-    }
-
-    @Subscribe("progressTimer")
-    protected void onTimerTick(Timer.TimerActionEvent event) {
-        if (runningVBoxLayout != null && runningVBoxLayout.getComponentAt(1) != null &&
-                runningVBoxLayout.getChildren().count() > 1 &&
-                runningVBoxLayout.getComponentAt(1) instanceof ProgressBar) {
-            ProgressBar progressBar = (ProgressBar) runningVBoxLayout.getComponentAt(1);
-            progressBar.setValue(runningScannerProgress);
-        }
     }
 
     /**
@@ -131,19 +116,19 @@ public class ImporterListView extends StandardListView<ImportTask> {
     }
 
 
-    private void updateAvailableScannersBox() {
+    private void updateAvailableImportsBox() {
         List<Importer> importers = importManager.getAvailableImports();
         availableImportBox.removeAll();
         importers.forEach(importer -> {
-            if(!importer.getName().contains("Dumb") && !importer.getName().contains("Flexera_Report_Scanner"))
-                availableImportBox.add(createScannerIcon(importer + "Id", importer, false));
+            if(!importer.getName().contains("Dumb") && !importer.getName().contains("Flexera_Report_Import"))
+                availableImportBox.add(createImportIcon(importer + "Id", importer, false));
         });
     }
 
 
 
 
-    private VerticalLayout createScannerIcon(String buttonId, Importer importer,boolean isRunning) {
+    private VerticalLayout createImportIcon(String buttonId, Importer importer, boolean isRunning) {
         VerticalLayout verticalLayout = uiComponents.create(VerticalLayout.class);
         verticalLayout.setPadding(false);
         verticalLayout.setWidth("AUTO");
@@ -153,22 +138,22 @@ public class ImporterListView extends StandardListView<ImportTask> {
         H6 h6 = uiComponents.create(H6.class);
         h6.setText(importer.getName());
 
-        JmixImage<Object> scannerImageButton = uiComponents.create(JmixImage.class);
-        scannerImageButton.setClassName("image-border");
-        scannerImageButton.setId(buttonId);
-        scannerImageButton.setHeight("100px");
-        scannerImageButton.setWidth("100px");
-        scannerImageButton.getElement().setAttribute("src", "icons/" + importer.getName().replace(" ", "") + ".png");
-        verticalLayout.add(scannerImageButton, h6);
+        JmixImage<Object> importImageButton = uiComponents.create(JmixImage.class);
+        importImageButton.setClassName("image-border");
+        importImageButton.setId(buttonId);
+        importImageButton.setHeight("100px");
+        importImageButton.setWidth("100px");
+        importImageButton.getElement().setAttribute("src", "icons/" + importer.getName().replace(" ", "") + ".png");
+        verticalLayout.add(importImageButton, h6);
 
         if (!isRunning) {
-            scannerImageButton.setTitle(messageBundle.getMessage(importer.getName().replace(" ", "")));
-            scannerImageButton.addClickListener(e -> {
+            importImageButton.setTitle(messageBundle.getMessage(importer.getName().replace(" ", "")));
+            importImageButton.addClickListener(e -> {
                 importManager.preselectNewImport(importer);
                 importersDataGridCreate.execute();
             });
         } else {
-            scannerImageButton.setTitle(messageBundle.getMessage("scanning"));
+            importImageButton.setTitle(messageBundle.getMessage("scanning"));
         }
         return verticalLayout;
     }
@@ -181,7 +166,7 @@ public class ImporterListView extends StandardListView<ImportTask> {
     }
 
     @Subscribe("importerDataGrid")
-    public void onScannerInitializerDataGridItemClick(final ItemClickEvent<ImportTask> event) {
+    public void onImportInitializerDataGridItemClick(final ItemClickEvent<ImportTask> event) {
         showFeedback.setEnabled(false);
         showConfig.setEnabled(false);
         if (event.getItem() != null) {
@@ -208,7 +193,7 @@ public class ImporterListView extends StandardListView<ImportTask> {
                 .open();
     }
 
-    @Subscribe(id = "stopScannerBtn", subject = "clickListener")
+    @Subscribe(id = "stopImportBtn", subject = "clickListener")
     public void onStopClick(final ClickEvent<JmixButton> event) {
         Set<ImportTask> selectedItems = importerDataGrid.getSelectedItems();
         if (selectedItems == null || selectedItems.isEmpty())
@@ -241,7 +226,7 @@ public class ImporterListView extends StandardListView<ImportTask> {
     public void onRemoveStoppedBtnClick1(final ClickEvent<JmixButton> event) {
         dialogs.createOptionDialog()
                 .withHeader("Please confirm")
-                .withText("Do you really want to remove the stopped scanners?")
+                .withText("Do you really want to remove the stopped imports?")
                 .withActions(
                         new DialogAction(DialogAction.Type.YES)
                                 .withHandler(e -> {

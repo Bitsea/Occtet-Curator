@@ -92,7 +92,7 @@ public class ImportManagerTest {
         systemAuthenticator.runWithSystem(()-> {
 
             ImportTask importTask = importTaskFactory.create(prepare(), "dumb");
-            log.debug("Created ScannerInitializer: {}", importTask);
+            log.debug("Created import: {}", importTask);
             //TODO write nice test here
         });
     }
