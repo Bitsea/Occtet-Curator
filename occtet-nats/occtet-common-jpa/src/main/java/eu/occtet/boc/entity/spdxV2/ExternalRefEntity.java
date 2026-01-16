@@ -41,7 +41,7 @@ public class ExternalRefEntity {
     @Column(nullable = false, name = "reference_type")
     private String referenceType;
 
-    @Lob
+    @Column(name="comment", length = Integer.MAX_VALUE)
     private String comment;
 
     public Long getId() {

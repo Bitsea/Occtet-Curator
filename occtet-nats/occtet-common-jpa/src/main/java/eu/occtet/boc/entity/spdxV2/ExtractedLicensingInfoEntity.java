@@ -32,8 +32,7 @@ public class ExtractedLicensingInfoEntity {
     @JoinColumn(name = "spdx_document_id", nullable = false)
     private SpdxDocumentRoot spdxDocument;
 
-    @Lob
-    @Column(nullable = false, name = "extracted_text")
+    @Column(nullable = false, name = "extracted_text",length = Integer.MAX_VALUE)
     private String extractedText;
 
     @Column(nullable = false, name = "license_id")
@@ -41,7 +40,7 @@ public class ExtractedLicensingInfoEntity {
 
     private String name;
 
-    @Lob
+    @Column(length = Integer.MAX_VALUE)
     private String comment;
 
     @ElementCollection

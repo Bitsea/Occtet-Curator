@@ -45,8 +45,7 @@ public class License {
     @Column(name= "LICENSE_TYPE")
     private String licenseType;
 
-    @Column(name= "LICENSE_TEXT")
-    @Lob
+    @Column(name= "LICENSE_TEXT",length = Integer.MAX_VALUE)
     private String licenseText;
 
     @Column(name= "LICENSE_NAME")

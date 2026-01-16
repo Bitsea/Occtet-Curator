@@ -46,35 +46,31 @@ public class SpdxPackageEntity {
     @Column(name="files_analyzed")
     private boolean filesAnalyzed;
 
-    @Lob
-    @Column(name="version_info")
+    @Column(name="version_info",length = Integer.MAX_VALUE)
     private String versionInfo;
 
-    @Lob
-    @Column(name="license_concluded")
+    @Column(name="license_concluded",length = Integer.MAX_VALUE)
     private String licenseConcluded;
 
-    @Lob
-    @Column(name="license_declared")
+    @Column(name="license_declared",length = Integer.MAX_VALUE)
     private String licenseDeclared;
 
-    @Lob
-    @Column(name="copyright_text")
+    @Column(name="copyright_text",length = Integer.MAX_VALUE)
     private String copyrightText;
 
-    @Lob
+    @Column(length = Integer.MAX_VALUE)
     private String homepage;
 
-    @Lob
+    @Column(length = Integer.MAX_VALUE)
     private String summary;
 
-    @Lob
+    @Column(length = Integer.MAX_VALUE)
     private String description;
 
-    @Lob
+    @Column(length = Integer.MAX_VALUE)
     private String originator;
 
-    @Lob
+    @Column(length = Integer.MAX_VALUE)
     private String supplier;
 
     @ElementCollection

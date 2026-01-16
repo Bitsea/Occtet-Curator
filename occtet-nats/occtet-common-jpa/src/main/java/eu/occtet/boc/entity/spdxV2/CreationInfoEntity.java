@@ -36,7 +36,7 @@ public class CreationInfoEntity {
     @Column(name = "creators", nullable = false)
     private String creators;
 
-    @Lob
+    @Column(name="comment", length = Integer.MAX_VALUE)
     private String comment;
 
     @Column(name = "license_list_version")

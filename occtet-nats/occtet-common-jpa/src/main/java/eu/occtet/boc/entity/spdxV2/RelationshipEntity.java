@@ -41,7 +41,7 @@ public class RelationshipEntity {
     @Column(nullable = false, name = "relationship_type")
     private String relationshipType;
 
-    @Lob
+    @Column(name="comment", length = Integer.MAX_VALUE)
     private String comment;
 
     public SpdxDocumentRoot getSpdxDocument() {

@@ -43,7 +43,7 @@ public class SpdxDocumentRoot {
     @Column(nullable = false)
     private String name;
 
-    @Lob
+    @Column(name="comment",length = Integer.MAX_VALUE)
     private String comment;
 
     @Column(nullable = false, name = "DOCUMENT_URI")

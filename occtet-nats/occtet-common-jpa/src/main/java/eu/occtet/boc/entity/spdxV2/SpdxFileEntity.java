@@ -48,8 +48,7 @@ public class SpdxFileEntity {
     @Column(name = "file_type")
     private List<String> fileTypes;
 
-    @Lob
-    @Column(name= "license_concluded")
+    @Column(name= "license_concluded",length = Integer.MAX_VALUE)
     private String licenseConcluded;
 
     @ElementCollection

@@ -30,7 +30,7 @@ public class PackageVerificationCodeEntity {
     private Long id;
 
 
-    @Column(nullable = false, name ="package_verification_code_value")
+    @Column(name ="package_verification_code_value")
     private String packageVerificationCodeValue;
 
     @ElementCollection

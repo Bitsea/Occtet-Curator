@@ -55,8 +55,7 @@ public class ScannerInitializer {
     @Column(name = "STATUS", nullable = false)
     private String status;
 
-    @Column(name = "FEEDBACK")
-    @Lob
+    @Column(name = "FEEDBACK",length = Integer.MAX_VALUE)
     private String feedback;
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)

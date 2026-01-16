@@ -44,8 +44,7 @@ public class InformationFile {
     @Column(name="FILE_CONTEXT")
     private String context;
 
-    @Lob
-    @Column(name="FILEINFORMATION_CONTENT")
+    @Column(name="FILEINFORMATION_CONTENT",length = Integer.MAX_VALUE)
     private String content;
 
     public InformationFile(){}

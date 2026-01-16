@@ -40,8 +40,7 @@ public class Copyright {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "COPYRIGHT_TEXT")
-    @Lob
+    @Column(name = "COPYRIGHT_TEXT",length = Integer.MAX_VALUE)
     private String copyrightText;
 
     @Column(name= "CURATED")

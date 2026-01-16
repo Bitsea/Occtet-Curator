@@ -44,16 +44,14 @@ public class Snippet {
     @CollectionTable(name = "snippet_ranges", joinColumns = @JoinColumn(name = "snippet_id"))
     private List<Range> ranges;
 
-    @Lob
-    @Column(name= "license_concluded")
+    @Column(name= "license_concluded",length = Integer.MAX_VALUE)
     private String licenseConcluded;
 
     @ElementCollection
     @CollectionTable(name = "snippet_licenses", joinColumns = @JoinColumn(name = "snippet_id"))
     private List<String> licenseInfoInSnippets;
 
-    @Lob
-    @Column(name= "copyright_text")
+    @Column(name= "copyright_text",length = Integer.MAX_VALUE)
     private String copyrightText;
 
     public SpdxDocumentRoot getSpdxDocument() {
