@@ -54,6 +54,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -123,7 +124,11 @@ public class LLMService extends BaseWorkDataProcessor {
 
     private boolean filterCopyrightsWithAI(AICopyrightFilterWorkData aiWorkData) {
         //MemoryAdvisor is default
-        InventoryItem item = getInventoryItem(aiWorkData.getInventoryItemId());
+        Optional<InventoryItem> optItem = inventoryItemRepository.findById(aiWorkData.getInventoryItemId());
+        if(!optItem.isPresent()) {
+            log.warn("InventoryItem with id {} not found", aiWorkData.getInventoryItemId());
+            return false;
+        }
         List<Advisor> advisors = advisorFactory.createAdvisors();
         String response = "";
         Prompt question = promptFactory.createFalseCopyrightPrompt(aiWorkData.getUserMessage());
@@ -140,7 +145,7 @@ public class LLMService extends BaseWorkDataProcessor {
         }
         String result = postProcessor.deleteThinking(response);
 
-        handleAIResult(item, result, copyrightList);
+        handleAIResult(optItem.get(), result, copyrightList);
         if(!result.isEmpty()) {
             try {
                 sendAnswerToStream(result);
@@ -167,10 +172,6 @@ public class LLMService extends BaseWorkDataProcessor {
         return b.toString();
     }
 
-    public InventoryItem getInventoryItem(UUID inventoryItemId) {
-        return inventoryItemRepository.findById(inventoryItemId).getFirst();
-
-    }
 
     /**
      * Handles the AI result and updates the InventoryItem's external notes accordingly.

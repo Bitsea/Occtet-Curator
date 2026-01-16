@@ -52,6 +52,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class CopyrightFilterService  extends BaseWorkDataProcessor {
@@ -93,7 +94,12 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
 
     private boolean initializeCopyrightFilter(ScannerSendWorkData scannerSendWorkData) {
         log.debug("inventoryItemId: {}", scannerSendWorkData.getInventoryItemId());
-        InventoryItem item = inventoryItemRepository.findById(scannerSendWorkData.getInventoryItemId()).getFirst();
+        Optional<InventoryItem> optItem = inventoryItemRepository.findById(scannerSendWorkData.getInventoryItemId());
+        if(!optItem.isPresent()) {
+            log.warn("InventoryItem with id {} not found", scannerSendWorkData.getInventoryItemId());
+            return false;
+        }
+        InventoryItem item = optItem.get();
         List<String> copyrightTexts = new ArrayList<>();
 
         if (item.getSoftwareComponent().getCopyrights() != null && !item.getSoftwareComponent().getCopyrights().isEmpty()) {
