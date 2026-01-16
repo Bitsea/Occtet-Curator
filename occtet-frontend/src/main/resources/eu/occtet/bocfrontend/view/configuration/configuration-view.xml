@@ -2,5 +2,21 @@
 <view xmlns="http://jmix.io/schema/flowui/view"
       title="msg://configurationView.title">
     <layout>
+        <tabSheet id="mainTabSheet" width="100%">
+            <tab id="general" label="msg://configurationView.tab.general">
+                <fileUploadField id="basePath" label="msg://configurationView.tab.general.basePath"/>
+            </tab>
+            <tab id="editor" label="msg://configurationView.tab.editor">
+                <vbox></vbox>
+            </tab>
+            <tab id="ort" label="msg://configurationView.tab.ort">
+                <vbox></vbox>
+
+            </tab>
+            <tab id="openSearch" label="msg://configurationView.tab.openSearch">
+                <vbox></vbox>
+
+            </tab>
+        </tabSheet>
     </layout>
 </view>
