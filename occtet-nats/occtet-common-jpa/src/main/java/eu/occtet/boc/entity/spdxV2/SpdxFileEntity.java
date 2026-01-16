@@ -54,8 +54,7 @@ public class SpdxFileEntity {
 
     @ElementCollection
     @CollectionTable(name = "file_license_info", joinColumns = @JoinColumn(name = "spdx_file_id"))
-    @Column(name = "license_info_in_files")
-    @Lob
+    @Column(name = "license_info_in_files",length = Integer.MAX_VALUE)
     private List<String> licenseInfoInFiles;
 
     @Lob
