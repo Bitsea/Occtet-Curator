@@ -20,9 +20,9 @@
 package eu.occtet.bocfrontend.factory;
 
 
+import eu.occtet.bocfrontend.entity.ImportTask;
 import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.ScannerInitializer;
-import eu.occtet.bocfrontend.entity.ScannerInitializerStatus;
+import eu.occtet.bocfrontend.entity.ImportStatus;
 import io.jmix.core.DataManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,26 +32,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class ScannerInitializerFactory {
+public class ImportTaskFactory {
 
     @Autowired
     private DataManager dataManager;
 
     /**
-     * create ScannerInitializer entity for given softwareComponent and scanner
+     * create Importer entity for given project
      * @param project the origin project
-     * @param scanner name of the scanner to use for scanning this softwareComponent.
-     * @return the persisted scannerInitializer entity
+     * @param name of the importer to use for scanning this softwareComponent.
+     * @return the persisted Importer entity
      */
-    public ScannerInitializer create(@Nonnull Project project, @Nonnull String scanner) {
-        ScannerInitializer scannerTask = dataManager.create(ScannerInitializer.class);
-        scannerTask.setProject(project);
-        scannerTask.setScanner(scanner);
+    public ImportTask create(@Nonnull Project project, @Nonnull String name) {
+        ImportTask importer = dataManager.create(ImportTask.class);
+        importer.setProject(project);
+        importer.setImportName(name);
 
-        return dataManager.save(scannerTask);
+        return dataManager.save(importer);
     }
 
-    public ScannerInitializer saveWithFeedBack(ScannerInitializer scannerInitializer, List<String> feedback, ScannerInitializerStatus status){
+    public ImportTask saveWithFeedBack(ImportTask scannerInitializer, List<String> feedback, ImportStatus status){
         List<String> newFeedbacks= new ArrayList<>();
         List<String> oldFeedbacks= scannerInitializer.getFeedback(); // get preexisting feedbacks
         if (oldFeedbacks!=null && !oldFeedbacks.isEmpty()) newFeedbacks.addAll(oldFeedbacks);

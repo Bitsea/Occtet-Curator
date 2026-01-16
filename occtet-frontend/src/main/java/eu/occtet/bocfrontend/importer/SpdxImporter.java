@@ -1,36 +1,17 @@
-/*
- * Copyright (C) 2025 Bitsea GmbH
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https:www.apache.orglicensesLICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * SPDX-License-Identifier: Apache-2.0
- * License-Filename: LICENSE
- */
-
-package eu.occtet.bocfrontend.scanner;
+package eu.occtet.bocfrontend.importer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.bocfrontend.entity.Configuration;
-import eu.occtet.bocfrontend.entity.ScannerInitializer;
-import eu.occtet.bocfrontend.entity.ScannerInitializerStatus;
-import eu.occtet.bocfrontend.factory.ScannerInitializerFactory;
+import eu.occtet.bocfrontend.entity.ImportStatus;
+import eu.occtet.bocfrontend.entity.ImportTask;
+import eu.occtet.bocfrontend.factory.ImportTaskFactory;
+import eu.occtet.bocfrontend.service.ImportTaskService;
 import eu.occtet.bocfrontend.service.NatsService;
 import io.nats.client.api.ObjectInfo;
 import io.nats.client.api.ObjectMeta;
-import jakarta.validation.constraints.NotNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,20 +23,26 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Consumer;
-
 
 @Service
-public class SpdxScanner extends Scanner{
+public class SpdxImporter extends Importer {
 
-    private static final Logger log = LogManager.getLogger(SpdxScanner.class);
+    private static final Logger log = LogManager.getLogger(SpdxImporter.class);
 
     @Autowired
-    private ScannerInitializerFactory scannerInitializerFactory;
+    private ImportTaskFactory importTaskFactory;
 
-    protected SpdxScanner() {
-        super("Spdx_Scanner");
+
+    @Autowired
+    private NatsService natsService;
+
+    @Autowired
+    private ImportTaskFactory importTaskFactory1;
+
+    protected SpdxImporter() {
+        super("SPDX_Import");
     }
+
 
     private static final String CONFIG_KEY_USE_LICENSE_MATCHER = "UseLicenseMatcher";
     private static final String CONFIG_KEY_FILENAME= "fileName";
@@ -63,20 +50,18 @@ public class SpdxScanner extends Scanner{
     private static final boolean DEFAULT_USE_LICENSE_MATCHER = true;
     private static final boolean DEFAULT_USE_FALSE_COPYRIGHT_FILTER = true;
 
-    @Autowired
-    private NatsService natsService;
 
     @Override
-    public boolean processTask(@NotNull ScannerInitializer scannerInitializer, @NotNull Consumer<ScannerInitializer> completionCallback) {
+    public boolean processTask(ImportTask importer) {
 
         try {
-            log.debug("Processing SPDX Report: {}", scannerInitializer.getStatus());
+            log.debug("Processing SPDX Report: {}", importer.getStatus());
 
             byte[] spdxJson = new byte[0];
             boolean useCopyright = DEFAULT_USE_FALSE_COPYRIGHT_FILTER;
             boolean useLicenseMatcher = DEFAULT_USE_LICENSE_MATCHER;
             String filename = "";
-            List<Configuration> configurations = scannerInitializer.getScannerConfiguration();
+            List<Configuration> configurations = importer.getImportConfiguration();
             for(Configuration configuration: configurations){
                 switch (configuration.getName()) {
                     case CONFIG_KEY_FILENAME:
@@ -92,14 +77,14 @@ public class SpdxScanner extends Scanner{
                 }
             }
 
-            UUID projectId = scannerInitializer.getProject().getId();
+            UUID projectId = importer.getProject().getId();
 
             sendIntoStream(spdxJson, projectId, useCopyright ,useLicenseMatcher, filename);
-            completionCallback.accept(scannerInitializer);
+
             return true;
         }catch (Exception e){
             log.error("Error when trying to send message to other microservice: {}", e.getMessage());
-            scannerInitializerFactory.saveWithFeedBack(scannerInitializer,List.of("Error when trying to send message to other microservice: "+ e.getMessage()), ScannerInitializerStatus.STOPPED);
+            importTaskFactory.saveWithFeedBack(importer,List.of("Error when trying to send message to other microservice: "+ e.getMessage()), ImportStatus.STOPPED);
             return false;
         }
 
@@ -159,5 +144,4 @@ public class SpdxScanner extends Scanner{
             default -> super.getDefaultConfigurationValue(k);
         };
     }
-
 }

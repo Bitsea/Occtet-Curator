@@ -20,13 +20,13 @@
 
 <view xmlns="http://jmix.io/schema/flowui/view"
       title="msg://scannerInitializerListView.title"
-      focusComponent="scannerInitializerDataGrid">
+      focusComponent="importerDataGrid">
     <data readOnly="true">
-        <collection id="scannerInitializerDc"
-                    class="eu.occtet.bocfrontend.entity.ScannerInitializer">
-            <loader id="scannerInitializerDl" readOnly="true">
+        <collection id="importerDc"
+                    class="eu.occtet.bocfrontend.entity.ImportTask">
+            <loader id="importerDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from ScannerInitializer e]]>
+                    <![CDATA[select e from Importer e]]>
                 </query>
             </loader>
         </collection>
@@ -44,44 +44,33 @@
                 text="msg:///actions.Cancel"
                 type="lookup_discard"/>
     </actions>
-    <layout expand="scannerInitializerDataGrid" spacing="true">
-        <label value="Scanner Dashboard" css="font-weight: bold; font-size: 150%;"/>
+    <layout spacing="true">
+        <label value="msg://ImportDashBoard" css="font-weight: bold; font-size: 150%;"/>
         <vbox width="100%">
             <vbox classNames="scanner-layout">
-                <h5 text="Available scanners"/>
+                <h5 text="msg://eu.occtet.bocfrontend/ScannerInitializer.available"/>
                 <scroller scrollBarsDirection="BOTH" width="100%">
-                    <hbox id="availableScannerBox" spacing="true"/>
+                    <hbox id="availableImportBox" spacing="true"/>
                 </scroller>
             </vbox>
-            <vbox classNames="scanner-layout">
-                <h5 text="Queue"/>
-                <scroller scrollBarsDirection="BOTH" width="100%">
-                    <hbox id="runningScannerBox" spacing="true"/>
-                </scroller>
-            </vbox>
-            <hbox width="50%" margin="true">
-                <nativeLabel text="stopped" id="stopped" width="100%"/>
-                <nativeLabel text="waiting" id="waiting" width="100%"/>
-                <nativeLabel text="in_progress" id="inProgress" width="100%"/>
-                <nativeLabel text="completed" id="completed" width="100%"/>
-            </hbox>
+
             <vbox>
                 <hbox id="buttonsPanel" classNames="buttons-panel">
-                    <button id="refreshBtn" action="scannerInitializerDataGrid.refresh"/>
-                    <button text="Remove Stopped Scanners" id="removeStoppedBtn"/>
+                    <button id="refreshBtn" action="importerDataGrid.refresh"/>
+                    <button text="msg://removeStopped" id="removeStoppedBtn"/>
                 </hbox>
                 <hbox>
-                    <button text="Feedback" id="showFeedback" enabled="false" themeNames="success"/>
-                    <button text="Config" id="showConfig" enabled="false"/>
-                    <button text="Stop" id="stopScannerBtn" enabled="false" themeNames="error" visible="false"/>
-                    <button id="removeBtn" action="scannerInitializerDataGrid.remove"/>
-                    <simplePagination id="pagination" dataLoader="scannerInitializerDl"/>
+                    <button text="msg://eu.occtet.bocfrontend/ScannerInitializer.feedback" id="showFeedback" enabled="false" themeNames="success"/>
+                    <button text="msg://eu.occtet.bocfrontend.entity/Configuration" id="showConfig" enabled="false"/>
+                    <button text="msg://stop" id="stopScannerBtn" enabled="false" themeNames="error" visible="false"/>
+                    <button id="removeBtn" action="importerDataGrid.remove"/>
+                    <simplePagination id="pagination" dataLoader="importerDl"/>
                 </hbox>
             </vbox>
-            <dataGrid classNames="occtet-grid" id="scannerInitializerDataGrid"
+            <dataGrid classNames="occtet-grid" id="importerDataGrid"
                       width="100%"
                       minHeight="20em"
-                      dataContainer="scannerInitializerDc"
+                      dataContainer="importerDc"
                       columnReorderingAllowed="true"
                       selectionMode="SINGLE"
                       themeNames="row-stripes">
@@ -91,9 +80,9 @@
                     <action id="remove" type="list_remove"/>
                 </actions>
                 <columns resizable="true" sortable="true">
-                    <column property="scanner" sortable="true" header="Scanner"/>
-                    <column property="status" sortable="true" header="Status"/>
-                    <column property="lastUpdate" sortable="true" header="LastUpdate"/>
+                    <column property="importName" sortable="true" header="msg://name"/>
+                    <column property="status" sortable="true" header="msg://status"/>
+                    <column property="lastUpdate" sortable="true" header="msg://lastUpdate"/>
                 </columns>
             </dataGrid>
         </vbox>

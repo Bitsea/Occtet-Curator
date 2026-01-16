@@ -1,37 +1,22 @@
-/*
- * Copyright (C) 2025 Bitsea GmbH
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https:www.apache.orglicensesLICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * SPDX-License-Identifier: Apache-2.0
- * License-Filename: LICENSE
- */
-
-package eu.occtet.bocfrontend.scanner;
+package eu.occtet.bocfrontend.importer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.FossReportServiceWorkData;
 import eu.occtet.boc.model.WorkTask;
-import eu.occtet.bocfrontend.entity.*;
-import eu.occtet.bocfrontend.factory.ScannerInitializerFactory;
+import eu.occtet.bocfrontend.entity.Configuration;
+import eu.occtet.bocfrontend.entity.ImportStatus;
+import eu.occtet.bocfrontend.entity.ImportTask;
+import eu.occtet.bocfrontend.factory.ImportTaskFactory;
+import eu.occtet.bocfrontend.service.ImportTaskService;
 import eu.occtet.bocfrontend.service.NatsService;
-import eu.occtet.bocfrontend.service.ScannerInitializerService;
-import jakarta.validation.constraints.NotNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,26 +28,26 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.function.Consumer;
-
 
 @Service
-public class FlexeraReportScanner extends Scanner{
+public class FlexeraReportImporter extends Importer {
 
-    private static final Logger log = LogManager.getLogger(FlexeraReportScanner.class);
-    private final ScannerInitializerService scannerInitializerService;
+    private static final Logger log = LogManager.getLogger(FlexeraReportImporter.class);
+
 
 
     @Autowired
     private NatsService natsService;
 
-    @Autowired
-    private ScannerInitializerFactory scannerInitializerFactory;
 
-    protected FlexeraReportScanner(ScannerInitializerService scannerInitializerService) {
-        super("Flexera_Report_Scanner");
-        this.scannerInitializerService = scannerInitializerService;
+    protected FlexeraReportImporter() {
+        super("Flexera_Report_Import");
     }
+
+    @Autowired
+    private ImportTaskFactory importTaskFactory;
+
+
 
     private static final String CONFIG_KEY_USE_LICENSE_MATCHER = "UseLicenseMatcher";
     private static final String CONFIG_KEY_FILENAME= "fileName";
@@ -72,9 +57,9 @@ public class FlexeraReportScanner extends Scanner{
 
 
     @Override
-    public boolean processTask(@NotNull ScannerInitializer scannerInitializer, @NotNull Consumer<ScannerInitializer> completionCallback) {
+    public boolean processTask(ImportTask importer) {
         // Get the configuration containing the uploaded file
-        Configuration configuration = Objects.requireNonNull(scannerInitializer.getScannerConfiguration()
+        Configuration configuration = Objects.requireNonNull(importer.getImportConfiguration()
                 .stream()
                 .filter(c -> c.getName().equals(CONFIG_KEY_FILENAME))
                 .findFirst().orElse(null));
@@ -84,57 +69,57 @@ public class FlexeraReportScanner extends Scanner{
 
 
         try {
-            readExcelRows(scannerInitializer, contentInByte );
-            log.debug("Processing Flexera Report for Procejt: {}", scannerInitializer.getProject().getProjectName());
+            readExcelRows(importer, contentInByte );
+            log.debug("Processing Flexera Report for Procejt: {}", importer.getProject().getProjectName());
             return true;
         }catch (Exception e){
             log.error("Error when connecting to backend: {}", e.getMessage());
-            scannerInitializerService.updateScannerFeedback("Error when connecting to backend: "+ e.getMessage(), scannerInitializer);
+            importTaskFactory.saveWithFeedBack(importer, List.of("Error when trying to send message to other microservice: "+ e.getMessage()), ImportStatus.STOPPED);
             return false;
         }
 
     }
 
-    private void readExcelRows( ScannerInitializer scannerInitializer, byte[] contentInByte) {
+    private void readExcelRows( ImportTask importTask, byte[] contentInByte) {
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(contentInByte)){
             OPCPackage pkg = OPCPackage.open(byteArrayInputStream);
             XSSFWorkbook workbook = new XSSFWorkbook(pkg);
             XSSFSheet sheet = workbook.getSheetAt(0);
 
-        Map<Integer, String> columnIndexNamesMap = createColumnNamesMap(sheet, 0);
-        Iterator<Row> rowIterator = sheet.iterator();
-        //skip first line with columnNames
-        if (rowIterator.hasNext()) {
-            rowIterator.next();
-        }
-
-        while (rowIterator.hasNext()) {
-
-            Row row = rowIterator.next();
-            Iterator<Cell> cellIterator = row.cellIterator();
-            Map<String, Object> rowData = new LinkedHashMap<>();
-            while (cellIterator.hasNext()) {
-                Cell cell = cellIterator.next();
-                String columnName= columnIndexNamesMap.get(cell.getColumnIndex());
-                if ( columnName!= null) {
-                    switch (cell.getCellType()) {
-                        case STRING -> rowData.put(columnName, cell.getStringCellValue());
-                        case NUMERIC -> rowData.put(columnName, cell.getNumericCellValue());
-                        case BOOLEAN -> rowData.put(columnName, cell.getBooleanCellValue());
-                        case FORMULA -> rowData.put(columnName, cell.getCellFormula());
-                    }
-
-                }
+            Map<Integer, String> columnIndexNamesMap = createColumnNamesMap(sheet, 0);
+            Iterator<Row> rowIterator = sheet.iterator();
+            //skip first line with columnNames
+            if (rowIterator.hasNext()) {
+                rowIterator.next();
             }
-            if(!rowData.isEmpty())sendIntoStream(scannerInitializer.getId(), rowData);
 
-        }
+            while (rowIterator.hasNext()) {
+
+                Row row = rowIterator.next();
+                Iterator<Cell> cellIterator = row.cellIterator();
+                Map<String, Object> rowData = new LinkedHashMap<>();
+                while (cellIterator.hasNext()) {
+                    Cell cell = cellIterator.next();
+                    String columnName= columnIndexNamesMap.get(cell.getColumnIndex());
+                    if ( columnName!= null) {
+                        switch (cell.getCellType()) {
+                            case STRING -> rowData.put(columnName, cell.getStringCellValue());
+                            case NUMERIC -> rowData.put(columnName, cell.getNumericCellValue());
+                            case BOOLEAN -> rowData.put(columnName, cell.getBooleanCellValue());
+                            case FORMULA -> rowData.put(columnName, cell.getCellFormula());
+                        }
+
+                    }
+                }
+                if(!rowData.isEmpty())sendIntoStream(importTask.getId(), rowData);
+
+            }
             workbook.close();
             pkg.close();
 
         } catch (IOException | OpenXML4JException e) {
             log.error("Exception when processing errorMessage", e);
-            scannerInitializerFactory.saveWithFeedBack(scannerInitializer, List.of("Error when processing file: " + e.getMessage()), ScannerInitializerStatus.STOPPED);
+            importTaskFactory.saveWithFeedBack(importTask, List.of("Error when processing file: " + e.getMessage()), ImportStatus.STOPPED);
         }
     }
 
@@ -163,9 +148,9 @@ public class FlexeraReportScanner extends Scanner{
     }
 
 
-    private void sendIntoStream(UUID scannerInitId, Map<String, Object> rowData) {
+    private void sendIntoStream(UUID importId, Map<String, Object> rowData) {
 
-        FossReportServiceWorkData fossReportServiceWorkData = new FossReportServiceWorkData(scannerInitId, rowData);
+        FossReportServiceWorkData fossReportServiceWorkData = new FossReportServiceWorkData(importId, rowData);
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
         WorkTask workTask = new WorkTask("status_request", "question", actualTimestamp, fossReportServiceWorkData);

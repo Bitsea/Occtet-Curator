@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2025 Bitsea GmbH
  *
@@ -17,19 +18,34 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.dao;
+package eu.occtet.bocfrontend.entity;
 
-import eu.occtet.bocfrontend.entity.ScannerInitializer;
-import io.jmix.core.repository.JmixDataRepository;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import org.springframework.lang.Nullable;
 
 
-public interface ScannerInitializerRepository extends JmixDataRepository<ScannerInitializer, UUID> {
+public enum ImportStatus {
+    CREATING("CREATING"),APPROVE("APPROVE"),IN_PROGRESS("IN_PROGRESS"),WAITING("WAITING"), STOPPED("STOPPED"), COMPLETED("COMPLETED");
 
-    List<ScannerInitializer> findByStatus(String status);
-    long countByStatus(String status);
-    Optional<ScannerInitializer>  findById(UUID id);
+    private final String id;
+
+    ImportStatus(String value) {
+        this.id = value;
+    }
+
+
+    public String getId() {
+        return id;
+    }
+
+    @Nullable
+    public static ImportStatus fromId(String id) {
+        for (ImportStatus at : ImportStatus.values()) {
+            if (at.getId().equals(id)) {
+                return at;
+            }
+        }
+        return null;
+    }
 }
+
+

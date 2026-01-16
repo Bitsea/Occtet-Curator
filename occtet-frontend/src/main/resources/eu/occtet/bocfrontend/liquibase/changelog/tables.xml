@@ -99,13 +99,13 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="SCANNER_INITIALIZER" author="OcctetFrontend" runAlways="true">
-        <preConditions onFail="MARK_RAN"><not><tableExists tableName="SCANNER_INITIALIZER"/></not></preConditions>
-        <createTable tableName="SCANNER_INITIALIZER">
+    <changeSet id="IMPORT_TASK" author="OcctetFrontend" runAlways="true">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="IMPORT_TASK"/></not></preConditions>
+        <createTable tableName="IMPORT_TASK">
             <column name="ID" type="UUID">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SCANNER_INITIALIZER"/>
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_IMPORT_TASK"/>
             </column>
-            <column name="SCANNER" type="VARCHAR(255)"/>
+            <column name="IMPORT_NAME" type="VARCHAR(255)"/>
             <column name="STATUS" type="VARCHAR(255)"/>
             <column name="FEEDBACK" type="TEXT"/>
             <column name="PROJECT_ID" type="UUID"/>
@@ -249,7 +249,7 @@
             <column name="NAME" type="VARCHAR(255)"/>
             <column name="VALUE" type="VARCHAR(255)"/>
             <column name="UPLOAD" type="BINARY"/>
-            <column name="SCANNER_INITIALIZER_ID" type="UUID"/>
+            <column name="IMPORT_TASK_ID" type="UUID"/>
         </createTable>
     </changeSet>
 

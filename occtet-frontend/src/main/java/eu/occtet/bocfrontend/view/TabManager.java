@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.engine;
+package eu.occtet.bocfrontend.view;
 
 
 import com.vaadin.flow.component.Component;

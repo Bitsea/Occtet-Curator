@@ -20,9 +20,9 @@
 package eu.occtet.bocfrontend.service;
 
 import eu.occtet.bocfrontend.entity.Configuration;
-import eu.occtet.bocfrontend.entity.ScannerInitializer;
+import eu.occtet.bocfrontend.entity.ImportTask;
 import eu.occtet.bocfrontend.factory.ConfigurationFactory;
-import eu.occtet.bocfrontend.engine.ScannerManager;
+import eu.occtet.bocfrontend.importer.ImportManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,14 +36,14 @@ public class ConfigurationService {
     @Autowired
     private ConfigurationFactory configurationFactory;
     @Autowired
-    private ScannerManager scannerManager;
+    private ImportManager importManager;
 
     public Configuration create(String name, String value){
         return configurationFactory.create(name, value);
     }
 
-    public Configuration.Type getTypeOfConfiguration(String key, ScannerInitializer scannerInitializer) {
-        return scannerManager.findScannerByName(scannerInitializer.getScanner()).getTypeOfConfiguration(key);
+    public Configuration.Type getTypeOfConfiguration(String key, ImportTask importTask) {
+        return importManager.findImportByName(importTask.getImportName()).getTypeOfConfiguration(key);
     }
 
     /**
@@ -58,11 +58,11 @@ public class ConfigurationService {
             byte[] uploadFieldValue,
             String uploadFileName,
             Boolean booleanField,
-            ScannerInitializer scannerInitializer
+            ImportTask importTask
     ) {
-        if (getTypeOfConfiguration(nameField, scannerInitializer) == Configuration.Type.FILE_UPLOAD) {
+        if (getTypeOfConfiguration(nameField, importTask) == Configuration.Type.FILE_UPLOAD) {
             return handleFileUploadConfig(config, nameField, uploadFieldValue, uploadFileName);
-        } else if (getTypeOfConfiguration(nameField, scannerInitializer) == Configuration.Type.BOOLEAN) {
+        } else if (getTypeOfConfiguration(nameField, importTask) == Configuration.Type.BOOLEAN) {
             return handleValueOnly(config, nameField, booleanField.toString());
         } else {
             return handleValueOnly(config, nameField, config.getValue());
