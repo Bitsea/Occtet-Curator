@@ -26,7 +26,8 @@
   background-color: #E2F2FF;
   min-height: 100vh;
   display: flex;
-  height: 100%;
+  height: 100vh;
+  overflow: hidden;
 }
 
 

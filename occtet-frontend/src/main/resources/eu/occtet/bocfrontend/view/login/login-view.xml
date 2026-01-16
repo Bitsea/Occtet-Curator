@@ -24,7 +24,7 @@
     <layout justifyContent="CENTER" alignItems="CENTER" classNames="jmix-login-main-layout"
             padding="false"
             margin="false"
-            spacing="false" height="100%" width="100%">
+            spacing="false">
 
         <!-- HEADER with logo -->
         <div classNames="login-header">
