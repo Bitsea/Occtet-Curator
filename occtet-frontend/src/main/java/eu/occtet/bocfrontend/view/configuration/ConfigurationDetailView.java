@@ -215,13 +215,13 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
         uploadField.setVisible(true);
         valueField.setVisible(false);
         booleanField.setVisible(false);
-        int maxFileSizeInBytes = 20 * 1024 * 1024; // 20MB
+        int maxFileSizeInBytes = 70 * 1024 * 1024; // 70MB
         uploadField.setMaxFileSize(maxFileSizeInBytes);
 
         // Here the setup might vary depending on the scanner
         if (scannerInitializer.getScanner().equals(FLEXERA)) {
             uploadField.setAcceptedFileTypes(".xlsx");
-            uploadField.setHelperText("Upload a Flexera report in Excel format (.xlsx, max 20 MB)");
+            uploadField.setHelperText("Upload a Flexera report in Excel format (.xlsx, max 70 MB)");
         }
     }
 

@@ -22,6 +22,7 @@ package eu.occtet.bocfrontend.view.dashboard;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.router.Route;
+import eu.occtet.bocfrontend.entity.DashboardQueryRisk;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.Vulnerability;
 import eu.occtet.bocfrontend.view.main.MainView;
@@ -45,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 @Route(value = "dashboard-view", layout = MainView.class)
@@ -64,6 +66,9 @@ public class DashboardView extends StandardView {
     @ViewComponent
     protected Chart chartVulnerabilites;
 
+    @ViewComponent
+    protected Chart chartSoftwareComponent;
+
     @Autowired
     private DialogWindows dialogWindows;
 
@@ -73,6 +78,21 @@ public class DashboardView extends StandardView {
     private final static String sumRiskScore = "sumRiskScore";
     private final static String sumRiskValue = "value";
     private final static String sumRiskLevel = "Level";
+    private final static String lowRisk = "Low";
+    private final static String mediumRisk = "Medium";
+    private final static String highRisk = "High";
+    private final static String criticalRisk = "Critical";
+
+    private final static int ZERO = 0;
+    private final static double v_0_1 = 0.1;
+    private final static double v_3_9 = 3.9;
+    private final static double v_4_0 = 4.0;
+    private final static double v_6_9 = 6.9;
+    private final static double v_7_0 = 7.0;
+    private final static double v_8_9 = 8.9;
+    private final static double v_9_0 = 9.0;
+    private final static double v_10 = 10.0;
+
 
     private static final Logger log = LogManager.getLogger(DashboardView.class);
 
@@ -102,7 +122,7 @@ public class DashboardView extends StandardView {
     public void chooseProject(AbstractField.ComponentValueChangeEvent event) {
         if (event != null) {
             Project project = (Project) event.getValue();
-            setValuesForPieChart(project);
+            setValuesForPieCharts(project);
         }
     }
 
@@ -117,60 +137,119 @@ public class DashboardView extends StandardView {
         dialog.open();
     }
 
-    private void setValuesForPieChart(Project project) {
-        Long lowRisk = dataManager.loadValues(getSpecificLoadContext(project, 0.1, 3.9))
+    private void setValuesForPieCharts(Project project) {
+
+        //Values for vulnerability pie chart
+        Long vulnerLowRisk =
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_0_1, v_3_9, DashboardQueryRisk.vulnerabilityRisk)))
                 .getFirst().getValue(sumRiskScore);
-        Long mediumRisk = dataManager.loadValues(getSpecificLoadContext(project, 4.0, 6.9))
+        Long vulnerMediumRisk =
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_4_0, v_6_9, DashboardQueryRisk.vulnerabilityRisk)))
                 .getFirst().getValue(sumRiskScore);
-        Long highRisk = dataManager.loadValues(getSpecificLoadContext(project, 7.0, 8.9))
+        Long vulnerHighRisk =
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_7_0, v_8_9, DashboardQueryRisk.vulnerabilityRisk)))
                 .getFirst().getValue(sumRiskScore);
-        Long criticalRisk = dataManager.loadValues(getSpecificLoadContext(project, 9.0, 10.0))
+        Long vulnerCriticalRisk =
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_9_0, v_10, DashboardQueryRisk.vulnerabilityRisk)))
                 .getFirst().getValue(sumRiskScore);
 
 
-        List<MapDataItem> items = new ArrayList<>();
+        //Values for softwareComponent pie chart
+        Long softwareNoRisk =
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, ZERO, ZERO, DashboardQueryRisk.noRisk)))
+                .getFirst().getValue(sumRiskScore);
+        Long softwareLowRisk =
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_0_1, v_3_9, DashboardQueryRisk.softwareRisk)))
+                .getFirst().getValue(sumRiskScore);
+        Long softwareMediumRisk =
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_4_0, v_6_9, DashboardQueryRisk.softwareRisk)))
+                .getFirst().getValue(sumRiskScore);
+        Long softwareHighRisk =
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_7_0, v_8_9, DashboardQueryRisk.softwareRisk)))
+                .getFirst().getValue(sumRiskScore);
+        Long softwareCriticalRisk =
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_9_0, v_10, DashboardQueryRisk.softwareRisk)))
+                .getFirst().getValue(sumRiskScore);
+
+
+        List<MapDataItem> vulnerabilityItems = new ArrayList<>();
+        List<MapDataItem> softwareComponentItems = new ArrayList<>();
         List<Color> dynamicColors = new ArrayList<>();
 
-        if (lowRisk != null && lowRisk > 0) {
-            items.add(new MapDataItem(Map.of(sumRiskLevel, "Low", sumRiskValue, lowRisk)));
+        if (softwareNoRisk != null && softwareNoRisk > ZERO){
+            softwareComponentItems.add(new MapDataItem(Map.of(sumRiskLevel, "No risk", sumRiskValue, softwareNoRisk)));
+            dynamicColors.add(Color.DARKGREEN);
+        }
+
+        if ((vulnerLowRisk!= null && vulnerLowRisk > ZERO) && (softwareLowRisk != null && softwareLowRisk > ZERO)) {
+            vulnerabilityItems.add(new MapDataItem(Map.of(sumRiskLevel, lowRisk, sumRiskValue, vulnerLowRisk)));
+            softwareComponentItems.add(new MapDataItem(Map.of(sumRiskLevel, lowRisk, sumRiskValue, softwareLowRisk)));
             dynamicColors.add(Color.DARKORANGE);
         }
 
-        if (mediumRisk != null && mediumRisk > 0) {
-            items.add(new MapDataItem(Map.of(sumRiskLevel, "Medium", sumRiskValue, mediumRisk)));
+        if (vulnerMediumRisk != null && vulnerMediumRisk > ZERO && (softwareMediumRisk != null && softwareMediumRisk > ZERO)) {
+            vulnerabilityItems.add(new MapDataItem(Map.of(sumRiskLevel, mediumRisk, sumRiskValue, vulnerMediumRisk)));
+            softwareComponentItems.add(new MapDataItem(Map.of(sumRiskLevel, mediumRisk, sumRiskValue, softwareMediumRisk)));
             dynamicColors.add(Color.ORANGERED);
         }
 
-        if (highRisk != null && highRisk > 0) {
-            items.add(new MapDataItem(Map.of(sumRiskLevel, "High", sumRiskValue, highRisk)));
+        if (vulnerHighRisk != null && vulnerHighRisk > ZERO && (softwareHighRisk != null && softwareHighRisk > ZERO)) {
+            vulnerabilityItems.add(new MapDataItem(Map.of(sumRiskLevel, highRisk, sumRiskValue, vulnerHighRisk)));
+            softwareComponentItems.add(new MapDataItem(Map.of(sumRiskLevel, highRisk, sumRiskValue, softwareHighRisk)));
             dynamicColors.add(Color.FIREBRICK);
         }
 
-        if (criticalRisk != null && criticalRisk > 0) {
-            items.add(new MapDataItem(Map.of(sumRiskLevel, "Critical", sumRiskValue, criticalRisk)));
+        if (vulnerCriticalRisk != null && vulnerCriticalRisk > ZERO && (softwareCriticalRisk != null && softwareCriticalRisk > ZERO)) {
+            vulnerabilityItems.add(new MapDataItem(Map.of(sumRiskLevel, criticalRisk, sumRiskValue, vulnerCriticalRisk)));
+            softwareComponentItems.add(new MapDataItem(Map.of(sumRiskLevel, criticalRisk, sumRiskValue, softwareCriticalRisk)));
             dynamicColors.add(Color.DARKRED);
         }
 
-        ListChartItems<MapDataItem> chartItems = new ListChartItems<>(items);
+        ListChartItems<MapDataItem> vulnerabilityChartItems = new ListChartItems<>(vulnerabilityItems);
+        ListChartItems<MapDataItem> softwareChartItems = new ListChartItems<>(softwareComponentItems);
 
         if (!dynamicColors.isEmpty()) {
-            chartVulnerabilites.setColorPalette(dynamicColors.toArray(new Color[0]));
+            if(dynamicColors.size() == 1 && dynamicColors.contains(Color.DARKGREEN)){
+                chartSoftwareComponent.setColorPalette(dynamicColors.toArray(new Color[ZERO]));
+            }
+            chartSoftwareComponent.setColorPalette(dynamicColors.toArray(new Color[ZERO]));
+            List<Color> vDynamicColors = dynamicColors.stream().filter(c -> !c.equals(Color.DARKGREEN)).toList();
+            chartVulnerabilites.setColorPalette(vDynamicColors.toArray(new Color[ZERO]));
         }
+        setChartDataSet(chartVulnerabilites,vulnerabilityChartItems);
+        setChartDataSet(chartSoftwareComponent,softwareChartItems);
 
-        chartVulnerabilites.withDataSet(
+    }
+
+    private void setChartDataSet(Chart chart, ListChartItems<MapDataItem> listChartItems){
+
+        chart.withDataSet(
                 new DataSet().withSource(
                         new DataSet.Source<MapDataItem>()
-                                .withDataProvider(chartItems)
+                                .withDataProvider(listChartItems)
                                 .withCategoryField(sumRiskLevel)
                                 .withValueField(sumRiskValue)
                 )
         );
     }
 
-    private ValueLoadContext getSpecificLoadContext(Project project, double minRisk, double maxRisk) {
+    private ValueLoadContext getSpecificLoadContext(Project project, double minRisk, double maxRisk, DashboardQueryRisk query) {
 
-        return new ValueLoadContext()
-                .setQuery(new ValueLoadContext.Query("""
+        switch(query){
+            case noRisk -> {
+                return new ValueLoadContext()
+                        .setQuery(new ValueLoadContext.Query("""
+                        select count(s) as sumRiskScore
+                        from InventoryItem i
+                        join i.softwareComponent s
+                        join i.project p
+                        where p.id = :project_id and s.vulnerabilities is empty
+                        """).setParameter("project_id", project.getId()))
+                        .addProperty("sumRiskScore");
+            }
+            case vulnerabilityRisk -> {
+                return new ValueLoadContext()
+                        .setQuery(new ValueLoadContext.Query("""
                         select count(distinct v) as sumRiskScore
                         from InventoryItem i
                         join i.softwareComponent s
@@ -178,8 +257,27 @@ public class DashboardView extends StandardView {
                         join i.project p
                         where p.id = :project_id and (v.riskScore >= :minRisk and v.riskScore <= :maxRisk)
                         """).setParameter("project_id", project.getId())
-                        .setParameter("minRisk", minRisk)
-                        .setParameter("maxRisk", maxRisk))
-                .addProperty("sumRiskScore");
+                                .setParameter("minRisk", minRisk)
+                                .setParameter("maxRisk", maxRisk))
+                        .addProperty("sumRiskScore");
+            }
+            case softwareRisk -> {
+                return new ValueLoadContext()
+                        .setQuery(new ValueLoadContext.Query("""
+                        select count(s) as sumRiskScore
+                        from InventoryItem i
+                        join i.softwareComponent s
+                        join s.vulnerabilities v
+                        join i.project p
+                        where p.id = :project_id and (v.riskScore >= :minRisk and v.riskScore <= :maxRisk)
+                        """).setParameter("project_id", project.getId())
+                                .setParameter("minRisk", minRisk)
+                                .setParameter("maxRisk", maxRisk))
+                        .addProperty("sumRiskScore");
+            }
+            default -> {
+                return null;
+            }
+        }
     }
 }
