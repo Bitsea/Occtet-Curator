@@ -25,6 +25,8 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.html.NativeLabel;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
@@ -48,6 +50,7 @@ import io.jmix.core.entity.KeyValueEntity;
 import io.jmix.flowui.*;
 import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.combobox.JmixComboBox;
+import io.jmix.flowui.component.grid.DataGridColumn;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.kit.component.button.JmixButton;
@@ -180,7 +183,7 @@ public class AuditView extends StandardView{
      * - Tracks the expansion and collapse state of items in the grid to maintain UI consistency.
      */
     private void initializeFileTreeGrid() {
-        HorizontalLayout toolboxWrapper = componentFactory.createFileTreeToolbox(fileTreeGrid);
+        FlexLayout toolboxWrapper = componentFactory.createFileTreeToolbox(fileTreeGrid);
         fileTreeGridLayout.addComponentAsFirst(toolboxWrapper);
 
         JmixComboBox<FileReviewedFilterMode> filterBox = (JmixComboBox<FileReviewedFilterMode>)
@@ -375,18 +378,28 @@ public class AuditView extends StandardView{
         projectComboBox.setItemLabelGenerator(Project::getProjectName);
     }
 
+    /**
+     * Initializes the inventory data grid for displaying and managing inventory items.
+     */
     private void initializeInventoryDataGrid() {
         HorizontalLayout inventoryToolbox = componentFactory.createToolBox(
                 inventoryItemDataGrid, InventoryItem.class,
                 () -> treeGridHelper.expandChildrenOfRoots(inventoryItemDataGrid),
                 () -> treeGridHelper.collapseChildrenOfRoots(inventoryItemDataGrid));
-        // Find the vulnerability filter checkbox and add a value change listener to it.
+
         findCheckBoxById(inventoryToolbox, componentFactory.getVulnerabilityFilterId())
                 .ifPresentOrElse(checkbox -> {
                     checkbox.addValueChangeListener(event ->
                                     onVulnerabilityFilterToggled(Boolean.TRUE.equals(event.getValue())));
                 }, () -> log.warn("Unable to find vulnerability filter checkbox in inventory toolbox")
                 );
+
+        // TODO is not listening due the default jmix listener
+        inventoryItemDataGrid.addItemClickListener(event -> {
+            if (event.getClickCount() == 2) {
+                tabManager.openInventoryItemTab(event.getItem(), true);
+            }
+        });
         toolbarBox.removeAll();
         toolbarBox.add(inventoryToolbox);
         componentFactory.createInfoButtonHeaderForInventoryGrid(inventoryItemDataGrid, "status");
@@ -623,15 +636,15 @@ public class AuditView extends StandardView{
         updateUrl();
     }
 
-    @Subscribe("inventoryItemDataGrid")
-    public void onInventoryItemDataGridClick(final ItemClickEvent<InventoryItem> event) {
-        if (event.getClickCount() == 2) {
-            inventoryItemSection.setVisible(true);
-            tabManager.openInventoryItemTab(event.getItem(), true);
-        } else {
-            treeGridHelper.toggleExpansion(inventoryItemDataGrid, event.getItem());
-        }
-    }
+//    @Subscribe("inventoryItemDataGrid")
+//    public void onInventoryItemDataGridClick(final ItemClickEvent<InventoryItem> event) {
+//        if (event.getClickCount() == 2) {
+//            inventoryItemSection.setVisible(true);
+//            tabManager.openInventoryItemTab(event.getItem(), true);
+//        } else {
+//            treeGridHelper.toggleExpansion(inventoryItemDataGrid, event.getItem());
+//        }
+//    }
 
     private void clearView() {
         inventoryItemDc.setItems(Collections.emptyList());

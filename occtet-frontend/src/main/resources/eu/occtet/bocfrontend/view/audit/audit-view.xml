@@ -56,8 +56,8 @@
     </facets>
     <layout  padding="false" spacing="false" width="100%" height="100%">
         <hbox width="100%" height="100%">
-            <split themeNames="small" width="100%">
-                <split width="80%" themeNames="small">
+            <split width="100%">
+                <split width="80%" themeNames="splitter-spacing">
                     <vbox classNames="border rounded-m border-contrast-20" width="20%" margin="false" padding="false"
                           spacing="false">
                         <comboBox id="projectComboBox" label="Choose project" width="97%" alignSelf="CENTER"/>

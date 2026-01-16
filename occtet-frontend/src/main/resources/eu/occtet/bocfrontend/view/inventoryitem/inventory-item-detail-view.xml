@@ -69,7 +69,7 @@
                             </hbox>
                         </hbox>
                         <hbox width="100%">
-                            <comboBox id="parentField" property="parent.inventoryName"
+                            <comboBox id="parentField" property="parent"
                                        label="msg://eu.occtet.bocfrontend.entity/InventoryItem.parent" width="25em" css="margin-left: 30px"/>
                             <button id="parentButton" text="msg://showParent"
                                     width="15em" alignSelf="END"/>

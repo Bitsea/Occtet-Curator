@@ -51,7 +51,8 @@
             <columns resizable="true" sortable="false">
                 <column property="timestmp" width="15%" header="msg://eu.occtet.bocfrontend.entity/DbLog.eventDate"
                         sortable="false"/>
-                <column property="loggerName" width="25%" header="" sortable="false"/>
+                <column property="loggerName" width="25%" header="msg://eu.occtet.bocfrontend.entity/DbLog.loggerName"
+                        sortable="false"/>
                 <column property="formattedMessage" autoWidth="true"
                         header="msg://eu.occtet.bocfrontend.entity/DbLog.message" sortable="false"/>
             </columns>
