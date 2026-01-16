@@ -45,12 +45,11 @@
     </actions>
     <layout>
         <vbox>
-            <button id="textSearchLicense" text="msg://licenseListView.searchText"/>
-            <hbox width="100%">
-                <genericFilter id="genericFilter" dataLoader="licensesDl" themeNames="small"
-                               width="80%" alignSelf="START">
+            <comboBox id="projectComboBox" property="projectName"/>
+            <hbox width="100%" visible="false" id="filterBox">
+                <genericFilter id="genericFilter" dataLoader="licensesDl" themeNames="small" alignSelf="START" opened="false"
+                               classNames="border-primary-10">
                     <properties include=".*"/>
-                    <conditions> </conditions>
                 </genericFilter>
                 <simplePagination id="pagination" dataLoader="licensesDl" alignSelf="END"/>
             </hbox>
@@ -83,6 +82,7 @@
                     <button id="removeButton" action="licensesDataGrid.removeAction"/>
                 </hbox>
                 <hbox alignSelf="END">
+                    <button id="textSearchLicense" text="msg://licenseListView.searchText"/>
                     <button id="fetchSPDXButton" text="Fetch spdx licenses" themeNames="primary" alignSelf="END"/>
                 </hbox>
             </hbox>

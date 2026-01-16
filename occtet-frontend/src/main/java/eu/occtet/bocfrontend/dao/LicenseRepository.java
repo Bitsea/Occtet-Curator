@@ -20,7 +20,9 @@
 package eu.occtet.bocfrontend.dao;
 
 import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.Project;
 import io.jmix.core.repository.JmixDataRepository;
+import io.jmix.core.repository.Query;
 
 import java.util.List;
 import java.util.UUID;
@@ -33,4 +35,6 @@ public interface LicenseRepository  extends JmixDataRepository<License, UUID> {
     List<License> findLicensesByPriority(Integer priority);
     List<License> findLicensesByLicenseName(String licenseName);
     License findLicenseById(UUID uuid);
+    @Query("select distinct l from InventoryItem i join i.project p join i.softwareComponent sc join sc.licenses l where p = :project")
+    List<License> findLicensesByProject(Project project);
 }
