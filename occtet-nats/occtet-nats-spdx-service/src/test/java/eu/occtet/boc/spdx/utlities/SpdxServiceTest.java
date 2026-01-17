@@ -22,13 +22,14 @@
 
 package eu.occtet.boc.spdx.utlities;
 
+import eu.occtet.boc.config.TestEclipseLinkJpaConfiguration;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.spdxV2.RelationshipEntity;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.entity.spdxV2.SpdxFileEntity;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.model.SpdxWorkData;
-import eu.occtet.boc.spdx.config.EclipseLinkJpaConfiguration;
+import eu.occtet.boc.config.EclipseLinkJpaConfiguration;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.dao.LicenseRepository;
@@ -58,7 +59,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -66,7 +66,7 @@ import java.util.UUID;
         CopyrightService.class, InventoryItemService.class, LicenseService.class, CodeLocationService.class,
         ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class,
         CopyrightFactory.class, CodeLocationFactory.class, InventoryItemFactory.class,
-        LicenseFactory.class, SpdxConverter.class, EclipseLinkJpaConfiguration.class
+        LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class
 })
 @EnableJpaRepositories(basePackages = {
         "eu.occtet.boc.spdx.dao"})
