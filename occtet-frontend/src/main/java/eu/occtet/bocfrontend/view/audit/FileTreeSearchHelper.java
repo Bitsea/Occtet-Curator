@@ -49,8 +49,6 @@ public class FileTreeSearchHelper {
 
     private final Logger log = LogManager.getLogger(this.getClass());
 
-    @Autowired
-    Messages messages;
 
     private final FileRepository fileRepository;
     private final TreeGrid<File> treeGrid;
@@ -250,7 +248,7 @@ public class FileTreeSearchHelper {
                     return span;
                 })
                 .setKey("fileName")
-                .setHeader(messages.getMessage("eu.occtet.bocfrontend.view/fileTreeSearchHelper.header"))
+                .setHeader("Files")
                 .setSortable(true);
     }
 
