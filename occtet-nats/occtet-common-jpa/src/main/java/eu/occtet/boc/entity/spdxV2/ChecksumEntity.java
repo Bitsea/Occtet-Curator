@@ -20,12 +20,13 @@ package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
 
+
 @Entity
 @Table(name = "CHECKSUM_ENTITY")
 public class ChecksumEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @ManyToOne
@@ -39,7 +40,7 @@ public class ChecksumEntity {
     @Column(nullable = false)
     private String algorithm;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "checksum_value")
     private String checksumValue;
 
     public void setId(Long id) {

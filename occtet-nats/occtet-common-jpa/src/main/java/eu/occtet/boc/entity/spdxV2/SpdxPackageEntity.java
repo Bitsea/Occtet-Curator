@@ -22,11 +22,13 @@ import jakarta.persistence.*;
 
 import java.util.List;
 
+
 @Entity
 @Table(name = "SPDX_PACKAGE_ENTITY")
 public class SpdxPackageEntity {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(name = "spdx_id", nullable = false)
@@ -39,44 +41,45 @@ public class SpdxPackageEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name="download_location")
     private String downloadLocation;
 
-    @Column
-    private boolean filesAnalyzed;
+    @Column(name="files_analyzed")
+    private Boolean filesAnalyzed;
 
-    @Lob
+    @Column(name="version_info", columnDefinition = "TEXT")
     private String versionInfo;
 
-    @Lob
+    @Column(name="license_concluded", columnDefinition = "TEXT")
     private String licenseConcluded;
 
-    @Lob
+    @Column(name="license_declared", columnDefinition = "TEXT")
     private String licenseDeclared;
 
-    @Lob
+    @Column(name="copyright_text", columnDefinition = "TEXT")
     private String copyrightText;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String homepage;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String summary;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String originator;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String supplier;
 
     @ElementCollection
     @CollectionTable(name = "package_license_info_from_files", joinColumns = @JoinColumn(name = "package_id"))
     private List<String> licenseInfoFromFiles;
 
-    @Embedded
+    @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "package_verification_code_id", unique = true, nullable = false)
     private PackageVerificationCodeEntity packageVerificationCodeEntity;
 
     @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -161,6 +164,10 @@ public class SpdxPackageEntity {
         this.annotationEntities = annotationEntities;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public void setChecksums(List<ChecksumEntity> checksumEntities) {
         this.checksumEntities = checksumEntities;
     }
@@ -205,11 +212,11 @@ public class SpdxPackageEntity {
         return id;
     }
 
-    public boolean isFilesAnalyzed() {
+    public Boolean isFilesAnalyzed() {
         return filesAnalyzed;
     }
 
-    public void setFilesAnalyzed(boolean filesAnalyzed) {
+    public void setFilesAnalyzed(Boolean filesAnalyzed) {
         this.filesAnalyzed = filesAnalyzed;
     }
 

@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import javax.sql.DataSource;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -21,7 +20,7 @@ public class LicenseDao {
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    public List<Pair<UUID,Float>> findLicenseIdsSimilarTo(String text, int limit) {
+    public List<Pair<Long,Float>> findLicenseIdsSimilarTo(String text, int limit) {
 
         String sql = "select *, similarity(license_text,?) as rank " +
                 "from LICENSE order by rank desc limit ?;";
@@ -29,7 +28,7 @@ public class LicenseDao {
         List<Map<String, Object>> result= jdbcTemplate.queryForList(sql, text, limit);
         return result.stream()
                 .filter(m-> (Float)m.get("rank")!=null && (Float)m.get("rank")>0)
-                .map(map-> Pair.of((UUID)map.get("id"),(Float)map.get("rank")))
+                .map(map-> Pair.of((long)map.get("id"),(Float)map.get("rank")))
                 .collect(Collectors.toList());
     }
 

@@ -50,11 +50,11 @@ public class FileTreeSearchHelper {
     private final FileRepository fileRepository;
     private final TreeGrid<File> treeGrid;
     private final NativeLabel countLabel;
-    private final Set<UUID> expandedItemIds;
+    private final Set<Long> expandedItemIds;
     private final Supplier<Boolean> filterStatusSupplier;
     private final TransactionTemplate transactionTemplate;
 
-    private List<UUID> searchResultIds = new ArrayList<>();
+    private List<Long> searchResultIds = new ArrayList<>();
     private int currentIndex = -1;
     private String lastSearchText = "";
 
@@ -63,7 +63,7 @@ public class FileTreeSearchHelper {
     public FileTreeSearchHelper(FileRepository fileRepository,
                                 TreeGrid<File> treeGrid,
                                 NativeLabel countLabel,
-                                Set<UUID> expandedItemIds,
+                                Set<Long> expandedItemIds,
                                 Supplier<Boolean> filterStatusSupplier,
                                 TransactionTemplate transactionTemplate) {
         this.fileRepository = fileRepository;
@@ -126,7 +126,7 @@ public class FileTreeSearchHelper {
             return;
         }
 
-        List<UUID> sortedIds = transactionTemplate.execute(status -> {
+        List<Long> sortedIds = transactionTemplate.execute(status -> {
             List<File> candidates = fileRepository.findCandidates(
                     project,
                     searchText,
@@ -173,7 +173,7 @@ public class FileTreeSearchHelper {
 
     private void jumpToMatch(int index, Project project, boolean isNewSearch) {
         this.currentIndex = index;
-        UUID newId = searchResultIds.get(index);
+        Long newId = searchResultIds.get(index);
         updateLabel();
 
         fileRepository.findById(newId).ifPresent(file -> {
@@ -289,7 +289,7 @@ public class FileTreeSearchHelper {
             // Find the index of 'node' in the 'siblings' list
             int index = -1;
             for (int k = 0; k < siblings.size(); k++) {
-                if (siblings.get(k).getId().equals(node.getId())) {
+                if (siblings.get(k).getId()==node.getId()) {
                     index = k;
                     break;
                 }

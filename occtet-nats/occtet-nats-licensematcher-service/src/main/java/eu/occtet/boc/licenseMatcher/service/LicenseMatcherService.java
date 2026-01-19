@@ -51,6 +51,7 @@ import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -98,14 +99,13 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
      */
     private boolean generatePrompt(ScannerSendWorkData workData) {
         try {
-            UUID inventoryItemId = workData.getInventoryItemId();
+            long inventoryItemId = workData.getInventoryItemId();
 
             String response = "";
-            List<InventoryItem> items = inventoryItemRepository.findById(inventoryItemId);
-            log.debug("work on item {}", items.getFirst().getInventoryName());
-            if (items != null && !items.isEmpty()) {
-                InventoryItem item = items.getFirst();
-                log.debug("softwareComponent {}", item.getSoftwareComponent().getName());
+            Optional<InventoryItem> optItem = inventoryItemRepository.findById(inventoryItemId);
+            if (optItem.isPresent()) {
+                InventoryItem item = optItem.get();
+                log.debug("working on item {}, softwareComponent {}", item, item.getSoftwareComponent().getName());
                 for (License license : item.getSoftwareComponent().getLicenses()) {
                     String licenseId = license.getLicenseType();
                     String licenseText = license.getLicenseText();

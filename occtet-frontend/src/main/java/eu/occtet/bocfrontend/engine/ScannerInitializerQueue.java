@@ -33,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+
 
 /**
  * simple queue implementation for scannerInitializer. This does not persist scanners and thus needs to be replaced.
@@ -66,7 +66,7 @@ public class ScannerInitializerQueue implements SimpleQueue<ScannerInitializer> 
     @Override
     @Authenticated // authenticates the entire method
     public ScannerInitializer poll() {
-        UUID scannerInitializerId = pollInternal();
+        Long scannerInitializerId = pollInternal();
         if(scannerInitializerId==null) return  null;
         log.debug("scanner load fetchplan {}",dataManager.load(ScannerInitializer.class).id(scannerInitializerId).joinTransaction(false).fetchPlan("full").one().getScanner() );
         return dataManager.load(ScannerInitializer.class).id(scannerInitializerId).joinTransaction(false).fetchPlan("full").one();
@@ -77,7 +77,7 @@ public class ScannerInitializerQueue implements SimpleQueue<ScannerInitializer> 
      * @return id of scannerIntializer or null if nothing found
      */
     @Transactional
-    private UUID pollInternal() {
+    private Long pollInternal() {
         log.trace("polling scannerInitializers queue which has  {} waiting and a total of {}",
                 scannerInitializerRepository.countByStatus(ScannerInitializerStatus.WAITING.getId()),
                 scannerInitializerRepository.count());

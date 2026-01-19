@@ -3,9 +3,12 @@ package eu.occtet.bocfrontend.entity;
 
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.metamodel.annotation.JmixEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-import java.util.UUID;
+
 
 @JmixEntity
 @Table(name="SUGGESTION" )
@@ -15,7 +18,7 @@ public class Suggestion {
     @JmixGeneratedValue
     @Id
     @Column(name="ID", nullable = false)
-    private UUID id;
+    private Long id;
 
     @Column(name= "CONTEXT")
     private String context;
@@ -31,11 +34,11 @@ public class Suggestion {
         this.sentence = sentence;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

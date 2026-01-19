@@ -22,9 +22,12 @@ package eu.occtet.bocfrontend.entity;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.metamodel.annotation.InstanceName;
 import io.jmix.core.metamodel.annotation.JmixEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-import java.util.UUID;
+
 
 @JmixEntity
 @Table(name = "CONFIGURATION")
@@ -33,10 +36,10 @@ public class Configuration {
 
     public enum Type {STRING, NUMERIC, FILE_UPLOAD, BASE_PATH, BOOLEAN}
 
-    @JmixGeneratedValue
+    @JmixGeneratedValue()
     @Id
     @Column(name="ID", nullable = false)
-    private UUID id;
+    private Long id;
 
     @InstanceName
     @Column(name = "NAME")
@@ -56,11 +59,11 @@ public class Configuration {
         this.value = value;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

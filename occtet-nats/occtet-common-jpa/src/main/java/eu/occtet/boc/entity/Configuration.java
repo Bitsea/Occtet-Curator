@@ -24,7 +24,7 @@ package eu.occtet.boc.entity;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.UUID;
+
 
 @Entity
 @Table(name = "CONFIGURATION")
@@ -34,9 +34,9 @@ public class Configuration {
     public enum Type {STRING, NUMERIC, FILE_UPLOAD, BASE_PATH, COMMA_SEPARATED_STRINGS, BOOLEAN}
 
     @Id
-    @Column(name = "ID", nullable = false, columnDefinition = "UUID")
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
+    @Column(name = "ID", nullable = false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
 
     @Column(name = "NAME")
     private String name;
@@ -55,7 +55,7 @@ public class Configuration {
         this.value = value;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
@@ -84,7 +84,7 @@ public class Configuration {
         this.upload = upload;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 }

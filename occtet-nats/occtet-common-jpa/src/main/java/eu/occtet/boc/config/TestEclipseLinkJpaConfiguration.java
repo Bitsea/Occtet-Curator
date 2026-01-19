@@ -1,4 +1,4 @@
-package eu.occtet.boc.spdx;
+package eu.occtet.boc.config;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,12 +38,12 @@ import java.util.Map;
  *
  */
 @Configuration
-public class EclipseLinkJpaConfiguration extends JpaBaseConfiguration {
+public class TestEclipseLinkJpaConfiguration extends JpaBaseConfiguration {
 
     @Autowired
     JpaProperties properties;
 
-    protected EclipseLinkJpaConfiguration(DataSource dataSource, JpaProperties properties, ObjectProvider<JtaTransactionManager> jtaTransactionManager) {
+    protected TestEclipseLinkJpaConfiguration(DataSource dataSource, JpaProperties properties, ObjectProvider<JtaTransactionManager> jtaTransactionManager) {
         super(dataSource, properties, jtaTransactionManager);
     }
 
@@ -54,7 +54,11 @@ public class EclipseLinkJpaConfiguration extends JpaBaseConfiguration {
 
     @Override
     protected Map<String, Object> getVendorProperties(DataSource dataSource) {
-        return new HashMap<>(properties.getProperties());
+        HashMap<String, Object> map = new HashMap<>(properties.getProperties());
+        //map.put("eclipselink.ddl-generation","none");
+        //map.put("eclipselink.jdbc.allow-native-sql-queries","true");
+        //map.put("eclipselink.target-database","postgresql");
+        return map;
     }
 
     @Bean(name = "entityManagerFactory")

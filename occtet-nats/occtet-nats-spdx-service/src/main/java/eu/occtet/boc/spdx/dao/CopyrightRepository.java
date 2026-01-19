@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface CopyrightRepository extends JpaRepository<Copyright, UUID> {
+public interface CopyrightRepository extends JpaRepository<Copyright, Long> {
     List<Copyright> findByCopyrightText(String copyrightText);
     List<Copyright> findByCopyrightTextIn(Collection<String> copyrightTexts);
 }
