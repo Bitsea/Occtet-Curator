@@ -1,0 +1,32 @@
+Copyright base-x contributors (c) 2016
+Copyright 2012 Stefan Siegl <stesie@brokenpipe.de>
+Copyright (c) 2019 Digital Bazaar, Inc.
+Copyright (c) 2017-2019 Digital Bazaar, Inc.
+Copyright (c) 2014 Lautaro Cozzani <lautaro.cozzani@scytl.com>
+Copyright (c) 2013 Digital Bazaar, Inc.
+Copyright (c) 2012 Kenji Urushima
+Copyright (c) 2011 Digital Bazaar, Inc. All rights reserved.
+Copyright (c) 2010, Digital Bazaar, Inc. All rights reserved.
+Copyright (c) 2009-2015 Digital Bazaar, Inc.
+Copyright (c) 2005-2009 Tom Wu All Rights Reserved. See "LICENSE" for details (See jsbn.js for LICENSE).
+Copyright (c) 2005 Tom Wu All Rights Reserved. See "LICENSE" for details.
+Copyright (c) 2003-2005 Tom Wu All Rights Reserved.
+Copyright (C) Ellis Pritchard, Guardian Unlimited 2003.
+Copyright (c) Microsoft Corporation
+Copyright Microsoft Corporation.
+Copyright (c) 2020 Jean-Paul Mikkers
+Copyright © 2001-2021 Future Technology Devices International Limited
+Copyright (c) 2006-2012, Tomasz Sowa All rights reserved.
+Copyright (c) .NET Foundation and contributors.
+Copyright (c) 2014-2017 Automattic <dev@cloudup.com>
+Copyright Brian White. All rights reserved.
+Copyright 2014 Joshua Bell
+Copyright (c) 2003 Lev Walkin <vlm@lionet.info>.
+Copyright (c) 2016-present Siarhei Ladzeika
+Copyright © 2015 Tiancheng “Timothy” Gu
+Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
+(c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors Underscore may be freely distributed under the MIT license.
+Copyright (C) Paul Johnston 1999 - 2009 Other contributors
+Copyright 2011, Sebastian Tschan https://blueimp.net
+Copyright (c) 2011-2017 Andris Reinman
+Copyright (c) 2000-2015 ENTOLA, Italian Telecom

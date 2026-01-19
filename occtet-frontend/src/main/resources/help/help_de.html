@@ -1,0 +1,225 @@
+
+<div style="white-space: pre-wrap; font-family: Arial, sans-serif;">
+    <h1>Occtet Curator – Benutzerhandbuch</h1>
+
+    <h2>1. Einführung</h2>
+
+    <h3>1.1 Was ist Occtet Curator?</h3>
+    Occtet Curator ist eine professionelle Plattform zur Analyse, Kuration und Bewertung von SBOMs (Software Bill of Materials).
+
+    Eine SBOM beschreibt, aus welchen Softwarekomponenten ein Projekt besteht. Diese Informationen bilden die Grundlage für:
+    - Sicherheitsbewertungen (CVEs, Schwachstellen)
+    - Lizenz-Compliance
+    - Copyright-Analysen
+    - Risikoabschätzung in der Software-Lieferkette
+
+    Occtet Curator zerlegt eine SBOM in einzelne, überprüfbare Einheiten und macht diese für Menschen prüfbar.
+    Das zentrale Objekt dabei ist das <b>InventoryItem</b>.
+
+    <h3>1.2 Zentrale Konzepte</h3>
+
+
+    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead>
+        <tr>
+            <th>Begriff</th>
+            <th>Bedeutung</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>SBOM</td>
+            <td>Liste aller Softwarekomponenten eines Projekts (z. B. CycloneDX oder SPDX)</td>
+        </tr>
+        <tr>
+            <td>InventoryItem</td>
+            <td>Eine logisch zusammengehörige Softwarekomponente inklusive Dateien, Lizenzen, Copyrights und CVEs</td>
+        </tr>
+        <tr>
+            <td>SoftwareComponent</td>
+            <td>Die eigentliche Software (z. B. OpenSSL 3.0.2)</td>
+        </tr>
+        <tr>
+            <td>Vulnerability / CVE</td>
+            <td>Eine bekannte Sicherheitslücke</td>
+        </tr>
+        <tr>
+            <td>VEX</td>
+            <td>Aussage, ob eine CVE für dieses Projekt relevant ist</td>
+        </tr>
+        <tr>
+            <td>AuditNote</td>
+            <td>Dokumentation deiner Entscheidung</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h2>2. Grundprinzip: Wie arbeitet man mit Occtet?</h2>
+    Occtet Curator arbeitet projektbasiert:
+    1. Projekt anlegen
+    2. SBOM importieren
+    3. Projekt analysieren
+    4. InventoryItems prüfen
+    5. Dateien, Lizenzen und Copyrights validieren
+    6. Schwachstellen bewerten (VEX)
+    7. Ergebnisse exportieren
+
+    Das System ist darauf ausgelegt, aus einer rohen SBOM ein geprüftes, auditfähiges Softwareinventar zu erzeugen.
+
+    <h2>3. Projekte</h2>
+
+    <h3>3.1 Projekt anlegen</h3>
+    Beim Anlegen eines Projekts gibst du an:
+    - Name
+    - Arbeitsverzeichnis
+    - Optional: Metadaten wie Version, Kunde, Produkt
+
+    In das Projektverzeichnis werden:
+    - der Quellcode
+    - und die Abhängigkeiten
+    kopiert oder referenziert. Dieses Verzeichnis bildet die Basis für:
+    - Dateianalyse
+    - Copyright-Scanning
+    - Lizenzprüfung
+
+    <h3>3.2 SBOM importieren</h3>
+    Du kannst eine SBOM (z. B. SPDX oder CycloneDX) importieren. Beim Import kannst du konfigurieren, ob KI-Workflows für Folgendes genutzt werden:
+    - Copyright-Erkennung
+    - Lizenzzuordnung
+    - Dateizuweisung
+
+    Nach dem Import erzeugt Occtet:
+    - SoftwareComponents
+    - InventoryItems
+    - Dateizuordnungen
+    - erste Schwachstelleninformationen
+
+    <h2>4. Dashboard</h2>
+    Das Dashboard ist deine Sicherheitsampel. Es zeigt u. a.:
+    - Anzahl kritischer CVEs
+    - offene Schwachstellen
+    - Anteil geprüfter Dateien
+    - Risikotrends
+
+    So erkennst du sofort: "Ist dieses Projekt aktuell releasefähig oder ein Risiko?"
+
+    <h2>5. SBOM-Management</h2>
+    Dies ist dein Hauptarbeitsbereich. Du siehst:
+    - links: den Dateibaum
+    - rechts: die InventoryItems
+
+    Idealerweise gehört jede Datei genau zu einem InventoryItem.
+
+    <h2>6. InventoryItems – Das Herzstück</h2>
+    Ein InventoryItem repräsentiert eine Softwarekomponente. Es enthält:
+    - SoftwareComponent (Name, Version, Herkunft)
+    - zugehörige Dateien
+    - Schwachstellen (CVEs)
+    - Lizenzen
+    - Copyrights
+    - AuditNotes
+    - VEX-Einträge
+
+    Typische Beispiele:
+    - OpenSSL 3.0.2
+    - Log4j 2.17.1
+    - eigenes Projektmodul
+
+    <h2>7. Arbeiten mit Dateien</h2>
+
+    <h3>7.1 Code-Viewer</h3>
+    Du kannst jede Datei:
+    - öffnen
+    - lesen
+    - durchsuchen
+    - mit dem InventoryItem vergleichen
+
+    Dabei siehst du u. a.:
+    - Lizenzheader
+    - Copyright-Hinweise
+    - Hinweise auf Drittcode
+
+    <h3>7.2 Reviewed-Status</h3>
+    Eine Datei gilt als geprüft, wenn:
+    - sie dem richtigen InventoryItem zugeordnet ist
+    - ihre Lizenz geprüft wurde
+    - ihre Copyrights geprüft wurden
+    - alle Erkenntnisse dokumentiert sind
+
+    Danach wird sie als <b>reviewed</b> markiert.
+
+    <h2>8. AuditNotes</h2>
+    AuditNotes sind dein Gedächtnis und Nachweis. Hier dokumentierst du z. B.:
+    - warum eine Lizenz akzeptabel ist
+    - warum eine CVE als nicht relevant gilt
+    - warum ein Copyright ignoriert werden darf
+
+    Sie sind essenziell für:
+    - ISO-Audits
+    - Kundenanfragen
+    - rechtliche Nachweise
+
+    <h2>9. Schwachstellen & VEX</h2>
+    Occtet erkennt automatisch, welche CVEs zu einer SoftwareComponent gehören. Du entscheidest per VEX, ob sie:
+    - Affected
+    - Not Affected
+    - Under Investigation
+    - Fixed
+
+    Diese Aussagen lassen sich maschinenlesbar exportieren.
+
+    <h2>10. Ansichten & Übersichten</h2>
+    Occtet bietet verschiedene globale Views:
+    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead>
+        <tr>
+            <th>Ansicht</th>
+            <th>Zweck</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Inventory</td>
+            <td>Alle InventoryItems</td>
+        </tr>
+        <tr>
+            <td>VEX Listing</td>
+            <td>Alle VEX-Entscheidungen</td>
+        </tr>
+        <tr>
+            <td>Licenses</td>
+            <td>Alle Lizenzen im Projekt</td>
+        </tr>
+        <tr>
+            <td>SoftwareComponents</td>
+            <td>Technische Komponenten</td>
+        </tr>
+        <tr>
+            <td>Projects</td>
+            <td>Alle Projekte</td>
+        </tr>
+        </tbody>
+    </table>
+
+    Alle Listen lassen sich filtern, sortieren und durchsuchen.
+
+    <h2>11. Export</h2>
+    Du kannst exportieren:
+    - bereinigte SBOMs
+    - VEX-Dokumente
+    - Lizenzreports
+    - Auditnachweise
+
+    Damit kannst du:
+    - Kunden beliefern
+    - CI/CD integrieren
+    - Behörden oder Auditoren bedienen
+
+    <h2>12. Administration</h2>
+    Administratoren können:
+    - Benutzer verwalten
+    - Rollen vergeben
+    - KI-Workflows konfigurieren
+    - Importjobs automatisieren
+    - Logs prüfen
+</div>

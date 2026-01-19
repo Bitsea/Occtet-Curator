@@ -37,7 +37,7 @@ public class SpdxDocumentRoot {
     @Column(nullable = false)
     private String spdxVersion;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name= "datalicense")
     private String dataLicense;
 
     @Column(nullable = false)
