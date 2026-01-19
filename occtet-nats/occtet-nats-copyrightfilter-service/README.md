@@ -18,3 +18,10 @@ Export Docker image as file for remote deployment:
 Import Docker image on remote machine:
 `gunzip -c occtet-nats-copyrightFilter-service.tar.gz | docker load`
 
+
+# How to
+
+Before the copyrights of a project go to the AI, this service filters beforehand some known false copyrights. 
+These you can find in the copyright garbage file. Via UI you can add more known false copyrights to this garbage file.   
+Just mark them as garbage and generate a new copyright garbage file. You can also download this file. 
+
