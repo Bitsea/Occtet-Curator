@@ -97,10 +97,18 @@ Before running the application make sure you have pulled the model set in applic
 
 Use ollama pull <model_name> or ollama run <modelname> to download the model onto your maschine, be careful with bigger models!
 
-default model is 'qwen3:30b'
+default model is 'qwen3:8b'
 
 With 'ollama help' you see other helpful commands
 
 Under application.properties the url and the name of the model are defined,
 which have to be changed if you use a different model or a different 'model provider' than ollama
+
+
+## How to
+
+To adequately use this service, you first need to upload information files in the UI to help the
+AI sort "bad" and "good" copyrights.
+You can use the file in the resources folder as a starting point. Of course, you can enhance it with your own copyright examples,
+just be sure, that the file names stay the same, as they are referenced in the code.
 
