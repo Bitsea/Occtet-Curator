@@ -268,7 +268,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             }
         } else {
             log.debug("Inventory Item {} has no changes.", inventoryItem.getInventoryName());
-            notifications.create("No changes to save.").withPosition(Notification.Position.BOTTOM_END).show();
+            notifications.create(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification")).withPosition(Notification.Position.BOTTOM_END).show();
         }
     }
 
@@ -323,7 +323,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             softwareComponentRepository.save(softwareComponent);
             updateLicenses(softwareComponent, licenseDc);
 
-            notifications.create("Licenses removed.")
+            notifications.create(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.remove"))
                     .withPosition(Notification.Position.BOTTOM_END)
                     .show();
         }

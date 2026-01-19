@@ -29,8 +29,10 @@ import eu.occtet.bocfrontend.comparator.TreePathComparator;
 import eu.occtet.bocfrontend.dao.FileRepository;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.Project;
+import io.jmix.core.Messages;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -46,6 +48,9 @@ import java.util.regex.Pattern;
 public class FileTreeSearchHelper {
 
     private final Logger log = LogManager.getLogger(this.getClass());
+
+    @Autowired
+    Messages messages;
 
     private final FileRepository fileRepository;
     private final TreeGrid<File> treeGrid;
@@ -245,7 +250,7 @@ public class FileTreeSearchHelper {
                     return span;
                 })
                 .setKey("fileName")
-                .setHeader("File")
+                .setHeader(messages.getMessage("eu.occtet.bocfrontend.view/fileTreeSearchHelper.header"))
                 .setSortable(true);
     }
 
