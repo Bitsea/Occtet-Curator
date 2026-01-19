@@ -37,7 +37,7 @@ public class SoftwareComponent {
 
     @Id
     @Column(name="ID", nullable = false)
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy= GenerationType.SEQUENCE)
     private Long id;
 
     @Column(name = "SOFTWARE_COMPONENT_NAME", nullable = false)

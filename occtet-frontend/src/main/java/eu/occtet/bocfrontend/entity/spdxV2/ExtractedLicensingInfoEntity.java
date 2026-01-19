@@ -16,13 +16,15 @@
  *  License-Filename: LICENSE
  */
 
-package eu.occtet.boc.entity.spdxV2;
+package eu.occtet.bocfrontend.entity.spdxV2;
 
+import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
 import java.util.List;
 
 
+@JmixEntity
 @Entity
 @Table(name = "EXTRACTED_LICENSING_INFO_ENTITY")
 public class ExtractedLicensingInfoEntity {

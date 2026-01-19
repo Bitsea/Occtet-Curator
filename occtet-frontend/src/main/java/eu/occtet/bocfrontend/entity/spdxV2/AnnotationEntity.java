@@ -16,10 +16,12 @@
  *  License-Filename: LICENSE
  */
 
-package eu.occtet.boc.entity.spdxV2;
+package eu.occtet.bocfrontend.entity.spdxV2;
 
+import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
+@JmixEntity
 @Entity
 @Table(name ="ANNOTATION_ENTITY")
 public class AnnotationEntity {

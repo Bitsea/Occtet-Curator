@@ -36,7 +36,7 @@ public class DBLog {
 
     @Id
     @Column(name="ID", nullable = false)
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy= GenerationType.SEQUENCE)
     private Long id;
 
     // Should automatically set the current timestamp on creation

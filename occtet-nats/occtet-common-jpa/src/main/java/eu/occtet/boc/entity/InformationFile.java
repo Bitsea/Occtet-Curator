@@ -32,19 +32,19 @@ public class InformationFile {
 
     @Id
     @Column(name="ID", nullable = false)
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy= GenerationType.SEQUENCE)
     private Long id;
 
     @Column(name= "FILE_NAME")
     private String fileName;
 
-    @Column(name= "FILE_PATH")
+    @Column(name= "FILE_PATH",columnDefinition = "TEXT")
     private String filePath;
 
-    @Column(name="FILE_CONTEXT")
+    @Column(name="FILE_CONTEXT",columnDefinition = "TEXT")
     private String context;
 
-    @Column(name="FILEINFORMATION_CONTENT",length = Integer.MAX_VALUE)
+    @Column(name="FILEINFORMATION_CONTENT",columnDefinition = "TEXT")
     private String content;
 
     public InformationFile(){}

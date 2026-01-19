@@ -38,16 +38,16 @@ public class InventoryItem {
     @Column(name="ID", nullable = false)
     private Long id;
 
-    @Column(name="INVENTORY_NAME")
+    @Column(name="INVENTORY_NAME", columnDefinition = "TEXT")
     private String inventoryName;
 
     @Column(name= "SIZE")
     private Integer size;
 
-    @Column(name= "SPDX_ID")
+    @Column(name= "SPDX_ID", columnDefinition = "TEXT")
     private String spdxId;
 
-    @Column(name= "LINKING")
+    @Column(name= "LINKING", columnDefinition = "TEXT")
     private String linking;
 
     @Column (name= "PRIORITY")

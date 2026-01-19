@@ -38,19 +38,19 @@ public class InventoryItem {
 
     @Id
     @Column(name="ID", nullable = false)
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy= GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(name="INVENTORY_NAME", length=1024)
+    @Column(name="INVENTORY_NAME", columnDefinition = "TEXT")
     private String inventoryName;
 
     @Column(name= "SIZE")
     private Integer size;
 
-    @Column(name= "SPDX_ID", length=512)
+    @Column(name= "SPDX_ID", columnDefinition = "TEXT")
     private String spdxId;
 
-    @Column(name= "LINKING")
+    @Column(name= "LINKING", columnDefinition = "TEXT")
     private String linking;
 
     @Column (name= "PRIORITY")

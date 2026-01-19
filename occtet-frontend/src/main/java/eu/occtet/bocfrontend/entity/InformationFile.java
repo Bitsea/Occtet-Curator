@@ -38,10 +38,10 @@ public class InformationFile {
     @Column(name= "FILE_NAME")
     private String fileName;
 
-    @Column(name= "FILE_PATH")
+    @Column(name= "FILE_PATH",columnDefinition = "TEXT")
     private String filePath;
 
-    @Column(name="FILE_CONTEXT")
+    @Column(name="FILE_CONTEXT",columnDefinition = "TEXT")
     private String context;
 
     @Column(name="FILEINFORMATION_CONTENT", columnDefinition = "TEXT")
