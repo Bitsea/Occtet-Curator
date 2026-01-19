@@ -44,12 +44,12 @@
                     </columns>
                 </dataGrid>
                 <hbox margin="false" padding="false">
-                    <dropdownButton id="codeloctionsEditButton" text="edit" icon="lumo:edit"
+                    <dropdownButton id="codeloctionsEditButton" text="msg://eu.occtet.bocfrontend.view/filesTabFragment.dropdown.edit" icon="lumo:edit"
                                     dropdownIndicatorVisible="false" themeNames="small">
                         <items>
                             <componentItem id="addCodeLocation">
                                 <hbox padding="false">
-                                    <span text="add new"/>
+                                    <span text="msg://eu.occtet.bocfrontend.view/filesTabFragment.dropdown.add"/>
                                 </hbox>
                             </componentItem>
                         </items>
