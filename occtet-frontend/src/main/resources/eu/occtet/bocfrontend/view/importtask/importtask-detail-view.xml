@@ -19,10 +19,10 @@
   -->
 
 <view xmlns="http://jmix.io/schema/flowui/view"
-      title="msg://eu.occtet.bocfrontend.view.importer/importTask.title"
+      title="msg://eu.occtet.bocfrontend.view.importtask/importTask.title"
       focusComponent="form">
     <data>
-        <instance id="importerDc"
+        <instance id="importTaskDc"
                   class="eu.occtet.bocfrontend.entity.ImportTask">
             <loader/>
         </instance>
@@ -41,7 +41,7 @@
         <image id="iconPlaceholder" width="80px" height="80px"/>
         <h3 id="importField"/>
         <h6 id="description"/>
-        <formLayout id="form" dataContainer="importerDc" width="100%" labelsPosition="ASIDE">
+        <formLayout id="form" dataContainer="importTaskDc" width="100%" labelsPosition="ASIDE">
             <responsiveSteps>
                 <responsiveStep minWidth="0" columns="3"/>
             </responsiveSteps>

@@ -3,6 +3,8 @@ package eu.occtet.bocfrontend.importer;
 import eu.occtet.bocfrontend.entity.Configuration;
 import eu.occtet.bocfrontend.entity.ImportTask;
 
+
+import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,7 +31,7 @@ public abstract class Importer {
      * @param importTask the import to be processed
      ** @return true on success, false if something went wrong.
      */
-    public abstract boolean processTask(ImportTask importTask);
+    public abstract boolean processTask(@Nonnull ImportTask importTask);
 
     /**
      *

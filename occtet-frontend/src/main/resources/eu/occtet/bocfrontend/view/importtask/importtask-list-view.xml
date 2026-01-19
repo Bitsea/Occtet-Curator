@@ -19,14 +19,14 @@
   -->
 
 <view xmlns="http://jmix.io/schema/flowui/view"
-      title="msg://eu.occtet.bocfrontend.view.importer/importTaskListView.title"
-      focusComponent="importerDataGrid">
+      title="msg://eu.occtet.bocfrontend.view.importtask/importTaskListView.title"
+      focusComponent="importTaskDataGrid">
     <data readOnly="true">
-        <collection id="importerDc"
+        <collection id="importTaskDc"
                     class="eu.occtet.bocfrontend.entity.ImportTask">
-            <loader id="importerDl" readOnly="true">
+            <loader id="importTaskDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from Importer e]]>
+                    <![CDATA[select e from ImportTask e]]>
                 </query>
             </loader>
         </collection>
@@ -55,21 +55,21 @@
 
             <vbox>
                 <hbox id="buttonsPanel" classNames="buttons-panel">
-                    <button id="refreshBtn" action="importerDataGrid.refresh"/>
+                    <button id="refreshBtn" action="importTaskDataGrid.refresh"/>
                     <button text="msg://removeStopped" id="removeStoppedBtn"/>
                 </hbox>
                 <hbox>
                     <button text="msg://eu.occtet.bocfrontend/ImportTask.feedback" id="showFeedback" enabled="false" themeNames="success"/>
                     <button text="msg://eu.occtet.bocfrontend.entity/Configuration" id="showConfig" enabled="false"/>
                     <button text="msg://stop" id="stopImportBtn" enabled="false" themeNames="error" visible="false"/>
-                    <button id="removeBtn" action="importerDataGrid.remove"/>
-                    <simplePagination id="pagination" dataLoader="importerDl"/>
+                    <button id="removeBtn" action="importTaskDataGrid.remove"/>
+                    <simplePagination id="pagination" dataLoader="importTaskDl"/>
                 </hbox>
             </vbox>
-            <dataGrid classNames="occtet-grid" id="importerDataGrid"
+            <dataGrid classNames="occtet-grid" id="importTaskDataGrid"
                       width="100%"
                       minHeight="20em"
-                      dataContainer="importerDc"
+                      dataContainer="importTaskDc"
                       columnReorderingAllowed="true"
                       selectionMode="SINGLE"
                       themeNames="row-stripes">

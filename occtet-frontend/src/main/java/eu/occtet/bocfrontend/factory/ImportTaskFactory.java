@@ -38,17 +38,17 @@ public class ImportTaskFactory {
     private DataManager dataManager;
 
     /**
-     * create Importer entity for given project
+     * create ImportTask entity for given project
      * @param project the origin project
      * @param name of the importer to use for scanning this softwareComponent.
      * @return the persisted Importer entity
      */
     public ImportTask create(@Nonnull Project project, @Nonnull String name) {
-        ImportTask importer = dataManager.create(ImportTask.class);
-        importer.setProject(project);
-        importer.setImportName(name);
+        ImportTask importTask = dataManager.create(ImportTask.class);
+        importTask.setProject(project);
+        importTask.setImportName(name);
 
-        return dataManager.save(importer);
+        return dataManager.save(importTask);
     }
 
     public ImportTask saveWithFeedBack(ImportTask importTask, List<String> feedback, ImportStatus status){

@@ -2,6 +2,7 @@ package eu.occtet.bocfrontend.entity;
 
 import eu.occtet.bocfrontend.converter.ListStringConverter;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
+import io.jmix.core.metamodel.annotation.InstanceName;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
@@ -11,12 +12,12 @@ import java.util.List;
 import java.util.UUID;
 
 @JmixEntity
-@Table(name = "IMPORTER", indexes = {
-        @Index(columnList = "NAME"),
+@Table(name = "IMPORT_TASK", indexes = {
+        @Index(columnList = "IMPORT_NAME"),
         @Index(columnList = "STATUS")
 })
 @Entity
-public class ImportTask {
+public class ImportTask{
 
     @JmixGeneratedValue
     @Id
@@ -28,6 +29,7 @@ public class ImportTask {
     private Project project;
 
     @Column(name = "IMPORT_NAME", nullable = false)
+    @InstanceName
     private String importName;
 
     @Column(name = "STATUS", nullable = false)
@@ -39,7 +41,7 @@ public class ImportTask {
     private List<String> feedback;
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
-    @JoinColumn(name = "IMPORTER_ID")
+    @JoinColumn(name = "IMPORT_TASK_ID")
     private List<Configuration> importConfiguration;
 
     @Column(name = "LAST_UPDATE")

@@ -41,7 +41,7 @@
         <item view="ServicesView" title="msg://eu.occtet.bocfrontend.view.services/servicesView.title"/>
         <item view="User.list" title="msg://eu.occtet.bocfrontend.view.user/UserListView.title"/>
         <item view="DBLog.list" title="msg://eu.occtet.bocfrontend.view.DBLog/DBLogListView.title"/>
-        <item view="Importer.list" title="msg://eu.occtet.bocfrontend.view.importer/importTaskListView.title"/>
+        <item view="ImportTask.list" title="msg://eu.occtet.bocfrontend.view.importtask/importTaskListView.title"/>
         <item view="Suggestion.list" title="msg://eu.occtet.bocfrontend.view.suggestion/caption.title"/>
     </menu>
 

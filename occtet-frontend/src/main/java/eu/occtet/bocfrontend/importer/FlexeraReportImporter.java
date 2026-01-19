@@ -7,7 +7,6 @@ import eu.occtet.bocfrontend.entity.Configuration;
 import eu.occtet.bocfrontend.entity.ImportStatus;
 import eu.occtet.bocfrontend.entity.ImportTask;
 import eu.occtet.bocfrontend.factory.ImportTaskFactory;
-import eu.occtet.bocfrontend.service.ImportTaskService;
 import eu.occtet.bocfrontend.service.NatsService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,9 +56,9 @@ public class FlexeraReportImporter extends Importer {
 
 
     @Override
-    public boolean processTask(ImportTask importer) {
+    public boolean processTask(ImportTask importTask) {
         // Get the configuration containing the uploaded file
-        Configuration configuration = Objects.requireNonNull(importer.getImportConfiguration()
+        Configuration configuration = Objects.requireNonNull(importTask.getImportConfiguration()
                 .stream()
                 .filter(c -> c.getName().equals(CONFIG_KEY_FILENAME))
                 .findFirst().orElse(null));
@@ -69,12 +68,12 @@ public class FlexeraReportImporter extends Importer {
 
 
         try {
-            readExcelRows(importer, contentInByte );
-            log.debug("Processing Flexera Report for Procejt: {}", importer.getProject().getProjectName());
+            readExcelRows(importTask, contentInByte );
+            log.debug("Processing Flexera Report for Procejt: {}", importTask.getProject().getProjectName());
             return true;
         }catch (Exception e){
             log.error("Error when connecting to backend: {}", e.getMessage());
-            importTaskFactory.saveWithFeedBack(importer, List.of("Error when trying to send message to other microservice: "+ e.getMessage()), ImportStatus.STOPPED);
+            importTaskFactory.saveWithFeedBack(importTask, List.of("Error when trying to send message to other microservice: "+ e.getMessage()), ImportStatus.STOPPED);
             return false;
         }
 

@@ -8,7 +8,6 @@ import eu.occtet.bocfrontend.entity.Configuration;
 import eu.occtet.bocfrontend.entity.ImportStatus;
 import eu.occtet.bocfrontend.entity.ImportTask;
 import eu.occtet.bocfrontend.factory.ImportTaskFactory;
-import eu.occtet.bocfrontend.service.ImportTaskService;
 import eu.occtet.bocfrontend.service.NatsService;
 import io.nats.client.api.ObjectInfo;
 import io.nats.client.api.ObjectMeta;
@@ -36,8 +35,6 @@ public class SpdxImporter extends Importer {
     @Autowired
     private NatsService natsService;
 
-    @Autowired
-    private ImportTaskFactory importTaskFactory1;
 
     protected SpdxImporter() {
         super("SPDX_Import");
@@ -52,16 +49,16 @@ public class SpdxImporter extends Importer {
 
 
     @Override
-    public boolean processTask(ImportTask importer) {
+    public boolean processTask(ImportTask importTask) {
 
         try {
-            log.debug("Processing SPDX Report: {}", importer.getStatus());
+            log.debug("Processing SPDX Report: {}", importTask.getStatus());
 
             byte[] spdxJson = new byte[0];
             boolean useCopyright = DEFAULT_USE_FALSE_COPYRIGHT_FILTER;
             boolean useLicenseMatcher = DEFAULT_USE_LICENSE_MATCHER;
             String filename = "";
-            List<Configuration> configurations = importer.getImportConfiguration();
+            List<Configuration> configurations = importTask.getImportConfiguration();
             for(Configuration configuration: configurations){
                 switch (configuration.getName()) {
                     case CONFIG_KEY_FILENAME:
@@ -77,14 +74,14 @@ public class SpdxImporter extends Importer {
                 }
             }
 
-            UUID projectId = importer.getProject().getId();
+            UUID projectId = importTask.getProject().getId();
 
             sendIntoStream(spdxJson, projectId, useCopyright ,useLicenseMatcher, filename);
 
             return true;
         }catch (Exception e){
             log.error("Error when trying to send message to other microservice: {}", e.getMessage());
-            importTaskFactory.saveWithFeedBack(importer,List.of("Error when trying to send message to other microservice: "+ e.getMessage()), ImportStatus.STOPPED);
+            importTaskFactory.saveWithFeedBack(importTask,List.of("Error when trying to send message to other microservice: "+ e.getMessage()), ImportStatus.STOPPED);
             return false;
         }
 

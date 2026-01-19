@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.view.importer;
+package eu.occtet.bocfrontend.view.importtask;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Html;
@@ -54,10 +54,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Set;
 
-@Route(value = "importer", layout = MainView.class)
-@ViewController("Importer.list")
-@ViewDescriptor(value = "import-list-view.xml", path = "import-list-view.xml")
-@LookupComponent("ImporterDataGrid")
+@Route(value = "importTask", layout = MainView.class)
+@ViewController("ImportTask.list")
+@ViewDescriptor(value = "importtask-list-view.xml", path = "importtask-list-view.xml")
+@LookupComponent("importTaskDataGrid")
 @DialogMode(width = "600", height = "800")
 public class ImportTaskListView extends StandardListView<ImportTask> {
 
@@ -66,7 +66,7 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
 
 
     @ViewComponent
-    private DataGrid<ImportTask> importerDataGrid;
+    private DataGrid<ImportTask> importTaskDataGrid;
     @ViewComponent
     private JmixButton showFeedback;
     @ViewComponent
@@ -75,10 +75,10 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
     private HorizontalLayout availableImportBox;
     @ViewComponent
     private MessageBundle messageBundle;
-    @ViewComponent("importerDataGrid.create")
-    private CreateAction<ImportTask> importersDataGridCreate;
+    @ViewComponent("importTaskDataGrid.create")
+    private CreateAction<ImportTask> importTaskDataGridCreate;
     @ViewComponent
-    private CollectionContainer<ImportTask> importerDc;
+    private CollectionContainer<ImportTask> importTaskDc;
 
     @Autowired
     private Dialogs dialogs;
@@ -103,7 +103,7 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
 
         updateAvailableImportsBox();
 
-        importerDc.setItems(importTaskRepository.findByStatus(ImportStatus.COMPLETED.getId()));
+        importTaskDc.setItems(importTaskRepository.findByStatus(ImportStatus.COMPLETED.getId()));
 
     }
 
@@ -112,7 +112,7 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
      */
     private void load(){
         List<ImportTask> importTasks = importTaskRepository.findAll();
-        importerDc.setItems(importTasks);
+        importTaskDc.setItems(importTasks);
     }
 
 
@@ -150,7 +150,7 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
             importImageButton.setTitle(messageBundle.getMessage(importer.getName().replace(" ", "")));
             importImageButton.addClickListener(e -> {
                 importManager.preselectNewImport(importer);
-                importersDataGridCreate.execute();
+                importTaskDataGridCreate.execute();
             });
         } else {
             importImageButton.setTitle(messageBundle.getMessage("scanning"));
@@ -162,10 +162,10 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
     public void onRefreshTimerTimerAction(final Timer.TimerActionEvent event) {
         List<ImportTask> importers = importTaskRepository.findByStatus(ImportStatus.COMPLETED.getId());
         importers.addAll(importTaskRepository.findByStatus(ImportStatus.STOPPED.getId()));
-        importerDc.setItems(importers);
+        importTaskDc.setItems(importers);
     }
 
-    @Subscribe("importerDataGrid")
+    @Subscribe("importTaskDataGrid")
     public void onImportInitializerDataGridItemClick(final ItemClickEvent<ImportTask> event) {
         showFeedback.setEnabled(false);
         showConfig.setEnabled(false);
@@ -177,7 +177,7 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
 
     @Subscribe(id = "showConfig", subject = "clickListener")
     public void onShowConfigClick1(final ClickEvent<JmixButton> event) {
-        Set<ImportTask> selectedItems = importerDataGrid.getSelectedItems();
+        Set<ImportTask> selectedItems = importTaskDataGrid.getSelectedItems();
         if (selectedItems == null || selectedItems.isEmpty())
             return;
         StringBuilder sb = new StringBuilder();
@@ -195,7 +195,7 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
 
     @Subscribe(id = "stopImportBtn", subject = "clickListener")
     public void onStopClick(final ClickEvent<JmixButton> event) {
-        Set<ImportTask> selectedItems = importerDataGrid.getSelectedItems();
+        Set<ImportTask> selectedItems = importTaskDataGrid.getSelectedItems();
         if (selectedItems == null || selectedItems.isEmpty())
             return;
         for (ImportTask importer : selectedItems) {
@@ -207,7 +207,7 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
 
     @Subscribe(id = "showFeedback", subject = "clickListener")
     public void onShowFeedbackClick(final ClickEvent<JmixButton> event) {
-        Set<ImportTask> selectedItems = importerDataGrid.getSelectedItems();
+        Set<ImportTask> selectedItems = importTaskDataGrid.getSelectedItems();
         if (selectedItems == null || selectedItems.isEmpty()){
             return;
         }

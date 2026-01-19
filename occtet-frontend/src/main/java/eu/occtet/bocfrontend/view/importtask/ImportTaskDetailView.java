@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.view.importer;
+package eu.occtet.bocfrontend.view.importtask;
 
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
@@ -58,13 +58,13 @@ import java.util.List;
 import java.util.Optional;
 
 
-@Route(value = "importer/:id", layout = MainView.class)
-@ViewController("Importer.detail")
-@ViewDescriptor(value = "importer-detail-view.xml", path = "importer-detail-view.xml")
-@EditedEntityContainer("ImporterDc")
-public class ImporterDetailView extends StandardDetailView<ImportTask> {
+@Route(value = "importTask/:id", layout = MainView.class)
+@ViewController("ImportTask.detail")
+@ViewDescriptor(value = "importtask-detail-view.xml", path = "importtask-detail-view.xml")
+@EditedEntityContainer("importTaskDc")
+public class ImportTaskDetailView extends StandardDetailView<ImportTask> {
 
-    private static final Logger log = LogManager.getLogger(ImporterDetailView.class);
+    private static final Logger log = LogManager.getLogger(ImportTaskDetailView.class);
 
     @ViewComponent
     private JmixImage<Object> iconPlaceholder;
@@ -102,8 +102,7 @@ public class ImporterDetailView extends StandardDetailView<ImportTask> {
 
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
-        Importer importer= importManager.getPreselectedImporter();
-
+        importer= importManager.getPreselectedImporter();
         if (importer!= null) {
             // Set information about the selected import
             importField.setText(importer.getName().replaceAll("_"," "));
@@ -129,6 +128,7 @@ public class ImporterDetailView extends StandardDetailView<ImportTask> {
 
     @Subscribe("projectComboBox")
     public void onProjectValueChange(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event) {
+        log.debug("importer selected:{}", importer.getName());
         if (event.getValue() != null) {
             setConfigurations(importer);
         }
@@ -167,7 +167,7 @@ public class ImporterDetailView extends StandardDetailView<ImportTask> {
         log.debug("Validation passed. Entities are prepared and saved");
         log.info("Process import task for import: {}", importer.getName());
 
-        importer.processTask(importTask);
+        importManager.processImport(importTask);
     }
 
 
