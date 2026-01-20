@@ -63,6 +63,11 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>eu.occtet.boc</groupId>
+            <artifactId>occtet-common</artifactId>
+            <version>0.3.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>eclipselink</artifactId>
             <version>4.0.9</version>
