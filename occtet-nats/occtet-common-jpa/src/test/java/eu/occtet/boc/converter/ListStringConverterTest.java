@@ -26,19 +26,19 @@ import java.util.Collections;
  *
  */
 
-public class StringListConverterTest {
+public class ListStringConverterTest {
 
     @Test
     public void testConvertToDatabaseColumn() {
 
 
-        String result = StringListConverter.toStringOrNull (java.util.Arrays.asList("one", "two", "three"));
+        String result = ListStringConverter.toStringOrNull (java.util.Arrays.asList("one", "two", "three"));
         assert "one|two|three".equals(result);
-        result = StringListConverter.toStringOrNull(java.util.Arrays.asList("Tool: ort-74.0.0"));
+        result = ListStringConverter.toStringOrNull(java.util.Arrays.asList("Tool: ort-74.0.0"));
         assert "Tool: ort-74.0.0".equals(result);
-        result = StringListConverter.toStringOrNull(Collections.emptyList());
+        result = ListStringConverter.toStringOrNull(Collections.emptyList());
         assert "".equals(result);
-        result = StringListConverter.toStringOrNull(null);
+        result = ListStringConverter.toStringOrNull(null);
         assert result==null;
 
 

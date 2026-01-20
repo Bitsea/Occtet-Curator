@@ -46,8 +46,7 @@ public class AnnotationEntity {
     @Column(nullable = false)
     private String annotator;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String comment;
 
     public Long getId() {
