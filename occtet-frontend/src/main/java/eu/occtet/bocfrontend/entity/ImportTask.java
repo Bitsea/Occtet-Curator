@@ -1,6 +1,5 @@
 package eu.occtet.bocfrontend.entity;
 
-import eu.occtet.bocfrontend.converter.ListStringConverter;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.metamodel.annotation.InstanceName;
 import io.jmix.core.metamodel.annotation.JmixEntity;
@@ -9,7 +8,6 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @JmixEntity
 @Table(name = "IMPORT_TASK", indexes = {
