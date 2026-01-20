@@ -32,7 +32,7 @@ public class SpdxWorkData extends BaseWorkData{
     @JsonCreator
     public SpdxWorkData(@JsonProperty("jsonSpdx")String jsonSpdx,
                         @JsonProperty("bucketName")String bucketName,
-                        @JsonProperty("projectId")String projectId,
+                        @JsonProperty("projectId")long projectId,
                         @JsonProperty("useCopyrightAi")boolean useCopyrightAi,
                         @JsonProperty("useLicenseMatcher")boolean useLicenseMatcher) {
         this.jsonSpdx=jsonSpdx;
@@ -48,7 +48,7 @@ public class SpdxWorkData extends BaseWorkData{
 
     private String bucketName;
 
-    private String projectId;
+    private Long projectId;
 
     boolean useCopyrightAi;
 
@@ -64,11 +64,11 @@ public class SpdxWorkData extends BaseWorkData{
         this.jsonSpdx = jsonSpdx;
     }
 
-    public String getProjectId() {
+    public Long getProjectId() {
         return projectId;
     }
 
-    public void setProjectId(String projectId) {
+    public void setProjectId(Long projectId) {
         this.projectId = projectId;
     }
 

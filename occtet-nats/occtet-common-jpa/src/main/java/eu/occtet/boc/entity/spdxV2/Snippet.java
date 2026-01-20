@@ -19,12 +19,14 @@
 package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
+
 import java.util.List;
+
 
 @Entity
 public class Snippet {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false)
@@ -37,21 +39,25 @@ public class Snippet {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name= "snippet_from_file", length = 2048)
     private String snippetFromFile;
 
     @ElementCollection
     @CollectionTable(name = "snippet_ranges", joinColumns = @JoinColumn(name = "snippet_id"))
     private List<Range> ranges;
 
-    @Lob
+    @Column(name= "license_concluded", columnDefinition = "TEXT")
     private String licenseConcluded;
+
+    public String getSpdxId() {
+        return spdxId;
+    }
 
     @ElementCollection
     @CollectionTable(name = "snippet_licenses", joinColumns = @JoinColumn(name = "snippet_id"))
     private List<String> licenseInfoInSnippets;
 
-    @Lob
+    @Column(name= "copyright_text", columnDefinition = "TEXT")
     private String copyrightText;
 
     public SpdxDocumentRoot getSpdxDocument() {
@@ -68,6 +74,14 @@ public class Snippet {
 
     public String getName() {
         return name;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setSpdxId(String spdxId) {
+        this.spdxId = spdxId;
     }
 
     public String getCopyrightText() {

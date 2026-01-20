@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.occtet.boc.service.IWorkDataProcessor;
 
-import java.util.UUID;
+
 
 public class AILicenseMatcherWorkData extends BaseWorkData{
 
@@ -36,7 +36,7 @@ public class AILicenseMatcherWorkData extends BaseWorkData{
     private String url;
     private String licenseId;
     private String licenseText;
-    private UUID inventoryItemId;
+    private Long inventoryItemId;
     private String licenseMatcherResult;
 
     @JsonCreator
@@ -45,7 +45,7 @@ public class AILicenseMatcherWorkData extends BaseWorkData{
                                     @JsonProperty("licenseMatcherResult")String licenseMatcherResult,
                                     @JsonProperty("licenseId")String licenseId,
                                     @JsonProperty("licenseText")String licenseText,
-                                    @JsonProperty("inventoryItemId")UUID inventoryItemId) {
+                                    @JsonProperty("inventoryItemId")Long inventoryItemId) {
 
         this.userMessage= userMessage;
         this.url = url;
@@ -55,7 +55,7 @@ public class AILicenseMatcherWorkData extends BaseWorkData{
         this.inventoryItemId= inventoryItemId;
     }
 
-    public AILicenseMatcherWorkData(UUID inventoryItemId) {
+    public AILicenseMatcherWorkData(Long inventoryItemId) {
 
         this.inventoryItemId= inventoryItemId;
     }
@@ -102,11 +102,11 @@ public class AILicenseMatcherWorkData extends BaseWorkData{
         this.url = url;
     }
 
-    public UUID getInventoryItemId() {
+    public Long getInventoryItemId() {
         return inventoryItemId;
     }
 
-    public void setInventoryItemId(UUID inventoryItemId) {
+    public void setInventoryItemId(Long inventoryItemId) {
         this.inventoryItemId = inventoryItemId;
     }
 

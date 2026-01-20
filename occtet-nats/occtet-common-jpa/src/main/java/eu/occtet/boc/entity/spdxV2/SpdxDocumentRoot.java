@@ -37,16 +37,16 @@ public class SpdxDocumentRoot {
     @Column(nullable = false)
     private String spdxVersion;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "DATA_LICENSE")
     private String dataLicense;
 
     @Column(nullable = false)
     private String name;
 
-    @Lob
+    @Column(name="comment", columnDefinition = "TEXT")
     private String comment;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "DOCUMENT_URI")
     private String documentUri;
 
     @OneToOne(cascade = CascadeType.ALL, optional = false)
@@ -83,6 +83,10 @@ public class SpdxDocumentRoot {
 
     public String getSpdxId() {
         return spdxId;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {

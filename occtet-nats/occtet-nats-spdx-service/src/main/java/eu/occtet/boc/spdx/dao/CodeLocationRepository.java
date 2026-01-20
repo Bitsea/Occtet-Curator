@@ -33,6 +33,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface CodeLocationRepository extends JpaRepository<CodeLocation, UUID> {
+public interface CodeLocationRepository extends JpaRepository<CodeLocation, Long> {
     List<CodeLocation> findByInventoryItem(InventoryItem inventoryItem);
 }

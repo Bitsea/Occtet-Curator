@@ -41,7 +41,7 @@ services:
         - mynet
 
     frontend:
-      image: occtet-boc-frontend:latest
+      image: occtet-boc-frontend:0.3.3-SNAPSHOT
       ports:
         - "8090:8090"
       volumes:

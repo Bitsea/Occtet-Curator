@@ -71,11 +71,11 @@ public class AuditViewStateService {
      * and is used to persist and transfer the UI state within the application.
      */
     public record AuditViewState(
-            UUID projectId,
-            List<UUID> openInventoryTabsIds,
-            List<UUID> openFileTabsIds,
+            Long projectId,
+            List<Long> openInventoryTabsIds,
+            List<Long> openFileTabsIds,
             Serializable activeTabIdentifier,
-            Set<UUID> expandedNodeIds
+            Set<Long> expandedNodeIds
             ) implements Serializable {
 
         public AuditViewState {

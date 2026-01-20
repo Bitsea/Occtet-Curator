@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface LicenseRepository extends JpaRepository<License, UUID> {
+public interface LicenseRepository extends JpaRepository<License, Long> {
 
     List<License> findByLicenseTypeAndLicenseText(String licenseType, String LicenseText);
     List<License> findByLicenseType(String licenseType);

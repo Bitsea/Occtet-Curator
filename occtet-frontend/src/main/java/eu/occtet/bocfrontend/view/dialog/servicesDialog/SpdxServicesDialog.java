@@ -105,7 +105,7 @@ public class SpdxServicesDialog extends AbstractServicesDialog{
     public void setProject(final AbstractField.ComponentValueChangeEvent event){
         if(event != null){
             Project project = (Project) event.getValue();
-            workData.setProjectId(project.getId().toString());
+            workData.setProjectId(project.getId());
         }
     }
 
@@ -173,6 +173,6 @@ public class SpdxServicesDialog extends AbstractServicesDialog{
     }
 
     private boolean checkData() {
-        return workData.getJsonSpdx() != null && !workData.getProjectId().isEmpty();
+        return workData.getJsonSpdx() != null && workData.getProjectId()!=null && workData.getProjectId()!=0;
     }
 }

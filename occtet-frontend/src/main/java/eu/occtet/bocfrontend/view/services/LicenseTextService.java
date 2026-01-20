@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,11 +20,11 @@ public class LicenseTextService {
     private LicenseRepository licenseRepository;
 
     public List<Pair<License,Float>> findBySimilarity(String text, int limit) {
-        List<Pair<UUID, Float>> ids = licenseDao.findLicenseIdsSimilarTo(text, limit);
+        List<Pair<Long, Float>> ids = licenseDao.findLicenseIdsSimilarTo(text, limit);
         return ids.stream().map(
-                uuidFloatPair ->{
-                    License lt= licenseRepository.findById(uuidFloatPair.getKey()).get();
-                    return Pair.of(lt,uuidFloatPair.getValue());
+                LongFloatPair ->{
+                    License lt= licenseRepository.findById(LongFloatPair.getKey()).get();
+                    return Pair.of(lt,LongFloatPair.getValue());
                 })
                 .collect(Collectors.toList());
     }
