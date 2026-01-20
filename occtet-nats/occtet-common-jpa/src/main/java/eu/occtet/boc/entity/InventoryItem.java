@@ -59,7 +59,7 @@ public class InventoryItem {
     @Column(name= "CONSPICUOUS")
     private Boolean conspicuous;
 
-    @Column(name= "EXTERNAL_NOTES",length = Integer.MAX_VALUE)
+    @Column(name= "EXTERNAL_NOTES",columnDefinition = "TEXT")
     private String externalNotes;
 
     @ManyToOne(fetch = FetchType.LAZY)

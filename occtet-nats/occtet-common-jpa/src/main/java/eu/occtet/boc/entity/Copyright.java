@@ -40,7 +40,7 @@ public class Copyright {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(name = "COPYRIGHT_TEXT",length = Integer.MAX_VALUE)
+    @Column(name = "COPYRIGHT_TEXT",columnDefinition = "TEXT")
     private String copyrightText;
 
     @Column(name= "CURATED")

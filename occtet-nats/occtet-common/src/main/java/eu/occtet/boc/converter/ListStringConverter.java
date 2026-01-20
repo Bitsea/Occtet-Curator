@@ -1,8 +1,7 @@
 package eu.occtet.boc.converter;
 
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
-import org.springframework.util.StringUtils;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,8 +36,7 @@ public class ListStringConverter {
      * @param s
      * @return List of strings (empty list if input is null)
      */
-    @NonNull
-    public static List<String> nullableStringToList(@Nullable  String s) {
+    public static List<String> nullableStringToList(String s) {
         return (s==null) ? Collections.emptyList() : Arrays.asList(StringUtils.split(s, DELIMITER));
     }
 
@@ -47,8 +45,8 @@ public class ListStringConverter {
      * @param s
      * @return String representation of the list or null if the list is null (empty string if list is empty)
      */
-    public static String toStringOrNull(@Nullable  List<String> s) {
+    public static String toStringOrNull(List<String> s) {
         if(s==null) return null;
-        return StringUtils.collectionToDelimitedString(s, DELIMITER);
+        return StringUtils.join(s, DELIMITER);
     }
 }

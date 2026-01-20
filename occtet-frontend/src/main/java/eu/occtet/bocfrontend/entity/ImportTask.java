@@ -36,7 +36,6 @@ public class ImportTask{
     private String status;
 
     // Jmix cannot handle List<String> as a column type. Therefore a converter is needed.
-    @Convert(converter = ListStringConverter.class)
     @Column(name = "FEEDBACK", columnDefinition = "TEXT")
     private List<String> feedback;
 

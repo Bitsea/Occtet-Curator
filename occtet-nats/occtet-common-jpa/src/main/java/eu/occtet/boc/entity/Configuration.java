@@ -44,7 +44,7 @@ public class Configuration {
     @Column(name = "VALUE")
     private String value;
 
-    @Column
+    @Column(name = "UPLOAD", length =1000000000)
     private byte[] upload;
 
     public Configuration() {

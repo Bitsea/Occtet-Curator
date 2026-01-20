@@ -47,7 +47,7 @@ public class DBLog {
     @Column(name = "COMPONENT", length = 20)
     private String component;
 
-    @Column(name = "MESSAGE",length = Integer.MAX_VALUE)
+    @Column(name = "MESSAGE",columnDefinition = "TEXT")
     private String message;
 
     // Constructors
