@@ -52,8 +52,6 @@ public class InformationFilesService {
     @Autowired
     private InformationFileRepository informationFileRepository;
 
-    @Autowired
-    private InformationFileFactory informationFileFactory;
 
     @Autowired
     private InformationFileDao informationFileDao;

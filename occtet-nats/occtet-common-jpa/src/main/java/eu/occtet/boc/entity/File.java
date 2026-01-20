@@ -65,16 +65,16 @@ public class File {
     @Column(name = "FILENAME", nullable = false)
     private String fileName;
 
-    @Column(name = "ABSOLUTE_PATH", nullable = false, length=1024)
+    @Column(name = "ABSOLUTE_PATH", nullable = false, columnDefinition = "TEXT")
     private String absolutePath;
 
-    @Column(name = "RELATIVE_PATH", nullable = false, length=512)
+    @Column(name = "RELATIVE_PATH", nullable = false, columnDefinition = "TEXT")
     private String relativePath;
 
-    @Column(name = "IS_DIRECTORY", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    @Column(name = "IS_DIRECTORY", nullable = false)
     private Boolean isDirectory;
 
-    @Column(name = "REVIEWED", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    @Column(name = "REVIEWED", nullable = false)
     private Boolean reviewed;
 
     @CreatedDate

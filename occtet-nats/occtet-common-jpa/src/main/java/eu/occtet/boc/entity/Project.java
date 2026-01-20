@@ -42,10 +42,10 @@ public class Project {
     @Column(name="PROJECT_NAME")
     private String projectName;
 
-    @Column(name = "BASEPATH", length=1024)
+    @Column(name = "BASEPATH", columnDefinition = "TEXT")
     private String basePath;
 
-    @Column(name = "SPDX_DOCUMENT_ID", length=512)
+    @Column(name = "SPDX_DOCUMENT_ID", columnDefinition = "TEXT")
     private String documentID;
 
     public Project() {
