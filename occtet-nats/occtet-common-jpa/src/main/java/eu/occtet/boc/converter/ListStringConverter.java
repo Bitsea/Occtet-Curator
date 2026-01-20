@@ -29,7 +29,7 @@ import java.util.List;
  * /
  *
  */
-public class StringListConverter {
+public class ListStringConverter {
     private static final String DELIMITER = "|";
 
     /**

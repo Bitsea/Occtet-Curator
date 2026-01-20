@@ -1,13 +1,12 @@
 package eu.occtet.boc.entity;
 
-import eu.occtet.boc.converter.StringListConverter;
+import eu.occtet.boc.converter.ListStringConverter;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Table(name = "IMPORT_TASK", indexes = {
@@ -34,9 +33,8 @@ public class ImportTask {
     private String status;
 
     // Jmix cannot handle List<String> as a column type. Therefore a converter is needed.
-    @Convert(converter = StringListConverter.class)
     @Column(name = "FEEDBACK", columnDefinition = "TEXT")
-    private List<String> feedback;
+    private String feedback;
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "IMPORT_TASK_ID")
@@ -89,11 +87,11 @@ public class ImportTask {
     }
 
     public List<String> getFeedback() {
-        return feedback;
+        return ListStringConverter.nullableStringToList(feedback);
     }
 
     public void setFeedback(List<String> feedback) {
-        this.feedback = feedback;
+        this.feedback = ListStringConverter.toStringOrNull(feedback);
     }
 
     public List<Configuration> getImportConfiguration() {

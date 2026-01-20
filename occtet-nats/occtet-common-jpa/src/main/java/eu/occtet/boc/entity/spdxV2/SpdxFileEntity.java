@@ -57,7 +57,7 @@ public class SpdxFileEntity {
     @Column(name = "license_info_in_files", columnDefinition = "TEXT")
     private List<String> licenseInfoInFiles;
 
-    @Lob
+
     @Column(name = "copyright_text")
     private String copyrightText;
 
