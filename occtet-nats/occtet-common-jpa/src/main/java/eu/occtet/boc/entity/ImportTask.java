@@ -1,27 +1,26 @@
-package eu.occtet.bocfrontend.entity;
+package eu.occtet.boc.entity;
 
-import eu.occtet.bocfrontend.converter.ListStringConverter;
-import io.jmix.core.entity.annotation.JmixGeneratedValue;
-import io.jmix.core.metamodel.annotation.InstanceName;
-import io.jmix.core.metamodel.annotation.JmixEntity;
+import eu.occtet.boc.converter.StringListConverter;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@JmixEntity
+@Entity
 @Table(name = "IMPORT_TASK", indexes = {
         @Index(columnList = "IMPORT_NAME"),
         @Index(columnList = "STATUS")
 })
-@Entity
-public class ImportTask{
+@EntityListeners(AuditingEntityListener.class)
+public class ImportTask {
 
-    @JmixGeneratedValue
+
     @Id
     @Column(name="ID", nullable = false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -29,14 +28,13 @@ public class ImportTask{
     private Project project;
 
     @Column(name = "IMPORT_NAME", nullable = false)
-    @InstanceName
     private String importName;
 
     @Column(name = "STATUS", nullable = false)
     private String status;
 
     // Jmix cannot handle List<String> as a column type. Therefore a converter is needed.
-    @Convert(converter = ListStringConverter.class)
+    @Convert(converter = StringListConverter.class)
     @Column(name = "FEEDBACK", columnDefinition = "TEXT")
     private List<String> feedback;
 
@@ -66,11 +64,11 @@ public class ImportTask{
         this.project = project;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

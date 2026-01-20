@@ -25,12 +25,12 @@ package eu.occtet.boc.entity;
 import org.springframework.lang.Nullable;
 
 
-public enum ScannerInitializerStatus {
+public enum ImportStatus {
     CREATING("CREATING"),APPROVE("APPROVE"), WAITING("WAITING"),IN_PROGRESS("IN_PROGRESS"), STOPPED("STOPPED"), COMPLETED("COMPLETED");
 
     private final String id;
 
-    ScannerInitializerStatus(String value) {
+    ImportStatus(String value) {
         this.id = value;
     }
 
@@ -40,8 +40,8 @@ public enum ScannerInitializerStatus {
     }
 
     @Nullable
-    public static ScannerInitializerStatus fromId(String id) {
-        for (ScannerInitializerStatus at : ScannerInitializerStatus.values()) {
+    public static ImportStatus fromId(String id) {
+        for (ImportStatus at : ImportStatus.values()) {
             if (at.getId().equals(id)) {
                 return at;
             }

@@ -31,16 +31,16 @@ public class SpdxDocumentRoot {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name="SPDX_ID")
     private String spdxId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name="SPDX_VERSION")
     private String spdxVersion;
 
     @Column(nullable = false, name = "DATA_LICENSE")
     private String dataLicense;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name="NAME")
     private String name;
 
     @Column(name="comment", columnDefinition = "TEXT")

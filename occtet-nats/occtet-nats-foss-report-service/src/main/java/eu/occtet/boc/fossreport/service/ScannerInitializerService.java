@@ -22,7 +22,6 @@
 
 package eu.occtet.boc.fossreport.service;
 
-import eu.occtet.boc.entity.ScannerInitializer;
 import eu.occtet.boc.fossreport.dao.ScannerInitializerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
