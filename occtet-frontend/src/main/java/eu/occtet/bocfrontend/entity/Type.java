@@ -21,7 +21,6 @@
 package eu.occtet.bocfrontend.entity;
 
 import io.jmix.core.metamodel.datatype.EnumClass;
-
 import org.springframework.lang.Nullable;
 
 

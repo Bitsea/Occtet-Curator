@@ -19,12 +19,22 @@
 package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
+
 import java.util.List;
 
-@Embeddable
+
+@Entity
+@Table(name = "PACKAGE_VERIFICATION_CODE_ENTITY")
 public class PackageVerificationCodeEntity {
 
-    @Column(nullable = false)
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
+
+    @OneToOne(mappedBy = "packageVerificationCodeEntity", fetch = FetchType.LAZY)
+    private SpdxPackageEntity spdxPackageEntity;
+
+    @Column(name ="package_verification_code_value")
     private String packageVerificationCodeValue;
 
     @ElementCollection
@@ -46,5 +56,21 @@ public class PackageVerificationCodeEntity {
 
     public void setPackageVerificationCodeExcludedFiles(List<String> packageVerificationCodeExcludedFiles) {
         this.packageVerificationCodeExcludedFiles = packageVerificationCodeExcludedFiles;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public SpdxPackageEntity getSpdxPackageEntity() {
+        return spdxPackageEntity;
+    }
+
+    public void setSpdxPackageEntity(SpdxPackageEntity spdxPackageEntity) {
+        this.spdxPackageEntity = spdxPackageEntity;
     }
 }

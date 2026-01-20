@@ -27,9 +27,9 @@ import io.jmix.core.metamodel.annotation.InstanceName;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
-
 import java.util.List;
-import java.util.UUID;
+
+
 
 @JmixEntity
 @Table(name = "COPYRIGHT")
@@ -39,7 +39,7 @@ public class Copyright {
     @JmixGeneratedValue
     @Id
     @Column(name = "ID", nullable = false)
-    private UUID id;
+    private Long id;
 
     @InstanceName
     @Column(name = "COPYRIGHT_TEXT")
@@ -66,9 +66,9 @@ public class Copyright {
     @JoinColumn(name= "COPYRIGHT_ID")
     private List<License> licenses;
 
-    public UUID getId() {return id;}
+    public Long getId() {return id;}
 
-    public void setId(UUID id) {this.id = id;}
+    public void setId(Long id) {this.id = id;}
 
     public String getCopyrightText() {return copyrightText;}
 

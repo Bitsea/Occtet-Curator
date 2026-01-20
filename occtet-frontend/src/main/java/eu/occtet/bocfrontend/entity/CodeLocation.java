@@ -23,9 +23,7 @@ import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
-
 import java.util.List;
-import java.util.UUID;
 
 @JmixEntity
 @Table(name = "CODE_LOCATION")
@@ -35,7 +33,7 @@ public class CodeLocation {
     @JmixGeneratedValue
     @Id
     @Column(name="ID", nullable = false)
-    private UUID id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY,cascade = {CascadeType.REFRESH})
     @JoinColumn(name = "INVENTORY_ITEM_ID")
@@ -64,11 +62,11 @@ public class CodeLocation {
         return filePath;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

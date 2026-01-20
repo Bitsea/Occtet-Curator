@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 import static java.lang.Boolean.*;
@@ -75,11 +74,11 @@ public class RendererFactory {
      * where the keys are the IDs of InventoryItem instances, and the values are their respective file counts.
      *
      * @param fileCountsSupplier a Supplier providing a Map that contains the file count data.
-     *                           The map's keys are UUID values corresponding to InventoryItem IDs,
+     *                           The map's keys are Long values corresponding to InventoryItem IDs,
      *                           and the values are Long representing the file counts.
      * @return a Renderer for rendering the file count of an InventoryItem.
      */
-    public Renderer<InventoryItem> filesCountRenderer(Supplier<Map<UUID, Long>> fileCountsSupplier) {
+    public Renderer<InventoryItem> filesCountRenderer(Supplier<Map<Long, Long>> fileCountsSupplier) {
         return new TextRenderer<>(item -> fileCountsSupplier.get().getOrDefault(item.getId(), 0L).toString());
 
     }

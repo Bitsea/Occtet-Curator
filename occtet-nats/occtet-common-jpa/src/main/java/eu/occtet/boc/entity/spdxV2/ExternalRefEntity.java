@@ -20,28 +20,29 @@ package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
 
+
 @Entity
 @Table(name = "EXTERNAL_REF_ENTITY")
 public class ExternalRefEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "package_id", nullable = false)
     private SpdxPackageEntity pkg;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name="reference_category")
     private String referenceCategory;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "reference_locator")
     private String referenceLocator;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "reference_type")
     private String referenceType;
 
-    @Lob
+    @Column(name="comment", columnDefinition = "TEXT")
     private String comment;
 
     public Long getId() {

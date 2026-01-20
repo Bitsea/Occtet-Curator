@@ -23,7 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.Executor;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"eu.occtet.boc"})
 @EnableAsync
 @EntityScan(basePackages = "eu.occtet.boc.entity")
 @EnableJpaRepositories(basePackages = "eu.occtet.boc.ortrunstarter.dao")
@@ -76,10 +76,15 @@ public class ORTRunStarterApp {
         });
     }
 
-    @PreDestroy
-    public void onShutdown() {
-        ORTRunStarterWorkConsumer.terminate();
+    @PostConstruct
+    public void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdownApplication));
     }
 
+    private void shutdownApplication() {
+        System.out.println("shutting down Microservice: " + microserviceDescriptor.getName() );
+        ORTRunStarterWorkConsumer.terminate();
+        Runtime.getRuntime().halt(0);
+    }
 
 }

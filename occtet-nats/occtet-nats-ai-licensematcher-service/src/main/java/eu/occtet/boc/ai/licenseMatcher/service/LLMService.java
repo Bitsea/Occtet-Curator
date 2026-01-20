@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -122,7 +123,11 @@ public class LLMService extends BaseWorkDataProcessor {
 
     private boolean licenseMatchingAI(AILicenseMatcherWorkData aiWorkData) {
         //MemoryAdvisor is default
-        InventoryItem item = getInventoryItem(aiWorkData.getInventoryItemId());
+        Optional<InventoryItem> optItem = inventoryItemRepository.findById(aiWorkData.getInventoryItemId());
+        if(!optItem.isPresent()) {
+            log.warn("InventoryItem with id {} not found", aiWorkData.getInventoryItemId());
+            return false;
+        }
         String response = "";
         Prompt question = promptFactory.createLicenseMatcherPrompt(aiWorkData.getUserMessage(), aiWorkData.getUrl());
         try {
@@ -134,7 +139,7 @@ public class LLMService extends BaseWorkDataProcessor {
             log.error("Exception with calling ai {}", e.getMessage());
         }
         String result = postProcessor.deleteThinking(response);
-        handleAIResult(item, result);
+        handleAIResult(optItem.get(), result);
         if(!result.isEmpty()) {
             try {
                 sendAnswerToStream(result);

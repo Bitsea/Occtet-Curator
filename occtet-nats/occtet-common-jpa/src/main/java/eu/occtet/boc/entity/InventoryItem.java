@@ -28,7 +28,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
+
 
 @Entity
 @Table(name = "INVENTORY_ITEM")
@@ -37,9 +37,9 @@ public class InventoryItem {
 
 
     @Id
-    @Column(name="ID", nullable = false, columnDefinition = "UUID")
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private UUID id;
+    @Column(name="ID", nullable = false)
+    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    private Long id;
 
     @Column(name="INVENTORY_NAME", columnDefinition = "TEXT")
     private String inventoryName;
@@ -47,13 +47,10 @@ public class InventoryItem {
     @Column(name= "SIZE")
     private Integer size;
 
-    @Column(name= "ISSUE")
-    private Boolean issue;
-
     @Column(name= "SPDX_ID", columnDefinition = "TEXT")
     private String spdxId;
 
-    @Column(name= "LINKING")
+    @Column(name= "LINKING", columnDefinition = "TEXT")
     private String linking;
 
     @Column (name= "PRIORITY")
@@ -62,15 +59,15 @@ public class InventoryItem {
     @Column(name= "CONSPICUOUS")
     private Boolean conspicuous;
 
-    @Column(name= "EXTERNAL_NOTES", columnDefinition = "TEXT")
+    @Column(name= "EXTERNAL_NOTES",length = Integer.MAX_VALUE)
     private String externalNotes;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PARENT_INVENTORY_ITEM_ID", columnDefinition = "UUID")
+    @JoinColumn(name = "PARENT_INVENTORY_ITEM_ID")
     private InventoryItem parent;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = true)
-    @JoinColumn(name = "SOFTWARE_COMPONENT_ID", nullable = true, columnDefinition = "UUID")
+    @JoinColumn(name = "SOFTWARE_COMPONENT_ID", nullable = true)
     private SoftwareComponent softwareComponent;
 
     @Column(name= "WAS_COMBINED")
@@ -80,7 +77,7 @@ public class InventoryItem {
     private Boolean curated;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PROJECT_ID", nullable = false, columnDefinition = "UUID")
+    @JoinColumn(name = "PROJECT_ID", nullable = false)
     private Project project;
 
     @Column(name = "CREATED_AT", updatable = false)
@@ -121,11 +118,11 @@ public class InventoryItem {
         this.softwareComponent = softwareComponent;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

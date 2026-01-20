@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface InventoryItemRepository extends JpaRepository<InventoryItem, UUID> {
+public interface InventoryItemRepository extends JpaRepository<InventoryItem, Long> {
 
     List<InventoryItem> findByProjectAndInventoryName(Project project, String inventoryName);
 

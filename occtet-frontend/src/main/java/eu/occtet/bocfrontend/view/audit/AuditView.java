@@ -124,9 +124,9 @@ public class AuditView extends StandardView{
     @ViewComponent private OverviewProjectTabFragment overviewProjectTabFragment;
 
     private TabManager tabManager;
-    private Map<UUID, Long> fileCounts = new HashMap<>();
+    private Map<Long, Long> fileCounts = new HashMap<>();
     private boolean suppressNavigation = false;
-    private final Set<UUID> expandedItemIds = new HashSet<>();
+    private final Set<Long> expandedItemIds = new HashSet<>();
 
     private FileTreeSearchHelper fileTreeSearchHelper;
     @Autowired
@@ -304,7 +304,7 @@ public class AuditView extends StandardView{
     private void loadProjectFromUrl(String projectIdStr) {
         suppressNavigation = true;
         try {
-            UUID projectId = UUID.fromString(projectIdStr);
+            Long projectId = Long.parseLong(projectIdStr);
             projectRepository.findById(projectId).ifPresent(project -> {
                 log.debug("Loading project {} from URL", project.getProjectName());
 
@@ -337,7 +337,7 @@ public class AuditView extends StandardView{
         viewStateService.get().ifPresent(state -> {
             restoreSessionTabs(state);
 
-            Set<UUID> idsToExpand = new HashSet<>(state.expandedNodeIds());
+            Set<Long> idsToExpand = new HashSet<>(state.expandedNodeIds());
             this.expandedItemIds.addAll(idsToExpand);
 
             log.debug("Restoring session state: {} expanded nodes to restore", idsToExpand.size());
@@ -456,8 +456,8 @@ public class AuditView extends StandardView{
 
         // Restore file tabs without auto-selecting them
         // need to get list first and then ensure that the files section is visable
-        List<UUID> fileIds = state.openFileTabsIds();
-        List<UUID> inventoryIds = state.openInventoryTabsIds();
+        List<Long> fileIds = state.openFileTabsIds();
+        List<Long> inventoryIds = state.openInventoryTabsIds();
         if (!fileIds.isEmpty()) {
             filesSection.setVisible(true);
         }
@@ -522,7 +522,7 @@ public class AuditView extends StandardView{
         try {
             UI.getCurrent().access(() -> {
                 UI.getCurrent().navigate(AuditView.class, new RouteParameters(
-                        new RouteParam("projectId", selectedProject.getId().toString())
+                        new RouteParam("projectId", selectedProject.getId())
                 ));
             });
 

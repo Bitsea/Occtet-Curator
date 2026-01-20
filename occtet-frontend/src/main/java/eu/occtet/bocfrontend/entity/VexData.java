@@ -21,7 +21,6 @@ package eu.occtet.bocfrontend.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import eu.occtet.bocfrontend.model.vexModels.VexVulnerability;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.annotation.Nonnull;
@@ -29,7 +28,8 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
+
+
 
 @JmixEntity
 @Table(name = "VEX_DATA")
@@ -40,7 +40,7 @@ public class VexData{
     @Id
     @Column(name="ID", nullable = false)
     @JsonIgnore
-    private UUID id;
+    private Long id;
 
     @Column(name="TITLE")
     private String title;
@@ -112,13 +112,11 @@ public class VexData{
         this.vulnerabilities = vulnerabilities;
     }
 
-
-
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

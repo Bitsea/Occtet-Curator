@@ -97,7 +97,7 @@ public class AnswerService {
      * @throws IOException
      */
     public boolean prepareAnswers(List<InventoryItem> inventoryItems, boolean toCopyrightAi, boolean toLicenseMatcher
-            , Set<UUID> mainInventoryItemIds) throws JetStreamApiException, IOException {
+            , Set<Long> mainInventoryItemIds) throws JetStreamApiException, IOException {
             log.debug("prepare answer size {}", inventoryItems.size());
         for (InventoryItem inventoryItem : inventoryItems) {
             log.debug("SEND inventoryId {}", inventoryItem.getId());
