@@ -23,24 +23,25 @@ import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Entity
 @Table(name = "SPDX_DOCUMENT_ROOT")
 public class SpdxDocumentRoot {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false, name="SPDX_ID")
     private String spdxId;
 
-    @Column(nullable = false, name="SPDX_VERSION")
+    @Column(nullable = false, name = "SPDX_VERSION")
     private String spdxVersion;
 
     @Column(nullable = false, name = "DATA_LICENSE")
     private String dataLicense;
 
-    @Column(nullable = false, name="NAME")
+    @Column(nullable = false)
     private String name;
 
     @Column(name="comment", columnDefinition = "TEXT")
