@@ -74,7 +74,7 @@ public class SpdxImporter extends Importer {
                 }
             }
 
-            UUID projectId = importTask.getProject().getId();
+            Long projectId = importTask.getProject().getId();
 
             sendIntoStream(spdxJson, projectId, useCopyright ,useLicenseMatcher, filename);
 
@@ -87,7 +87,7 @@ public class SpdxImporter extends Importer {
 
     }
 
-    private void sendIntoStream(byte[] spdxJson, UUID projectId, boolean useCopyright, boolean useLicenseMatch, String filename) {
+    private void sendIntoStream(byte[] spdxJson, Long projectId, boolean useCopyright, boolean useLicenseMatch, String filename) {
 
         ByteArrayInputStream objectStoreInput = new ByteArrayInputStream(spdxJson);
 
@@ -98,7 +98,7 @@ public class SpdxImporter extends Importer {
 
         ObjectInfo objectInfo = natsService.putDataIntoObjectStore(objectStoreInput, objectMeta);
 
-        SpdxWorkData spdxWorkData = new SpdxWorkData( objectInfo.getObjectName(), objectInfo.getBucket(), projectId.toString(), useCopyright, useLicenseMatch);
+        SpdxWorkData spdxWorkData = new SpdxWorkData( objectInfo.getObjectName(), objectInfo.getBucket(), projectId, useCopyright, useLicenseMatch);
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
         WorkTask workTask = new WorkTask("processing_spdx", "uploaded spdx report to be turned into entities by spdx-microservice", actualTimestamp, spdxWorkData);
