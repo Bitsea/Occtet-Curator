@@ -61,15 +61,17 @@
         <action id="discardAction" type="lookup_discard"/>
     </actions>
     <layout>
-        <vbox>
+        <vbox width="100%" height="100%">
             <hbox width="100%">
-                <genericFilter id="genericFilter" dataLoader="copyrightsDl" themeNames="small"
-                               width="80%" alignSelf="START">
+                <comboBox id="projectComboBox" property="projectName"/>
+                <button id="saveButton" text="Save" enabled="false" alignSelf="START" themeNames="warning" icon="vaadin:safe" visible="false"/>
+                <checkbox id="immediateCheckbox" label="msg://saveImmediately" value="true" alignSelf="START" visible="false"/>
+            </hbox>
+            <hbox width="100%" visible="false" id="filterBox">
+                <genericFilter id="genericFilter" dataLoader="copyrightsDl" themeNames="small" alignSelf="START" opened="false">
                     <properties include=".*"/>
                     <conditions> </conditions>
                 </genericFilter>
-                <checkbox id="immediateCheckbox" label="msg://saveImmediately" value="true" alignSelf="END"/>
-                <button id="saveButton" text="Save" enabled="false" alignSelf="END" themeNames="warning" icon="vaadin:safe"/>
                 <simplePagination id="pagination" dataLoader="copyrightsDl" alignSelf="END" />
             </hbox>
             <dataGrid classNames="occtet-grid" id="copyrightsDataGrid"

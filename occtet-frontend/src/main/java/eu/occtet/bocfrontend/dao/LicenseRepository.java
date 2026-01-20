@@ -34,7 +34,6 @@ public interface LicenseRepository  extends JmixDataRepository<License, Long> {
     List<License> findLicensesByCurated(Boolean curated);
     List<License> findLicensesByPriority(Integer priority);
     List<License> findLicensesByLicenseName(String licenseName);
-    License findLicenseById(UUID uuid);
     @Query("select distinct l from InventoryItem i join i.project p join i.softwareComponent sc join sc.licenses l where p = :project")
     List<License> findLicensesByProject(Project project);
     License findLicenseById(Long id);

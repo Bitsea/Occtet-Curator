@@ -46,11 +46,10 @@
         <action id="discardAction" type="lookup_discard"/>
     </actions>
     <layout>
-        <hbox width="100%">
-            <genericFilter id="genericFilter" dataLoader="inventoryItemsDl" themeNames="small"
-                           width="80%" alignSelf="START">
+        <comboBox id="projectComboBox" property="projectName"/>
+        <hbox width="100%" visible="false" id="filterBox">
+            <genericFilter id="genericFilter" dataLoader="inventoryItemsDl" themeNames="small" alignSelf="START" opened="false">
                 <properties include=".*"/>
-                <conditions> </conditions>
             </genericFilter>
             <simplePagination id="pagination" dataLoader="inventoryItemsDl" alignSelf="END"/>
         </hbox>

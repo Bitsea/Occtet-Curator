@@ -24,20 +24,22 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.editor.EditorSaveEvent;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
-import eu.occtet.bocfrontend.entity.CodeLocation;
-import eu.occtet.bocfrontend.entity.Copyright;
-import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.dao.CopyrightRepository;
+import eu.occtet.bocfrontend.dao.ProjectRepository;
+import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.service.CopyrightService;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.checkbox.JmixCheckbox;
+import io.jmix.flowui.component.combobox.JmixComboBox;
+import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.upload.FileUploadField;
 import io.jmix.flowui.download.Downloader;
 import io.jmix.flowui.kit.component.button.JmixButton;
@@ -50,10 +52,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -87,13 +86,46 @@ public class CopyrightListView extends StandardListView<Copyright> {
     @Autowired
     private DataManager dataManager;
 
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private CopyrightRepository copyrightRepository;
+
     @ViewComponent
     private JmixCheckbox immediateCheckbox;
 
     @ViewComponent
     private JmixButton saveButton;
 
+    @ViewComponent
+    private DataGrid<Copyright> copyrightsDataGrid;
+
+    @ViewComponent
+    private JmixComboBox<Project> projectComboBox;
+
+    @ViewComponent
+    private HorizontalLayout filterBox;
+
     private final Set<Copyright> copyrights = new HashSet<>();
+
+
+    @Subscribe
+    public void onInit(InitEvent event){
+        projectComboBox.setItems(projectRepository.findAll());
+        projectComboBox.setItemLabelGenerator(Project::getProjectName);
+        copyrightsDataGrid.setItems(new ArrayList<>());
+    }
+
+
+    @Subscribe(id = "projectComboBox")
+    public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
+        if(event != null){
+            copyrightsDataGrid.setItems(copyrightRepository.findByProject(event.getValue()));
+            setUiComponentsVisible();
+        }
+    }
+
 
     @Supply(to = "copyrightsDataGrid.softwareComponent", subject = "renderer")
     private Renderer<Copyright> componentRenderer() {
@@ -246,7 +278,10 @@ public class CopyrightListView extends StandardListView<Copyright> {
             copyrightsDl.load();
         }
     }
-    
-    
-    
+
+    private void setUiComponentsVisible(){
+        filterBox.setVisible(true);
+        saveButton.setVisible(true);
+        immediateCheckbox.setVisible(true);
+    }
 }

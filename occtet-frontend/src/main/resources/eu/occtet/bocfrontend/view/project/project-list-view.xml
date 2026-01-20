@@ -47,7 +47,7 @@
         <vbox width="100%">
             <hbox width="100%">
                 <genericFilter id="genericFilter" dataLoader="projectsDl" themeNames="small"
-                               width="80%" alignSelf="START">
+                               width="80%" alignSelf="START" opened="false">
                     <properties include=".*"/>
                     <conditions> </conditions>
                 </genericFilter>
