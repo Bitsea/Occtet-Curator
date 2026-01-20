@@ -147,7 +147,7 @@ public class FlexeraReportImporter extends Importer {
     }
 
 
-    private void sendIntoStream(UUID importId, Map<String, Object> rowData) {
+    private void sendIntoStream(Long importId, Map<String, Object> rowData) {
 
         FossReportServiceWorkData fossReportServiceWorkData = new FossReportServiceWorkData(importId, rowData);
         LocalDateTime now = LocalDateTime.now();
