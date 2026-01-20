@@ -34,7 +34,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.UUID;
+
+
 
 @JmixEntity
 @Table(name = "FILE", indexes = {
@@ -48,7 +49,7 @@ public class File {
     @JmixGeneratedValue
     @Id
     @Column(name = "ID", nullable = false)
-    private UUID id;
+    private Long id;
 
     @InstanceName
     @Column(name = "FILENAME", nullable = false)
@@ -105,11 +106,11 @@ public class File {
     public File() {
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

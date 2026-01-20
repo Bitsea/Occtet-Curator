@@ -18,7 +18,9 @@
 
 package eu.occtet.boc.entity.spdxV2;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+
 
 @Embeddable
 public class Pointer {
@@ -26,8 +28,10 @@ public class Pointer {
     @Column(nullable = false)
     private String reference;
 
+    @Column
     private Integer offset;
 
+    @Column(name="line_number")
     private Integer lineNumber;
 
     public Integer getLineNumber() {

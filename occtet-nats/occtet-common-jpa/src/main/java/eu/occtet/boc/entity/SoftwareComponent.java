@@ -28,7 +28,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+
 
 @Entity
 @Table(name = "SOFTWARE_COMPONENT")
@@ -36,9 +36,9 @@ import java.util.UUID;
 public class SoftwareComponent {
 
     @Id
-    @Column(name="ID", nullable = false, columnDefinition = "UUID")
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private UUID id;
+    @Column(name="ID", nullable = false)
+    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    private Long id;
 
     @Column(name = "SOFTWARE_COMPONENT_NAME", nullable = false)
     private String name;
@@ -59,7 +59,7 @@ public class SoftwareComponent {
     private String detailsUrl;
 
     @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name= "SOFTWARECOMPONENT_ID", columnDefinition = "UUID")
+    @JoinColumn(name= "SOFTWARE_COMPONENT_ID")
     private List<Copyright> copyrights;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
@@ -126,11 +126,11 @@ public class SoftwareComponent {
         this.licenseAiControlled = licenseAiControlled;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

@@ -27,22 +27,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.occtet.boc.service.IWorkDataProcessor;
 
 import java.util.List;
-import java.util.UUID;
+
 
 public class AICopyrightFilterWorkData extends BaseWorkData {
 
     private String userMessage;
-    private UUID inventoryItemId;
+    private Long inventoryItemId;
     private List<String> questionableCopyrights;
 
 
-    public AICopyrightFilterWorkData( UUID inventoryItemId) {
+    public AICopyrightFilterWorkData( Long inventoryItemId) {
         this.inventoryItemId = inventoryItemId;
     }
 
     @JsonCreator
     public AICopyrightFilterWorkData(@JsonProperty("userMessage")String userMessage,
-                                     @JsonProperty("inventoryItemId")UUID inventoryItemId,
+                                     @JsonProperty("inventoryItemId")Long inventoryItemId,
                                      @JsonProperty("questionableCopyrights")List<String> questionableCopyrights) {
         this.userMessage = userMessage;
         this.inventoryItemId = inventoryItemId;
@@ -57,11 +57,11 @@ public class AICopyrightFilterWorkData extends BaseWorkData {
         this.userMessage = userMessage;
     }
 
-    public UUID getInventoryItemId() {
+    public Long getInventoryItemId() {
         return inventoryItemId;
     }
 
-    public void setInventoryItemId(UUID inventoryItemId) {
+    public void setInventoryItemId(Long inventoryItemId) {
         this.inventoryItemId = inventoryItemId;
     }
 

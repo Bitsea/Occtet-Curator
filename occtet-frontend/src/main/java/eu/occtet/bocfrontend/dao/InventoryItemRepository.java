@@ -26,9 +26,9 @@ import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import io.jmix.core.repository.JmixDataRepository;
 
 import java.util.List;
-import java.util.UUID;
 
-public interface InventoryItemRepository extends JmixDataRepository<InventoryItem, UUID> {
+
+public interface InventoryItemRepository extends JmixDataRepository<InventoryItem, Long> {
 
     List<InventoryItem> findAll();
     List<InventoryItem> findBySoftwareComponent(SoftwareComponent softwareComponent);

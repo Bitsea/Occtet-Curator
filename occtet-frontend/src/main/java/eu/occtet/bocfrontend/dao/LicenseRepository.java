@@ -23,14 +23,14 @@ import eu.occtet.bocfrontend.entity.License;
 import io.jmix.core.repository.JmixDataRepository;
 
 import java.util.List;
-import java.util.UUID;
 
-public interface LicenseRepository  extends JmixDataRepository<License, UUID> {
+
+public interface LicenseRepository  extends JmixDataRepository<License, Long> {
 
     List<License> findAll();
     List<License> findByLicenseName(String licenseName);
     List<License> findLicensesByCurated(Boolean curated);
     List<License> findLicensesByPriority(Integer priority);
     List<License> findLicensesByLicenseName(String licenseName);
-    License findLicenseById(UUID uuid);
+    License findLicenseById(Long id);
 }

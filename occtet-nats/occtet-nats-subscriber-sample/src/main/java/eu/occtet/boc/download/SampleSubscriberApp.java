@@ -30,10 +30,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Profile;
 
 import java.nio.charset.StandardCharsets;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"eu.occtet.boc"})
+@Profile({"!test"})
 public class SampleSubscriberApp {
 
   @Autowired
@@ -66,9 +68,18 @@ public class SampleSubscriberApp {
 
     }
 
-
-
   }
 
+
+  @PostConstruct
+  public void registerShutdownHook() {
+    Runtime.getRuntime().addShutdownHook(new Thread(this::shutdownApplication));
+  }
+
+  private void shutdownApplication() {
+    System.out.println("shutting down Microservice ");
+    // TODO shutdown workConsumer
+    Runtime.getRuntime().halt(0);
+  }
 
 }

@@ -29,9 +29,7 @@ import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
 import java.util.List;
-import java.util.UUID;
 
-import static jakarta.persistence.FetchType.EAGER;
 import static jakarta.persistence.FetchType.LAZY;
 
 @JmixEntity
@@ -42,7 +40,7 @@ public class SoftwareComponent {
     @JmixGeneratedValue
     @Id
     @Column(name="ID", nullable = false)
-    private UUID id;
+    private Long id;
 
     @Column(name = "SOFTWARE_COMPONENT_NAME", nullable = false)
     @JsonView(ApiView.SoftwareComponentView.class)
@@ -80,7 +78,7 @@ public class SoftwareComponent {
     private String detailsUrl;
 
     @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name= "SOFTWARECOMPONENT_ID")
+    @JoinColumn(name= "SOFTWARE_COMPONENT_ID")
     private List<Copyright> copyrights;
 
     public SoftwareComponent(){
@@ -105,11 +103,11 @@ public class SoftwareComponent {
         this.licenseAiControlled = aiControlled;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

@@ -27,7 +27,6 @@ import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
 
-import java.util.UUID;
 
 @JmixEntity
 @Table(name = "LICENSE",uniqueConstraints = { @UniqueConstraint(columnNames = { "LICENSE_TYPE"})})
@@ -37,7 +36,7 @@ public class License {
     @JmixGeneratedValue
     @Id
     @Column(name="ID", nullable = false)
-    private UUID id;
+    private Long id;
 
     @Column(name= "PRIORITY")
     private Integer priority;
@@ -86,11 +85,11 @@ public class License {
         this.isModified= modified;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

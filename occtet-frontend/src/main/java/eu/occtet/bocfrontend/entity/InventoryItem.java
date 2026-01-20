@@ -26,7 +26,7 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
+
 
 @JmixEntity
 @Table(name = "INVENTORY_ITEM")
@@ -36,18 +36,18 @@ public class InventoryItem {
     @JmixGeneratedValue
     @Id
     @Column(name="ID", nullable = false)
-    private UUID id;
+    private Long id;
 
-    @Column(name="INVENTORY_NAME")
+    @Column(name="INVENTORY_NAME", columnDefinition = "TEXT")
     private String inventoryName;
 
     @Column(name= "SIZE")
     private Integer size;
 
-    @Column(name= "SPDX_ID")
+    @Column(name= "SPDX_ID", columnDefinition = "TEXT")
     private String spdxId;
 
-    @Column(name= "LINKING")
+    @Column(name= "LINKING", columnDefinition = "TEXT")
     private String linking;
 
     @Column (name= "PRIORITY")
@@ -109,11 +109,11 @@ public class InventoryItem {
         this.createdAt = LocalDateTime.now();
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

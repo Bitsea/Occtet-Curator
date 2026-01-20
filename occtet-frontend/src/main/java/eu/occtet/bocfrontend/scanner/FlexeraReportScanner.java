@@ -163,7 +163,7 @@ public class FlexeraReportScanner extends Scanner{
     }
 
 
-    private void sendIntoStream(UUID scannerInitId, Map<String, Object> rowData) {
+    private void sendIntoStream(Long scannerInitId, Map<String, Object> rowData) {
 
         FossReportServiceWorkData fossReportServiceWorkData = new FossReportServiceWorkData(scannerInitId, rowData);
         LocalDateTime now = LocalDateTime.now();

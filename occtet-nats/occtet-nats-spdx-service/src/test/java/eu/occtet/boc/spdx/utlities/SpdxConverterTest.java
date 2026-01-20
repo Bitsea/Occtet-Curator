@@ -112,9 +112,8 @@ public class SpdxConverterTest {
         Assertions.assertNotNull(creationInfoEntity);
         Assertions.assertEquals("some creation info comment", creationInfoEntity.getComment());
         Assertions.assertFalse(creationInfoEntity.getCreators().isEmpty());
-        Assertions.assertEquals("Person: some creation info person", creationInfoEntity.getCreators().get(0));
-        Assertions.assertEquals("Organization: some creation info organization", creationInfoEntity.getCreators().get(1));
-        Assertions.assertEquals("Tool: ort-<REPLACE_ORT_VERSION>", creationInfoEntity.getCreators().get(2));
+        Assertions.assertEquals("Person: some creation info person", creationInfoEntity.getCreators());
+        Assertions.assertEquals("Tool: ort-<REPLACE_ORT_VERSION>", creationInfoEntity.getCreators());
         Assertions.assertEquals("<REPLACE_LICENSE_LIST_VERSION>", creationInfoEntity.getLicenseListVersion());
         Assertions.assertEquals("<REPLACE_CREATION_DATE_AND_TIME>", creationInfoEntity.getCreated());
 

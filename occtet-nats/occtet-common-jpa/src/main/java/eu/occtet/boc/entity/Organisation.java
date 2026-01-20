@@ -4,7 +4,7 @@ package eu.occtet.boc.entity;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.UUID;
+
 
 @Entity
 @Table(name = "Organisation")
@@ -12,9 +12,9 @@ import java.util.UUID;
 public class Organisation {
 
     @Id
-    @Column(name="ID", nullable = false, columnDefinition = "UUID")
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private UUID id;
+    @Column(name="ID", nullable = false)
+    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    private Long id;
 
     @Column(name="ORGANISATION_NAME")
     private String name;
