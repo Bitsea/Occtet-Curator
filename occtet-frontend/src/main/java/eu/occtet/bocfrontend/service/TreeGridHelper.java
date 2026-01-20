@@ -32,7 +32,7 @@ import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
 import eu.occtet.bocfrontend.dao.FileRepository;
-import eu.occtet.bocfrontend.engine.TabManager;
+import eu.occtet.bocfrontend.view.TabManager;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.Project;

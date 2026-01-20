@@ -55,7 +55,7 @@ vaadin-grid vaadin-button {
 }
 
 
-.scanner-layout{
+.import-layout{
 border: 1px solid;
 border-color: var(--lumo-contrast-10pct);
 }

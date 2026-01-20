@@ -20,7 +20,7 @@
 package eu.occtet.bocfrontend.service;
 
 import eu.occtet.bocfrontend.entity.Configuration;
-import eu.occtet.bocfrontend.entity.ScannerInitializer;
+import eu.occtet.bocfrontend.entity.ImportTask;
 import eu.occtet.bocfrontend.test_support.AuthenticatedAsAdmin;
 import io.jmix.core.DataManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +48,7 @@ public class ConfigurationServiceTest {
     private ConfigurationService configurationService;
 
     private Configuration configuration;
-    private ScannerInitializer flexeraScannerInit;
+    private ImportTask importTask;
 
     private static final String FLEXERA_FILE_NAME = "src/test/resources/foss_report_sample.xlsx";
     private static final String KEY_FOR_UPLOAD_CONFIG = "fileName";
@@ -61,8 +61,8 @@ public class ConfigurationServiceTest {
         this.configuration = dataManager.create(Configuration.class);
 
         // Flexera
-        this.flexeraScannerInit = dataManager.create(ScannerInitializer.class);
-        flexeraScannerInit.setScanner("Flexera_Report_Scanner");
+        this.importTask = dataManager.create(ImportTask.class);
+        importTask.setImportName("Flexera_Report_Import");
         // SPDX
     }
 
@@ -72,17 +72,17 @@ public class ConfigurationServiceTest {
         assertEquals(
                 Configuration.Type.FILE_UPLOAD,
                 configurationService.getTypeOfConfiguration(
-                        "fileName", flexeraScannerInit)
+                        "fileName", importTask)
         );
         assertEquals(
                 Configuration.Type.BOOLEAN,
                 configurationService.getTypeOfConfiguration(
-                        "UseLicenseMatcher", flexeraScannerInit)
+                        "UseLicenseMatcher", importTask)
         );
         assertEquals(
                 Configuration.Type.BOOLEAN,
                 configurationService.getTypeOfConfiguration(
-                        "UseFalseCopyrightFilter", flexeraScannerInit)
+                        "UseFalseCopyrightFilter", importTask)
         );
         // Tests for SPDX
     }
@@ -102,7 +102,7 @@ public class ConfigurationServiceTest {
                             uploadFileValue,
                             uploadFile.getName(),
                             false,
-                            flexeraScannerInit
+                            importTask
                     );
 
             assertTrue(result);
@@ -125,7 +125,7 @@ public class ConfigurationServiceTest {
                             new byte[0],
                             "",
                             false,
-                            flexeraScannerInit
+                            importTask
                     );
 
             assertFalse(resultForValid);
@@ -144,7 +144,7 @@ public class ConfigurationServiceTest {
                 null,
                 null,
                 true,
-                flexeraScannerInit
+                importTask
         );
         assertTrue(result);
         assertEquals("true", configuration.getValue());
@@ -154,7 +154,7 @@ public class ConfigurationServiceTest {
                 null,
                 null,
                 false,
-                flexeraScannerInit
+                importTask
         );
         assertTrue(result);
         assertEquals("false", configuration.getValue());
