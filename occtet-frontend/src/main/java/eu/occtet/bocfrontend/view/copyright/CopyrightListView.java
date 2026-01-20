@@ -93,12 +93,6 @@ public class CopyrightListView extends StandardListView<Copyright> {
     private CopyrightRepository copyrightRepository;
 
     @ViewComponent
-    private JmixCheckbox immediateCheckbox;
-
-    @ViewComponent
-    private JmixButton saveButton;
-
-    @ViewComponent
     private DataGrid<Copyright> copyrightsDataGrid;
 
     @ViewComponent
@@ -122,10 +116,9 @@ public class CopyrightListView extends StandardListView<Copyright> {
     public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
         if(event != null){
             copyrightsDataGrid.setItems(copyrightRepository.findByProject(event.getValue()));
-            setUiComponentsVisible();
+            filterBox.setVisible(true);
         }
     }
-
 
     @Supply(to = "copyrightsDataGrid.softwareComponent", subject = "renderer")
     private Renderer<Copyright> componentRenderer() {
@@ -153,11 +146,6 @@ public class CopyrightListView extends StandardListView<Copyright> {
                         .distinct()
                         .collect(Collectors.joining(", "))
         );
-    }
-
-    @Subscribe("immediateCheckbox")
-    public void onImmediateCheckboxComponentValueChange(final AbstractField.ComponentValueChangeEvent<JmixCheckbox, Boolean> event) {
-        saveButton.setEnabled(!event.getValue());
     }
 
     @Supply(to = "copyrightsDataGrid.curated", subject = "renderer")
@@ -239,28 +227,7 @@ public class CopyrightListView extends StandardListView<Copyright> {
 
     @Install(to = "copyrightsDataGrid.@editor", subject = "saveListener")
     private void copyrightsDataGridEditorCloseListener(final EditorSaveEvent<Copyright> editorSaveEvent) {
-        saveOrEnqueue(editorSaveEvent.getItem());
-    }
-
-
-
-    @Subscribe(id = "saveButton", subject = "clickListener")
-    public void onSaveButtonClick(final ClickEvent<JmixButton> event) {
-        saveButton.setThemeName("warning", true);
-        saveButton.setThemeName("error", false);
-        log.debug("get theme {}", saveButton.getThemeName());
-        saveEnqueuedChanges();
-    }
-
-    private void saveOrEnqueue(Copyright copyright) {
-        log.debug("save or enqueue");
-        if (immediateCheckbox.getValue()) {
-            saveChanges(copyright);
-        } else {
-            copyrights.add(copyright);
-            saveButton.setThemeName("warning", false);
-            saveButton.setThemeName("error", true);
-        }
+        saveChanges(editorSaveEvent.getItem());
     }
 
     private void saveChanges(Copyright copyright) {
@@ -270,18 +237,4 @@ public class CopyrightListView extends StandardListView<Copyright> {
 
     }
 
-    private void saveEnqueuedChanges() {
-        if (!copyrights.isEmpty()) {
-            dataManager.saveAll(copyrights);
-            copyrights.clear();
-            notifications.show("Changes saved to the database");
-            copyrightsDl.load();
-        }
-    }
-
-    private void setUiComponentsVisible(){
-        filterBox.setVisible(true);
-        saveButton.setVisible(true);
-        immediateCheckbox.setVisible(true);
-    }
 }

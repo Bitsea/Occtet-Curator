@@ -19,10 +19,12 @@
 
 package eu.occtet.bocfrontend.dao;
 
+import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.VexData;
 import eu.occtet.bocfrontend.entity.Vulnerability;
 import io.jmix.core.repository.JmixDataRepository;
+import io.jmix.core.repository.Query;
 
 import java.util.List;
 
@@ -32,6 +34,7 @@ import java.util.List;
 public interface VexDataRepository extends JmixDataRepository<VexData, Long> {
 
     List<VexData> findBySoftwareComponent(SoftwareComponent softwareComponent);
-
     List<VexData> findBySoftwareComponentAndVulnerability(SoftwareComponent softwareComponent, List<Vulnerability> selected);
+    @Query("select distinct vd from InventoryItem i join i.project p join i.softwareComponent sc join sc.vulnerabilities v join v. where p = :project")
+    List<VexData> findByProject(Project project);
 }

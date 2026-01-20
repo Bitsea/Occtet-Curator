@@ -62,11 +62,7 @@
     </actions>
     <layout>
         <vbox width="100%" height="100%">
-            <hbox width="100%">
-                <comboBox id="projectComboBox" property="projectName"/>
-                <button id="saveButton" text="Save" enabled="false" alignSelf="START" themeNames="warning" icon="vaadin:safe" visible="false"/>
-                <checkbox id="immediateCheckbox" label="msg://saveImmediately" value="true" alignSelf="START" visible="false"/>
-            </hbox>
+            <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
             <hbox width="100%" visible="false" id="filterBox">
                 <genericFilter id="genericFilter" dataLoader="copyrightsDl" themeNames="small" alignSelf="START" opened="false">
                     <properties include=".*"/>
@@ -81,10 +77,10 @@
                       columnReorderingAllowed="true"
                       editorBuffered="true">
                 <columns resizable="true">
-                    <column property="copyrightText" header="Name"/>
-                    <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated" editable="true"/>
-                    <column property="garbage" header="msg://eu.occtet.bocfrontend.entity/Copyright.garbage" editable="true"/>
-                    <column property="aiControlled" header="msg://aiControlled" editable="true"/>
+                    <column property="copyrightText" header="Name" autoWidth="true"/>
+                    <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated" editable="true" width="1em"/>
+                    <column property="garbage" header="msg://eu.occtet.bocfrontend.entity/Copyright.garbage" editable="true" width="1em"/>
+                    <column property="aiControlled" header="msg://aiControlled" editable="true" width="1em"/>
                     <column property="codeLocations.filePath" header="msg://FilePath" key="filePath"/>
                     <column property="codeLocations.inventoryItem.softwareComponent.name" header="msg://SoftwareComponent" key="softwareComponent"/>
                     <editorActionsColumn key="nonBufferedEditorColumn">
@@ -102,12 +98,11 @@
             <hbox width="100%">
                 <hbox id="buttonsPanel" classNames="buttons-panel">
                     <button id="createButton" action="copyrightsDataGrid.createAction"/>
-                    <button id="editButton" action="copyrightsDataGrid.editAction"/>
                     <button id="removeButton" action="copyrightsDataGrid.removeAction"/>
                 </hbox>
                 <hbox alignItems="END">
-                    <button id="downloadButton" text="Download garbage copyrights"/>
-                    <fileUploadField id="uploadFile" uploadText="Upload copyright files"/>
+                    <button id="downloadButton" text="Download garbage copyrights" themeNames="primary"/>
+                    <fileUploadField id="uploadFile" uploadText="Upload copyright files" />
                 </hbox>
             </hbox>
             <hbox id="lookupActions" visible="false">

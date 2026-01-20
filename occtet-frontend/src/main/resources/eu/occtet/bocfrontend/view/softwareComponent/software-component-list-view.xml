@@ -46,8 +46,8 @@
         <action id="discardAction" type="lookup_discard"/>
     </actions>
     <layout>
-        <vbox width="100%">
-            <comboBox id="projectComboBox" property="projectName"/>
+        <vbox width="100%" height="100%">
+            <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
             <hbox width="100%" visible="false" id="filterBox">
                 <genericFilter id="genericFilter" dataLoader="softwareComponentsDl" themeNames="small" alignSelf="START" opened="false">
                     <properties include=".*"/>
