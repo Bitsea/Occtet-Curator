@@ -58,4 +58,4 @@ an unknown bug it does not build in production mode.
 
 *Autocomplete*
 
-under Resources suggestions.json you will find String for the autocomplete feature
+for the autocomplete to work properly make sure that the init-data.xml got read into the database, to have default data of suggestions

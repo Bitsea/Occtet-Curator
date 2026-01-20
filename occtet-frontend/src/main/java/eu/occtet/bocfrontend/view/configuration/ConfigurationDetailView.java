@@ -23,8 +23,8 @@ import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.Configuration;
-import eu.occtet.bocfrontend.entity.ScannerInitializer;
-import eu.occtet.bocfrontend.engine.ScannerManager;
+import eu.occtet.bocfrontend.entity.ImportTask;
+import eu.occtet.bocfrontend.importer.ImportManager;
 import eu.occtet.bocfrontend.service.ConfigurationService;
 import eu.occtet.bocfrontend.validator.NumericValidator;
 import eu.occtet.bocfrontend.validator.PathValidator;
@@ -68,7 +68,7 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
     @Autowired
     private Dialogs dialogs;
     @Autowired
-    private ScannerManager scannerManager;
+    private ImportManager importManager;
     @Autowired
     private ConfigurationService configurationService;
     @Autowired
@@ -76,19 +76,19 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
     @Autowired
     private NumericValidator numericValidator;
 
-    // Scanner names for which the configuration requires
-    private final String FLEXERA = "Flexera_Report_Scanner";
-    private final String SPDX = "SPDX_Scanner";
+    // Importer names for which the configuration requires
+    private final String FLEXERA = "Flexera_Report_Import";
+    private final String SPDX = "SPDX_Import";
 
     private Configuration configPayload;
-    private ScannerInitializer scannerInitializer;
+    private ImportTask importTask;
     private result finalResult;
 
     public enum result {Cancel, Edit}
 
 
-    public void setup(ScannerInitializer sI) {
-        this.scannerInitializer = sI;
+    public void setup(ImportTask sI) {
+        this.importTask = sI;
     }
 
     @Subscribe
@@ -97,7 +97,7 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
         this.nameField.setValue(entity.getName());
 
         // Initialize booleanField if the type is BOOLEAN
-        if (configurationService.getTypeOfConfiguration(entity.getName(), scannerInitializer) == Configuration.Type.BOOLEAN) {
+        if (configurationService.getTypeOfConfiguration(entity.getName(), importTask) == Configuration.Type.BOOLEAN) {
             booleanField.setValue("true".equals(entity.getValue()));
             booleanField.setVisible(true);
             valueField.setVisible(false);
@@ -118,7 +118,7 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
     }
 
     private void updateValueFieldVisibility(String key) {
-        Configuration.Type typeOfConfiguration = configurationService.getTypeOfConfiguration(key, scannerInitializer);
+        Configuration.Type typeOfConfiguration = configurationService.getTypeOfConfiguration(key, importTask);
         switch (typeOfConfiguration) {
             case FILE_UPLOAD:
                 setupForFileUpload();
@@ -165,7 +165,7 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
                     uploadField.getValue(),
                     uploadField.getUploadedFileName(),
                     booleanField.getValue(),
-                    scannerInitializer
+                    importTask
             );
 
             if (res) {
@@ -218,8 +218,8 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
         int maxFileSizeInBytes = 70 * 1024 * 1024; // 70MB
         uploadField.setMaxFileSize(maxFileSizeInBytes);
 
-        // Here the setup might vary depending on the scanner
-        if (scannerInitializer.getScanner().equals(FLEXERA)) {
+        // Here the setup might vary depending on the import
+        if (importTask.getImportName().equals(FLEXERA)) {
             uploadField.setAcceptedFileTypes(".xlsx");
             uploadField.setHelperText("Upload a Flexera report in Excel format (.xlsx, max 70 MB)");
         }

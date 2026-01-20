@@ -19,11 +19,11 @@
   -->
 
 <view xmlns="http://jmix.io/schema/flowui/view"
-      title="msg://scannerInitializerDetailView.title"
+      title="msg://eu.occtet.bocfrontend.view.importtask/importTask.title"
       focusComponent="form">
     <data>
-        <instance id="scannerInitializerDc"
-                  class="eu.occtet.bocfrontend.entity.ScannerInitializer">
+        <instance id="importTaskDc"
+                  class="eu.occtet.bocfrontend.entity.ImportTask">
             <loader/>
         </instance>
         <collection id="configurationsDc" class="eu.occtet.bocfrontend.entity.Configuration">
@@ -39,21 +39,21 @@
     </actions>
     <layout>
         <image id="iconPlaceholder" width="80px" height="80px"/>
-        <h3 id="scannerField"/>
+        <h3 id="importField"/>
         <h6 id="description"/>
-        <formLayout id="form" dataContainer="scannerInitializerDc" width="100%" labelsPosition="ASIDE">
+        <formLayout id="form" dataContainer="importTaskDc" width="100%" labelsPosition="ASIDE">
             <responsiveSteps>
                 <responsiveStep minWidth="0" columns="3"/>
             </responsiveSteps>
-            <formItem label="project">
-                <comboBox id="projectComboBox"  allowCustomValue="false" title="Projects" colspan="1" css="margin-left: 15px"/>
+            <formItem label="msg://eu.occtet.bocfrontend.view.project/projectDetailView.title">
+                <comboBox id="projectComboBox"  allowCustomValue="false" title="msg://eu.occtet.bocfrontend.view.project/projectListView.title" colspan="1" css="margin-left: 15px"/>
             </formItem>
             <span colspan="2"/>
-            <formItem colspan="2" label="configuration">
+            <formItem colspan="2" label="msg://eu.occtet.bocfrontend.view.configuration/configurationDetailView.title">
                 <vbox>
                     <hbox id="buttonsPanel">
-                        <button id="editBtn" enabled="false" text="edit" />
-                        <button id="removeBtn" enabled="false" text="remove" action="configurationsDataGrid.remove" />
+                        <button id="editBtn" enabled="false" text="msg://edit"/>
+                        <button id="removeBtn" enabled="false" text="msg://remove" action="configurationsDataGrid.remove" />
                         <simplePagination/>
                     </hbox>
                     <dataGrid classNames="occtet-grid" id="configurationsDataGrid"  width="100%" metaClass="Configuration"  editorBuffered="true" themeNames="row-stripes">
@@ -70,7 +70,7 @@
             </formItem>
         </formLayout>
         <hbox id="editActions" spacing="true">
-            <button id="saveAndCloseBtn" action="saveAction" text="start scanner"/>
+            <button id="saveAndCloseBtn" action="saveAction" text="msg://startImport"/>
             <button id="closeBtn" action="closeAction" />
         </hbox>
     </layout>

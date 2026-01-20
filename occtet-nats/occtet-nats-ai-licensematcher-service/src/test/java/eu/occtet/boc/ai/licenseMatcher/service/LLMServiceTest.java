@@ -27,6 +27,7 @@ import eu.occtet.boc.ai.licenseMatcher.postprocessing.PostProcessor;
 import eu.occtet.boc.model.AIStatusQueryWorkData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.Test;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.prompt.Prompt;
