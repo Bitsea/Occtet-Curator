@@ -23,6 +23,8 @@
 package eu.occtet.boc.fossreport.dao;
 
 
+import eu.occtet.boc.entity.ImportTask;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -30,7 +32,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ScannerInitializerRepository extends JpaRepository<ScannerInitializer, Long> {
+public interface ScannerInitializerRepository extends JpaRepository<ImportTask, Long> {
 
-    Optional<ScannerInitializer> findById(UUID id);
+    Optional<ImportTask> findById(Long id);
 }
