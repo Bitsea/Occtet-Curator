@@ -17,19 +17,22 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.view.scannerInitializer;
+package eu.occtet.bocfrontend.view.importtask;
 
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
-import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
-import eu.occtet.bocfrontend.entity.*;
-import eu.occtet.bocfrontend.scanner.Scanner;
-import eu.occtet.bocfrontend.engine.ScannerManager;
+import eu.occtet.bocfrontend.entity.Configuration;
+import eu.occtet.bocfrontend.entity.ImportStatus;
+import eu.occtet.bocfrontend.entity.ImportTask;
+import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.importer.ImportManager;
+import eu.occtet.bocfrontend.importer.Importer;
 import eu.occtet.bocfrontend.service.ConfigurationService;
 import eu.occtet.bocfrontend.service.Utilities;
 import eu.occtet.bocfrontend.view.configuration.ConfigurationDetailView;
@@ -50,21 +53,23 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 
-@Route(value = "scannerInitializer/:id", layout = MainView.class)
-@ViewController("ScannerInitializer.detail")
-@ViewDescriptor("scannerInitializer-detail-view.xml")
-@EditedEntityContainer("scannerInitializerDc")
-public class ScannerInitializerDetailView extends StandardDetailView<ScannerInitializer> {
+@Route(value = "importTask/:id", layout = MainView.class)
+@ViewController("ImportTask.detail")
+@ViewDescriptor(value = "importtask-detail-view.xml", path = "importtask-detail-view.xml")
+@EditedEntityContainer("importTaskDc")
+public class ImportTaskDetailView extends StandardDetailView<ImportTask> {
 
-    private static final Logger log = LogManager.getLogger(ScannerInitializerDetailView.class);
+    private static final Logger log = LogManager.getLogger(ImportTaskDetailView.class);
 
     @ViewComponent
     private JmixImage<Object> iconPlaceholder;
     @ViewComponent
-    private H3 scannerField;
+    private H3 importField;
     @ViewComponent
     private DataGrid<Configuration> configurationsDataGrid;
     @ViewComponent
@@ -80,8 +85,7 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
     private DataManager dataManager;
     @Autowired
     private Messages messages;
-    @Autowired
-    private ScannerManager scannerManager;
+
     @Autowired
     private DialogWindows dialogWindows;
     @Autowired
@@ -90,18 +94,19 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
     private ConfigurationService configurationService;
     @Autowired
     private Utilities utilities;
+    @Autowired
+    private ImportManager importManager;
 
-    Scanner scanner;
-    String scannerName;
+    private Importer importer;
+
 
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
-        scannerName = scannerManager.getPreselectedScanner();
-
-        if (scannerName!= null) {
-            // Set information about the selected scanner
-            scannerField.setText(scannerName.replaceAll("_"," "));
-            getEditedEntity().setScanner(scannerName);
+        importer= importManager.getPreselectedImporter();
+        if (importer!= null) {
+            // Set information about the selected import
+            importField.setText(importer.getName().replaceAll("_"," "));
+            getEditedEntity().setImportName(importer.getName());
 
             // Set components to default values
             ArrayList<Project> listProject = new ArrayList<>();
@@ -112,32 +117,31 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
 
             configurationsDataGrid.setItems(new ContainerDataGridItems<>(configurationsDc));
 
-            scanner = scannerManager.findScannerByName(scannerName);
-            log.info("View created for scanner: {}", scanner);
+            log.info("View created for import: {}", importer.getName());
 
-            // Set scanner icon
+            // Set import icon
             iconPlaceholder.setHeight("80px");
-            iconPlaceholder.getElement().setAttribute("src", "icons/" + scannerName.replace(" ", "") + ".png");
+            iconPlaceholder.getElement().setAttribute("src", "icons/" + importer.getName().replace(" ", "") + ".png");
 
         }
     }
 
     @Subscribe("projectComboBox")
     public void onProjectValueChange(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event) {
+        log.debug("importer selected:{}", importer.getName());
         if (event.getValue() != null) {
-            setConfigurations(scanner);
+            setConfigurations(importer);
         }
     }
 
     @Subscribe
     public void onBeforeSave(final BeforeSaveEvent event) {
         log.debug("onBeforeSave action triggered");
+        ImportTask importTask = getEditedEntity();
 
-        ScannerInitializer scannerInitializer = getEditedEntity();
-
-        if (scanner == null) {
+        if (importer == null) {
             dialogs.createMessageDialog().withHeader("Error")
-                    .withText(messages.getMessage(getClass(), "error_unknown_scanner") + ": " + scannerInitializer.getScanner()).open();
+                    .withText(messages.getMessage(getClass(), "error_unknown_import") + ": " + importer.getName()).open();
             event.preventSave();
             return;
         }
@@ -145,7 +149,7 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
         List<Configuration> configurations = new ArrayList<>(configurationsDc.getItems());
 
         // sanity check for required configs
-        for (String key : scanner.getRequiredConfigurationKeys()) {
+        for (String key : importer.getRequiredConfigurationKeys()) {
             Optional<Configuration> configuration = configurations.stream().filter(c -> c.getName().equals(key)).findFirst();
             if (configuration.isEmpty() || StringUtils.isEmpty(configuration.get().getValue())) {
                 dialogs.createMessageDialog().withHeader("Error")
@@ -155,14 +159,15 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
             }
         }
 
-        scannerInitializer.setProject(projectComboBox.getValue());
-        scannerInitializer.setScannerConfiguration(configurations);
-        scannerInitializer.updateStatus(ScannerInitializerStatus.IN_PROGRESS.getId());
+        importTask.setProject(projectComboBox.getValue());
+        importTask.setImportConfiguration(configurations);
+        importTask.updateStatus(ImportStatus.IN_PROGRESS.getId());
 
         // We do not need to handle saving manually which will be done by saveAction
         log.debug("Validation passed. Entities are prepared and saved");
-        log.info("Enqueuing scanner task for scanner: {}", scannerInitializer.getScanner());
-        scannerManager.enqueueScannerInitializer(scannerInitializer);
+        log.info("Process import task for import: {}", importer.getName());
+
+        importManager.processImport(importTask);
     }
 
 
@@ -171,8 +176,8 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
     public void onConfigurationsDataGridItemClick(final ItemClickEvent<Configuration> event) {
         if (event.getItem() != null) {
             editBtn.setEnabled(true);
-            // Enable the remove button if the scanner does not require the configuration
-            removeBtn.setEnabled(!scanner.isConfigurationRequired(event.getItem().getName()));
+            // Enable the remove button if the import does not require the configuration
+            removeBtn.setEnabled(!importer.isConfigurationRequired(event.getItem().getName()));
         }
     }
 
@@ -194,9 +199,9 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
         window.getView().setup(this.getEditedEntity());
 
         log.info("Opening configuration detail view for: {}", configToEdit.getName());
-        log.debug("Scanner task: {}", this.getEditedEntity().getScanner());
+        log.debug("Import task: {}", importer.getName());
 
-        Configuration.Type typeOfConfiguration = scanner.getTypeOfConfiguration(configToEdit.getName());
+        Configuration.Type typeOfConfiguration = importer.getTypeOfConfiguration(configToEdit.getName());
 
         window.addAfterCloseListener(afterCloseEvent -> {
             if (window.getView().getFinalResult() != null &&
@@ -221,11 +226,11 @@ public class ScannerInitializerDetailView extends StandardDetailView<ScannerInit
     }
 
 
-    private void setConfigurations(Scanner scanner) {
+    private void setConfigurations(Importer importer) {
         ArrayList<Configuration> configurations = new ArrayList<>();
 
-        scanner.getSupportedConfigurationKeys().forEach(k -> {
-            String defaultConfigurationValue = scanner.getDefaultConfigurationValue(k);
+        importer.getSupportedConfigurationKeys().forEach(k -> {
+            String defaultConfigurationValue = importer.getDefaultConfigurationValue(k);
             configurations.add(configurationService.create(k, defaultConfigurationValue));
         });
 

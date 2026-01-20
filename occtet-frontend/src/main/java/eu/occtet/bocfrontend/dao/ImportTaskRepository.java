@@ -17,30 +17,19 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.controller;
+package eu.occtet.bocfrontend.dao;
 
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestClient;
+import eu.occtet.bocfrontend.entity.ImportTask;
+import io.jmix.core.repository.JmixDataRepository;
 
-@RestController
-public class SPXScannerController {
-
-
-    private final static String BACKEND_API = "http://localhost:8080/";
-
-    public String startSpdxWorkflow(){
-
-            String apiUrl = BACKEND_API+"consumeSpdx/";
-
-            RestClient restClient = RestClient.create();
-
-            return restClient.get()
-                    .uri(apiUrl)
-                    .retrieve()
-                    .body(String.class);
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 
-    }
+public interface ImportTaskRepository extends JmixDataRepository<ImportTask, UUID> {
 
-
+    List<ImportTask> findByStatus(String status);
+    long countByStatus(String status);
+    Optional<ImportTask>  findById(UUID id);
 }
