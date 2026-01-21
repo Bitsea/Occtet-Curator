@@ -20,28 +20,29 @@ package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
 
+
 @Entity
 @Table(name = "RELATIONSHIP_ENTITY")
 public class RelationshipEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "spdx_document_id")
     private SpdxDocumentRoot spdxDocument;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "spdx_element_id")
     private String spdxElementId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "related_spdx_element")
     private String relatedSpdxElement;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "relationship_type")
     private String relationshipType;
 
-    @Lob
+    @Column(name="comment", columnDefinition = "TEXT")
     private String comment;
 
     public SpdxDocumentRoot getSpdxDocument() {

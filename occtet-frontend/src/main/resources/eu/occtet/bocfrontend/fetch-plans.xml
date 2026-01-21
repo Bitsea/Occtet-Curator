@@ -45,13 +45,4 @@
     </fetchPlan>
 
 
-    <fetchPlan entity="ScannerInitializer" name="full" extends="_base">
-        <property name="scannerConfiguration">
-            <property name="value"/>
-            <property name="upload"/>
-            <property name="name"/>
-        </property>
-    </fetchPlan>
-
-
 </fetchPlans>

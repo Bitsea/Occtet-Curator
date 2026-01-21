@@ -30,7 +30,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.UUID;
+
 
 @Entity
 @Table(name = "FILE", indexes = {
@@ -42,24 +42,24 @@ import java.util.UUID;
 public class File {
 
     @Id
-    @Column(name = "ID", nullable = false, columnDefinition = "UUID")
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private UUID id;
+    @Column(name = "ID", nullable = false)
+    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "PROJECT_ID", nullable = false, columnDefinition = "UUID")
+    @JoinColumn(name = "PROJECT_ID", nullable = false)
     private Project project;
 
     @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "PARENT_ID", columnDefinition = "UUID")
+    @JoinColumn(name = "PARENT_ID")
     private File parent;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "CODE_LOCATION_ID", nullable = true, columnDefinition = "UUID")
+    @JoinColumn(name = "CODE_LOCATION_ID", nullable = true)
     private CodeLocation codeLocation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "INVENTORY_ITEM_ID", columnDefinition = "UUID")
+    @JoinColumn(name = "INVENTORY_ITEM_ID")
     private InventoryItem inventoryItem;
 
     @Column(name = "FILENAME", nullable = false)
@@ -71,10 +71,10 @@ public class File {
     @Column(name = "RELATIVE_PATH", nullable = false, columnDefinition = "TEXT")
     private String relativePath;
 
-    @Column(name = "IS_DIRECTORY", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    @Column(name = "IS_DIRECTORY", nullable = false)
     private Boolean isDirectory;
 
-    @Column(name = "REVIEWED", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    @Column(name = "REVIEWED", nullable = false)
     private Boolean reviewed;
 
     @CreatedDate
@@ -104,11 +104,11 @@ public class File {
         this.inventoryItem = inventoryItem;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

@@ -39,7 +39,7 @@
         <formLayout id="form" dataContainer="licenseDc" height="90%" width="100%">
                     <textField id="licenseNameField" property="licenseName" label="License name"/>
                     <textField id="licenseTypeField" property="licenseType" label="License Type"/>
-                    <textField id="detailsUrlField" property="detailsUrl" label="Detail url"/>
+                    <textField id="detailsUrlField" property="detailsUrl" label="msg://eu.occtet.bocfrontend.entity/LicenseType.detailsUrl"/>
                     <textField id="priorityField" property="priority" label="Priority"/>
             <hbox>
                 <checkbox id="isSpdxField" property="isSpdx" label="SPDX"/>

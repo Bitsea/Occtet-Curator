@@ -28,26 +28,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.occtet.boc.service.IWorkDataProcessor;
 
 import java.util.Map;
-import java.util.UUID;
+
 
 public class ScannerSendWorkData extends BaseWorkData{
 
-    private UUID inventoryItemId;
+    private Long inventoryItemId;
 
     public ScannerSendWorkData() {
     }
     @JsonCreator
-    public ScannerSendWorkData(@JsonProperty("inventoryItemId") UUID inventoryItemId) {
+    public ScannerSendWorkData(@JsonProperty("inventoryItemId") Long inventoryItemId) {
 
         this.inventoryItemId = inventoryItemId;
     }
 
 
-    public UUID getInventoryItemId() {
+    public Long getInventoryItemId() {
         return inventoryItemId;
     }
 
-    public void setInventoryItemId(UUID inventoryItemId) {}
+    public void setInventoryItemId(Long inventoryItemId) {}
 
     public String toString(){
         return "ScannerSendWorkData - inventoryItemId: "+ inventoryItemId;

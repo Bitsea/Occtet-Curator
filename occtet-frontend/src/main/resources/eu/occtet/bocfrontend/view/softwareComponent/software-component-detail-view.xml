@@ -89,7 +89,8 @@
                             <column property="exploitability" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.exploitability"/>
                             <column property="riskScore" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.riskScore"/>
                             <column property="sourceUrl" header="msg://softwareComponent.sourceUrl"/>
-                            <column property="createdAt" header="msg://eu.occtet.bocfrontend.entity/ScannerInitializer.lastUpdate"/>
+                            <column property="createdAt"
+                                    header="msg://eu.occtet.bocfrontend.entity/ImportTask.lastUpdate"/>
                             <column key="actions"
                                     sortable="false"
                                     autoWidth="true"

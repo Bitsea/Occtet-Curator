@@ -49,6 +49,14 @@
             <version>${springboot.version}</version>
             <exclusions>
                 <exclusion>
+                    <groupId>org.hibernate.orm</groupId>
+                    <artifactId>hibernate-entitymanager</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hibernate.orm</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>org.hibernate</groupId>
                     <artifactId>hibernate-entitymanager</artifactId>
                 </exclusion>
@@ -81,7 +89,7 @@
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>eclipselink</artifactId>
-            <version>4.0.7</version>
+            <version>${eclipselink.version}</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>

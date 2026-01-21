@@ -47,9 +47,9 @@ Step 1: build the jar in production mode (note that live profile is default):
 
 `./gradlew -Pvaadin.productionMode=true bootJar`
 
-Step 2: build the docker image (in the same directory as the Dockerfile):
+Step 2: build the docker image (in the same directory as the Dockerfile, replace correct version):
 
-docker build -t occtet-boc-frontend .
+`docker build -t occtet-boc-frontend:0.3.3-SNAPSHOT .`
 
 IMPORTANT: Do not use gradle jibDockerBuild to build currently, because due to
 an unknown bug it does not build in production mode.
@@ -58,4 +58,4 @@ an unknown bug it does not build in production mode.
 
 *Autocomplete*
 
-under Resources suggestions.json you will find String for the autocomplete feature
+for the autocomplete to work properly make sure that the init-data.xml got read into the database, to have default data of suggestions

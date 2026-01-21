@@ -20,6 +20,7 @@ package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
 
+
 @Embeddable
 public class Range {
     @Embedded

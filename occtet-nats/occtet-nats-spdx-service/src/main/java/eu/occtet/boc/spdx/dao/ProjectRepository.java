@@ -33,8 +33,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ProjectRepository extends JpaRepository<Project, UUID> {
+public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findByProjectName(String projectName);
     List<Project> findAll();
-    Optional<Project> findById(UUID uid);
+    Optional<Project> findById(Long uid);
 }

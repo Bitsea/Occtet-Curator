@@ -25,7 +25,6 @@ package eu.occtet.boc.entity;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.UUID;
 
 @Entity
 @Table(name = "CODE_LOCATION")
@@ -33,12 +32,12 @@ import java.util.UUID;
 public class CodeLocation {
 
     @Id
-    @Column(name="ID", nullable = false, columnDefinition = "UUID")
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private UUID id;
+    @Column(name="ID", nullable = false)
+    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY,cascade = {CascadeType.REFRESH})
-    @JoinColumn(name = "INVENTORY_ITEM_ID", columnDefinition = "UUID")
+    @JoinColumn(name = "INVENTORY_ITEM_ID")
     private InventoryItem inventoryItem;
 
     @Column(name = "FILE_PATH", columnDefinition="TEXT")
@@ -78,11 +77,11 @@ public class CodeLocation {
         return filePath;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

@@ -50,7 +50,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.Executor;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"eu.occtet.boc"})
 @EnableJpaAuditing
 @EnableAsync
 @EnableJpaRepositories(basePackages = {"eu.occtet.boc.licenseMatcher.dao"})
@@ -106,10 +106,15 @@ public class LicenseMatcherServiceApp {
         });
     }
 
-    @PreDestroy
-    public void onShutdown() {
-        licenseMatcherWorkConsumer.terminate();
+    @PostConstruct
+    public void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdownApplication));
     }
 
+    private void shutdownApplication() {
+        System.out.println("shutting down Microservice: " + microserviceDescriptor.getName() );
+        licenseMatcherWorkConsumer.terminate();
+        Runtime.getRuntime().halt(0);
+    }
 
 }

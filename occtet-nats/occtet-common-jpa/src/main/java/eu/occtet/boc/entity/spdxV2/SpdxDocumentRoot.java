@@ -23,30 +23,31 @@ import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Entity
 @Table(name = "SPDX_DOCUMENT_ROOT")
 public class SpdxDocumentRoot {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name="SPDX_ID")
     private String spdxId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "SPDX_VERSION")
     private String spdxVersion;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "DATA_LICENSE")
     private String dataLicense;
 
     @Column(nullable = false)
     private String name;
 
-    @Lob
+    @Column(name="comment", columnDefinition = "TEXT")
     private String comment;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "DOCUMENT_URI")
     private String documentUri;
 
     @OneToOne(cascade = CascadeType.ALL, optional = false)
@@ -83,6 +84,10 @@ public class SpdxDocumentRoot {
 
     public String getSpdxId() {
         return spdxId;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {

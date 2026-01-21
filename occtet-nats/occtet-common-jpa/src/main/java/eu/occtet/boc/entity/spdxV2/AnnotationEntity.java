@@ -25,27 +25,27 @@ import jakarta.persistence.*;
 public class AnnotationEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name= "spdx_element_id")
     private String spdxElementId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "spdx_package_id")
     private SpdxPackageEntity pkg;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "annotation_date")
     private String annotationDate;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "annotation_type")
     private String annotationType;
 
     @Column(nullable = false)
     private String annotator;
 
-    @Lob
-    @Column(nullable = false)
+
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String comment;
 
     public Long getId() {
