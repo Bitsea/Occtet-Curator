@@ -65,6 +65,8 @@
         <common-version>0.3.4-SNAPSHOT</common-version>
         <common-jpa-version>0.3.6-SNAPSHOT</common-jpa-version>
         <ort-client-version>0.3.2-SNAPSHOT</ort-client-version>
+        <logback-version>1.5.19</logback-version>
+        <logback-db-version>1.2.11.1</logback-db-version>
 	</properties>
 
 	<dependencies>
