@@ -35,6 +35,4 @@ public interface VexDataRepository extends JmixDataRepository<VexData, Long> {
 
     List<VexData> findBySoftwareComponent(SoftwareComponent softwareComponent);
     List<VexData> findBySoftwareComponentAndVulnerability(SoftwareComponent softwareComponent, List<Vulnerability> selected);
-    @Query("select distinct vd from InventoryItem i join i.project p join i.softwareComponent sc join sc.vulnerabilities v join v. where p = :project")
-    List<VexData> findByProject(Project project);
 }

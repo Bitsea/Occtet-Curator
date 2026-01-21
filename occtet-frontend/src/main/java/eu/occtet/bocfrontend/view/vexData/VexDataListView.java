@@ -68,7 +68,7 @@ public class VexDataListView extends StandardListView<VexData> {
     @Subscribe(id = "projectComboBox")
     public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
         if(event != null){
-            vexDataDataGrid.setItems(vexDataRepository.findByProject(event.getValue()));
+            vexDataDataGrid.setItems(vexDataRepository.findAll());
             filterBox.setVisible(true);
         }
     }

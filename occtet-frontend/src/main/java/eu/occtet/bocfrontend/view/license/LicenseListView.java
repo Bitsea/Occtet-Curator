@@ -36,6 +36,7 @@ import eu.occtet.bocfrontend.view.services.LicenseTextService;
 import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.component.combobox.JmixComboBox;
+import io.jmix.flowui.component.genericfilter.GenericFilter;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.grid.DataGridColumn;
 import io.jmix.flowui.kit.component.button.JmixButton;
@@ -100,17 +101,18 @@ public class LicenseListView extends StandardListView<License> {
     @ViewComponent
     private HorizontalLayout filterBox;
 
+
     @Subscribe
     public void onInit(InitEvent event){
         projectComboBox.setItems(projectRepository.findAll());
         projectComboBox.setItemLabelGenerator(Project::getProjectName);
-        licensesDataGrid.setItems(new ArrayList<>());
     }
 
     @Subscribe(id = "projectComboBox")
     public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
         if(event != null){
-            licensesDataGrid.setItems(licenseRepository.findLicensesByProject(event.getValue()));
+            licensesDl.setParameter("project",event.getValue());
+            licensesDl.load();
             filterBox.setVisible(true);
         }
     }

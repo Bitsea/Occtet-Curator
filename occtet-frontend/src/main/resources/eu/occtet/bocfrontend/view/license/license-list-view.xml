@@ -24,11 +24,13 @@
       focusComponent="licensesDataGrid">
     <data>
         <collection id="licensesDc"
-                    class="eu.occtet.bocfrontend.entity.License">
-            <fetchPlan extends="_base"/>
+                    class="eu.occtet.bocfrontend.entity.License" fetchPlan="_local">
             <loader id="licensesDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from License e]]>
+                    <![CDATA[select distinct l from InventoryItem i
+                    join i.project p
+                    join i.softwareComponent sc
+                    join sc.licenses l where p = :project]]>
                 </query>
             </loader>
         </collection>
@@ -47,7 +49,7 @@
         <vbox height="100%" width="100%">
             <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
             <hbox width="100%" visible="false" id="filterBox">
-                <genericFilter id="genericFilter" dataLoader="licensesDl" themeNames="small" alignSelf="START" opened="false">
+                <genericFilter id="genericFilter" dataLoader="licensesDl" themeNames="small" alignSelf="START" opened="false" autoApply="true">
                     <properties include=".*"/>
                 </genericFilter>
                 <simplePagination id="pagination" dataLoader="licensesDl" alignSelf="END"/>

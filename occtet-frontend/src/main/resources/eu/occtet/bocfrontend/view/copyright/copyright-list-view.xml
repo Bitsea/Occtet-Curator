@@ -20,32 +20,19 @@
 
 <view xmlns="http://jmix.io/schema/flowui/view"
       xmlns:c="http://jmix.io/schema/flowui/jpql-condition"
-      title="msg://copyrightListView.title"
+      title="Copyrights Quick-Check"
       focusComponent="copyrightsDataGrid">
     <data>
         <collection id="copyrightsDc"
                     class="eu.occtet.bocfrontend.entity.Copyright">
-            <fetchPlan extends="_base">
-                <property name="codeLocations" fetchPlan="_base">
-                    <property name="inventoryItem" fetchPlan="_base">
-                        <property name="softwareComponent" fetchPlan="_base"/>
-
-                    </property>
-                </property>
-            </fetchPlan>
-            <fetchPlan extends="_base">
-                <property name="codeLocations" fetch="AUTO"/>
-            </fetchPlan>
-
+            <fetchPlan extends="_base"/>
             <loader id="copyrightsDl">
                 <query>
-                    <![CDATA[
-                        select distinct c
-                        from Copyright c
-                        left join c.codeLocations cl
-                        left join cl.inventoryItem ii
-                        left join ii.softwareComponent sc
-                    ]]>
+                    <![CDATA[select distinct c from Copyright c
+                    join c.codeLocations cl
+                    join cl.inventoryItem i
+                    join i.project p
+                    where p = :project and c.aiControlled = True]]>
                 </query>
             </loader>
         </collection>
@@ -56,17 +43,12 @@
             <pagination component="pagination"/>
         </urlQueryParameters>
     </facets>
-    <actions>
-        <action id="selectAction" type="lookup_select"/>
-        <action id="discardAction" type="lookup_discard"/>
-    </actions>
     <layout>
         <vbox width="100%" height="100%">
             <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
             <hbox width="100%" visible="false" id="filterBox">
                 <genericFilter id="genericFilter" dataLoader="copyrightsDl" themeNames="small" alignSelf="START" opened="false">
                     <properties include=".*"/>
-                    <conditions> </conditions>
                 </genericFilter>
                 <simplePagination id="pagination" dataLoader="copyrightsDl" alignSelf="END" />
             </hbox>
@@ -74,40 +56,19 @@
                       width="100%"
                       minHeight="30em"
                       dataContainer="copyrightsDc"
-                      columnReorderingAllowed="true"
-                      editorBuffered="true">
+                      columnReorderingAllowed="true">
                 <columns resizable="true">
-                    <column property="copyrightText" header="Name" autoWidth="true"/>
-                    <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated" editable="true" width="1em"/>
-                    <column property="garbage" header="msg://eu.occtet.bocfrontend.entity/Copyright.garbage" editable="true" width="1em"/>
-                    <column property="aiControlled" header="msg://aiControlled" editable="true" width="1em"/>
-                    <column property="codeLocations.filePath" header="msg://FilePath" key="filePath"/>
-                    <column property="codeLocations.inventoryItem.softwareComponent.name" header="msg://SoftwareComponent" key="softwareComponent"/>
-                    <editorActionsColumn key="nonBufferedEditorColumn">
-                        <editButton icon="PENCIL" text="msg:///actions.Edit"/>
-                        <saveButton icon="CHECK"/>
-                    </editorActionsColumn>
+                    <column property="copyrightText" header="Name" width="50%"/>
+                    <column property="garbage" header="msg://eu.occtet.bocfrontend.entity/Copyright.garbage" editable="true"/>
                 </columns>
                 <actions>
                     <action id="editAction" type="list_edit"/>
-                    <action id="refreshAction" type="list_refresh"/>
-                    <action id="createAction" type="list_create"/>
-                    <action id="removeAction" type="list_remove"/>
                 </actions>
             </dataGrid>
-            <hbox width="100%">
-                <hbox id="buttonsPanel" classNames="buttons-panel">
-                    <button id="createButton" action="copyrightsDataGrid.createAction"/>
-                    <button id="removeButton" action="copyrightsDataGrid.removeAction"/>
-                </hbox>
-                <hbox alignItems="END">
-                    <button id="downloadButton" text="Download garbage copyrights" themeNames="primary"/>
-                    <fileUploadField id="uploadFile" uploadText="Upload copyright files" />
-                </hbox>
-            </hbox>
-            <hbox id="lookupActions" visible="false">
-                <button id="selectButton" action="selectAction"/>
-                <button id="discardButton" action="discardAction"/>
+            <hbox >
+                <button id="markButton" text="Change garbage value from selected copyrights" themeNames="primary" visible="false"/>
+                <button id="saveButton" text="Save changes" themeNames="primary" visible="false"/>
+                <button id="exitButton" text="Exit" visible="false" themeNames="error"/>
             </hbox>
         </vbox>
     </layout>

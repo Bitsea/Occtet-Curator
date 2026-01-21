@@ -33,10 +33,14 @@ import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.model.CollectionContainer;
+import io.jmix.flowui.model.CollectionLoader;
+import io.jmix.flowui.model.DataLoader;
 import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 
@@ -51,7 +55,7 @@ public class SoftwareComponentListView extends StandardListView<SoftwareComponen
     private JmixComboBox<Project> projectComboBox;
 
     @ViewComponent
-    private DataGrid<SoftwareComponent> softwareComponentsDataGrid;
+    private CollectionLoader<SoftwareComponent> softwareComponentsDl;
 
     @ViewComponent
     private HorizontalLayout filterBox;
@@ -59,20 +63,18 @@ public class SoftwareComponentListView extends StandardListView<SoftwareComponen
     @Autowired
     private ProjectRepository projectRepository;
 
-    @Autowired
-    private SoftwareComponentRepository softwareComponentRepository;
 
     @Subscribe
     public void onInit(InitEvent event){
         projectComboBox.setItems(projectRepository.findAll());
         projectComboBox.setItemLabelGenerator(Project::getProjectName);
-        softwareComponentsDataGrid.setItems(new ArrayList<>());
     }
 
     @Subscribe(id = "projectComboBox")
     public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
         if(event != null){
-            softwareComponentsDataGrid.setItems(softwareComponentRepository.findByProject(event.getValue()));
+            softwareComponentsDl.setParameter("project",event.getValue());
+            softwareComponentsDl.load();
             filterBox.setVisible(true);
         }
     }

@@ -30,7 +30,9 @@
             </fetchPlan>
             <loader id="inventoryItemsDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from InventoryItem e]]>
+                    <![CDATA[select e from InventoryItem e
+                      join e.project p
+                      where p = :project]]>
                 </query>
             </loader>
         </collection>

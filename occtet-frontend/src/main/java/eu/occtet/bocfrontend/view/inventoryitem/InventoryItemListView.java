@@ -33,6 +33,7 @@ import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -54,25 +55,22 @@ public class InventoryItemListView extends StandardListView<InventoryItem> {
     private HorizontalLayout filterBox;
 
     @ViewComponent
-    private DataGrid<InventoryItem> inventoryItemsDataGrid;
+    private CollectionLoader<InventoryItem> inventoryItemsDl;
 
     @Autowired
     private ProjectRepository projectRepository;
-
-    @Autowired
-    private InventoryItemRepository inventoryItemRepository;
 
     @Subscribe
     public void onInit(InitEvent event){
         projectComboBox.setItems(projectRepository.findAll());
         projectComboBox.setItemLabelGenerator(Project::getProjectName);
-        inventoryItemsDataGrid.setItems(new ArrayList<>());
     }
 
     @Subscribe(id = "projectComboBox")
     public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
         if(event != null){
-            inventoryItemsDataGrid.setItems(inventoryItemRepository.findByProject(event.getValue()));
+            inventoryItemsDl.setParameter("project",event.getValue());
+            inventoryItemsDl.load();
             filterBox.setVisible(true);
         }
     }

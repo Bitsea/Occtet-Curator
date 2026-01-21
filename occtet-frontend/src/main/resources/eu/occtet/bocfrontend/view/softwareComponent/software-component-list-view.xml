@@ -30,7 +30,10 @@
             </fetchPlan>
             <loader id="softwareComponentsDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from SoftwareComponent e]]>
+                    <![CDATA[select distinct sc from SoftwareComponent sc
+                    join sc.inventoryItems i
+                    join i.project p
+                    where p = :project]]>
                 </query>
             </loader>
         </collection>
