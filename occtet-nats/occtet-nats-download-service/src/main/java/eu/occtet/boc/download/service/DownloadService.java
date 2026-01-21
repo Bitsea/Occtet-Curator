@@ -23,8 +23,8 @@ package eu.occtet.boc.download.service;
 
 
 import eu.occtet.boc.download.controller.GitRepoController;
-import eu.occtet.boc.download.dao.InventoryItemRepository;
-import eu.occtet.boc.download.dao.ProjectRepository;
+import eu.occtet.boc.dao.InventoryItemRepository;
+import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.model.DownloadServiceWorkData;
@@ -107,8 +107,8 @@ public class DownloadService extends BaseWorkDataProcessor {
         log.debug("Processing download task for URL: {} -> {}", workData.getUrl(), workData.getLocation());
 
         try {
-            Project project = projectRepository.findById(UUID.fromString(workData.getProjectId())).orElse(null);
-            InventoryItem inventoryItem = inventoryItemRepository.findById(UUID.fromString(workData.getInventoryItemId())).orElse(null);
+            Project project = projectRepository.findById(Long.parseLong(workData.getProjectId())).orElse(null);
+            InventoryItem inventoryItem = inventoryItemRepository.findById(Long.parseLong(workData.getInventoryItemId())).orElse(null);
 
             if (project == null) {
                 log.error("Aborting download: Project not found for ID {}", workData.getProjectId());

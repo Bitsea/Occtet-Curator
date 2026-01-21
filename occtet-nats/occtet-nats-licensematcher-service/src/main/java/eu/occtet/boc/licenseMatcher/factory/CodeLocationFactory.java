@@ -25,7 +25,7 @@ package eu.occtet.boc.licenseMatcher.factory;
 
 import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.licenseMatcher.dao.CodeLocationRepository;
+import eu.occtet.boc.dao.CodeLocationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

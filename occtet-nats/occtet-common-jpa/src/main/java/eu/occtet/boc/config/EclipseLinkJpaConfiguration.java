@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter;
@@ -38,6 +39,7 @@ import java.util.Map;
  *
  */
 @Configuration
+@Profile({"!test"})
 public class EclipseLinkJpaConfiguration extends JpaBaseConfiguration {
 
     @Autowired

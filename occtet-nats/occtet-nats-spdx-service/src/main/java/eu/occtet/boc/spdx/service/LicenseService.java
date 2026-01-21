@@ -25,7 +25,7 @@ package eu.occtet.boc.spdx.service;
 
 
 import eu.occtet.boc.entity.License;
-import eu.occtet.boc.spdx.dao.LicenseRepository;
+import eu.occtet.boc.dao.LicenseRepository;
 import eu.occtet.boc.spdx.factory.LicenseFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

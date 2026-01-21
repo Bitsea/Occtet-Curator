@@ -23,16 +23,17 @@
 package eu.occtet.boc.ai.copyrightFilter.service;
 
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.ai.copyrightFilter.dao.CopyrightRepository;
-import eu.occtet.boc.ai.copyrightFilter.dao.InventoryItemRepository;
 import eu.occtet.boc.ai.copyrightFilter.factory.AdvisorFactory;
 import eu.occtet.boc.ai.copyrightFilter.factory.PromptFactory;
 import eu.occtet.boc.ai.copyrightFilter.postprocessing.PostProcessor;
+import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.model.*;
+import eu.occtet.boc.model.AIAnswerWorkData;
+import eu.occtet.boc.model.AICopyrightFilterWorkData;
+import eu.occtet.boc.model.AIStatusQueryWorkData;
+import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
 import io.nats.client.Connection;
@@ -55,7 +56,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
 public class LLMService extends BaseWorkDataProcessor {
@@ -68,7 +68,8 @@ public class LLMService extends BaseWorkDataProcessor {
     private PostProcessor postProcessor;
 
     @Autowired
-    private InventoryItemRepository inventoryItemRepository;
+    private eu.occtet.boc.dao.InventoryItemRepository inventoryItemRepository;
+
     @Autowired
     private CopyrightRepository copyrightRepository;
 

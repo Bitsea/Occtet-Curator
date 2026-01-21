@@ -29,7 +29,7 @@ import eu.occtet.boc.model.BaseWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.WorkConsumer;
-import io.nats.client.*;
+import io.nats.client.Message;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
