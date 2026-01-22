@@ -33,6 +33,7 @@ import io.jmix.chartsflowui.kit.component.model.DataSet;
 import io.jmix.chartsflowui.kit.component.model.shared.Color;
 import io.jmix.chartsflowui.kit.data.chart.ListChartItems;
 import io.jmix.core.DataManager;
+import io.jmix.core.Messages;
 import io.jmix.core.ValueLoadContext;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.component.combobox.EntityComboBox;
@@ -75,6 +76,9 @@ public class DashboardView extends StandardView {
     @Autowired
     private DataManager dataManager;
 
+    @Autowired
+    private Messages messages;
+
     private final static String sumRiskScore = "sumRiskScore";
     private final static String sumRiskValue = "value";
     private final static String sumRiskLevel = "Level";
@@ -104,11 +108,13 @@ public class DashboardView extends StandardView {
 
         vulnerabilitiesGrid.getColumnByKey("riskScore")
                 .setTooltipGenerator(v -> v.getRiskScore() != null ?
-                        "Risk Score: " + v.getRiskScore() : "No Score");
+                        messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.riskScore") + ": " + v.getRiskScore() :
+                        messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.NoScore"));
 
         vulnerabilitiesGrid.getColumnByKey("weightedSeverity")
                 .setTooltipGenerator(v -> v.getWeightedSeverity() != null ?
-                        "Weighted Severity: " + v.getWeightedSeverity() : "No Severity");
+                        messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.severity") + ": " + v.getWeightedSeverity() :
+                        messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.NoSeverity"));
     }
 
     @Subscribe("vulnerabilitiesGrid")
@@ -177,7 +183,7 @@ public class DashboardView extends StandardView {
         List<Color> dynamicColors = new ArrayList<>();
 
         if (softwareNoRisk != null && softwareNoRisk > ZERO){
-            softwareComponentItems.add(new MapDataItem(Map.of(sumRiskLevel, "No risk", sumRiskValue, softwareNoRisk)));
+            softwareComponentItems.add(new MapDataItem(Map.of(sumRiskLevel, messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.NoRisk"), sumRiskValue, softwareNoRisk)));
             dynamicColors.add(Color.DARKGREEN);
         }
 

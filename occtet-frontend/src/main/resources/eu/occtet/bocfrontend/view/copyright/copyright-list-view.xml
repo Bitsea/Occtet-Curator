@@ -104,8 +104,8 @@
                     <button id="removeButton" action="copyrightsDataGrid.removeAction"/>
                 </hbox>
                 <hbox alignItems="END">
-                    <button id="downloadButton" text="Download garbage copyrights"/>
-                    <fileUploadField id="uploadFile" uploadText="Upload copyright files"/>
+                    <button id="downloadButton" text="msg://eu.occtet.bocfrontend.view.copyright/button.download"/>
+                    <fileUploadField id="uploadFile" uploadText="msg://eu.occtet.bocfrontend.view.copyright/button.upload"/>
                 </hbox>
             </hbox>
             <hbox id="lookupActions" visible="false">

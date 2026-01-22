@@ -43,6 +43,7 @@ import eu.occtet.bocfrontend.service.*;
 import eu.occtet.bocfrontend.view.audit.fragment.OverviewProjectTabFragment;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
+import io.jmix.core.Messages;
 import io.jmix.core.ValueLoadContext;
 import io.jmix.core.entity.KeyValueEntity;
 import io.jmix.flowui.*;
@@ -132,6 +133,8 @@ public class AuditView extends StandardView{
     @Autowired
     private TransactionTemplate transactionTemplate; // important for fileTreeSearchHelper
 
+    @Autowired
+    private Messages messages;
     /**
      * Handles actions to be performed before the view is entered. This method ensures
      * proper initialization of the project context based on route parameters or session state.
@@ -607,15 +610,15 @@ public class AuditView extends StandardView{
 
         if (event.isFromClient() && tabManager.hasOpenTabs()) {
             dialogs.createOptionDialog()
-                    .withHeader("Change Project")
-                    .withText("Do you want to close all tabs from the previous project?")
+                    .withHeader(messages.getMessage("eu.occtet.bocfrontend.view.audit/projectComboBox"))
+                    .withText(messages.getMessage("eu.occtet.bocfrontend.view.audit/projectComboBoxText"))
                     .withActions(
                             new DialogAction(DialogAction.Type.YES).withHandler(e -> {
                                 tabManager.closeAllTabs();
                                 switchProject(event.getValue());
                             }),
                             new DialogAction(DialogAction.Type.NO)
-                                    .withText("Keep Tabs")
+                                    .withText(messages.getMessage("eu.occtet.bocfrontend.view.audit/projectComboBoxDialog"))
                                     .withHandler(e -> switchProject(event.getValue()))
                     ).open();
         } else {
