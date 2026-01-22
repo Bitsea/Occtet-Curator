@@ -21,8 +21,8 @@
 
 package eu.occtet.boc.download.service;
 
-import eu.occtet.boc.download.dao.CodeLocationRepository;
-import eu.occtet.boc.download.dao.FileRepository;
+import eu.occtet.boc.dao.CodeLocationRepository;
+import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.download.factory.FileFactory;
 import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.File;
@@ -87,7 +87,7 @@ public class FileService {
 
             Map<String, CodeLocation> codeLocationMap = new HashMap<>();
             if (inventoryItem != null) {
-                List<CodeLocation> cls = codeLocationRepository.findCodeLocationByInventoryItem(inventoryItem);
+                List<CodeLocation> cls = codeLocationRepository.findByInventoryItem(inventoryItem);
                 for (CodeLocation cl : cls) {
                     codeLocationMap.put(cl.getFilePath(), cl);
                 }

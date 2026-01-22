@@ -24,14 +24,15 @@ package eu.occtet.boc.ai.licenseMatcher.service;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.ai.licenseMatcher.dao.InventoryItemRepository;
-import eu.occtet.boc.ai.licenseMatcher.dao.SoftwareComponentRepository;
 import eu.occtet.boc.ai.licenseMatcher.factory.PromptFactory;
 import eu.occtet.boc.ai.licenseMatcher.postprocessing.PostProcessor;
 import eu.occtet.boc.ai.licenseMatcher.tools.LicenseTool;
+import eu.occtet.boc.dao.SoftwareComponentRepository;
 import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.entity.SoftwareComponent;
-import eu.occtet.boc.model.*;
+import eu.occtet.boc.model.AIAnswerWorkData;
+import eu.occtet.boc.model.AILicenseMatcherWorkData;
+import eu.occtet.boc.model.AIStatusQueryWorkData;
+import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
 import io.nats.client.Connection;
@@ -44,14 +45,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.UUID;
+import java.util.Optional;
 
 @Service
 public class LLMService extends BaseWorkDataProcessor {
@@ -64,7 +64,7 @@ public class LLMService extends BaseWorkDataProcessor {
     private PostProcessor postProcessor;
 
     @Autowired
-    private InventoryItemRepository inventoryItemRepository;
+    private eu.occtet.boc.dao.InventoryItemRepository inventoryItemRepository;
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
 
@@ -122,7 +122,11 @@ public class LLMService extends BaseWorkDataProcessor {
 
     private boolean licenseMatchingAI(AILicenseMatcherWorkData aiWorkData) {
         //MemoryAdvisor is default
-        InventoryItem item = getInventoryItem(aiWorkData.getInventoryItemId());
+        Optional<InventoryItem> optItem = inventoryItemRepository.findById(aiWorkData.getInventoryItemId());
+        if(!optItem.isPresent()) {
+            log.warn("InventoryItem with id {} not found", aiWorkData.getInventoryItemId());
+            return false;
+        }
         String response = "";
         Prompt question = promptFactory.createLicenseMatcherPrompt(aiWorkData.getUserMessage(), aiWorkData.getUrl());
         try {
@@ -134,7 +138,7 @@ public class LLMService extends BaseWorkDataProcessor {
             log.error("Exception with calling ai {}", e.getMessage());
         }
         String result = postProcessor.deleteThinking(response);
-        handleAIResult(item, result);
+        handleAIResult(optItem.get(), result);
         if(!result.isEmpty()) {
             try {
                 sendAnswerToStream(result);
@@ -145,8 +149,8 @@ public class LLMService extends BaseWorkDataProcessor {
         return true; // FIXME return false on error
     }
 
-    public InventoryItem getInventoryItem(UUID inventoryItemId) {
-        return inventoryItemRepository.findById(inventoryItemId).getFirst();
+    public InventoryItem getInventoryItem(Long inventoryItemId) {
+        return inventoryItemRepository.findById(inventoryItemId).orElse(null);
 
     }
 

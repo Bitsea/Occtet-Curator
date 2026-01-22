@@ -18,17 +18,16 @@
 
 package eu.occtet.boc.spdx.utlities;
 
+import eu.occtet.boc.dao.*;
 import eu.occtet.boc.entity.spdxV2.*;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
-import eu.occtet.boc.spdx.dao.spdxV2.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.library.SpdxModelFactory;
@@ -43,7 +42,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -56,7 +54,7 @@ import java.util.Map;
 @ContextConfiguration(classes = {
         SpdxConverter.class, ExternalDocumentRefRepository.class, ChecksumRepository.class, CreationInfoRepository.class,
         ExtractedLicensingInfoRepository.class, SpdxDocumentRootRepository.class, ExternalRefRepository.class,
-        AnnotationRepository.class, SpdxPackageRepository.class, SpdxFileRepository.class, RelationshipRepository.class
+        AnnotationRepository.class, eu.occtet.boc.dao.SpdxPackageRepository.class, SpdxFileRepository.class, RelationshipRepository.class
 
 })
 @EnableJpaRepositories(basePackages = {
@@ -112,9 +110,8 @@ public class SpdxConverterTest {
         Assertions.assertNotNull(creationInfoEntity);
         Assertions.assertEquals("some creation info comment", creationInfoEntity.getComment());
         Assertions.assertFalse(creationInfoEntity.getCreators().isEmpty());
-        Assertions.assertEquals("Person: some creation info person", creationInfoEntity.getCreators().get(0));
-        Assertions.assertEquals("Organization: some creation info organization", creationInfoEntity.getCreators().get(1));
-        Assertions.assertEquals("Tool: ort-<REPLACE_ORT_VERSION>", creationInfoEntity.getCreators().get(2));
+        Assertions.assertEquals("Person: some creation info person", creationInfoEntity.getCreators());
+        Assertions.assertEquals("Tool: ort-<REPLACE_ORT_VERSION>", creationInfoEntity.getCreators());
         Assertions.assertEquals("<REPLACE_LICENSE_LIST_VERSION>", creationInfoEntity.getLicenseListVersion());
         Assertions.assertEquals("<REPLACE_CREATION_DATE_AND_TIME>", creationInfoEntity.getCreated());
 

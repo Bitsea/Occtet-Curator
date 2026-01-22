@@ -48,10 +48,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.Executor;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"eu.occtet.boc"})
 @EnableJpaAuditing
 @EnableAsync
-@EnableJpaRepositories(basePackages = "eu.occtet.boc.download.dao")
+@EnableJpaRepositories(basePackages = "eu.occtet.boc.dao")
 @EntityScan({"eu.occtet.boc.entity", "eu.occtet.boc.converter"})
 @Profile("!test")
 public class DownloadServiceApp {
@@ -104,10 +104,15 @@ public class DownloadServiceApp {
         });
     }
 
-    @PreDestroy
-    public void onShutdown() {
+    @PostConstruct
+    public void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdownApplication));
+    }
+
+    private void shutdownApplication() {
+        System.out.println("shutting down Microservice: " + microserviceDescriptor.getName() );
         downloadWorkConsumer.terminate();
-        log.info("Occtet Microservice SHUTDOWN: {}",microserviceDescriptor.getName());
+        Runtime.getRuntime().halt(0);
     }
 
 }

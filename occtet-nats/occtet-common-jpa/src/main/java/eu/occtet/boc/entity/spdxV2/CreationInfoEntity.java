@@ -19,28 +19,26 @@
 package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
-import java.util.List;
+
 
 @Entity
 @Table(name = "CREATION_INFO_ENTITY")
 public class CreationInfoEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "creation_info_gen")
-    @SequenceGenerator(name = "creation_info_gen", sequenceName = "creation_info_entity_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false)
     private String created;
 
-    @ElementCollection
-    @CollectionTable(name = "creator", joinColumns = @JoinColumn(name = "creation_info_id"))
-    @Column(name = "creator_name", nullable = false)
-    private List<String> creators;
+    @Column(name = "creators", nullable = false)
+    private String creators;
 
-    @Lob
+    @Column(name="comment", columnDefinition = "TEXT")
     private String comment;
 
+    @Column(name = "license_list_version")
     private String licenseListVersion;
 
     public String getComment() {
@@ -55,7 +53,7 @@ public class CreationInfoEntity {
         return created;
     }
 
-    public List<String> getCreators() {
+    public String getCreators() {
         return creators;
     }
 
@@ -63,7 +61,7 @@ public class CreationInfoEntity {
         this.created = created;
     }
 
-    public void setCreators(List<String> creators) {
+    public void setCreators(String creators) {
         this.creators = creators;
     }
 

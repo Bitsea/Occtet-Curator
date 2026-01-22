@@ -20,7 +20,8 @@ package eu.occtet.boc.spdx.converter;
 
 import eu.occtet.boc.entity.spdxV2.*;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
-import eu.occtet.boc.spdx.dao.spdxV2.*;
+import eu.occtet.boc.dao.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
@@ -114,7 +115,7 @@ public class SpdxConverter {
             CreationInfoEntity creationInfoEntity = spdxDocumentRoot.getCreationInfo();
             SpdxCreatorInformation creationInfo = spdxDocument.getCreationInfo();
             creationInfoEntity.setComment(creationInfo.getComment().orElse(""));
-            creationInfoEntity.setCreators(new ArrayList<>(creationInfo.getCreators()));
+            creationInfoEntity.setCreators(StringUtils.join(creationInfo.getCreators(),","));
             creationInfoEntity.setLicenseListVersion(creationInfo.getLicenseListVersion().orElse(""));
             creationInfoEntity.setCreated(creationInfo.getCreated());
 

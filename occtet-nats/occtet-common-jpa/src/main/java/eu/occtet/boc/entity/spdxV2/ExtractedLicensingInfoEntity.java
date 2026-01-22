@@ -19,29 +19,30 @@
 package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
+
 import java.util.List;
+
 
 @Entity
 @Table(name = "EXTRACTED_LICENSING_INFO_ENTITY")
 public class ExtractedLicensingInfoEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "spdx_document_id", nullable = false)
     private SpdxDocumentRoot spdxDocument;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, name = "extracted_text", columnDefinition = "TEXT")
     private String extractedText;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "license_id")
     private String licenseId;
 
     private String name;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String comment;
 
     @ElementCollection

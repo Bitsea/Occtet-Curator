@@ -61,9 +61,12 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springboot.version>3.5.5</springboot.version>
-        <common-version>0.3.3-SNAPSHOT</common-version>
+        <eclipselink.version>4.0.9</eclipselink.version>
+        <common-version>0.3.4-SNAPSHOT</common-version>
         <common-jpa-version>0.3.6-SNAPSHOT</common-jpa-version>
         <ort-client-version>0.3.2-SNAPSHOT</ort-client-version>
+        <logback-version>1.5.19</logback-version>
+        <logback-db-version>1.2.11.1</logback-db-version>
 	</properties>
 
 	<dependencies>

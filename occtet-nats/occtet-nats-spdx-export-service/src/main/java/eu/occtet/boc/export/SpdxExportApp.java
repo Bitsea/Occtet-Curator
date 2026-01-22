@@ -43,10 +43,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.Executor;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"eu.occtet.boc"})
 @EnableJpaAuditing
 @EnableAsync
-@EnableJpaRepositories(basePackages = {"eu.occtet.boc.export.dao"})
+@EnableJpaRepositories(basePackages = {"eu.occtet.boc.dao"})
 @EntityScan(basePackages = {"eu.occtet.boc.entity"})
 @Profile({"!test"})
 public class SpdxExportApp {
@@ -102,9 +102,14 @@ public class SpdxExportApp {
         });
     }
 
-    @PreDestroy
-    public void onShutdown() {
-        log.info("Occtet Microservice SHUTDOWN: {}",microserviceDescriptor.getName());
+    @PostConstruct
+    public void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdownApplication));
     }
 
+    private void shutdownApplication() {
+        System.out.println("shutting down Microservice: " + microserviceDescriptor.getName() );
+        spdxExportWorkConsumer.terminate();
+        Runtime.getRuntime().halt(0);
+    }
 }

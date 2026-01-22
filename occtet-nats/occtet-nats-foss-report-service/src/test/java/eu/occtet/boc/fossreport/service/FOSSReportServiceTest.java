@@ -22,18 +22,12 @@
 
 package eu.occtet.boc.fossreport.service;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
-import eu.occtet.boc.entity.ScannerInitializer;
-import eu.occtet.boc.fossreport.dao.CodeLocationRepository;
-import eu.occtet.boc.fossreport.dao.ProjectRepository;
-import eu.occtet.boc.fossreport.dao.ScannerInitializerRepository;
+import eu.occtet.boc.dao.CodeLocationRepository;
+import eu.occtet.boc.dao.ProjectRepository;
+import eu.occtet.boc.dao.ImportTaskRepository;
 import eu.occtet.boc.fossreport.factory.InventoryItemFactory;
-import eu.occtet.boc.model.FossReportServiceWorkData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,12 +36,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @AutoConfigureDataJpa
@@ -62,7 +50,7 @@ public class FOSSReportServiceTest {
     @Autowired
     private InventoryItemFactory inventoryItemFactory;
     @Autowired
-    private ScannerInitializerRepository scannerInitializerRepository;
+    private ImportTaskRepository scannerInitializerRepository;
     @Autowired
     private CodeLocationRepository codeLocationRepository;
     @Autowired

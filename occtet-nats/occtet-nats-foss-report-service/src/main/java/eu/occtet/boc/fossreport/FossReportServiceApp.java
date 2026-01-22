@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.Async;
@@ -48,10 +49,11 @@ import java.nio.file.Paths;
 import java.util.concurrent.Executor;
 
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"eu.occtet.boc"})
 @EnableAsync
 @EntityScan("eu.occtet.boc.entity")
-@EnableJpaRepositories(basePackages = "eu.occtet.boc.fossreport.dao")
+@EnableJpaRepositories(basePackages = "eu.occtet.boc.dao")
+@Profile({"!test"})
 public class FossReportServiceApp {
 
     @Autowired
@@ -102,9 +104,14 @@ public class FossReportServiceApp {
         });
     }
 
-    @PreDestroy
-    public void onShutdown() {
-        fossReportWorkConsumer.terminate();
+    @PostConstruct
+    public void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdownApplication));
     }
 
+    private void shutdownApplication() {
+        System.out.println("shutting down Microservice: " + microserviceDescriptor.getName() );
+        fossReportWorkConsumer.terminate();
+        Runtime.getRuntime().halt(0);
+    }
 }

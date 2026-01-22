@@ -23,15 +23,12 @@
 package eu.occtet.boc.fossreport.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.occtet.boc.dao.ImportTaskRepository;
+import eu.occtet.boc.dao.InventoryItemRepository;
+import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.*;
-import eu.occtet.boc.fossreport.dao.InventoryItemRepository;
-import eu.occtet.boc.fossreport.dao.ProjectRepository;
-import eu.occtet.boc.fossreport.dao.ScannerInitializerRepository;
 import eu.occtet.boc.fossreport.dao.SoftwareComponentRepository;
 import eu.occtet.boc.model.*;
-import eu.occtet.boc.model.FossReportServiceWorkData;
-import eu.occtet.boc.model.RowDto;
-import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
 import io.nats.client.Connection;
@@ -75,9 +72,9 @@ public class FossReportService extends BaseWorkDataProcessor {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
-    private ScannerInitializerRepository scannerInitializerRepository;
+    private ImportTaskRepository scannerInitializerRepository;
     @Autowired
-    private ScannerInitializerService scannerInitializerService;
+    private ImportTaskService importTaskService;
     @Autowired
     private ProjectRepository projectRepository;
     @Autowired
@@ -139,16 +136,16 @@ public class FossReportService extends BaseWorkDataProcessor {
             log.error("Error while processing data: ", e);
             return false;
         }
-        Optional<ScannerInitializer> scannerInitializer = scannerInitializerRepository.findById(workData.getScannerInitializerId());
+        Optional<ImportTask> importTask = scannerInitializerRepository.findById(workData.getScannerInitializerId());
         Optional<Project> project;
 
-        if (scannerInitializer.isEmpty() ) {
+        if (importTask.isEmpty() ) {
             log.error("Scanner not found! (id:{})", workData.getScannerInitializerId() );
         } else {
-            project = projectRepository.findById(scannerInitializer.get().getProject().getId());
-                    //inventoryItemRepository.findById(scannerInitializer.get().getInventoryItem().getId());
+            project = projectRepository.findById(importTask.get().getProject().getId());
+                    //inventoryItemRepository.findById(importTask.get().getInventoryItem().getId());
             if (project.isEmpty() || rowDto == null) {
-                log.error("Project not found! (id:{}) or row is null: {}", scannerInitializer.get().getProject().getId(), rowDto== null );
+                log.error("Project not found! (id:{}) or row is null: {}", importTask.get().getProject().getId(), rowDto== null );
             } else {
                 try {
                     // prepare necessary data
@@ -201,17 +198,17 @@ public class FossReportService extends BaseWorkDataProcessor {
 
                     log.info("Finished generating data.");
 
-                    scannerInitializerService.updateScannerFeedback(scannerInitializer.get(),
+                    importTaskService.updateImportFeedback(importTask.get(),
                             "Finished processing data and related data for inventory item " + inventoryItem.getInventoryName());
 
                    sendVulnerbilityToStream(inventoryItem);
                     // send inventory item to next step in workflow
                     ScannerSendWorkData workDataResponse = new ScannerSendWorkData(inventoryItem.getId());
-                    sendResultToStream(workDataResponse, scannerInitializer.get(), !copyrights.isEmpty());
+                    sendResultToStream(workDataResponse, importTask.get(), !copyrights.isEmpty());
 
                 } catch (Exception e) {
                     log.error("Exception occurred while processing: {}", e.getMessage(), e);
-                    scannerInitializerService.updateScannerFeedback(scannerInitializer.get(),
+                    importTaskService.updateImportFeedback(importTask.get(),
                             "Error occured while processing data and related data for inventory item " + rowDto.componentNameAndVersion() + ": " + e.getMessage());
                     return false;
                 }
@@ -293,16 +290,16 @@ public class FossReportService extends BaseWorkDataProcessor {
      * @throws JetStreamApiException
      * @throws IOException
      */
-    private void sendResultToStream(ScannerSendWorkData sendWorkData, ScannerInitializer scannerInitializer, boolean hasCopyrights){
+    private void sendResultToStream(ScannerSendWorkData sendWorkData, ImportTask importTask, boolean hasCopyrights){
 
 
-        boolean useLicenseMatcher = scannerInitializer.getScannerConfiguration().stream()
+        boolean useLicenseMatcher = importTask.getImportConfiguration().stream()
                 .filter(c -> CONFIG_KEY_USE_LICENSE_MATCHER.equals(c.getName()))
                 .map(c -> Boolean.parseBoolean(c.getValue()))
                 .findFirst()
                 .orElse(false);
 
-        boolean useCopyrightFilter = scannerInitializer.getScannerConfiguration().stream()
+        boolean useCopyrightFilter = importTask.getImportConfiguration().stream()
                 .filter(c -> CONFIG_KEY_USE_FALSE_COPYRIGHT_FILTER.equals(c.getName()))
                 .map(c -> Boolean.parseBoolean(c.getValue()))
                 .findFirst()

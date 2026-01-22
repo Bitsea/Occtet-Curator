@@ -23,9 +23,9 @@
 package eu.occtet.boc.fossreport.service;
 
 
+import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.Copyright;
-import eu.occtet.boc.fossreport.dao.CopyrightRepository;
 import eu.occtet.boc.fossreport.factory.CopyrightFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

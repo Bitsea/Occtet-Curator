@@ -22,22 +22,23 @@ import jakarta.persistence.*;
 
 import java.util.List;
 
+
 @Entity
 @Table(name ="SPDX_FILE_ENTITY")
 public class SpdxFileEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name="SPDX_ID")
     private String spdxId;
 
     @ManyToOne
     @JoinColumn(name = "spdx_document_id")
     private SpdxDocumentRoot spdxDocument;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name="FILE_NAME")
     private String fileName;
 
     @OneToMany(mappedBy = "spdxFileEntity", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -48,16 +49,16 @@ public class SpdxFileEntity {
     @Column(name = "file_type")
     private List<String> fileTypes;
 
-    @Lob
+    @Column(name= "license_concluded", columnDefinition = "TEXT")
     private String licenseConcluded;
 
     @ElementCollection
     @CollectionTable(name = "file_license_info", joinColumns = @JoinColumn(name = "spdx_file_id"))
     @Column(name = "license_info_in_files", columnDefinition = "TEXT")
-    @Lob
     private List<String> licenseInfoInFiles;
 
-    @Lob
+
+    @Column(name = "copyright_text", columnDefinition = "TEXT")
     private String copyrightText;
 
     public String getSpdxId() {
@@ -126,6 +127,10 @@ public class SpdxFileEntity {
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     @Override

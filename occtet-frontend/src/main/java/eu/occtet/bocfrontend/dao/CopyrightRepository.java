@@ -21,17 +21,16 @@ package eu.occtet.bocfrontend.dao;
 
 import eu.occtet.bocfrontend.entity.CodeLocation;
 import eu.occtet.bocfrontend.entity.Copyright;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import io.jmix.core.repository.JmixDataRepository;
-import io.jmix.core.repository.Query;
 
 import java.util.List;
-import java.util.UUID;
 
 
-public interface CopyrightRepository extends JmixDataRepository<Copyright, UUID> {
+
+
+public interface CopyrightRepository extends JmixDataRepository<Copyright, Long> {
 
    List<Copyright> findAll();
-   Copyright findCopyrightById(UUID uuid);
+   Copyright findCopyrightById(Long id);
    List<Copyright> findCopyrightsByCodeLocationsIn(List<CodeLocation> codeLocations);
 }

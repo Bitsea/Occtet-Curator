@@ -30,6 +30,7 @@ import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -47,10 +48,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"eu.occtet.boc"})
 @EnableJpaAuditing
 @EnableAsync
-@EnableJpaRepositories(basePackages = {"eu.occtet.boc.spdx.dao"})
+@EnableJpaRepositories(basePackages = {"eu.occtet.boc.dao"})
 @EntityScan(basePackages = {"eu.occtet.boc.entity"})
 @Profile({"!test"})
 public class SpdxServiceApp {
@@ -95,9 +96,16 @@ public class SpdxServiceApp {
         spdxWorkConsumer.startHandlingMessages(natsConnection,microserviceDescriptor.getName(),streamName,workSubject);
     }
 
-    @PreDestroy
-    public void onShutdown() {
-        spdxWorkConsumer.terminate();
+    @PostConstruct
+    public void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdownApplication));
     }
+
+    private void shutdownApplication() {
+        System.out.println("shutting down Microservice: " + microserviceDescriptor.getName() );
+        spdxWorkConsumer.terminate();
+        Runtime.getRuntime().halt(0);
+    }
+
 
 }

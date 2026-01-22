@@ -22,7 +22,7 @@
 package eu.occtet.boc.download;
 
 
-import eu.occtet.boc.download.dao.FileRepository;
+import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.download.factory.FileFactory;
 import eu.occtet.boc.download.service.FileService;
 import eu.occtet.boc.entity.File;

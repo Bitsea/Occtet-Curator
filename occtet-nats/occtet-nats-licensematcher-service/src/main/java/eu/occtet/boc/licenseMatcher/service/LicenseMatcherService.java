@@ -23,14 +23,13 @@
 package eu.occtet.boc.licenseMatcher.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.License;
-import eu.occtet.boc.licenseMatcher.dao.InventoryItemRepository;
 import eu.occtet.boc.licenseMatcher.factory.InventoryItemFactory;
 import eu.occtet.boc.licenseMatcher.factory.PromptFactory;
 import eu.occtet.boc.licenseMatcher.tools.LicenseMatcher;
 import eu.occtet.boc.model.AILicenseMatcherWorkData;
-import eu.occtet.boc.model.FossReportServiceWorkData;
 import eu.occtet.boc.model.ScannerSendWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
@@ -44,14 +43,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
 @Component
 public class LicenseMatcherService extends BaseWorkDataProcessor {
@@ -98,14 +95,13 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
      */
     private boolean generatePrompt(ScannerSendWorkData workData) {
         try {
-            UUID inventoryItemId = workData.getInventoryItemId();
+            long inventoryItemId = workData.getInventoryItemId();
 
             String response = "";
-            List<InventoryItem> items = inventoryItemRepository.findById(inventoryItemId);
-            log.debug("work on item {}", items.getFirst().getInventoryName());
-            if (items != null && !items.isEmpty()) {
-                InventoryItem item = items.getFirst();
-                log.debug("softwareComponent {}", item.getSoftwareComponent().getName());
+            Optional<InventoryItem> optItem = inventoryItemRepository.findById(inventoryItemId);
+            if (optItem.isPresent()) {
+                InventoryItem item = optItem.get();
+                log.debug("working on item {}, softwareComponent {}", item, item.getSoftwareComponent().getName());
                 for (License license : item.getSoftwareComponent().getLicenses()) {
                     String licenseId = license.getLicenseType();
                     String licenseText = license.getLicenseText();

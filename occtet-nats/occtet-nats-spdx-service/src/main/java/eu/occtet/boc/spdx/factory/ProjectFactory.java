@@ -25,7 +25,7 @@ package eu.occtet.boc.spdx.factory;
 
 
 import eu.occtet.boc.entity.Project;
-import eu.occtet.boc.spdx.dao.ProjectRepository;
+import eu.occtet.boc.dao.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

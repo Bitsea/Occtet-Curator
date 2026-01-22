@@ -27,7 +27,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+
 
 @Entity
 @Table(name = "DBLOG")
@@ -36,8 +36,8 @@ public class DBLog {
 
     @Id
     @Column(name="ID", nullable = false)
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private UUID id;
+    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    private Long id;
 
     // Should automatically set the current timestamp on creation
     @Column(name = "EVENT_DATE", nullable = false, updatable = false)
@@ -47,7 +47,7 @@ public class DBLog {
     @Column(name = "COMPONENT", length = 20)
     private String component;
 
-    @Column(name = "MESSAGE", columnDefinition = "TEXT")
+    @Column(name = "MESSAGE",columnDefinition = "TEXT")
     private String message;
 
     // Constructors
@@ -61,7 +61,7 @@ public class DBLog {
 
     // Getters and Setters
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 

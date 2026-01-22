@@ -51,7 +51,7 @@ public class TreePathComparator implements Comparator<File> {
 
     @Override
     public int compare(File f1, File f2) {
-        if (f1.getId().equals(f2.getId())) return 0;
+        if (f1.getId()==f2.getId()) return 0;
 
         List<File> path1 = getLineage(f1);
         List<File> path2 = getLineage(f2);
@@ -62,7 +62,7 @@ public class TreePathComparator implements Comparator<File> {
             File ancestor1 = path1.get(i);
             File ancestor2 = path2.get(i);
 
-            if (!ancestor1.getId().equals(ancestor2.getId())){
+            if (ancestor1.getId()!=ancestor2.getId()){
                 return compareSiblings(ancestor1, ancestor2);
             }
         }

@@ -49,7 +49,7 @@ public class WorkDataProcessorTest extends TestCase {
         SampleWorkDataProcessor processor = new SampleWorkDataProcessor();
 
         // Beispiel JSON-Nachricht für TypeAMessage
-        String jsonMessageA = "{\"type\":\"scannerdata_send\",\"inventoryItemId\":\"2bd05cfd-ebfb-4393-b0eb-faaff27801ab\"}}";
+        String jsonMessageA = "{\"type\":\"scannerdata_send\",\"inventoryItemId\":234}}";
 
         ObjectMapper objectMapper = new ObjectMapper();
         BaseWorkData data = objectMapper.readValue(jsonMessageA, BaseWorkData.class);

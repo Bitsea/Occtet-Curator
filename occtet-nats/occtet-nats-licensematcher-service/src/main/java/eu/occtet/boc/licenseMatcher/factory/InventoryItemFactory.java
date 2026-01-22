@@ -23,15 +23,10 @@
 package eu.occtet.boc.licenseMatcher.factory;
 
 
-import eu.occtet.boc.entity.Copyright;
+import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.entity.Project;
-import eu.occtet.boc.entity.SoftwareComponent;
-import eu.occtet.boc.licenseMatcher.dao.InventoryItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class InventoryItemFactory {

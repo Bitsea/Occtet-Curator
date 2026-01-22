@@ -24,7 +24,7 @@ package eu.occtet.boc.fossreport.factory;
 
 import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.Copyright;
-import eu.occtet.boc.fossreport.dao.CopyrightRepository;
+import eu.occtet.boc.dao.CopyrightRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -23,8 +23,8 @@ package eu.occtet.boc.download;
 
 import com.sun.net.httpserver.HttpServer;
 import eu.occtet.boc.download.controller.GitRepoController;
-import eu.occtet.boc.download.dao.InventoryItemRepository;
-import eu.occtet.boc.download.dao.ProjectRepository;
+import eu.occtet.boc.dao.InventoryItemRepository;
+import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.download.service.DownloadService;
 import eu.occtet.boc.download.service.FileService;
 import eu.occtet.boc.entity.InventoryItem;
@@ -120,8 +120,8 @@ public class DownloadServiceTest {
         // Main Package
         DownloadServiceWorkData workData = new DownloadServiceWorkData(downloadUrl, targetLocation.toString(),
                 "1.0.0", project, true, inventoryItemId);
-        when(projectRepository.findById(UUID.fromString(project))).thenReturn(Optional.of(new Project()));
-        when(inventoryItemRepository.findById(UUID.fromString(inventoryItemId))).thenReturn(Optional.of(new InventoryItem()));
+        when(projectRepository.findById(Long.parseLong(project))).thenReturn(Optional.of(new Project()));
+        when(inventoryItemRepository.findById(Long.parseLong(inventoryItemId))).thenReturn(Optional.of(new InventoryItem()));
         boolean result = downloadService.process(workData);
         assertTrue(result);
 

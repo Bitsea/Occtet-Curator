@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.Async;
@@ -50,10 +51,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.Executor;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"eu.occtet.boc"})
 @EnableAsync
-@EntityScan(basePackages = "eu.occtet.boc.entity")
-@EnableJpaRepositories(basePackages = "eu.occtet.boc.copyrightFilter.dao")
+@EntityScan(basePackages = "eu.occtet.boc")
+@EnableJpaRepositories(basePackages = "eu.occtet.boc.dao")
+@Profile({"!test"})
 public class CopyrightFilterServiceApp {
 
     @Autowired
@@ -102,10 +104,14 @@ public class CopyrightFilterServiceApp {
         });
     }
 
-    @PreDestroy
-    public void onShutdown() {
-        copyrightFilterWorkConsumer.terminate();
+    @PostConstruct
+    public void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdownApplication));
     }
 
-
+    private void shutdownApplication() {
+        System.out.println("shutting down Microservice: " + microserviceDescriptor.getName() );
+        copyrightFilterWorkConsumer.terminate();
+        Runtime.getRuntime().halt(0);
+    }
 }

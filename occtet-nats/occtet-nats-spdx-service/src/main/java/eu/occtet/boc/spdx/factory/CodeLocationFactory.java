@@ -26,7 +26,7 @@ package eu.occtet.boc.spdx.factory;
 
 import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.spdx.dao.CodeLocationRepository;
+import eu.occtet.boc.dao.CodeLocationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +44,4 @@ public class CodeLocationFactory {
         return codeLocationRepository.save(new CodeLocation(inventoryItem, filePath));
     }
 
-    public CodeLocation createTransient(String filePath, InventoryItem inventoryItem) {
-        return new CodeLocation(inventoryItem, filePath);
-    }
 }

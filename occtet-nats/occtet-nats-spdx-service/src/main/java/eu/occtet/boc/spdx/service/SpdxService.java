@@ -30,11 +30,11 @@ import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
-import eu.occtet.boc.spdx.dao.CopyrightRepository;
-import eu.occtet.boc.spdx.dao.InventoryItemRepository;
-import eu.occtet.boc.spdx.dao.LicenseRepository;
-import eu.occtet.boc.spdx.dao.ProjectRepository;
-import eu.occtet.boc.spdx.dao.spdxV2.SpdxDocumentRootRepository;
+import eu.occtet.boc.dao.CopyrightRepository;
+import eu.occtet.boc.dao.InventoryItemRepository;
+import eu.occtet.boc.dao.LicenseRepository;
+import eu.occtet.boc.dao.ProjectRepository;
+import eu.occtet.boc.dao.SpdxDocumentRootRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
@@ -122,7 +122,7 @@ public class SpdxService extends BaseWorkDataProcessor{
 
             SpdxDocumentRoot spdxDocumentRoot = spdxConverter.convertSpdxV2DocumentInformation(spdxDocument);
 
-            UUID projectId = UUID.fromString(spdxWorkData.getProjectId());
+            long projectId = spdxWorkData.getProjectId();
             Optional<Project> projectOptional = projectRepository.findById(projectId);
             if(projectOptional.isEmpty()) {
                log.error("failed to find the project");
@@ -142,7 +142,7 @@ public class SpdxService extends BaseWorkDataProcessor{
 
             //get the list of described packages for the download-service to differentiate between them and dependencies
             Set<String> mainPackageIds = new HashSet<>();
-            Set<UUID> mainInvetoryItems = new HashSet<>();
+            Set<Long> mainInventoryItems = new HashSet<>();
 
             try {
                 Set<String> ids = spdxDocument.getDocumentDescribes().stream()
@@ -174,7 +174,7 @@ public class SpdxService extends BaseWorkDataProcessor{
                                     log.debug("Processing unseen package: {}", spdxPackage.toString());
                                     inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,
                                             spdxDocumentRoot, packageLookupMap, componentCache, licenseCache,
-                                            mainInvetoryItems, mainPackageIds));
+                                            mainInventoryItems, mainPackageIds));
                                     spdxPackages.add((SpdxPackage) spdxPackage);
                                     seenPackages.add((spdxPackage).toString());
                                 }
@@ -211,7 +211,7 @@ public class SpdxService extends BaseWorkDataProcessor{
                                 inventoryItems,
                                 spdxWorkData.isUseCopyrightAi(),
                                 spdxWorkData.isUseLicenseMatcher(),
-                                mainInvetoryItems
+                                mainInventoryItems
                         );
                     } catch (Exception e) {
                         log.error("Error sending answers to the answers service", e);
@@ -233,7 +233,7 @@ public class SpdxService extends BaseWorkDataProcessor{
                                         SpdxDocumentRoot spdxDocumentRoot,
                                         Map<String, SpdxPackageEntity> packageLookupMap,
                                         Map<String, SoftwareComponent> componentCache,
-                                        Map<String, License> licenseCache,Set<UUID> mainInvetoryItems,
+                                        Map<String, License> licenseCache,Set<Long> mainInvetoryItems,
                                         Set<String> mainPackageIds)
             throws Exception {
 

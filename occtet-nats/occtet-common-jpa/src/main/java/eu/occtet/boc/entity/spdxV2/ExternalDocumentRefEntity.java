@@ -20,21 +20,22 @@ package eu.occtet.boc.entity.spdxV2;
 
 import jakarta.persistence.*;
 
+
 @Entity
 @Table(name = "EXTERNAL_REF_DOCUMENT_ENTITY")
 public class ExternalDocumentRefEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "spdx_document_id", nullable = false)
     private SpdxDocumentRoot spdxDocument;
 
-    @Column(nullable = false)
+    @Column( name="external_document_id")
     private String externalDocumentId;
 
-    @Column(nullable = false)
+    @Column( name = "spdx_document_external", length = 2048)
     private String spdxDocumentExternal;
 
     @OneToOne(cascade = CascadeType.ALL, optional = false)

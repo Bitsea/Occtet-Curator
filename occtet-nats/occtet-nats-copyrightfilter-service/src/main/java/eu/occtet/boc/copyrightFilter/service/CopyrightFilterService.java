@@ -23,18 +23,17 @@
 package eu.occtet.boc.copyrightFilter.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.copyrightFilter.dao.InventoryItemRepository;
 import eu.occtet.boc.copyrightFilter.factory.PromptFactory;
 import eu.occtet.boc.copyrightFilter.preprocessor.CopyrightPreprocessor;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.model.AICopyrightFilterWorkData;
-import eu.occtet.boc.model.AIStatusQueryWorkData;
 import eu.occtet.boc.model.ScannerSendWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
+import eu.occtet.boc.dao.InventoryItemRepository;
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import org.apache.logging.log4j.LogManager;
@@ -52,6 +51,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class CopyrightFilterService  extends BaseWorkDataProcessor {
@@ -93,7 +93,12 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
 
     private boolean initializeCopyrightFilter(ScannerSendWorkData scannerSendWorkData) {
         log.debug("inventoryItemId: {}", scannerSendWorkData.getInventoryItemId());
-        InventoryItem item = inventoryItemRepository.findById(scannerSendWorkData.getInventoryItemId()).getFirst();
+        Optional<InventoryItem> optItem = inventoryItemRepository.findById(scannerSendWorkData.getInventoryItemId());
+        if(!optItem.isPresent()) {
+            log.warn("InventoryItem with id {} not found", scannerSendWorkData.getInventoryItemId());
+            return false;
+        }
+        InventoryItem item = optItem.get();
         List<String> copyrightTexts = new ArrayList<>();
 
         if (item.getSoftwareComponent().getCopyrights() != null && !item.getSoftwareComponent().getCopyrights().isEmpty()) {

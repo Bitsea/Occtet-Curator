@@ -23,16 +23,17 @@
 package eu.occtet.boc.ai.copyrightFilter.service;
 
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.ai.copyrightFilter.dao.CopyrightRepository;
-import eu.occtet.boc.ai.copyrightFilter.dao.InventoryItemRepository;
 import eu.occtet.boc.ai.copyrightFilter.factory.AdvisorFactory;
 import eu.occtet.boc.ai.copyrightFilter.factory.PromptFactory;
 import eu.occtet.boc.ai.copyrightFilter.postprocessing.PostProcessor;
+import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.model.*;
+import eu.occtet.boc.model.AIAnswerWorkData;
+import eu.occtet.boc.model.AICopyrightFilterWorkData;
+import eu.occtet.boc.model.AIStatusQueryWorkData;
+import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
 import io.nats.client.Connection;
@@ -54,7 +55,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
 @Component
 public class LLMService extends BaseWorkDataProcessor {
@@ -67,7 +68,8 @@ public class LLMService extends BaseWorkDataProcessor {
     private PostProcessor postProcessor;
 
     @Autowired
-    private InventoryItemRepository inventoryItemRepository;
+    private eu.occtet.boc.dao.InventoryItemRepository inventoryItemRepository;
+
     @Autowired
     private CopyrightRepository copyrightRepository;
 
@@ -123,7 +125,11 @@ public class LLMService extends BaseWorkDataProcessor {
 
     private boolean filterCopyrightsWithAI(AICopyrightFilterWorkData aiWorkData) {
         //MemoryAdvisor is default
-        InventoryItem item = getInventoryItem(aiWorkData.getInventoryItemId());
+        Optional<InventoryItem> optItem = inventoryItemRepository.findById(aiWorkData.getInventoryItemId());
+        if(!optItem.isPresent()) {
+            log.warn("InventoryItem with id {} not found", aiWorkData.getInventoryItemId());
+            return false;
+        }
         List<Advisor> advisors = advisorFactory.createAdvisors();
         String response = "";
         Prompt question = promptFactory.createFalseCopyrightPrompt(aiWorkData.getUserMessage());
@@ -140,7 +146,7 @@ public class LLMService extends BaseWorkDataProcessor {
         }
         String result = postProcessor.deleteThinking(response);
 
-        handleAIResult(item, result, copyrightList);
+        handleAIResult(optItem.get(), result, copyrightList);
         if(!result.isEmpty()) {
             try {
                 sendAnswerToStream(result);
@@ -167,10 +173,6 @@ public class LLMService extends BaseWorkDataProcessor {
         return b.toString();
     }
 
-    public InventoryItem getInventoryItem(UUID inventoryItemId) {
-        return inventoryItemRepository.findById(inventoryItemId).getFirst();
-
-    }
 
     /**
      * Handles the AI result and updates the InventoryItem's external notes accordingly.
