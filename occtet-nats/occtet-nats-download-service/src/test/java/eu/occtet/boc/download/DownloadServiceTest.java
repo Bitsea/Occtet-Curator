@@ -48,7 +48,6 @@ import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -113,15 +112,15 @@ public class DownloadServiceTest {
 
     @Test
     void testProcessValidPathHttp() {
-        String project = UUID.randomUUID().toString();
-        String inventoryItemId = UUID.randomUUID().toString();
+        Long project = 12345L;
+        Long inventoryItemId = 789L;
         String downloadUrl = "http://localhost:" + localPort + "/dummy-repo.zip";
         Path targetLocation = tempDir.resolve("project_temp_root");
         // Main Package
         DownloadServiceWorkData workData = new DownloadServiceWorkData(downloadUrl, targetLocation.toString(),
-                "1.0.0", project, true, inventoryItemId);
-        when(projectRepository.findById(Long.parseLong(project))).thenReturn(Optional.of(new Project()));
-        when(inventoryItemRepository.findById(Long.parseLong(inventoryItemId))).thenReturn(Optional.of(new InventoryItem()));
+                "1.0.0", Long.toString(project), true, Long.toString(inventoryItemId));
+        when(projectRepository.findById(project)).thenReturn(Optional.of(new Project()));
+        when(inventoryItemRepository.findById(inventoryItemId)).thenReturn(Optional.of(new InventoryItem()));
         boolean result = downloadService.process(workData);
         assertTrue(result);
 
@@ -131,7 +130,7 @@ public class DownloadServiceTest {
 
         //Dependency Package
         DownloadServiceWorkData workdata2 = new DownloadServiceWorkData(downloadUrl,
-                targetLocation.toString(), "1.0.0", project, false, inventoryItemId);
+                targetLocation.toString(), "1.0.0", Long.toString(project), false, Long.toString(inventoryItemId));
         result = downloadService.process(workdata2);
         assertTrue(result);
         expectedFile = targetLocation.resolve("dependencies").resolve("dummy-repo")
@@ -143,14 +142,14 @@ public class DownloadServiceTest {
 
     @Test
     void testProcessValidPathGit() throws IOException, InterruptedException {
-        String project = UUID.randomUUID().toString();
-        String inventoryItemId = UUID.randomUUID().toString();
+        Long project = 12345L;
+        Long inventoryItemId = 789L;
         String gitUrl = "git+https://github.com/fake/repo.git";
         String resolvedZipUrl = "http://localhost:" + localPort + "/dummy-repo.zip";
         Path targetLocation = tempDir.resolve("git_test_root");
 
         DownloadServiceWorkData workData = new DownloadServiceWorkData(
-                gitUrl, targetLocation.toString(), "v1.0", project, true, inventoryItemId
+                gitUrl, targetLocation.toString(), "v1.0", Long.toString(project), true, Long.toString(inventoryItemId)
         );
 
         when(projectRepository.findById(any())).thenReturn(Optional.of(new Project()));
@@ -165,11 +164,11 @@ public class DownloadServiceTest {
 
     @Test
     void testProcessInvalidOrUnsupportedPath() {
-        String project = UUID.randomUUID().toString();
-        String inventoryItemId = UUID.randomUUID().toString();
+        Long project = 654L;
+        Long inventoryItemId = 8745L;
         // SVN unsupported
         DownloadServiceWorkData workData = new DownloadServiceWorkData(
-                "svn://svn.apache.org/repos/asf", tempDir.toString(), "1.0", project, true, inventoryItemId
+                "svn://svn.apache.org/repos/asf", tempDir.toString(), "1.0", Long.toString(project), true, Long.toString(inventoryItemId)
         );
 
         when(projectRepository.findById(any())).thenReturn(Optional.of(new Project()));
