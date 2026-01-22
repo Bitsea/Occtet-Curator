@@ -36,6 +36,7 @@ import eu.occtet.bocfrontend.service.NatsService;
 import eu.occtet.bocfrontend.view.dialog.AddLicenseDialog;
 import eu.occtet.bocfrontend.view.main.MainView;
 import eu.occtet.bocfrontend.view.vulnerability.VulnerabilityDetailView;
+import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
@@ -73,6 +74,9 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
     @Autowired
     private NatsService natsService;
 
+    @Autowired
+    private Messages messages;
+
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
         SoftwareComponent softwareComponent = getEditedEntity();
@@ -106,7 +110,7 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
             JmixButton infoButton = uiComponents.create(JmixButton.class);
             infoButton.setIcon(VaadinIcon.INFO_CIRCLE.create());
             infoButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-            infoButton.setTooltipText("View Details");
+            infoButton.setTooltipText(messages.getMessage("eu.occtet.bocfrontend.view.softwareComponent/softwareComponent.tooltip.detailButton"));
 
             infoButton.addClickListener(e -> {
                 dialogWindow.view(this, VulnerabilityDetailView.class)
@@ -133,7 +137,7 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
             natsService.sendWorkMessageToStream("work.vulnerability", message.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e){
             log.error(e);
-            notifications.show("Error sending data to vulnerability microservice: " + e.getMessage());
+            notifications.show(messages.getMessage("eu.occtet.bocfrontend.view.softwareComponent/softwareComponent.notification.error")+ ": " + e.getMessage());
         }
     }
 }
