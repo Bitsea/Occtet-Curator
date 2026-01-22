@@ -42,8 +42,8 @@
                 <responsiveStep minWidth="40em" columns="2"/>
             </responsiveSteps>
             <vbox width="100%" margin="false" padding="false">
-            <textField id="projectNameField" property="projectName" required="true" width="100%" label="Name" requiredMessage="Name required"/>
-            <textField id="projectBasePathField" property="basePath" required="true" width="100%" label="Base path" requiredMessage="(absolute)Base path required"/>
+            <textField id="projectNameField" property="projectName" required="true" width="100%" label="msg://eu.occtet.bocfrontend.view.project/projectDetailView.projectName" requiredMessage="msg://eu.occtet.bocfrontend.view.project/projectDetailView.projectName.required"/>
+            <textField id="projectBasePathField" property="basePath" required="true" width="100%" label="msg://eu.occtet.bocfrontend.view.project/projectDetailView.basePath" requiredMessage="msg://eu.occtet.bocfrontend.view.project/projectDetailView.basePath.required"/>
             </vbox>
         </formLayout>
         <hbox id="detailActions">

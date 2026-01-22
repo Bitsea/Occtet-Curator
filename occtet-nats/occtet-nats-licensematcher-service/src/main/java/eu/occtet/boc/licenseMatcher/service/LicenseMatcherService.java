@@ -23,14 +23,13 @@
 package eu.occtet.boc.licenseMatcher.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.License;
-import eu.occtet.boc.licenseMatcher.dao.InventoryItemRepository;
 import eu.occtet.boc.licenseMatcher.factory.InventoryItemFactory;
 import eu.occtet.boc.licenseMatcher.factory.PromptFactory;
 import eu.occtet.boc.licenseMatcher.tools.LicenseMatcher;
 import eu.occtet.boc.model.AILicenseMatcherWorkData;
-import eu.occtet.boc.model.FossReportServiceWorkData;
 import eu.occtet.boc.model.ScannerSendWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
@@ -44,15 +43,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
 public class LicenseMatcherService extends BaseWorkDataProcessor {

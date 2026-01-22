@@ -32,6 +32,7 @@ import eu.occtet.boc.model.WorkTask;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.service.NatsService;
 import eu.occtet.bocfrontend.view.main.MainView;
+import io.jmix.core.Messages;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.download.Downloader;
@@ -66,6 +67,9 @@ public class ProjectListView extends StandardListView<Project> {
     @Autowired
     private Downloader downloader;
 
+    @Autowired
+    private Messages messages;
+
     @Subscribe
     public void onInit(final InitEvent event) {
         DataGrid.Column<Project> exportColumn = projectsDataGrid.getColumnByKey("exportBtn");
@@ -74,9 +78,9 @@ public class ProjectListView extends StandardListView<Project> {
 
             JmixButton exportButton = uiComponents.create(JmixButton.class);
             exportButton.setIcon(VaadinIcon.DOWNLOAD.create());
-            exportButton.setText("Export SBOM");
+            exportButton.setText(messages.getMessage("eu.occtet.bocfrontend.view.project/projectListView.exportBtn"));
             exportButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-            exportButton.setTooltipText("Export Project");
+            exportButton.setTooltipText(messages.getMessage("eu.occtet.bocfrontend.view.project/projectListView.exportTooltip"));
             exportButton.addClickListener(clickEvent -> {
                 handleExport(project);
             });

@@ -31,6 +31,7 @@ import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.view.audit.AuditView;
 import eu.occtet.bocfrontend.view.dialog.OverviewContentInfoDialog;
 import io.jmix.core.DataManager;
+import io.jmix.core.Messages;
 import io.jmix.core.ValueLoadContext;
 import io.jmix.core.entity.KeyValueEntity;
 import io.jmix.flowui.DialogWindows;
@@ -116,6 +117,9 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
     @Autowired
     private DataManager dataManager;
 
+    @Autowired
+    private Messages messages;
+
     private InventoryItem item;
 
 
@@ -180,7 +184,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
         });
 
         auditCopyrightDc.setItems(auditCopyrightDTOs);
-        copyrightAccordion.setSummaryText("Copyrights ("+auditCopyrightDTOs.size()+")");
+        copyrightAccordion.setSummaryText(messages.getMessage("eu.occtet.bocfrontend.view/overvoewProjectTabFragment.copyrightAccordion.summary") + " ("+auditCopyrightDTOs.size()+")");
 
     }
 
@@ -210,7 +214,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
             licensesDTOs.add(new AuditLicenseDTO(license.getLicenseName(),value.intValue()));
         });
         auditLicensesDc.setItems(licensesDTOs);
-        licensesAccordion.setSummaryText("Licenses ("+licensesDTOs.size()+")");
+        licensesAccordion.setSummaryText(messages.getMessage("eu.occtet.bocfrontend.view/overvoewProjectTabFragment.licenseAccordion.summary") + " ("+licensesDTOs.size()+")");
     }
 
     private void setVulnerabilities(Project project){
@@ -239,7 +243,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
             vulnerabilityDTOs.add(new AuditVulnerabilityDTO(v.getVulnerabilityId(),v.getRiskScore(),value.intValue()));
         });
         auditVulnerabilitiesDc.setItems(vulnerabilityDTOs);
-        vulnerabilityAccordion.setSummaryText("Vulnerabilities ("+vulnerabilityDTOs.size()+")");
+        vulnerabilityAccordion.setSummaryText(messages.getMessage("eu.occtet.bocfrontend.view/overvoewProjectTabFragment.vulnerabilityAccordion.summary") + " ("+vulnerabilityDTOs.size()+")");
     }
 
     private void showContentInformationDialog(Object content){

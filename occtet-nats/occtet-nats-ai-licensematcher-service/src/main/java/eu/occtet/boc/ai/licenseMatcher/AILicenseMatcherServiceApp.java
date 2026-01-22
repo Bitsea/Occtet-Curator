@@ -52,7 +52,7 @@ import java.util.concurrent.Executor;
 @SpringBootApplication(scanBasePackages = {"eu.occtet.boc"})
 @EnableAsync
 @EntityScan(basePackages = "eu.occtet.boc.entity")
-@EnableJpaRepositories(basePackages = "eu.occtet.boc.ai.licenseMatcher.dao")
+@EnableJpaRepositories(basePackages = "eu.occtet.boc.dao")
 @Profile({"!test"})
 public class AILicenseMatcherServiceApp {
 

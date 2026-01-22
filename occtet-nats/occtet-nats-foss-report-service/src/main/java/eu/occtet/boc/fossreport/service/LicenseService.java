@@ -23,8 +23,8 @@
 package eu.occtet.boc.fossreport.service;
 
 
+import eu.occtet.boc.dao.LicenseRepository;
 import eu.occtet.boc.entity.License;
-import eu.occtet.boc.fossreport.dao.LicenseRepository;
 import eu.occtet.boc.fossreport.factory.LicenseFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -22,9 +22,9 @@ import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.spdxV2.*;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
-import eu.occtet.boc.export.dao.InventoryItemRepository;
-import eu.occtet.boc.export.dao.ProjectRepository;
-import eu.occtet.boc.export.dao.spdxV2.SpdxDocumentRootRepository;
+import eu.occtet.boc.dao.InventoryItemRepository;
+import eu.occtet.boc.dao.ProjectRepository;
+import eu.occtet.boc.dao.SpdxDocumentRootRepository;
 import eu.occtet.boc.model.SpdxExportWorkData;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import org.apache.logging.log4j.LogManager;
@@ -80,7 +80,7 @@ public class ExportService extends BaseWorkDataProcessor {
             MultiFormatStore jsonStore = new MultiFormatStore(modelStore, MultiFormatStore.Format.JSON_PRETTY);
 
             log.info("fetching project with id: {}", spdxExportWorkData.getProjectId());
-            Optional<Project> project = projectRepository.findById(UUID.fromString(spdxExportWorkData.getProjectId()));
+            Optional<Project> project = projectRepository.findById(Long.parseLong(spdxExportWorkData.getProjectId()));
             if (project.isEmpty()) return false;
 
             log.info("fetching document with id: {}", spdxExportWorkData.getSpdxDocumentId());

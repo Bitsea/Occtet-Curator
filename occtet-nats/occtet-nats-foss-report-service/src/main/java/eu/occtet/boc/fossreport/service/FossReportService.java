@@ -23,15 +23,12 @@
 package eu.occtet.boc.fossreport.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.occtet.boc.dao.ImportTaskRepository;
+import eu.occtet.boc.dao.InventoryItemRepository;
+import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.*;
-import eu.occtet.boc.fossreport.dao.InventoryItemRepository;
-import eu.occtet.boc.fossreport.dao.ProjectRepository;
-import eu.occtet.boc.fossreport.dao.ScannerInitializerRepository;
 import eu.occtet.boc.fossreport.dao.SoftwareComponentRepository;
 import eu.occtet.boc.model.*;
-import eu.occtet.boc.model.FossReportServiceWorkData;
-import eu.occtet.boc.model.RowDto;
-import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
 import io.nats.client.Connection;
@@ -75,7 +72,7 @@ public class FossReportService extends BaseWorkDataProcessor {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
-    private ScannerInitializerRepository scannerInitializerRepository;
+    private ImportTaskRepository scannerInitializerRepository;
     @Autowired
     private ImportTaskService importTaskService;
     @Autowired

@@ -23,19 +23,14 @@
 package eu.occtet.boc.spdx.utlities;
 
 import eu.occtet.boc.config.TestEclipseLinkJpaConfiguration;
+import eu.occtet.boc.dao.*;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.spdxV2.RelationshipEntity;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.entity.spdxV2.SpdxFileEntity;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.model.SpdxWorkData;
-import eu.occtet.boc.config.EclipseLinkJpaConfiguration;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
-import eu.occtet.boc.spdx.dao.InventoryItemRepository;
-import eu.occtet.boc.spdx.dao.LicenseRepository;
-import eu.occtet.boc.spdx.dao.ProjectRepository;
-import eu.occtet.boc.spdx.dao.SoftwareComponentRepository;
-import eu.occtet.boc.spdx.dao.spdxV2.SpdxDocumentRootRepository;
 import eu.occtet.boc.spdx.factory.*;
 import eu.occtet.boc.spdx.service.*;
 import io.nats.client.JetStreamApiException;
@@ -49,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -61,6 +57,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {SpdxService.class, SoftwareComponentService.class, SoftwareComponentRepository.class,
         CopyrightService.class, InventoryItemService.class, LicenseService.class, CodeLocationService.class,
@@ -69,7 +66,7 @@ import java.util.List;
         LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class
 })
 @EnableJpaRepositories(basePackages = {
-        "eu.occtet.boc.spdx.dao"})
+        "eu.occtet.boc.dao"})
 @EntityScan(basePackages = {
         "eu.occtet.boc.entity"
 })

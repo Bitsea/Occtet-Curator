@@ -23,13 +23,11 @@ import eu.occtet.bocfrontend.entity.ImportTask;
 import io.jmix.core.repository.JmixDataRepository;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 
-public interface ImportTaskRepository extends JmixDataRepository<ImportTask, UUID> {
+public interface ImportTaskRepository extends JmixDataRepository<ImportTask, Long> {
 
     List<ImportTask> findByStatus(String status);
     long countByStatus(String status);
-    Optional<ImportTask>  findById(UUID id);
+
 }

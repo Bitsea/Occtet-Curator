@@ -43,8 +43,8 @@
                               dataContainer="auditCopyrightDc"
                               width="100%">
                         <columns resizable="true">
-                            <column property="copyrightName" header="Copyright"/>
-                            <column property="numFiles" header="Number in files"/>
+                            <column property="copyrightName" header="msg://eu.occtet.bocfrontend.view/overvoewProjectTabFragment.occtetGrid.copyrightName"/>
+                            <column property="numFiles" header="msg://eu.occtet.bocfrontend.view/overvoewProjectTabFragment.occtetGrid.numFiles"/>
                         </columns>
                     </dataGrid>
                 </accordionPanel>
@@ -53,8 +53,8 @@
                               dataContainer="auditLicensesDc"
                               width="100%">
                         <columns resizable="true">
-                            <column property="licenseName" header="License"/>
-                            <column property="numSc" header="Number in software components"/>
+                            <column property="licenseName" header="msg://eu.occtet.bocfrontend.view/overvoewProjectTabFragment.occtetGrid.licenseName"/>
+                            <column property="numSc" header="msg://eu.occtet.bocfrontend.view/overvoewProjectTabFragment.occtetGrid.numSc"/>
                         </columns>
                     </dataGrid>
                 </accordionPanel>
@@ -63,9 +63,9 @@
                               dataContainer="auditVulnerabilitiesDc"
                               width="100%">
                         <columns resizable="true">
-                            <column property="vulnerabilityName" header="Vulnerability"/>
-                            <column property="riskScore" header="Risk score of vulnerability"/>
-                            <column property="numSc" header="Number in software components"/>
+                            <column property="vulnerabilityName" header="msg://eu.occtet.bocfrontend.view/overvoewProjectTabFragment.occtetGrid.vulnerabilityName"/>
+                            <column property="riskScore" header="msg://eu.occtet.bocfrontend.view/overvoewProjectTabFragment.occtetGrid.riskscore"/>
+                            <column property="numSc" header="msg://eu.occtet.bocfrontend.view/overvoewProjectTabFragment.occtetGrid.numSc"/>
                         </columns>
                     </dataGrid>
                 </accordionPanel>
