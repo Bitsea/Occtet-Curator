@@ -62,12 +62,8 @@ public class SoftwareComponent {
     @JoinColumn(name= "SOFTWARE_COMPONENT_ID")
     private List<Copyright> copyrights;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
-    @JoinTable(
-            name = "SOFTWARE_COMPONENT_LICENSE_LINK",
-            joinColumns = @JoinColumn(name = "SOFTWARE_COMPONENT_ID", referencedColumnName = "ID"),
-            inverseJoinColumns = @JoinColumn(name = "LICENSE_ID", referencedColumnName = "ID"))
-    private List<License> licenses;
+    @OneToMany(mappedBy = "softwareComponent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UsageLicense> licenses = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinTable(
@@ -80,7 +76,7 @@ public class SoftwareComponent {
     }
 
     public SoftwareComponent(String softwareName, String version,
-                             List<License> license) {
+                             List<UsageLicense> license) {
         this.name = softwareName;
         this.version = version;
         this.licenses = license;
@@ -88,7 +84,7 @@ public class SoftwareComponent {
     }
 
     public SoftwareComponent(String softwareName, String version,
-                             List<License> license, String url) {
+                             List<UsageLicense> license, String url) {
         this.name = softwareName;
         this.version = version;
         this.licenses = license;
@@ -107,7 +103,7 @@ public class SoftwareComponent {
             String version,
             String purl,
             boolean curated,
-            List<License> licenses,
+            List<UsageLicense> licenses,
             String url
     ) {
         this.name = name;
@@ -150,11 +146,11 @@ public class SoftwareComponent {
         this.version = version;
     }
 
-    public List<License> getLicenses() {
+    public List<UsageLicense> getLicenses() {
         return licenses;
     }
 
-    public void setLicenses(List<License> licenses) {
+    public void setLicenses(List<UsageLicense> licenses) {
         this.licenses = licenses;
     }
 
@@ -164,13 +160,6 @@ public class SoftwareComponent {
 
     public void setPurl(String purl) {
         this.purl = purl;
-    }
-
-    public void addLicense(License license){
-        if (this.licenses == null){
-            this.licenses = new ArrayList<>();
-        }
-        this.licenses.add(license);
     }
 
     public boolean isCurated() {
@@ -211,5 +200,15 @@ public class SoftwareComponent {
 
     public void setCopyrights(List<Copyright> copyrights) {
         this.copyrights = copyrights;
+    }
+
+    public void addLicense(UsageLicense license) {
+        this.licenses.add(license);
+        license.setSoftwareComponent(this);
+    }
+
+    public void removeLicense(UsageLicense license) {
+        this.licenses.remove(license);
+        license.setSoftwareComponent(null);
     }
 }

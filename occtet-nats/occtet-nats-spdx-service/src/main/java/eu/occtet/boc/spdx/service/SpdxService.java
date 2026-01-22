@@ -233,7 +233,7 @@ public class SpdxService extends BaseWorkDataProcessor{
                                         SpdxDocumentRoot spdxDocumentRoot,
                                         Map<String, SpdxPackageEntity> packageLookupMap,
                                         Map<String, SoftwareComponent> componentCache,
-                                        Map<String, License> licenseCache,Set<Long> mainInvetoryItems,
+                                        Map<String, License> licenseCache,Set<Long> mainInventoryItems,
                                         Set<String> mainPackageIds)
             throws Exception {
 
@@ -329,7 +329,7 @@ public class SpdxService extends BaseWorkDataProcessor{
         log.info("created softwareComponent: {}", component.getName());
 
         if (mainPackageIds.contains(spdxPackage.getId())) {
-            mainInvetoryItems.add(inventoryItem.getId());
+            mainInventoryItems.add(inventoryItem.getId());
         }
 
         return inventoryItem;

@@ -28,6 +28,7 @@ import io.jmix.core.metamodel.annotation.InstanceName;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static jakarta.persistence.FetchType.LAZY;
@@ -60,11 +61,9 @@ public class SoftwareComponent {
     @Column(name= "LICENSE_AI_CONTROLLED")
     private Boolean licenseAiControlled;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "SOFTWARE_COMPONENT_LICENSE_LINK",
-            joinColumns = @JoinColumn(name = "SOFTWARE_COMPONENT_ID", referencedColumnName = "ID"),
-            inverseJoinColumns = @JoinColumn(name = "LICENSE_ID", referencedColumnName = "ID"))
-    private List<License> licenses;
+    @OneToMany(mappedBy = "softwareComponent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UsageLicense> licenses = new ArrayList<>();
+
 
     @ManyToMany(fetch = LAZY)
     @JoinTable(
@@ -86,7 +85,7 @@ public class SoftwareComponent {
     }
 
     public SoftwareComponent(String name, String version, String purl,
-                             Boolean curated, List<License> licenses) {
+                             Boolean curated, List<UsageLicense> licenses) {
         this.name = name;
         this.version = version;
         this.purl = purl;
@@ -131,11 +130,11 @@ public class SoftwareComponent {
         return curated;
     }
 
-    public List<License> getLicenses() {
+    public List<UsageLicense> getLicenses() {
         return licenses;
     }
 
-    public void setLicenses(List<License> licenses) {
+    public void setLicenses(List<UsageLicense> licenses) {
         this.licenses = licenses;
     }
 
@@ -173,5 +172,15 @@ public class SoftwareComponent {
 
     public void setCopyrights(List<Copyright> copyrights) {
         this.copyrights = copyrights;
+    }
+
+    public void addLicense(UsageLicense license) {
+        this.licenses.add(license);
+        license.setSoftwareComponent(this);
+    }
+
+    public void removeLicense(UsageLicense license) {
+        this.licenses.remove(license);
+        license.setSoftwareComponent(null);
     }
 }
