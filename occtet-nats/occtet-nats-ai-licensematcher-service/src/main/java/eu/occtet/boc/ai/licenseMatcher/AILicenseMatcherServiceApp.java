@@ -97,6 +97,7 @@ public class AILicenseMatcherServiceApp {
         systemHandler.subscribeToSystemSubject();
         executor.execute(()->{
             try {
+                log.debug("Starting to handle messages on subject: {}", workSubject);
                 aiLicenseMatcherWorkConsumer.startHandlingMessages(natsConnection,microserviceDescriptor.getName(), streamName, workSubject);
             } catch (Exception e) {
                 log.error("Could not start handling messages: ", e);
