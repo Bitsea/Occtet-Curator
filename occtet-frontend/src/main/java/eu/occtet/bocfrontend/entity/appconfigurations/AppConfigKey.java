@@ -26,28 +26,29 @@ import jakarta.annotation.Nullable;
 
 public enum AppConfigKey implements EnumClass<String> {
     // DB Value: "general.base_path"
-    GENERAL_BASE_PATH(AppConfigGroup.GENERAL + ".base_path"),
-
-    // Examples: (DELETE after)
-    // DB Value: "ort.server_url"
-//    ORT_SERVER_URL(AppConfigGroup.ORT + ".server_url"),
-
-    // DB Value: "opensearch.host"
-//    OPENSEARCH_HOST(AppConfigGroup.OPENSEARCH + ".host"),
-
-    // DB Value: "opensearch.port"
-//    OPENSEARCH_PORT(AppConfigGroup.OPENSEARCH + ".port"),
-
+    GENERAL_BASE_PATH(AppConfigGroup.GENERAL + ".base_path", "", AppConfigType.STRING),
     ;
     private final String id;
+    private final String defaultValue;
+    private final AppConfigType type;
 
-    AppConfigKey(String id) {
+    AppConfigKey(String id, String defaultValue, AppConfigType type) {
         this.id = id;
+        this.defaultValue = defaultValue;
+        this.type = type;
     }
 
     @Override
     public String getId() {
         return id;
+    }
+
+    public String getDefaultValue() {
+        return defaultValue;
+    }
+
+    public AppConfigType getType() {
+        return type;
     }
 
     @Nullable
@@ -58,5 +59,14 @@ public enum AppConfigKey implements EnumClass<String> {
             }
         }
         return null;
+    }
+
+    /**
+     * Acts as a prefix for the config key
+     */
+    public static class AppConfigGroup {
+        public static final String GENERAL = "general";
+        public static final String ORT = "ort";
+        public static final String OPENSEARCH = "opensearch";
     }
 }

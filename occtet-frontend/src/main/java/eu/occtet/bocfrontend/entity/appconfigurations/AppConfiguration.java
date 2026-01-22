@@ -19,50 +19,57 @@
  *
  */
 
-package eu.occtet.bocfrontend.entity.settings.configurations;
+package eu.occtet.bocfrontend.entity.appconfigurations;
 
+import eu.occtet.bocfrontend.converter.AppConfigKeyConverter;
+import eu.occtet.bocfrontend.converter.AppConfigTypeConverter;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
+import io.jmix.core.metamodel.annotation.JmixEntity;
+import jakarta.persistence.*;
 
-import java.util.UUID;
-
-public class SettingConfiguration {
+@JmixEntity
+@Table(name = "APP_CONFIGURATION", uniqueConstraints = {
+        @UniqueConstraint(name = "IDX_APP_CONFIG_UNQ_KEY", columnNames = {"CONFIG_KEY"})
+})
+@Entity
+public class AppConfiguration {
 
     @JmixGeneratedValue
     @Id
     @Column(name = "ID", nullable = false)
-    private UUID id;
+    private Long id;
 
-    @Column(name = "CONFIG_KEY", nullable = false, unique = true)
-    private ConfigKey configKey;
+    @Column(name = "CONFIG_KEY", nullable = false, unique = true, columnDefinition = "TEXT")
+    @Convert(converter = AppConfigKeyConverter.class)
+    private AppConfigKey configKey;
+
+    @Column(name = "DATA_TYPE", columnDefinition = "TEXT")
+    @Convert(converter = AppConfigTypeConverter.class)
+    private AppConfigType dataType;
 
     @Column(name = "VALUE", columnDefinition = "TEXT")
     private String value;
 
-    @Column(name = "DESCRIPTION")
+    @Column(name = "DESCRIPTION", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "DATA_TYPE")
-    private ConfigType dataType;
 
-    // TODO last update
+    public AppConfiguration() {
+    }
 
-    public SettingConfiguration() {}
-
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public ConfigKey getConfigKey() {
+    public AppConfigKey getConfigKey() {
         return configKey;
     }
 
-    public void setConfigKey(ConfigKey configKey) {
+    public void setConfigKey(AppConfigKey configKey) {
         this.configKey = configKey;
     }
 
@@ -82,11 +89,11 @@ public class SettingConfiguration {
         this.description = description;
     }
 
-    public ConfigType getDataType() {
+    public AppConfigType getDataType() {
         return dataType;
     }
 
-    public void setDataType(ConfigType dataType) {
+    public void setDataType(AppConfigType dataType) {
         this.dataType = dataType;
     }
 }

@@ -19,12 +19,14 @@
  *
  */
 
-package eu.occtet.bocfrontend.entity.settings.configurations;
+package eu.occtet.bocfrontend.dao;
 
-public enum ConfigKey {
-    BASE_PATH,
-    ORT_SERVER_URL,
-    ORT_API_TOKEN,
-    OPENSEARCH_HOST,
-    OPENSEARCH_PORT
+import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
+import eu.occtet.bocfrontend.entity.appconfigurations.AppConfiguration;
+import io.jmix.core.repository.JmixDataRepository;
+
+import java.util.Optional;
+
+public interface AppConfigurationRepository extends JmixDataRepository<AppConfiguration, Long> {
+    Optional<AppConfiguration> findByConfigKey(AppConfigKey configKey);
 }
