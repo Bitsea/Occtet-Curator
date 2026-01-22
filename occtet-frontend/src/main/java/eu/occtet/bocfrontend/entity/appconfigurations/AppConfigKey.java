@@ -25,17 +25,26 @@ import io.jmix.core.metamodel.datatype.EnumClass;
 import jakarta.annotation.Nullable;
 
 public enum AppConfigKey implements EnumClass<String> {
-    // DB Value: "general.base_path"
-    GENERAL_BASE_PATH(AppConfigGroup.GENERAL + ".base_path", "", AppConfigType.STRING),
+
+    GENERAL_BASE_PATH(
+            AppConfigGroup.GENERAL + ".base_path",
+            "",
+            AppConfigType.STRING,
+            "The base path to which project files will be downloaded."
+    ),
     ;
+
+
     private final String id;
     private final String defaultValue;
     private final AppConfigType type;
+    private final String description;
 
-    AppConfigKey(String id, String defaultValue, AppConfigType type) {
+    AppConfigKey(String id, String defaultValue, AppConfigType type, String description) {
         this.id = id;
         this.defaultValue = defaultValue;
         this.type = type;
+        this.description = description;
     }
 
     @Override
@@ -49,6 +58,10 @@ public enum AppConfigKey implements EnumClass<String> {
 
     public AppConfigType getType() {
         return type;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     @Nullable
