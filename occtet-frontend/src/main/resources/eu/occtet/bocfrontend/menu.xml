@@ -43,8 +43,6 @@
         <item view="ServicesView" title="msg://eu.occtet.bocfrontend.view.services/servicesView.title"/>
         <item view="User.list" title="msg://eu.occtet.bocfrontend.view.user/UserListView.title"/>
         <item view="DBLog.list" title="msg://eu.occtet.bocfrontend.view.DBLog/DBLogListView.title"/>
-        <item view="SearchTermsProfile.list"
-              title="msg://eu.occtet.bocfrontend.view.searchtermsprofile/searchTermsProfileListView.title"/>
     </menu>
 
 </menu-config>

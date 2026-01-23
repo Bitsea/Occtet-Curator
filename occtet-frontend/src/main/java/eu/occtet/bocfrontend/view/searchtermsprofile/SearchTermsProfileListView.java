@@ -27,7 +27,6 @@ import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.flowui.view.*;
 
 
-@Route(value = "search-terms-profiles", layout = MainView.class)
 @ViewController("SearchTermsProfile.list")
 @ViewDescriptor("search-terms-profile-list-view.xml")
 @LookupComponent("searchTermsProfilesDataGrid")

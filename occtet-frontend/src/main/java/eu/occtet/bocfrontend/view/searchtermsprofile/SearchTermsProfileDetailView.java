@@ -21,6 +21,7 @@
 
 package eu.occtet.bocfrontend.view.searchtermsprofile;
 
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.TextArea;
 import eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile;
@@ -70,7 +71,9 @@ public class SearchTermsProfileDetailView extends StandardDetailView<SearchTerms
         Span exp = uiComponents.create(Span.class);
         exp.setText(messages.getMessage("eu.occtet.bocfrontend.view.searchtermsprofile/SearchTermsProfileDetailView" +
                 ".explanation"));
-        JmixButton infoButton = infoButtonFactory.createInfoButtonFromComponent(exp, "40em", "40em");
+        JmixButton infoButton = infoButtonFactory.createInfoButtonFromComponent(exp, null, null);
+        infoButton.getStyle().set("color", "var(--lumo-primary-color)");
+        infoButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
         searchTermsField.setSuffixComponent(infoButton);
     }
 }

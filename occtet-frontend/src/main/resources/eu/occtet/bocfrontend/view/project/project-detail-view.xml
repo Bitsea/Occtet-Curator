@@ -56,7 +56,7 @@
             </vbox>
             <htmlObject colspan="2" width="100%"><hr/></htmlObject>
             <h3 text="msg://eu.occtet.bocfrontend.view.project/Project.h3.configuration" colspan="2"/>
-            <vbox margin="false" padding="false" colspan="2">
+            <vbox margin="false" padding="false" spacing="false" colspan="2">
                 <dataGrid id="searchTermsProfilesDataGrid"
                           width="50%"
                           maxHeight="10em"
@@ -65,6 +65,7 @@
                     <actions>
                         <action id="add" type="list_add"/>
                         <action id="exclude" type="list_exclude"/>
+                        <action id="showTerms" text="View Terms"/>
                     </actions>
                     <columns>
                         <column property="name"
@@ -83,10 +84,10 @@
                             action="searchTermsProfilesDataGrid.add"
                             text="Add"
                             icon="PLUS"
-                            themeNames="primary"/>
+                            themeNames="primary small"/>
                     <button id="removeProfileBtn"
                             action="searchTermsProfilesDataGrid.exclude"
-                            themeNames="error"/>
+                            themeNames="error small" />
                 </hbox>
             </vbox>
 

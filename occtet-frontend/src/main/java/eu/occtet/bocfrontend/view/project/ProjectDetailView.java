@@ -26,12 +26,13 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile;
+import eu.occtet.bocfrontend.service.Utilities;
 import eu.occtet.bocfrontend.view.main.MainView;
-import eu.occtet.bocfrontend.view.vexData.VexDataListView;
 import io.jmix.core.Messages;
+import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.DataGrid;
-import io.jmix.flowui.model.CollectionLoader;
+import io.jmix.flowui.kit.action.ActionPerformedEvent;
 import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -50,6 +51,10 @@ public class ProjectDetailView extends StandardDetailView<Project> {
     private Messages messages;
     @Autowired
     private UiComponents uiComponents;
+    @Autowired
+    private Utilities utilities;
+    @Autowired
+    private Dialogs dialogs;
 
     @Subscribe
     protected void onInit(InitEvent event) {
@@ -74,5 +79,21 @@ public class ProjectDetailView extends StandardDetailView<Project> {
         layout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
         headerCell.setComponent(layout);
+    }
+
+    @Subscribe("searchTermsProfilesDataGrid.showTerms")
+    public void onShowTerms(ActionPerformedEvent event){
+        SearchTermsProfile selected = searchTermsProfilesDataGrid.getSingleSelectedItem();
+        if (selected == null) return;
+        String formattedTerms = utilities.convertListToText(selected.getSearchTerms(), "; ");
+        if (formattedTerms.isEmpty()){
+            formattedTerms = "(No search terms found)";
+        }
+        dialogs.createMessageDialog()
+                .withHeader(messages.getMessage("eu.occtet.bocfrontend.view.project/projectDetailView.messageDialogShow.searchTerms"))
+                .withText(formattedTerms)
+                .withCloseOnOutsideClick(true)
+                .withCloseOnEsc(true)
+                .open();
     }
 }
