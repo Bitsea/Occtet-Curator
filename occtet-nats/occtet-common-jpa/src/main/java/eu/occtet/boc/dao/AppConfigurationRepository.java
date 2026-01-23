@@ -21,11 +21,14 @@
 
 package eu.occtet.boc.dao;
 
-import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
-import eu.occtet.bocfrontend.entity.appconfigurations.AppConfiguration;
+import eu.occtet.boc.entity.appconfigurations.AppConfigKey;
+import eu.occtet.boc.entity.appconfigurations.AppConfiguration;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface AppConfigurationRepository extends JmixDataRepository<AppConfiguration, Long> {
+public interface AppConfigurationRepository extends JpaRepository<AppConfiguration, Long> {
     Optional<AppConfiguration> findByConfigKey(AppConfigKey configKey);
 }
+
+
