@@ -65,7 +65,7 @@ public class SystemConfigInitializer {
                     config.setConfigKey(key);
                     config.setValue(key.getDefaultValue());
                     config.setDataType(key.getType());
-                    config.setDescription("Auto-generated config");
+                    config.setDescription(key.getDescription());
 
                     dataManager.save(config);
                     log.info("Created config: {}", key.getId());

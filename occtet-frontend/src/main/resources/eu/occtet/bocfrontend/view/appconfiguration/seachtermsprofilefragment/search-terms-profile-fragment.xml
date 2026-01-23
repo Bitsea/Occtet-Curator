@@ -22,42 +22,43 @@
 
 <fragment xmlns="http://jmix.io/schema/flowui/fragment">
     <data>
-        <collection id="appConfigurationProfileDc" 
-                    class="eu.occtet.bocfrontend.entity.appconfigurations.AppConfigurationProfile">
-            <loader id = "appConfigurationProfileDl" readOnly="true">
+        <collection id="searchTermsProfileDc"
+                    class="eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile">
+            <loader id = "searchTermsProfileCl" readOnly="true">
                 <query>
-                    <![CDATA[select p from AppConfigurationProfile p]]>
+                    <![CDATA[select p from SearchTermsProfile p]]>
                 </query>
             </loader>
         </collection>
     </data>
     <content>
         <vbox id="root">
-            <dataGrid dataContainer="appConfigurationProfileDc"
+            <dataGrid dataContainer="searchTermsProfileDc"
                       id="profileGrid" width="100%"
                       minHeight="20em"
                       classNames="occtet-grid">
                 <actions>
                     <action id="create" type="list_create">
                         <properties>
-                            <property name="viewId" value="AppConfigurationProfileDetailView"/>
+                            <property name="viewId" value="SearchTermsProfileDetailView"/>
                             <property name="openMode" value="DIALOG"/>
                         </properties>
                     </action>
                     <action id="edit" type="list_edit">
                         <properties>
-                            <property name="viewId" value="AppConfigurationProfileDetailView"/>
+                            <property name="viewId" value="SearchTermsProfileDetailView"/>
                             <property name="openMode" value="DIALOG"/>
                         </properties>
                     </action>
                     <action id="remove" type="list_remove"/>
-                </actions>y
+                </actions>
                 <columns>
                     <column property="name" filterable="true" autoWidth="true" header="msg://eu.occtet.bocfrontend.view.configuration/editorprofilefragment.datagrid.column.name"/>
                 </columns>
             </dataGrid>
             <hbox id="buttonsPanel" classNames="buttons-panel">
-                <button id="createButton" action="profileGrid.create"/>
+                <button id="createButton" action="profileGrid.create"
+                        text="msg://eu.occtet.bocfrontend.view.configuration/editorprofilefragment.datagrid.column.createnewprofile" icon="PLUS"/>
                 <button id="editButton" action="profileGrid.edit"/>
                 <button id="removeButton" action="profileGrid.remove"/>
             </hbox>

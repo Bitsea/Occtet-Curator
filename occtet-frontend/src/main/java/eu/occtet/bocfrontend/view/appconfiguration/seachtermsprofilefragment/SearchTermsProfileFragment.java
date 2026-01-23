@@ -19,24 +19,24 @@
  *
  */
 
-package eu.occtet.bocfrontend.view.appconfiguration.editorprofilefragment;
+package eu.occtet.bocfrontend.view.appconfiguration.seachtermsprofilefragment;
 
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigurationProfile;
+import eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentDescriptor;
 import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.view.Subscribe;
 import io.jmix.flowui.view.ViewComponent;
 
-@FragmentDescriptor("editor-profile-fragment.xml")
-public class EditorProfileFragment extends Fragment<VerticalLayout> {
+@FragmentDescriptor("search-terms-profile-fragment.xml")
+public class SearchTermsProfileFragment extends Fragment<VerticalLayout> {
 
     @ViewComponent
-    private CollectionLoader<AppConfigurationProfile> appConfigurationProfileDl;
+    private CollectionLoader<SearchTermsProfile> searchTermsProfileCl;
 
     @Subscribe
     public void onReady(ReadyEvent event) {
-        appConfigurationProfileDl.load();
+        searchTermsProfileCl.load();
     }
 }

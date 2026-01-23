@@ -21,10 +21,10 @@
   -->
 
 <view xmlns="http://jmix.io/schema/flowui/view"
-      title="msg://appConfigurationProfileDetailView.title">
+      title="msg://eu.occtet.bocfrontend.view.searchtermsprofile/SearchTermsProfileDetailView.title">
     <data>
-        <instance id="appConfigurationProfileDc"
-                  class="eu.occtet.bocfrontend.entity.appconfigurations.AppConfigurationProfile">
+        <instance id="searchTermsProfileDc"
+                  class="eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile">
             <fetchPlan extends="_base"/>
             <loader/>
         </instance>
@@ -38,14 +38,13 @@
     </facets>
     <layout>
         <vbox id="form" height="100%">
-            <formLayout id="formLayout">
-                <textField id="nameField" property="name" dataContainer="appConfigurationProfileDc"
-                           label="msg://appConfigurationProfileDetailView.name" colspan="2"
-                           requiredMessage="msg://eu.occtet.bocfrontend.view.appconfigurationprofile/appConfigurationProfileDetailView.requieredmessage"/>
+            <formLayout id="formLayout" width="100%" dataContainer="searchTermsProfileDc">
+                <textField id="nameField" property="name" width="5em"
+                           label="msg://eu.occtet.bocfrontend.view.searchtermsprofile/SearchTermsProfileDetailView.name" colspan="2"
+                           requiredMessage="msg://eu.occtet.bocfrontend.view.searchtermsprofile/SearchTermsProfileDetailView.requieredmessage"/>
 
                 <textArea id="searchTermsField" colspan="2"
-                          label="msg://appConfigurationProfileDetailView.searchTerms"
-                          helperText="msg://appConfigurationProfileDetailView.searchTerms.helper"
+                          label="msg://eu.occtet.bocfrontend.view.searchtermsprofile/SearchTermsProfileDetailView.searchTerms"
                           height="20em"
                           width="100%"/>
             </formLayout>

@@ -22,7 +22,6 @@
 package eu.occtet.bocfrontend.entity.appconfigurations;
 
 import eu.occtet.bocfrontend.converter.StringListJsonbConverter;
-import eu.occtet.bocfrontend.entity.Project;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
@@ -31,9 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @JmixEntity
-@Table(name = "APP_CONFIGURATION_PROFILE")
+@Table(name = "SEARCH_TERMS_PROFILE")
 @Entity
-public class AppConfigurationProfile {
+public class SearchTermsProfile {
 
     @JmixGeneratedValue
     @Id
@@ -43,17 +42,11 @@ public class AppConfigurationProfile {
     @Column(name = "NAME", nullable = false)
     private String name;
 
-    @JoinColumn(name = "PROFILE_ID")
-    @OneToMany(fetch = FetchType.LAZY)
-    private List<Project> projects;
-
     @Column(name = "SEARCH_TERMS", columnDefinition = "jsonb")
     @Convert(converter = StringListJsonbConverter.class)
     private List<String> searchTerms = new ArrayList<>();
 
-    // add more if needed in the future, which is also mainly the reason of the naming
-
-    public AppConfigurationProfile() {
+    public SearchTermsProfile() {
     }
 
     public Long getId() {
@@ -70,14 +63,6 @@ public class AppConfigurationProfile {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public List<Project> getProjects() {
-        return projects;
-    }
-
-    public void setProjects(List<Project> projects) {
-        this.projects = projects;
     }
 
     public List<String> getSearchTerms() {

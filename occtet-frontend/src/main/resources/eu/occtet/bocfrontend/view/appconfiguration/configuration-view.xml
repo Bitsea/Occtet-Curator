@@ -29,7 +29,8 @@
 
             <tab id="general" label="msg://configurationView.tab.general">
                 <formLayout id="generalForm">
-                    <textField id="basePathField" label="Base Path" width="100%"/>
+                    <textField id="basePathField"
+                               label="msg://eu.occtet.bocfrontend.view.appconfiguration/configurationView.tab.general.basepath" width="100%"/>
                 </formLayout>
             </tab>
 
@@ -41,8 +42,8 @@
                                       id="suggestionFragment"/>
                         </tab>
                         <tab label="msg://eu.occtet.bocfrontend.view.appconfiguration/configurationView.tab.editor.searchterms" id="searchTerms">
-                            <fragment class="eu.occtet.bocfrontend.view.appconfiguration.editorprofilefragment.EditorProfileFragment"
-                                          id="editorProfileFragment"/>
+                            <fragment class="eu.occtet.bocfrontend.view.appconfiguration.seachtermsprofilefragment.SearchTermsProfileFragment"
+                                          id="searchTermsProfileFragment"/>
                         </tab>
                     </tabSheet>
                 </vbox>
