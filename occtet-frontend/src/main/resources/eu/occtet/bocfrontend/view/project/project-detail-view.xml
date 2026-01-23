@@ -24,8 +24,12 @@
     <data>
         <instance id="projectDc"
                   class="eu.occtet.bocfrontend.entity.Project">
-            <fetchPlan extends="_base"/>
+            <fetchPlan extends="_base">
+                <property name="searchTermsProfiles" fetchPlan="_base"/>
+            </fetchPlan>
             <loader id="projectDl"/>
+
+            <collection id="searchTermsProfilesDc" property="searchTermsProfiles"/>
         </instance>
     </data>
     <facets>
@@ -36,15 +40,56 @@
         <action id="closeAction" type="detail_close"/>
     </actions>
     <layout>
-        <formLayout id="form" dataContainer="projectDc">
-            <responsiveSteps>
-                <responsiveStep minWidth="0" columns="1"/>
-                <responsiveStep minWidth="40em" columns="2"/>
-            </responsiveSteps>
-            <vbox width="100%" margin="false" padding="false">
-            <textField id="projectNameField" property="projectName" required="true" width="100%" label="msg://eu.occtet.bocfrontend.view.project/projectDetailView.projectName" requiredMessage="msg://eu.occtet.bocfrontend.view.project/projectDetailView.projectName.required"/>
-            <textField id="projectBasePathField" property="basePath" required="true" width="100%" label="msg://eu.occtet.bocfrontend.view.project/projectDetailView.basePath" requiredMessage="msg://eu.occtet.bocfrontend.view.project/projectDetailView.basePath.required"/>
+        <formLayout id="form" dataContainer="projectDc" width="100%" rowSpacing="true">
+            <h3 text="msg://eu.occtet.bocfrontend.view.project/Project.h3.details" colspan="2" classNames="occtet-dialog-title"/>
+            <vbox id="projectDetailContainer" colspan="2" margin="false" padding="false">
+                <vbox colspan="2" margin="false" padding="false">
+                    <textField id="projectNameField" property="projectName" required="true"
+                               width="50%" label="msg://Project.name" requiredMessage="msg://eu.occtet.bocfrontend.view.project/Project.name.required.message" colspan="2"/>
+                    <textField id="projectContactField" property="projectContact" width="50%"
+                               label="msg://eu.occtet.bocfrontend.view.project/Project.projectContact"/>
+                    <textField id="contactEmailField" label="msg://eu.occtet.bocfrontend.view.project/Project.contactEmail"
+                               property="contactEmail" width="50%"/>
+                    <textField id="projectBasePathField" property="basePath" required="true" width="50%"
+                               label="Base path" requiredMessage="(absolute)Base path required"/>
+                </vbox>
             </vbox>
+            <htmlObject colspan="2" width="100%"><hr/></htmlObject>
+            <h3 text="msg://eu.occtet.bocfrontend.view.project/Project.h3.configuration" colspan="2"/>
+            <vbox margin="false" padding="false" colspan="2">
+                <dataGrid id="searchTermsProfilesDataGrid"
+                          width="50%"
+                          maxHeight="10em"
+                          dataContainer="searchTermsProfilesDc"
+                          classNames="occtet-grid" themeNames="compact">
+                    <actions>
+                        <action id="add" type="list_add"/>
+                        <action id="exclude" type="list_exclude"/>
+                    </actions>
+                    <columns>
+                        <column property="name"
+                                header="msg://eu.occtet.bocfrontend.view.project/Project.searchTermsProfile.dataGrid.column.name"/>
+                    </columns>
+                    <emptyStateComponent>
+                        <vbox width="100%" height="100%" justifyContent="CENTER" alignItems="CENTER">
+                            <span text="msg://eu.occtet.bocfrontend.view.project/Project.searchTermsProfile.dataGrid.emptyStateMessage"
+                                  classNames="text-secondary"
+                                  themeNames="badge contrast"/>
+                        </vbox>
+                    </emptyStateComponent>
+                </dataGrid>
+                <hbox padding="false" spacing="true" margin="false">
+                    <button id="addProfileBtn"
+                            action="searchTermsProfilesDataGrid.add"
+                            text="Add"
+                            icon="PLUS"
+                            themeNames="primary"/>
+                    <button id="removeProfileBtn"
+                            action="searchTermsProfilesDataGrid.exclude"
+                            themeNames="error"/>
+                </hbox>
+            </vbox>
+
         </formLayout>
         <hbox id="detailActions">
             <button id="saveAndCloseButton" action="saveAction"/>
