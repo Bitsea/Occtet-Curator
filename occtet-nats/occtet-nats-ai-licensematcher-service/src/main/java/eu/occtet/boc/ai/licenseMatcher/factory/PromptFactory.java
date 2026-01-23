@@ -41,12 +41,22 @@ public class PromptFactory {
     public Prompt createLicenseMatcherPrompt(String userMessage, String url){
         try {
 
-            Message userMsg = new UserMessage(userMessage);
+            String enrichedUserMessage = """
+                LICENSE_TEXT:
+                %s
+
+                SPDX_URL:
+                %s
+                """.formatted(userMessage, url);
+
+            Message userMsg = new UserMessage(enrichedUserMessage);
 
             String systemText = """
-                    Compare two texts by the following rules.
+                    Compare the given two texts by the following rules.
                     Compare the license text from the user to the original license text provided by\s
-                    the SPDXLicenseDetail object. Use your tool calling to retrieve the SPDXLicenseDetail from the web page of the license, use this {url} for retrieving. You have to use the standardLicenseTemplate from the SPDXLicenseDetail object.\s
+                    the SPDXLicenseDetail object. Use your tool calling to retrieve the SPDXLicenseDetail from the web page of the license, you must use this {url} for retrieving. This is important, you must use this url {url}, you must not use null value for retrieving.\s
+                    If the url is null, it will be replaced with a default Url, which is pointing to the SPDX license list data json details folder on github. There you search for the right license with the licenseId.\s
+                    You have to use the standardLicenseTemplate from the SPDXLicenseDetail object.\s
                     In this template are two special kind of text passages, that you have to discern in the license text, which are marked in the standardLicenseTemplate like that:
                     The omittable text passage:Some licenses have text that can simply be ignored. The intent here is to avoid the inclusion of certain text that is superfluous or irrelevant in regards to the substantive license text resulting in a non-match where the license is otherwise an exact match (e.g., directions on how to apply the license or other similar exhibits). In these cases, there should be a positive license match.
                    \s
@@ -83,7 +93,7 @@ public class PromptFactory {
             SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(systemText);
             Message systemMessage = systemPromptTemplate.createMessage(Map.of("url", url));
             Prompt prompt = new Prompt(List.of(systemMessage, userMsg));
-            log.debug("created prompt");
+            log.debug("created prompt with url {}", url);
             return prompt;
         }catch(Exception e){
             log.error("There is an error in prompting {}", e.getMessage());

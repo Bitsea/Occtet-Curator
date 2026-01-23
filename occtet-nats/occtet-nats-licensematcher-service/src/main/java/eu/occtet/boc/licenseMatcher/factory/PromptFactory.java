@@ -33,12 +33,16 @@ public class PromptFactory {
 
 
 
-            return  "Use the SPDXLicenseDetail object from your tool to confirm, " +
+            return  "You must use the standardLicenseTemplate from the SPDXLicenseDetail objectm which you must retrieve with your tool, to compare, " +
                     "if the license text from the user corresponds to the original SPDX license text." +
-                    "Answer with the word 'true', if the license text is equivalent. Answer with the word 'false', if the license text is not equivalent. " +
-                    "Also add the the differing text passage if the answer is 'false'. Add the sign '|||' between answer and the differing text passages. " +
-                    "Do not add explanations or any comments to 'false' or 'right' and the differing passage" +
-                    "Here is the DifferenceDescription object, which contains the differences found by the rule-based approach to find the modified text passages: " + result;
+                    "After retrieving SPDXLicenseDetail and comparing the given licensetext with it, do the following:" +
+                    "1. Quote the licenseId from the tool result" +
+                    "2. Quote 3 exact sentences from standardLicenseTemplate" +
+                    "3. Point out at least one concrete difference or state \"NO DIFFERENCE FOUND\"" +
+                    "4. Final verdict: MATCH / NO MATCH" +
+                    "Here is the DifferenceDescription, which contains the differences found by the rule-based approach to find the modified text passages: "
+                    + result.getDifferenceMessage() +
+                    " and the list of lines with differences from the spdx matcher: " + result.getDifferences();
     }
 
 }

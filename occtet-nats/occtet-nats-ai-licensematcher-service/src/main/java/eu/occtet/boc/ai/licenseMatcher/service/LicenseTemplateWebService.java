@@ -72,6 +72,7 @@ public class LicenseTemplateWebService {
 
     public SPDXLicenseDetails readDefaultLicenseInfos( String url) {
         try {
+            log.debug("read URL {}", url);
             URL detailUrl = new URL(url);
             return readLicenseInfos(detailUrl.openStream());
         } catch (IOException e) {

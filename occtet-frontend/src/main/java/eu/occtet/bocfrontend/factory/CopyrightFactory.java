@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class CopyrightFactory {
@@ -34,7 +35,7 @@ public class CopyrightFactory {
     @Autowired
     private DataManager dataManager;
 
-    public Copyright create(String copyrightName, List<CodeLocation> codeLocation, boolean isCurated, boolean isGarbage){
+    public Copyright create(String copyrightName, Set<CodeLocation> codeLocation, boolean isCurated, boolean isGarbage){
 
         Copyright copyright = dataManager.create(Copyright.class);
         copyright.setCopyrightText(copyrightName);

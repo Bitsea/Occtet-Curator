@@ -115,15 +115,13 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
                     log.debug("checking inventory item: {}, licenseId: {}", item.getInventoryName(), licenseId);
                     //rule-based, comparing original license text with specific file license text with spdx library
                     CompareTemplateOutputHandler.DifferenceDescription result = licenseMatcher.spdxCompareLicense(licenseId, licenseText);
-                    log.debug("checked result : {} isdifference: {}",result, result.isDifferenceFound());
                     if (result != null && result.isDifferenceFound()) {
                         log.debug("license texts are different for licenseId: {}", licenseId);
                         //baseURL for the licenseTool is given to the prompt as parameter, AI is using the tool with it
                         //the result of the spdx matcher is also given for further information
-                        String baseURL = "https://raw.githubusercontent.com/spdx/license-list-data/main/json/details/" + licenseId + ".json"; // fixme make configurable later
+                        String baseURL = "https://raw.githubusercontent.com/spdx/license-list-data/main/json/details/" + licenseId + ".json";
                         String userMessage = promptFactory.createUserMessage(result);
                         sendAnswerToStream(new AILicenseMatcherWorkData(userMessage, baseURL, result.getDifferenceMessage(), licenseId, licenseText, inventoryItemId));
-
                     } else if (result == null) {
                         log.debug("result is null");
                         log.error("url not successfully for license: {}", licenseId);
