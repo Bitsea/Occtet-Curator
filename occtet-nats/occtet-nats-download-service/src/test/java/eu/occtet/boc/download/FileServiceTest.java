@@ -22,6 +22,7 @@
 package eu.occtet.boc.download;
 
 
+import eu.occtet.boc.config.TestEclipseLinkJpaConfiguration;
 import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.download.factory.FileFactory;
 import eu.occtet.boc.download.service.FileService;
@@ -31,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -47,8 +49,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 @DataJpaTest
-@ContextConfiguration(classes = {FileService.class, FileFactory.class, FileRepository.class})
-@EnableJpaRepositories(basePackages = "eu.occtet.boc.download.dao")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ContextConfiguration(classes = {FileService.class, FileFactory.class, FileRepository.class, TestEclipseLinkJpaConfiguration.class})
+@EnableJpaRepositories(basePackages = "eu.occtet.boc.dao")
 @EntityScan(basePackages = "eu.occtet.boc.entity")
 @EnableJpaAuditing
 @ActiveProfiles("test")
