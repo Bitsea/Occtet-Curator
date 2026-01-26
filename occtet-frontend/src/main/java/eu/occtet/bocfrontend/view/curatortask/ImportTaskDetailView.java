@@ -17,7 +17,8 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.view.importtask;
+package eu.occtet.bocfrontend.view.curatortask;
+
 
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
@@ -28,9 +29,9 @@ import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.Configuration;
-import eu.occtet.bocfrontend.entity.ImportStatus;
-import eu.occtet.bocfrontend.entity.ImportTask;
+import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.entity.TaskStatus;
 import eu.occtet.bocfrontend.importer.ImportManager;
 import eu.occtet.bocfrontend.importer.Importer;
 import eu.occtet.bocfrontend.service.ConfigurationService;
@@ -39,6 +40,7 @@ import eu.occtet.bocfrontend.view.configuration.ConfigurationDetailView;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
+import io.jmix.core.session.SessionData;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.component.combobox.JmixComboBox;
@@ -58,18 +60,18 @@ import java.util.List;
 import java.util.Optional;
 
 
-@Route(value = "importTask/:id", layout = MainView.class)
-@ViewController("ImportTask.detail")
-@ViewDescriptor(value = "importtask-detail-view.xml", path = "importtask-detail-view.xml")
-@EditedEntityContainer("importTaskDc")
-public class ImportTaskDetailView extends StandardDetailView<ImportTask> {
+@Route(value = "curatorTask/:id", layout = MainView.class)
+@ViewController("CuratorTask.detail")
+@ViewDescriptor(value = "curatortask-detail-view.xml", path = "curatortask-detail-view.xml")
+@EditedEntityContainer("curatorTaskDc")
+public class ImportTaskDetailView extends StandardDetailView<CuratorTask> {
 
     private static final Logger log = LogManager.getLogger(ImportTaskDetailView.class);
 
     @ViewComponent
     private JmixImage<Object> iconPlaceholder;
     @ViewComponent
-    private H3 importField;
+    private H3 curatorTaskField;
     @ViewComponent
     private DataGrid<Configuration> configurationsDataGrid;
     @ViewComponent
@@ -96,17 +98,19 @@ public class ImportTaskDetailView extends StandardDetailView<ImportTask> {
     private Utilities utilities;
     @Autowired
     private ImportManager importManager;
+    @Autowired
+    private SessionData sessionData;
 
-    private Importer importer;
 
 
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
-        importer= importManager.getPreselectedImporter();
+        Importer importer= (Importer) sessionData.getAttribute("selectedImporter");
         if (importer!= null) {
             // Set information about the selected import
-            importField.setText(importer.getName().replaceAll("_"," "));
-            getEditedEntity().setImportName(importer.getName());
+            curatorTaskField.setText(importer.getName().replaceAll("_"," "));
+            getEditedEntity().setTaskName(importer.getName()); // FIXME: name could be changed by user later, tasktype not
+            getEditedEntity().setTaskType(importer.getName());
 
             // Set components to default values
             ArrayList<Project> listProject = new ArrayList<>();
@@ -121,13 +125,14 @@ public class ImportTaskDetailView extends StandardDetailView<ImportTask> {
 
             // Set import icon
             iconPlaceholder.setHeight("80px");
-            iconPlaceholder.getElement().setAttribute("src", "icons/" + importer.getName().replace(" ", "") + ".png");
+            iconPlaceholder.getElement().setAttribute("src", "icons/" + importer.getName().replace(" ", "").toLowerCase() + ".png");
 
         }
     }
 
     @Subscribe("projectComboBox")
     public void onProjectValueChange(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event) {
+        Importer importer= (Importer) sessionData.getAttribute("selectedImporter");
         log.debug("importer selected:{}", importer.getName());
         if (event.getValue() != null) {
             setConfigurations(importer);
@@ -137,8 +142,8 @@ public class ImportTaskDetailView extends StandardDetailView<ImportTask> {
     @Subscribe
     public void onBeforeSave(final BeforeSaveEvent event) {
         log.debug("onBeforeSave action triggered");
-        ImportTask importTask = getEditedEntity();
-
+        CuratorTask curatorTask = getEditedEntity();
+        Importer importer= (Importer) sessionData.getAttribute("selectedImporter");
         if (importer == null) {
             dialogs.createMessageDialog().withHeader("Error")
                     .withText(messages.getMessage(getClass(), "error_unknown_import") + ": " + importer.getName()).open();
@@ -159,15 +164,15 @@ public class ImportTaskDetailView extends StandardDetailView<ImportTask> {
             }
         }
 
-        importTask.setProject(projectComboBox.getValue());
-        importTask.setImportConfiguration(configurations);
-        importTask.updateStatus(ImportStatus.IN_PROGRESS.getId());
+        curatorTask.setProject(projectComboBox.getValue());
+        curatorTask.setTaskConfiguration(configurations);
+        curatorTask.setStatus(TaskStatus.IN_PROGRESS);
 
         // We do not need to handle saving manually which will be done by saveAction
         log.debug("Validation passed. Entities are prepared and saved");
         log.info("Process import task for import: {}", importer.getName());
 
-        importManager.processImport(importTask);
+        importManager.startImport(importer, curatorTask);
     }
 
 
@@ -176,6 +181,7 @@ public class ImportTaskDetailView extends StandardDetailView<ImportTask> {
     public void onConfigurationsDataGridItemClick(final ItemClickEvent<Configuration> event) {
         if (event.getItem() != null) {
             editBtn.setEnabled(true);
+            Importer importer= (Importer) sessionData.getAttribute("selectedImporter");
             // Enable the remove button if the import does not require the configuration
             removeBtn.setEnabled(!importer.isConfigurationRequired(event.getItem().getName()));
         }
@@ -198,6 +204,7 @@ public class ImportTaskDetailView extends StandardDetailView<ImportTask> {
 
         window.getView().setup(this.getEditedEntity());
 
+        Importer importer= (Importer) sessionData.getAttribute("selectedImporter");
         log.info("Opening configuration detail view for: {}", configToEdit.getName());
         log.debug("Import task: {}", importer.getName());
 

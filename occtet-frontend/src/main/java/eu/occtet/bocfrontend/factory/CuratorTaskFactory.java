@@ -20,19 +20,16 @@
 package eu.occtet.bocfrontend.factory;
 
 
-import eu.occtet.bocfrontend.entity.ImportTask;
+import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.ImportStatus;
 import io.jmix.core.DataManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
-public class ImportTaskFactory {
+public class CuratorTaskFactory {
 
     @Autowired
     private DataManager dataManager;
@@ -43,24 +40,14 @@ public class ImportTaskFactory {
      * @param name of the importer to use for scanning this softwareComponent.
      * @return the persisted Importer entity
      */
-    public ImportTask create(@Nonnull Project project, @Nonnull String name) {
-        ImportTask importTask = dataManager.create(ImportTask.class);
-        importTask.setProject(project);
-        importTask.setImportName(name);
+    public CuratorTask create(@Nonnull Project project, @Nonnull String name, @Nonnull String type) {
+        CuratorTask curatorTask = dataManager.create(CuratorTask.class);
+        curatorTask.setProject(project);
+        curatorTask.setTaskName(name);
+        curatorTask.setTaskType(type);
 
-        return dataManager.save(importTask);
+        return dataManager.save(curatorTask);
     }
 
-    public ImportTask saveWithFeedBack(ImportTask importTask, List<String> feedback, ImportStatus status){
-        List<String> newFeedbacks= new ArrayList<>();
-        List<String> oldFeedbacks= importTask.getFeedback(); // get preexisting feedbacks
-        if (oldFeedbacks!=null && !oldFeedbacks.isEmpty()) newFeedbacks.addAll(oldFeedbacks);
 
-        // Add new feedback
-        newFeedbacks.addAll(feedback);
-
-        importTask.setFeedback(newFeedbacks);
-        importTask.setStatus(status.getId());
-        return dataManager.save(importTask);
-    }
 }

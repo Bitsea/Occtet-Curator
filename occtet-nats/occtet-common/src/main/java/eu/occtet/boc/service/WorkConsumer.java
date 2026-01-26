@@ -22,6 +22,9 @@
 
 package eu.occtet.boc.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.occtet.boc.model.ProgressSystemMessage;
 import eu.occtet.boc.model.WorkerStatus;
 import io.nats.client.*;
 import io.nats.client.api.AckPolicy;
@@ -30,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 
 public abstract class WorkConsumer implements InformativeService {
@@ -96,9 +100,21 @@ public abstract class WorkConsumer implements InformativeService {
         return progressPercent;
     }
 
-    public void setProgressPercent(int progressPercent) {
+    protected void notifyProgress(long taskId, int progressPercent, String details) {
         this.progressPercent = progressPercent;
+        ProgressSystemMessage progressSystemMessage = new ProgressSystemMessage(taskId, progressPercent, details);
+        String message = null;
+        try {
+            message = (new ObjectMapper()).writerFor(ProgressSystemMessage.class)
+                    .writeValueAsString(progressSystemMessage);
+        } catch (JsonProcessingException e) {
+            log.warn("error creating progress message: {}", e.getMessage());
+        }
+        log.debug("notifying progress: taskId {} has now progress {}", taskId, progressPercent);
+        natsConnection.publish("progress", message.getBytes(StandardCharsets.UTF_8));
     }
+
+
 
     @Override
     public WorkerStatus getWorkerStatus() {

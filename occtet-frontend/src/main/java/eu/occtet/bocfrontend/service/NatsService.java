@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.BaseSystemMessage;
 import eu.occtet.boc.model.MicroserviceDescriptor;
+import eu.occtet.boc.model.ProgressSystemMessage;
 import eu.occtet.boc.model.StatusDescriptor;
 import io.nats.client.*;
 import io.nats.client.api.*;
@@ -63,6 +64,9 @@ public class NatsService {
     private List<IOnStatusDescriptorReceived> statusDescriptorListeners = new ArrayList<>();
 
     private List<IOnMicroserviceDescriptorReceived> microserviceDescriptorListeners = new ArrayList<>();
+
+    private List<IOnProgressMessageReceived> progressListeners = new ArrayList<>();
+
     private StreamInfo stream;
     private ObjectStore objectStore;
 
@@ -137,6 +141,10 @@ public class NatsService {
                     StatusDescriptor sd = (StatusDescriptor) systemMessage;
                     log.info("Microservice {} has status: {} with progress {}/100",sd.getName(),sd.getStatus(),sd.getProgressPercent());
                     statusDescriptorListeners.forEach(listener -> listener.onStatusDescriptorReceived(sd));
+                } else if(systemMessage instanceof ProgressSystemMessage) {
+                    ProgressSystemMessage psm = (ProgressSystemMessage) systemMessage;
+                    log.info("Task {} progress: {}/100, details: {}", psm.getTaskId(), psm.getProgressPercent(), psm.getDetails());
+                    progressListeners.forEach(listener -> listener.onProgressReceived(psm));
                 }
 
             } catch (JsonProcessingException e) {
@@ -182,6 +190,10 @@ public class NatsService {
 
     public void addStatusDescriptorListener(IOnStatusDescriptorReceived listener) {
         statusDescriptorListeners.add(listener);
+    }
+
+    public void addProgressListener(IOnProgressMessageReceived listener) {
+        progressListeners.add(listener);
     }
 
     public ObjectInfo putDataIntoObjectStore(InputStream data, ObjectMeta metaInformation) {

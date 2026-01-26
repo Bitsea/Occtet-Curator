@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2025 Bitsea GmbH
  *
@@ -18,34 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.entity;
+package eu.occtet.bocfrontend.service;
 
-import org.springframework.lang.Nullable;
+import eu.occtet.boc.model.ProgressSystemMessage;
 
-
-public enum ImportStatus {
-    CREATING("CREATING"),APPROVE("APPROVE"),IN_PROGRESS("IN_PROGRESS"),WAITING("WAITING"), STOPPED("STOPPED"), COMPLETED("COMPLETED");
-
-    private final String id;
-
-    ImportStatus(String value) {
-        this.id = value;
-    }
-
-
-    public String getId() {
-        return id;
-    }
-
-    @Nullable
-    public static ImportStatus fromId(String id) {
-        for (ImportStatus at : ImportStatus.values()) {
-            if (at.getId().equals(id)) {
-                return at;
-            }
-        }
-        return null;
-    }
+public interface IOnProgressMessageReceived {
+    void onProgressReceived(ProgressSystemMessage progressSystemMessage);
 }
-
-

@@ -22,10 +22,8 @@
 
 package eu.occtet.boc.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import eu.occtet.boc.service.IWorkDataProcessor;
 
 /**
@@ -52,6 +50,14 @@ import eu.occtet.boc.service.IWorkDataProcessor;
         @JsonSubTypes.Type(value = SpdxExportWorkData.class, name = "export_task")
 })
 public abstract class BaseWorkData {
+    private long taskId;
     public abstract boolean process(IWorkDataProcessor processor);
 
+    public long getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(long taskId) {
+        this.taskId = taskId;
+    }
 }
