@@ -50,6 +50,9 @@ public class FileContentService {
     @Autowired
     private FileRepository fileRepository;
 
+    /**
+     * Find the correlated file for a code location.
+     */
     public Optional<File> findFileEntityForCodeLocation(CodeLocation codeLocation, InventoryItem inventoryItem) {
         // Try Direct Link (If your DownloadService set it)
         File linkedFile = fileRepository.findByCodeLocation(codeLocation);
@@ -71,8 +74,12 @@ public class FileContentService {
         );
 
         for (File candidate : candidates) {
-            String absPath = candidate.getAbsolutePath();
-            if (absPath != null && absPath.replace("\\", "/").endsWith(searchSuffix)) {
+            String projectPath = candidate.getProjectPath();
+            if (projectPath != null && projectPath.replace("\\", "/").endsWith(searchSuffix)) {
+                return Optional.of(candidate);
+            }
+            String physicalPath = candidate.getPhysicalPath();
+            if (physicalPath != null && physicalPath.replace("\\", "/").endsWith(searchSuffix)) {
                 return Optional.of(candidate);
             }
         }
@@ -81,27 +88,25 @@ public class FileContentService {
     }
 
     /**
-     * Reads the content of a file located at the given absolute path and returns
-     * the result as a {@link FileResult}. This includes handling file read errors
-     * or invalid paths.
+     * Reads content using the physical path.
      *
-     * @param absolutePath the absolute path of the file to be read
+     * @param physicalPath the absolute/physical path of the file to be read
      * @return a {@link FileResult} containing the file content and its path in case of success,
      *         or an error message in case of failure
      */
-    public FileResult getFileContent(String absolutePath) {
+    public FileResult getFileContent(String physicalPath) {
         try {
-            Path path = Paths.get(absolutePath);
+            Path path = Paths.get(physicalPath);
 
             String content = Files.readString(path);
             return new FileResult.Success(content, path.toString());
 
         } catch (IOException e) {
-            log.error("Error reading file at path '{}'", absolutePath, e);
-            return new FileResult.Failure("Error reading file. Please check file permissions: " + absolutePath);
+            log.error("Error reading file at path '{}'", physicalPath, e);
+            return new FileResult.Failure("Error reading file. Please check file permissions: " + physicalPath);
         } catch (InvalidPathException e) {
-            log.error("Invalid path '{}'", absolutePath, e);
-            return new FileResult.Failure("Invalid file path: " + absolutePath);
+            log.error("Invalid path '{}'", physicalPath, e);
+            return new FileResult.Failure("Invalid file path: " + physicalPath);
         }
     }
 }

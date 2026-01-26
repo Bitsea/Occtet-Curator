@@ -34,7 +34,6 @@ import com.vaadin.flow.router.*;
 import eu.occtet.bocfrontend.dao.FileRepository;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
-import eu.occtet.bocfrontend.view.TabManager;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.factory.UiComponentFactory;
 import eu.occtet.bocfrontend.factory.RendererFactory;
