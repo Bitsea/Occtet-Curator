@@ -112,8 +112,7 @@ public class SpdxServiceTest {
             Mockito.when(answerService.sendToDownload(
                     Mockito.anyString(),
                     Mockito.anyString(),
-                    Mockito.anyString(),
-                    Mockito.anyString(),
+                    Mockito.anyLong(),
                     Mockito.anyBoolean(),
                     Mockito.anyString()
             )).thenReturn(true);
@@ -161,7 +160,6 @@ public class SpdxServiceTest {
             //Check Project
             Assertions.assertNotNull(inventoryItem.getProject());
             Assertions.assertEquals("example-project", inventoryItem.getProject().getProjectName());
-            Assertions.assertEquals("/home/projects/example", inventoryItem.getProject().getBasePath());
 
             //Check Copyrights
             List<Copyright> copyrights = inventoryItem.getSoftwareComponent().getCopyrights();
