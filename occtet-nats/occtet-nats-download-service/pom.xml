@@ -28,7 +28,7 @@
     <artifactId>occtet-nats-download-service</artifactId>
     <name>occtet-nats-download-service</name>
     <description>Occtet Nats Download Microservice</description>
-    <version>0.3.2-SNAPSHOT</version>
+    <version>0.3.3-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 

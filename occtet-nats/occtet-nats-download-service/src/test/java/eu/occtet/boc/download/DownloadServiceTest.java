@@ -22,6 +22,7 @@
 package eu.occtet.boc.download;
 
 import com.sun.net.httpserver.HttpServer;
+import eu.occtet.boc.dao.AppConfigurationRepository;
 import eu.occtet.boc.download.controller.GitRepoController;
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.ProjectRepository;
@@ -29,6 +30,9 @@ import eu.occtet.boc.download.service.DownloadService;
 import eu.occtet.boc.download.service.FileService;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
+import eu.occtet.boc.entity.SoftwareComponent;
+import eu.occtet.boc.entity.appconfigurations.AppConfigKey;
+import eu.occtet.boc.entity.appconfigurations.AppConfiguration;
 import eu.occtet.boc.model.DownloadServiceWorkData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,6 +70,8 @@ public class DownloadServiceTest {
     private ProjectRepository projectRepository;
     @Mock
     private InventoryItemRepository inventoryItemRepository;
+    @Mock
+    private AppConfigurationRepository appConfigurationRepository;
     @InjectMocks
     private DownloadService downloadService;
 
@@ -112,68 +118,140 @@ public class DownloadServiceTest {
 
     @Test
     void testProcessValidPathHttp() {
-        Long project = 12345L;
+        Path rootPath = tempDir.resolve("project_temp_root");
+        AppConfiguration mockAppConfig = new AppConfiguration();
+        mockAppConfig.setValue(rootPath.toString());
+
+        when(appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH))
+                .thenReturn(Optional.of(mockAppConfig));
+
+        Long projectId = 12345L;
         Long inventoryItemId = 789L;
         String downloadUrl = "http://localhost:" + localPort + "/dummy-repo.zip";
-        Path targetLocation = tempDir.resolve("project_temp_root");
-        // Main Package
-        DownloadServiceWorkData workData = new DownloadServiceWorkData(downloadUrl, targetLocation.toString(),
-                "1.0.0", Long.toString(project), true, Long.toString(inventoryItemId));
-        when(projectRepository.findById(project)).thenReturn(Optional.of(new Project()));
-        when(inventoryItemRepository.findById(inventoryItemId)).thenReturn(Optional.of(new InventoryItem()));
+
+        Project mockProject = new Project();
+        mockProject.setProjectName("my-target-project");
+
+        SoftwareComponent mockComponent = new SoftwareComponent();
+        mockComponent.setVersion("1.0.0");
+        mockComponent.setName("dummy-main");
+
+        InventoryItem mockItem = new InventoryItem();
+        mockItem.setSoftwareComponent(mockComponent);
+
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
+        when(inventoryItemRepository.findById(inventoryItemId)).thenReturn(Optional.of(mockItem));
+
+        // Main package
+        DownloadServiceWorkData workData = new DownloadServiceWorkData(downloadUrl, projectId, inventoryItemId, true);
         boolean result = downloadService.process(workData);
         assertTrue(result);
 
-        Path expectedFile = targetLocation.resolve("dummy-repo").resolve("1.0.0")
-                .resolve("dummy-project").resolve("dummy-main").resolve("dummy-file.txt");
+        // Logic: [Base] / [ProjectName] / [RepoName] / [Version] / [InternalZipPath]
+        Path expectedFile = rootPath
+                .resolve("my-target-project")  // From project.getProjectName()
+                .resolve("dummy-repo")         // From URL
+                .resolve("1.0.0")              // From Version
+                .resolve("dummy-project")      // Inside ZIP
+                .resolve("dummy-main")         // Inside ZIP
+                .resolve("dummy-file.txt");    // Inside ZIP
+
         assertTrue(Files.exists(expectedFile), "Main package file should exist at " + expectedFile);
 
-        //Dependency Package
-        DownloadServiceWorkData workdata2 = new DownloadServiceWorkData(downloadUrl,
-                targetLocation.toString(), "1.0.0", Long.toString(project), false, Long.toString(inventoryItemId));
+        // Dependency Package
+        DownloadServiceWorkData workdata2 = new DownloadServiceWorkData(downloadUrl, projectId, inventoryItemId, false);
         result = downloadService.process(workdata2);
         assertTrue(result);
-        expectedFile = targetLocation.resolve("dependencies").resolve("dummy-repo")
-                .resolve("1.0.0")
-                .resolve("dummy-project").resolve("dummy-main").resolve("dummy-file.txt");
 
-        assertTrue(Files.exists(expectedFile), "Dependency file should exist in /dependencies folder");
+        // Logic: [Base] / dependencies / [RepoName] / [Version] / ...
+        Path expectedDepFile = rootPath
+                .resolve("my-target-project")
+                .resolve("dependencies")
+                .resolve("dummy-repo")
+                .resolve("1.0.0")
+                .resolve("dummy-project")
+                .resolve("dummy-main")
+                .resolve("dummy-file.txt");
+
+        assertTrue(Files.exists(expectedDepFile), "Dependency file should exist in /dependencies folder");
     }
 
     @Test
     void testProcessValidPathGit() throws IOException, InterruptedException {
-        Long project = 12345L;
+        Path rootPath = tempDir.resolve("project_temp_root");
+
+        AppConfiguration mockAppConfig = new AppConfiguration();
+        mockAppConfig.setValue(rootPath.toString());
+        when(appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH))
+                .thenReturn(Optional.of(mockAppConfig));
+
+        Long projectId = 12345L;
         Long inventoryItemId = 789L;
-        String gitUrl = "git+https://github.com/fake/repo.git";
+
+        // INPUT URL (Must start with git+ to trigger controller)
+        String gitUrl = "git+https://github.com/fake/dummy-repo.git";
+        // RESOLVED URL (Points to our local server)
         String resolvedZipUrl = "http://localhost:" + localPort + "/dummy-repo.zip";
-        Path targetLocation = tempDir.resolve("git_test_root");
 
-        DownloadServiceWorkData workData = new DownloadServiceWorkData(
-                gitUrl, targetLocation.toString(), "v1.0", Long.toString(project), true, Long.toString(inventoryItemId)
-        );
+        Project mockProject = new Project();
+        mockProject.setProjectName("git-project");
 
-        when(projectRepository.findById(any())).thenReturn(Optional.of(new Project()));
-        when(inventoryItemRepository.findById(any())).thenReturn(Optional.of(new InventoryItem()));
-        when(gitRepoController.resolveGitToZipUrl("fake", "repo", "v1.0")).thenReturn(resolvedZipUrl);
+        SoftwareComponent mockComponent = new SoftwareComponent();
+        mockComponent.setVersion("1.0.0");
+        mockComponent.setName("dummy-main");
 
+        InventoryItem mockItem = new InventoryItem();
+        mockItem.setSoftwareComponent(mockComponent);
+
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
+        when(inventoryItemRepository.findById(inventoryItemId)).thenReturn(Optional.of(mockItem));
+
+        when(gitRepoController.resolveGitToZipUrl("fake", "dummy-repo", "1.0.0")).thenReturn(resolvedZipUrl);
+
+        DownloadServiceWorkData workData = new DownloadServiceWorkData(gitUrl, projectId, inventoryItemId, true);
         boolean result = downloadService.process(workData);
         assertTrue(result);
-        verify(gitRepoController).resolveGitToZipUrl("fake", "repo", "v1.0");
-        verify(fileService).createEntitiesFromPath(any(), any(), any(), eq(true));
+
+        Path expectedFile = rootPath
+                .resolve("git-project")     // project.getProjectName()
+                .resolve("dummy-repo")      // From Git URL repo name
+                .resolve("1.0.0")
+                .resolve("dummy-project")   // Inside Zip
+                .resolve("dummy-main")      // Inside Zip
+                .resolve("dummy-file.txt");
+
+        assertTrue(Files.exists(expectedFile), "Git downloaded file should exist at " + expectedFile);
+
+        verify(gitRepoController).resolveGitToZipUrl("fake", "dummy-repo", "1.0.0");
     }
 
     @Test
     void testProcessInvalidOrUnsupportedPath() {
+        AppConfiguration mockAppConfig = new AppConfiguration();
+        mockAppConfig.setValue("/tmp/test-base-path");
+        when(appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH))
+                .thenReturn(Optional.of(mockAppConfig));
+
         Long project = 654L;
         Long inventoryItemId = 8745L;
-        // SVN unsupported
+        String unsupportedURL = "svn://svn.apache.org/repos/asf";
+
         DownloadServiceWorkData workData = new DownloadServiceWorkData(
-                "svn://svn.apache.org/repos/asf", tempDir.toString(), "1.0", Long.toString(project), true, Long.toString(inventoryItemId)
+                unsupportedURL, project, inventoryItemId, false
         );
 
+        SoftwareComponent mockComponent = new SoftwareComponent();
+        mockComponent.setVersion("1.0.0");
+        mockComponent.setName("dummy-main");
+
+        InventoryItem mockItem = new InventoryItem();
+        mockItem.setSoftwareComponent(mockComponent);
+
         when(projectRepository.findById(any())).thenReturn(Optional.of(new Project()));
-        when(inventoryItemRepository.findById(any())).thenReturn(Optional.of(new InventoryItem()));
+        when(inventoryItemRepository.findById(any())).thenReturn(Optional.of(mockItem));
+
         boolean result = downloadService.process(workData);
+
         assertTrue(result, "Should return true (handled) even if skipped");
         verifyNoInteractions(fileService);
         verifyNoInteractions(gitRepoController);
