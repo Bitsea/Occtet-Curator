@@ -89,7 +89,7 @@ public class LicenseTemplateWebServiceTest {
         LicenseTemplateWebService licenseTemplateWebService = new LicenseTemplateWebService();
         SPDXLicenseDetails result = licenseTemplateWebService.readDefaultLicenseInfos(baseUrl);
         assertNotNull(result);
-        assertEquals(licenseId, result.licenseId());
+        assertEquals(licenseId, result.getLicenseId());
 
 
     }
@@ -122,7 +122,7 @@ public class LicenseTemplateWebServiceTest {
         LicenseTemplateWebService licenseTemplateWebService = new LicenseTemplateWebService();
         SPDXLicenseDetails result = licenseTemplateWebService.readDefaultLicenseInfos(baseUrl);
         assertNotNull(result);
-        assertNotEquals(licenseId, result.licenseId());
+        assertNotEquals(licenseId, result.getLicenseId());
 
 
     }

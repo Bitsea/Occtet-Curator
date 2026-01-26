@@ -122,6 +122,18 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
                         String baseURL = "https://raw.githubusercontent.com/spdx/license-list-data/main/json/details/" + licenseId + ".json";
                         String userMessage = promptFactory.createUserMessage(result);
                         sendAnswerToStream(new AILicenseMatcherWorkData(userMessage, baseURL, result.getDifferenceMessage(), licenseId, licenseText, inventoryItemId));
+
+
+//                    }
+//                    if (licenseId.contains("HPND")) {
+//                        log.debug("license texts are different for licenseId: {}", licenseId);
+//                        //baseURL for the licenseTool is given to the prompt as parameter, AI is using the tool with it
+//                        //the result of the spdx matcher is also given for further information
+//                        String baseURL = "https://raw.githubusercontent.com/spdx/license-list-data/main/json/details/" + licenseId + ".json";
+//                        String userMessage = promptFactory.createUserMessage(result);
+//                        sendAnswerToStream(new AILicenseMatcherWorkData(userMessage, baseURL, result.getDifferenceMessage(), licenseId, licenseText, inventoryItemId));
+
+
                     } else if (result == null) {
                         log.debug("result is null");
                         log.error("url not successfully for license: {}", licenseId);

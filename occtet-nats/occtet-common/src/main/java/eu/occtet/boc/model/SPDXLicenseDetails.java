@@ -37,6 +37,16 @@ public class SPDXLicenseDetails{
     public SPDXLicenseDetails() {
     }
 
+    public SPDXLicenseDetails(boolean isOsiApproved, boolean isDeprecatedLicenseId, String licenseText, String standardLicenseTemplate, String name, String licenseId, String licenseTextHtml) {
+        this.isOsiApproved = isOsiApproved;
+        this.isDeprecatedLicenseId = isDeprecatedLicenseId;
+        this.licenseText = licenseText;
+        this.standardLicenseTemplate = standardLicenseTemplate;
+        this.name = name;
+        this.licenseId = licenseId;
+        this.licenseTextHtml = licenseTextHtml;
+    }
+
     public boolean isOsiApproved() {
         return isOsiApproved;
     }
