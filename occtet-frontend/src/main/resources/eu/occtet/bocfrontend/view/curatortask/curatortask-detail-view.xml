@@ -48,6 +48,9 @@
             <formItem label="msg://eu.occtet.bocfrontend.view.project/projectDetailView.title">
                 <comboBox id="projectComboBox"  allowCustomValue="false" title="msg://eu.occtet.bocfrontend.view.project/projectListView.title" colspan="1" css="margin-left: 15px"/>
             </formItem>
+            <formItem id="importNameField" label="msg://eu.occtet.bocfrontend.view.importer/importName">
+                <textField id="importName"/>
+            </formItem>
             <span colspan="2"/>
             <formItem colspan="2" label="msg://eu.occtet.bocfrontend.view.configuration/configurationDetailView.title">
                 <vbox>

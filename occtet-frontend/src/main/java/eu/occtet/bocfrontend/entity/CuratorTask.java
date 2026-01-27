@@ -91,6 +91,10 @@ public class CuratorTask {
     }
 
     public void setCurrentProgress(int p) {
+        if(p>=100){
+             setCompleted();
+             return;
+        }
         status = TaskStatus.IN_PROGRESS;
         progress = p;
         lastUpdate = LocalDateTime.now();

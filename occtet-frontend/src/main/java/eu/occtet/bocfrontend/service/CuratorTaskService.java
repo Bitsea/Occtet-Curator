@@ -125,7 +125,14 @@ public class CuratorTaskService {
 
     public List<CuratorTask> getCurrentTasks(int updatedBeforeMinutes) {
         LocalDateTime before = LocalDateTime.now().minusMinutes(updatedBeforeMinutes);
-        return curatorTaskRepository.findAllByLastUpdateAfter(before);
+        List<CuratorTask> inProgress = curatorTaskRepository.findByStatus(TaskStatus.IN_PROGRESS);
+        List<CuratorTask> cancelled = curatorTaskRepository.findAllByStatusAndLastUpdateAfter(TaskStatus.CANCELLED, before);
+        List<CuratorTask> completed = curatorTaskRepository.findAllByStatusAndLastUpdateAfter(TaskStatus.COMPLETED, before);
+        List<CuratorTask> result = new ArrayList<>();
+        result.addAll(inProgress);
+        result.addAll(cancelled);
+        result.addAll(completed);
+        return result;
     }
 
     public CuratorTask saveWithFeedBack(CuratorTask curatorTask, List<String> feedback, TaskStatus status){

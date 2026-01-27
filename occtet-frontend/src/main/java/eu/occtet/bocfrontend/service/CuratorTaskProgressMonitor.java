@@ -1,11 +1,14 @@
 package eu.occtet.bocfrontend.service;
 
 import eu.occtet.boc.model.ProgressSystemMessage;
+import eu.occtet.bocfrontend.dao.CuratorTaskRepository;
+import eu.occtet.bocfrontend.entity.TaskStatus;
 import jakarta.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,25 +38,24 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CuratorTaskProgressMonitor {
 
     @Autowired
-    NatsService natsService;
+    private NatsService natsService;
+
+    @Autowired
+    private CuratorTaskRepository curatorTaskRepository;
 
     private static final Logger log = LogManager.getLogger(CuratorTaskProgressMonitor.class);
-
-    private Map<Long,Integer> taskProgressMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
         natsService.addProgressListener(this::onProgressMessage);
     }
 
+    @Transactional
     public void onProgressMessage(ProgressSystemMessage progressSystemMessage) {
         log.debug("Received progress update for task {}: {}%",progressSystemMessage.getTaskId(),progressSystemMessage.getProgressPercent());
-        taskProgressMap.put(progressSystemMessage.getTaskId(), progressSystemMessage.getProgressPercent());
-    }
-
-    public int getProgressForTask(long taskId) {
-        if(!taskProgressMap.containsKey(taskId)) { return 0;}
-        return taskProgressMap.get(taskId);
+        curatorTaskRepository.findById(progressSystemMessage.getTaskId()).ifPresent(curatorTask -> {
+            curatorTask.setCurrentProgress(progressSystemMessage.getProgressPercent());
+        });
     }
 
 

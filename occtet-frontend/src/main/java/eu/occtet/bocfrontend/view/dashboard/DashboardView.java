@@ -157,15 +157,7 @@ public class DashboardView extends StandardView {
     @Subscribe("refreshTimer")
     public void onRefreshTimerTimerAction(final Timer.TimerActionEvent event) {
         List<CuratorTask> currentTasks = curatorTaskService.getCurrentTasks(CURRENT_TASKS_LAST_UPDATE_THRESHOLD_MINUTES);
-        log.debug("found {} running tasks",currentTasks.size());
-        // update with latest progress
-        for (CuratorTask task : currentTasks) {
-            int progress = curatorTaskProgressMonitor.getProgressForTask(task.getId());
-            task.setProgress(progress);
-            if(progress>=100){
-                task.setStatus(TaskStatus.COMPLETED);
-            }
-        }
+        log.debug("found {} tasks to display",currentTasks.size());
         runningTasksList.setItems(currentTasks);
     }
 

@@ -22,6 +22,7 @@ package eu.occtet.bocfrontend.view.curatortask;
 
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.html.H3;
@@ -46,6 +47,7 @@ import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.image.JmixImage;
+import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.data.grid.ContainerDataGridItems;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.CollectionContainer;
@@ -55,6 +57,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -72,6 +76,10 @@ public class ImportTaskDetailView extends StandardDetailView<CuratorTask> {
     private JmixImage<Object> iconPlaceholder;
     @ViewComponent
     private H3 curatorTaskField;
+    @ViewComponent
+    private TypedTextField<Object> importName;
+    @ViewComponent
+    private FormLayout.FormItem importNameField;
     @ViewComponent
     private DataGrid<Configuration> configurationsDataGrid;
     @ViewComponent
@@ -109,7 +117,7 @@ public class ImportTaskDetailView extends StandardDetailView<CuratorTask> {
         if (importer!= null) {
             // Set information about the selected import
             curatorTaskField.setText(importer.getName().replaceAll("_"," "));
-            getEditedEntity().setTaskName(importer.getName()); // FIXME: name could be changed by user later, tasktype not
+            importNameField.setVisible(false);
             getEditedEntity().setTaskType(importer.getName());
 
             // Set components to default values
@@ -136,12 +144,16 @@ public class ImportTaskDetailView extends StandardDetailView<CuratorTask> {
         log.debug("importer selected:{}", importer.getName());
         if (event.getValue() != null) {
             setConfigurations(importer);
+            importNameField.setVisible(true);
+            importName.setValue(event.getValue().getProjectName() + " " + LocalDate.now());
+            getEditedEntity().setTaskName(importName.getValue());
         }
     }
 
     @Subscribe
     public void onBeforeSave(final BeforeSaveEvent event) {
         log.debug("onBeforeSave action triggered");
+        getEditedEntity().setTaskName(importName.getValue());
         CuratorTask curatorTask = getEditedEntity();
         Importer importer= (Importer) sessionData.getAttribute("selectedImporter");
         if (importer == null) {
