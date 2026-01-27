@@ -1,8 +1,7 @@
 package eu.occtet.bocfrontend.importer;
 
 import eu.occtet.bocfrontend.entity.Configuration;
-import eu.occtet.bocfrontend.entity.ImportTask;
-
+import eu.occtet.bocfrontend.entity.CuratorTask;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -28,10 +27,10 @@ public abstract class Importer {
 
     /**
      * Process the given scanning task. This may happen in background.
-     * @param importTask the import to be processed
+     * @param curatorTask the import to be processed
      ** @return true on success, false if something went wrong.
      */
-    public abstract boolean processTask(@Nonnull ImportTask importTask);
+    public abstract boolean prepareAndStartTask(@Nonnull CuratorTask curatorTask);
 
     /**
      *

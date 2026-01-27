@@ -19,14 +19,12 @@
 
 package eu.occtet.bocfrontend.engine;
 
-import eu.occtet.bocfrontend.dao.ImportTaskRepository;
-import eu.occtet.bocfrontend.entity.ImportTask;
-import eu.occtet.bocfrontend.entity.InventoryItem;
+import eu.occtet.bocfrontend.dao.CuratorTaskRepository;
+import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.factory.InventoryItemFactory;
 import eu.occtet.bocfrontend.factory.ProjectFactory;
-import eu.occtet.bocfrontend.factory.ImportTaskFactory;
+import eu.occtet.bocfrontend.factory.CuratorTaskFactory;
 import eu.occtet.bocfrontend.factory.SoftwareComponentFactory;
 import eu.occtet.bocfrontend.importer.ImportManager;
 import io.jmix.core.DataManager;
@@ -57,10 +55,10 @@ public class ImportManagerTest {
     private FetchPlans fetchPlans;
 
     @Autowired
-    private ImportTaskRepository importTaskRepository;
+    private CuratorTaskRepository curatorTaskRepository;
 
     @Autowired
-    private ImportTaskFactory importTaskFactory;
+    private CuratorTaskFactory curatorTaskFactory;
 
     @Autowired
     private SoftwareComponentFactory softwareComponentFactory;
@@ -91,8 +89,8 @@ public class ImportManagerTest {
 
         systemAuthenticator.runWithSystem(()-> {
 
-            ImportTask importTask = importTaskFactory.create(prepare(), "dumb");
-            log.debug("Created import: {}", importTask);
+            CuratorTask curatorTask = curatorTaskFactory.create(prepare(), "dumb","import.test");
+            log.debug("Created task: {}", curatorTask);
             //TODO write nice test here
         });
     }

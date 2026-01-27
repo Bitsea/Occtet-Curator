@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.view.importtask;
+package eu.occtet.bocfrontend.view.curatortask;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Html;
@@ -28,15 +28,16 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import eu.occtet.bocfrontend.dao.ImportTaskRepository;
+import eu.occtet.bocfrontend.dao.CuratorTaskRepository;
 import eu.occtet.bocfrontend.entity.Configuration;
-import eu.occtet.bocfrontend.entity.ImportStatus;
-import eu.occtet.bocfrontend.entity.ImportTask;
+import eu.occtet.bocfrontend.entity.CuratorTask;
+import eu.occtet.bocfrontend.entity.TaskStatus;
 import eu.occtet.bocfrontend.importer.ImportManager;
 import eu.occtet.bocfrontend.importer.Importer;
-import eu.occtet.bocfrontend.service.ImportTaskService;
+import eu.occtet.bocfrontend.service.CuratorTaskService;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
+import io.jmix.core.session.SessionData;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.action.DialogAction;
@@ -54,19 +55,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Set;
 
-@Route(value = "importTask", layout = MainView.class)
-@ViewController("ImportTask.list")
-@ViewDescriptor(value = "importtask-list-view.xml", path = "importtask-list-view.xml")
-@LookupComponent("importTaskDataGrid")
+@Route(value = "curatorTask", layout = MainView.class)
+@ViewController("CuratorTask.list")
+@ViewDescriptor(value = "curatortask-list-view.xml", path = "curatortask-list-view.xml")
+@LookupComponent("curatorTaskDataGrid")
 @DialogMode(width = "600", height = "800")
-public class ImportTaskListView extends StandardListView<ImportTask> {
+public class ImportTaskListView extends StandardListView<CuratorTask> {
 
 
     private static final Logger log = LogManager.getLogger(ImportTaskListView.class);
 
 
     @ViewComponent
-    private DataGrid<ImportTask> importTaskDataGrid;
+    private DataGrid<CuratorTask> curatorTaskDataGrid;
     @ViewComponent
     private JmixButton showFeedback;
     @ViewComponent
@@ -75,10 +76,10 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
     private HorizontalLayout availableImportBox;
     @ViewComponent
     private MessageBundle messageBundle;
-    @ViewComponent("importTaskDataGrid.create")
-    private CreateAction<ImportTask> importTaskDataGridCreate;
+    @ViewComponent("curatorTaskDataGrid.create")
+    private CreateAction<CuratorTask> curatorTaskDataGridCreate;
     @ViewComponent
-    private CollectionContainer<ImportTask> importTaskDc;
+    private CollectionContainer<CuratorTask> curatorTaskDc;
 
     @Autowired
     private Dialogs dialogs;
@@ -88,7 +89,7 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
     private Dialogs messageDialog;
 
     @Autowired
-    private ImportTaskService importTaskService;
+    private CuratorTaskService curatorTaskService;
     @Autowired
     private DataManager dataManager;
 
@@ -96,14 +97,18 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
     private ImportManager importManager;
 ;
     @Autowired
-    private ImportTaskRepository importTaskRepository;
+    private CuratorTaskRepository curatorTaskRepository;
+
+    @Autowired
+    private SessionData sessionData;
+
 
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
 
         updateAvailableImportsBox();
 
-        importTaskDc.setItems(importTaskRepository.findByStatus(ImportStatus.COMPLETED.getId()));
+        curatorTaskDc.setItems(curatorTaskRepository.findByStatus(TaskStatus.COMPLETED));
 
     }
 
@@ -111,8 +116,8 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
      * loads preexisting imports to the grid
      */
     private void load(){
-        List<ImportTask> importTasks = importTaskRepository.findAll();
-        importTaskDc.setItems(importTasks);
+        List<CuratorTask> curatorTasks = curatorTaskRepository.findAll();
+        curatorTaskDc.setItems(curatorTasks);
     }
 
 
@@ -121,14 +126,14 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
         availableImportBox.removeAll();
         importers.forEach(importer -> {
             if(!importer.getName().contains("Dumb") && !importer.getName().contains("Flexera_Report_Import"))
-                availableImportBox.add(createImportIcon(importer + "Id", importer, false));
+                availableImportBox.add(createImportIcon(importer + "Id", importer));
         });
     }
 
 
 
 
-    private VerticalLayout createImportIcon(String buttonId, Importer importer, boolean isRunning) {
+    private VerticalLayout createImportIcon(String buttonId, Importer importer) {
         VerticalLayout verticalLayout = uiComponents.create(VerticalLayout.class);
         verticalLayout.setPadding(false);
         verticalLayout.setWidth("AUTO");
@@ -143,45 +148,41 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
         importImageButton.setId(buttonId);
         importImageButton.setHeight("100px");
         importImageButton.setWidth("100px");
-        importImageButton.getElement().setAttribute("src", "icons/" + importer.getName().replace(" ", "") + ".png");
+        importImageButton.getElement().setAttribute("src", "icons/" + importer.getName().replace(" ", "").toLowerCase() + ".png");
         verticalLayout.add(importImageButton, h6);
 
-        if (!isRunning) {
-            importImageButton.setTitle(messageBundle.getMessage(importer.getName().replace(" ", "")));
-            importImageButton.addClickListener(e -> {
-                importManager.preselectNewImport(importer);
-                importTaskDataGridCreate.execute();
-            });
-        } else {
-            importImageButton.setTitle(messageBundle.getMessage("scanning"));
-        }
+        importImageButton.setTitle(messageBundle.getMessage(importer.getName().replace(" ", "")));
+        importImageButton.addClickListener(e -> {
+            sessionData.setAttribute("selectedImporter", importer);
+            curatorTaskDataGridCreate.execute();
+        });
+
         return verticalLayout;
     }
 
     @Subscribe("refreshTimer")
     public void onRefreshTimerTimerAction(final Timer.TimerActionEvent event) {
-        List<ImportTask> importers = importTaskRepository.findByStatus(ImportStatus.COMPLETED.getId());
-        importers.addAll(importTaskRepository.findByStatus(ImportStatus.STOPPED.getId()));
-        importTaskDc.setItems(importers);
+        List<CuratorTask> tasks = curatorTaskRepository.findAll();
+        curatorTaskDc.setItems(tasks);
     }
 
-    @Subscribe("importTaskDataGrid")
-    public void onImportInitializerDataGridItemClick(final ItemClickEvent<ImportTask> event) {
+    @Subscribe("curatorTaskDataGrid")
+    public void onCuratorInitializerDataGridItemClick(final ItemClickEvent<CuratorTask> event) {
         showFeedback.setEnabled(false);
         showConfig.setEnabled(false);
         if (event.getItem() != null) {
-            showFeedback.setEnabled(event.getItem().getStatus().equals(ImportStatus.COMPLETED.name()));
-            showConfig.setEnabled(!event.getItem().getImportConfiguration().isEmpty());
+            showFeedback.setEnabled(event.getItem().getStatus().equals(TaskStatus.COMPLETED));
+            showConfig.setEnabled(!event.getItem().getTaskConfiguration().isEmpty());
         }
     }
 
     @Subscribe(id = "showConfig", subject = "clickListener")
     public void onShowConfigClick1(final ClickEvent<JmixButton> event) {
-        Set<ImportTask> selectedItems = importTaskDataGrid.getSelectedItems();
+        Set<CuratorTask> selectedItems = curatorTaskDataGrid.getSelectedItems();
         if (selectedItems == null || selectedItems.isEmpty())
             return;
         StringBuilder sb = new StringBuilder();
-        List<Configuration> configList = selectedItems.iterator().next().getImportConfiguration();
+        List<Configuration> configList = selectedItems.iterator().next().getTaskConfiguration();
         sb.append("\\<div>");
         for (Configuration cf : configList) {
             sb.append("<b>" + cf.getName() + ":</b> " + cf.getValue() + "<p>");
@@ -193,21 +194,21 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
                 .open();
     }
 
-    @Subscribe(id = "stopImportBtn", subject = "clickListener")
+    @Subscribe(id = "stopTaskBtn", subject = "clickListener")
     public void onStopClick(final ClickEvent<JmixButton> event) {
-        Set<ImportTask> selectedItems = importTaskDataGrid.getSelectedItems();
+        Set<CuratorTask> selectedItems = curatorTaskDataGrid.getSelectedItems();
         if (selectedItems == null || selectedItems.isEmpty())
             return;
-        for (ImportTask importer : selectedItems) {
-            importer.updateStatus(ImportStatus.STOPPED.getId());
-            dataManager.save(importer);
+        for (CuratorTask task : selectedItems) {
+            task.setStatus(TaskStatus.CANCELLED);
+            dataManager.save(task);
         }
         load();
     }
 
     @Subscribe(id = "showFeedback", subject = "clickListener")
     public void onShowFeedbackClick(final ClickEvent<JmixButton> event) {
-        Set<ImportTask> selectedItems = importTaskDataGrid.getSelectedItems();
+        Set<CuratorTask> selectedItems = curatorTaskDataGrid.getSelectedItems();
         if (selectedItems == null || selectedItems.isEmpty()){
             return;
         }
@@ -226,13 +227,13 @@ public class ImportTaskListView extends StandardListView<ImportTask> {
     public void onRemoveStoppedBtnClick1(final ClickEvent<JmixButton> event) {
         dialogs.createOptionDialog()
                 .withHeader("Please confirm")
-                .withText("Do you really want to remove the stopped imports?")
+                .withText("Do you really want to remove the cancelled imports?")
                 .withActions(
                         new DialogAction(DialogAction.Type.YES)
                                 .withHandler(e -> {
-                                    for (ImportTask importer : importTaskService.getStoppedImporters()) {
+                                    for (CuratorTask task : curatorTaskService.getCancelledTasks()) {
                                             try {
-                                                dataManager.remove(importer);
+                                                dataManager.remove(task);
                                             } catch (Exception ex) {
                                                 log.error(ex.getMessage());
                                             }

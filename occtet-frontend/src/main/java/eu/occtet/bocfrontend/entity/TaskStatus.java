@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2025 Bitsea GmbH
  *
@@ -17,17 +18,35 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.dao;
+package eu.occtet.bocfrontend.entity;
 
-import eu.occtet.bocfrontend.entity.ImportTask;
-import io.jmix.core.repository.JmixDataRepository;
-
-import java.util.List;
+import org.springframework.lang.Nullable;
 
 
-public interface ImportTaskRepository extends JmixDataRepository<ImportTask, Long> {
+public enum TaskStatus {
+    CREATING("CREATING"),APPROVE("APPROVE"),IN_PROGRESS("IN_PROGRESS"),
+    WAITING("WAITING"), CANCELLED("CANCELLED"), COMPLETED("COMPLETED");
 
-    List<ImportTask> findByStatus(String status);
-    long countByStatus(String status);
+    private final String id;
 
+    TaskStatus(String value) {
+        this.id = value;
+    }
+
+
+    public String getId() {
+        return id;
+    }
+
+    @Nullable
+    public static TaskStatus fromId(String id) {
+        for (TaskStatus at : TaskStatus.values()) {
+            if (at.getId().equals(id)) {
+                return at;
+            }
+        }
+        return null;
+    }
 }
+
+

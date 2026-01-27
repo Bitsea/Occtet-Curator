@@ -22,11 +22,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.BaseWorkData;
 import eu.occtet.boc.model.SpdxExportWorkData;
-import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.WorkConsumer;
-import io.nats.client.Connection;
 import io.nats.client.Message;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,9 +39,6 @@ public class SpdxExportWorkConsumer extends WorkConsumer {
     private static final Logger log = LogManager.getLogger(SpdxExportWorkConsumer.class);
 
     @Autowired
-    private Connection natsConnection;
-
-    @Autowired
     private ExportService exportService;
 
     @Override
@@ -56,11 +51,14 @@ public class SpdxExportWorkConsumer extends WorkConsumer {
             WorkTask workTask = objectMapper.readValue(jsonData, WorkTask.class);
             log.debug("workTask: {}", workTask);
             BaseWorkData workData = workTask.workData();
-            log.debug("workData: {}", workTask);
+            log.debug("workData: {}", workData);
 
             boolean result = workData.process(new BaseWorkDataProcessor() {
                 @Override
                 public boolean process(SpdxExportWorkData spdxExportWorkData) {
+                    exportService.setOnProgress((p,d)->{
+                        notifyProgress(workData.getTaskId(), p, d);
+                    });
                     return exportService.process(spdxExportWorkData);
                 }
             });

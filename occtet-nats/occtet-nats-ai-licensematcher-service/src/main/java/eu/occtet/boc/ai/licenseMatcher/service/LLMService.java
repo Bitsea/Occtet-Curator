@@ -182,7 +182,7 @@ public class LLMService extends BaseWorkDataProcessor {
         // Get the current date and time
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("status_request", "question", actualTimestamp, new AIAnswerWorkData(answer));
+        WorkTask workTask = new WorkTask(33, "question", actualTimestamp, new AIAnswerWorkData(answer));
         ObjectMapper objectMapper = new ObjectMapper();
         String message = objectMapper.writeValueAsString(workTask);
 

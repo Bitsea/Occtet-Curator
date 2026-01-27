@@ -1,13 +1,10 @@
 package eu.occtet.bocfrontend.importer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import eu.occtet.boc.model.SpdxWorkData;
-import eu.occtet.boc.model.WorkTask;
 import eu.occtet.bocfrontend.entity.Configuration;
-import eu.occtet.bocfrontend.entity.ImportStatus;
-import eu.occtet.bocfrontend.entity.ImportTask;
-import eu.occtet.bocfrontend.factory.ImportTaskFactory;
+import eu.occtet.bocfrontend.entity.CuratorTask;
+import eu.occtet.bocfrontend.entity.TaskStatus;
+import eu.occtet.bocfrontend.service.CuratorTaskService;
 import eu.occtet.bocfrontend.service.NatsService;
 import io.nats.client.api.ObjectInfo;
 import io.nats.client.api.ObjectMeta;
@@ -17,11 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
-import java.nio.charset.Charset;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class SpdxImporter extends Importer {
@@ -29,12 +22,10 @@ public class SpdxImporter extends Importer {
     private static final Logger log = LogManager.getLogger(SpdxImporter.class);
 
     @Autowired
-    private ImportTaskFactory importTaskFactory;
-
+    private CuratorTaskService curatorTaskService;
 
     @Autowired
-    private NatsService natsService;
-
+    private  NatsService natsService;
 
     protected SpdxImporter() {
         super("SPDX_Import");
@@ -49,16 +40,16 @@ public class SpdxImporter extends Importer {
 
 
     @Override
-    public boolean processTask(ImportTask importTask) {
+    public boolean prepareAndStartTask(CuratorTask curatorTask) {
 
         try {
-            log.debug("Processing SPDX Report: {}", importTask.getStatus());
+            log.debug("Processing SPDX Report: {}", curatorTask.getStatus());
 
             byte[] spdxJson = new byte[0];
             boolean useCopyright = DEFAULT_USE_FALSE_COPYRIGHT_FILTER;
             boolean useLicenseMatcher = DEFAULT_USE_LICENSE_MATCHER;
             String filename = "";
-            List<Configuration> configurations = importTask.getImportConfiguration();
+            List<Configuration> configurations = curatorTask.getTaskConfiguration();
             for(Configuration configuration: configurations){
                 switch (configuration.getName()) {
                     case CONFIG_KEY_FILENAME:
@@ -74,20 +65,20 @@ public class SpdxImporter extends Importer {
                 }
             }
 
-            Long projectId = importTask.getProject().getId();
+            Long projectId = curatorTask.getProject().getId();
 
-            sendIntoStream(spdxJson, projectId, useCopyright ,useLicenseMatcher, filename);
+            return startTask(curatorTask, spdxJson, projectId, useCopyright ,useLicenseMatcher, filename);
 
-            return true;
         }catch (Exception e){
-            log.error("Error when trying to send message to other microservice: {}", e.getMessage());
-            importTaskFactory.saveWithFeedBack(importTask,List.of("Error when trying to send message to other microservice: "+ e.getMessage()), ImportStatus.STOPPED);
+            log.error("Exception when sending task", e);
+            curatorTaskService.saveWithFeedBack(curatorTask,List.of("Exception when sending task: "+ e.getMessage()), TaskStatus.CANCELLED);
             return false;
         }
 
     }
 
-    private void sendIntoStream(byte[] spdxJson, Long projectId, boolean useCopyright, boolean useLicenseMatch, String filename) {
+    private boolean startTask(CuratorTask task, byte[] spdxJson, Long projectId, boolean useCopyright,
+                           boolean useLicenseMatch, String filename)  {
 
         ByteArrayInputStream objectStoreInput = new ByteArrayInputStream(spdxJson);
 
@@ -97,20 +88,11 @@ public class SpdxImporter extends Importer {
                 .build();
 
         ObjectInfo objectInfo = natsService.putDataIntoObjectStore(objectStoreInput, objectMeta);
+        if(objectInfo==null) return false;
 
         SpdxWorkData spdxWorkData = new SpdxWorkData( objectInfo.getObjectName(), objectInfo.getBucket(), projectId, useCopyright, useLicenseMatch);
-        LocalDateTime now = LocalDateTime.now();
-        long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("processing_spdx", "uploaded spdx report to be turned into entities by spdx-microservice", actualTimestamp, spdxWorkData);
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-            String message = mapper.writeValueAsString(workTask);
-            log.debug("sending message to spdx service: {}", message);
-            natsService.sendWorkMessageToStream("work.spdx", message.getBytes(Charset.defaultCharset()));
-        }catch(Exception e){
-            log.error("Error with microservice connection: {}", e.getMessage());
-        }
+
+        return curatorTaskService.saveAndRunTask(task,spdxWorkData,"uploaded spdx report to be turned into entities by spdx-microservice");
     }
 
     @Override

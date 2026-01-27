@@ -23,18 +23,14 @@
 package eu.occtet.boc.spdx.service;
 
 
+import eu.occtet.boc.dao.*;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.model.SpdxWorkData;
-import eu.occtet.boc.service.BaseWorkDataProcessor;
+import eu.occtet.boc.service.ProgressReportingService;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
-import eu.occtet.boc.dao.CopyrightRepository;
-import eu.occtet.boc.dao.InventoryItemRepository;
-import eu.occtet.boc.dao.LicenseRepository;
-import eu.occtet.boc.dao.ProjectRepository;
-import eu.occtet.boc.dao.SpdxDocumentRootRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
@@ -61,7 +57,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class SpdxService extends BaseWorkDataProcessor{
+public class SpdxService extends ProgressReportingService  {
 
     private static final Logger log = LogManager.getLogger(SpdxService.class);
 
@@ -90,12 +86,8 @@ public class SpdxService extends BaseWorkDataProcessor{
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-
-
     private Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc = new ArrayList<>();
 
-
-    @Override
     public boolean process(SpdxWorkData workData) {
         log.debug("SpdxService: reads spdx and creates entities to curate {}", workData.toString());
         return parseDocument(workData);
@@ -104,12 +96,14 @@ public class SpdxService extends BaseWorkDataProcessor{
     /**
      * Takes spdxWorkData, extracts contained json and creates entities based on the deserialized spdxDocument created from the json.
      * If the entities are already present then no new ones will be created, however some of their attributes may change.
+     *
      * @param spdxWorkData
      * @return true if the entities where created successfully, false is any error occurred
      */
     public boolean parseDocument(SpdxWorkData spdxWorkData){
         try {
             log.info("now processing spdx for project id: {}", spdxWorkData.getProjectId());
+            notifyProgress(1,"init");
             // setup for spdx library need to be called once before any spdx model objects are accessed
             SpdxModelFactory.init();
             InMemSpdxStore modelStore = new InMemSpdxStore();
@@ -121,7 +115,7 @@ public class SpdxService extends BaseWorkDataProcessor{
             SpdxDocument spdxDocument = inputStore.deSerialize(inputStream, false);
 
             SpdxDocumentRoot spdxDocumentRoot = spdxConverter.convertSpdxV2DocumentInformation(spdxDocument);
-
+            notifyProgress(10,"converting spdx");
             long projectId = spdxWorkData.getProjectId();
             Optional<Project> projectOptional = projectRepository.findById(projectId);
             if(projectOptional.isEmpty()) {
@@ -131,7 +125,6 @@ public class SpdxService extends BaseWorkDataProcessor{
             Project project = projectOptional.get();
             project.setDocumentID(spdxDocument.getDocumentUri());
             projectRepository.save(project);
-
 
             List<InventoryItem> inventoryItems = new ArrayList<>();
             List<TypedValue> packageUri = spdxDocument.getModelStore().getAllItems(null, "Package").toList();
@@ -143,7 +136,7 @@ public class SpdxService extends BaseWorkDataProcessor{
             //get the list of described packages for the download-service to differentiate between them and dependencies
             Set<String> mainPackageIds = new HashSet<>();
             Set<Long> mainInventoryItems = new HashSet<>();
-
+            notifyProgress(20,"collecting document describes");
             try {
                 Set<String> ids = spdxDocument.getDocumentDescribes().stream()
                         .map(SpdxElement::getId)
@@ -165,7 +158,7 @@ public class SpdxService extends BaseWorkDataProcessor{
             //Caches for component and license
             Map<String, SoftwareComponent> componentCache = new HashMap<>();
             Map<String, License> licenseCache = new HashMap<>();
-
+            int count=0;
             for (TypedValue uri : packageUri) {
                 SpdxModelFactory.getSpdxObjects(spdxDocument.getModelStore(), null, "Package", uri.getObjectUri(), null).forEach(
                         spdxPackage -> {
@@ -183,6 +176,10 @@ public class SpdxService extends BaseWorkDataProcessor{
                             }
                         }
                 );
+                count++;
+                int progress = 20 + (int) (((double) count / packageUri.size()) * 40);
+                if(progress%5 ==0)
+                    notifyProgress(progress, "processing packages");
             }
 
             List<InventoryItem> allItems = inventoryItemRepository.findAllByProject(project);
@@ -190,12 +187,19 @@ public class SpdxService extends BaseWorkDataProcessor{
                     .filter(i -> i.getSpdxId() != null)
                     .collect(Collectors.toMap(InventoryItem::getSpdxId, item -> item, (p1, p2) -> p1));
 
+
+
+            count=0;
             for (SpdxPackage spdxPackage : spdxPackages) {
                 parseRelationships(spdxPackage, spdxPackage.getRelationships().stream().toList(), inventoryCache);
                 for(Relationship relationship: spdxPackage.getRelationships()) {
                     spdxConverter.convertRelationShip(relationship, spdxDocumentRoot, spdxPackage);
                 }
-                log.info("Converted {} relationships for package {}", spdxPackage.getRelationships().size(), spdxPackage.getId());
+                log.debug("Converted {} relationships for package {}", spdxPackage.getRelationships().size(), spdxPackage.getId());
+                count++;
+                int progress = 60 + (int) (((double) count / packageUri.size()) * 40);
+                if(progress%5 ==0)
+                    notifyProgress(progress, "converting relationships");
             }
 
             spdxDocumentRootRepository.save(spdxDocumentRoot);
@@ -221,6 +225,7 @@ public class SpdxService extends BaseWorkDataProcessor{
                     }
             });
 
+            notifyProgress(100, "completed");
             return true;
 
         }catch (InvalidSPDXAnalysisException | IOException e ){

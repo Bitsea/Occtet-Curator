@@ -1,16 +1,13 @@
 package eu.occtet.bocfrontend.importer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.FossReportServiceWorkData;
-import eu.occtet.boc.model.WorkTask;
 import eu.occtet.bocfrontend.entity.Configuration;
-import eu.occtet.bocfrontend.entity.ImportStatus;
-import eu.occtet.bocfrontend.entity.ImportTask;
-import eu.occtet.bocfrontend.factory.ImportTaskFactory;
+import eu.occtet.bocfrontend.entity.CuratorTask;
+import eu.occtet.bocfrontend.entity.TaskStatus;
+import eu.occtet.bocfrontend.service.CuratorTaskService;
 import eu.occtet.bocfrontend.service.NatsService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -22,10 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -34,18 +27,16 @@ public class FlexeraReportImporter extends Importer {
     private static final Logger log = LogManager.getLogger(FlexeraReportImporter.class);
 
 
+    @Autowired
+    private CuratorTaskService curatorTaskService;
 
     @Autowired
-    private NatsService natsService;
+    private  NatsService natsService;
 
 
     protected FlexeraReportImporter() {
         super("Flexera_Report_Import");
     }
-
-    @Autowired
-    private ImportTaskFactory importTaskFactory;
-
 
 
     private static final String CONFIG_KEY_USE_LICENSE_MATCHER = "UseLicenseMatcher";
@@ -56,9 +47,9 @@ public class FlexeraReportImporter extends Importer {
 
 
     @Override
-    public boolean processTask(ImportTask importTask) {
+    public boolean prepareAndStartTask(CuratorTask curatorTask) {
         // Get the configuration containing the uploaded file
-        Configuration configuration = Objects.requireNonNull(importTask.getImportConfiguration()
+        Configuration configuration = Objects.requireNonNull(curatorTask.getTaskConfiguration()
                 .stream()
                 .filter(c -> c.getName().equals(CONFIG_KEY_FILENAME))
                 .findFirst().orElse(null));
@@ -66,20 +57,13 @@ public class FlexeraReportImporter extends Importer {
         byte[] contentInByte = configuration.getUpload();
         log.debug("contentInByte: {}", contentInByte.length);
 
-
-        try {
-            readExcelRows(importTask, contentInByte );
-            log.debug("Processing Flexera Report for Procejt: {}", importTask.getProject().getProjectName());
-            return true;
-        }catch (Exception e){
-            log.error("Error when connecting to backend: {}", e.getMessage());
-            importTaskFactory.saveWithFeedBack(importTask, List.of("Error when trying to send message to other microservice: "+ e.getMessage()), ImportStatus.STOPPED);
-            return false;
-        }
+        log.info("Processing Flexera Report for Project: {}...", curatorTask.getProject().getProjectName());
+        return readExcelRows(curatorTask, contentInByte );
 
     }
 
-    private void readExcelRows( ImportTask importTask, byte[] contentInByte) {
+    private boolean readExcelRows(CuratorTask curatorTask, byte[] contentInByte) {
+        boolean res=false;
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(contentInByte)){
             OPCPackage pkg = OPCPackage.open(byteArrayInputStream);
             XSSFWorkbook workbook = new XSSFWorkbook(pkg);
@@ -110,16 +94,20 @@ public class FlexeraReportImporter extends Importer {
 
                     }
                 }
-                if(!rowData.isEmpty())sendIntoStream(importTask.getId(), rowData);
+                if(!rowData.isEmpty()){
+                    res = startTask(curatorTask, rowData);
+                }
 
             }
             workbook.close();
             pkg.close();
 
-        } catch (IOException | OpenXML4JException e) {
+        } catch (Exception e) {
             log.error("Exception when processing errorMessage", e);
-            importTaskFactory.saveWithFeedBack(importTask, List.of("Error when processing file: " + e.getMessage()), ImportStatus.STOPPED);
+            curatorTaskService.saveWithFeedBack(curatorTask, List.of("Error when processing file: " + e.getMessage()), TaskStatus.CANCELLED);
+            res=false;
         }
+        return res;
     }
 
     /**find the column names in the first row
@@ -128,7 +116,6 @@ public class FlexeraReportImporter extends Importer {
      * @return
      */
     private Map<Integer, String> createColumnNamesMap(Sheet sheet, int rowWithCaptions) {
-
 
         Map<Integer, String> columnIndexNameMap = new HashMap<>();
         int columnIndex;
@@ -147,20 +134,12 @@ public class FlexeraReportImporter extends Importer {
     }
 
 
-    private void sendIntoStream(Long importId, Map<String, Object> rowData) {
+    private boolean startTask(CuratorTask task, Map<String, Object> rowData)  {
 
-        FossReportServiceWorkData fossReportServiceWorkData = new FossReportServiceWorkData(importId, rowData);
-        LocalDateTime now = LocalDateTime.now();
-        long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("status_request", "question", actualTimestamp, fossReportServiceWorkData);
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String message = objectMapper.writeValueAsString(workTask);
-            natsService.sendWorkMessageToStream("work.fossreport", message.getBytes(StandardCharsets.UTF_8));
-            log.debug("sending message to foss service: {}", message);
-        } catch (Exception e) {
-            log.debug("Error with foss service connection: " + e.getMessage());
-        }
+        FossReportServiceWorkData fossReportServiceWorkData = new FossReportServiceWorkData(task.getId(), rowData);
+
+        return curatorTaskService.saveAndRunTask(task,fossReportServiceWorkData,"converted flexera row to work task");
+
     }
 
 
