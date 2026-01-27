@@ -49,6 +49,7 @@ import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class LicenseMatcherService extends BaseWorkDataProcessor {
@@ -151,7 +152,7 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
     private void sendAnswerToStream(AILicenseMatcherWorkData aiLicenseMatcherWorkData) {
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask(0, "sending inventoryItem to next microservice according to config", actualTimestamp, aiLicenseMatcherWorkData);
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "sending inventoryItem to next microservice according to config", actualTimestamp, aiLicenseMatcherWorkData);
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String message = objectMapper.writeValueAsString(workTask);

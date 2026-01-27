@@ -21,35 +21,34 @@ package eu.occtet.boc.model;
  * /
  *
  */
-public class ProgressSystemMessage extends BaseSystemMessage {
-
-    private String taskId;
-    private int progressPercent;
+public class WorkTaskProgress {
+    private int percent;
+    private WorkTaskStatus status;
     private String details;
 
-    public ProgressSystemMessage(String taskId, int progressPercent, String details) {
-        this.taskId = taskId;
-        this.progressPercent = progressPercent;
+    public WorkTaskProgress(int percent, WorkTaskStatus status, String details) {
+        this.percent = percent;
+        this.status = status;
         this.details = details;
     }
 
-    public ProgressSystemMessage() {
+    public WorkTaskProgress() {
     }
 
-    public String getTaskId() {
-        return taskId;
+    public int getPercent() {
+        return percent;
     }
 
-    public void setTaskId(String taskId) {
-        this.taskId = taskId;
+    public void setPercent(int percent) {
+        this.percent = percent;
     }
 
-    public int getProgressPercent() {
-        return progressPercent;
+    public WorkTaskStatus getStatus() {
+        return status;
     }
 
-    public void setProgressPercent(int progressPercent) {
-        this.progressPercent = progressPercent;
+    public void setStatus(WorkTaskStatus status) {
+        this.status = status;
     }
 
     public String getDetails() {
@@ -60,3 +59,5 @@ public class ProgressSystemMessage extends BaseSystemMessage {
         this.details = details;
     }
 }
+
+

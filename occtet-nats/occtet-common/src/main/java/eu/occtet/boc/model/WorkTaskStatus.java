@@ -1,3 +1,5 @@
+package eu.occtet.boc.model;
+
 /*
  *
  *  Copyright (C) 2025 Bitsea GmbH
@@ -19,34 +21,4 @@
  * /
  *
  */
-
-package eu.occtet.boc.entity;
-
-import org.springframework.lang.Nullable;
-
-
-public enum ImportStatus {
-    CREATING("CREATING"),APPROVE("APPROVE"), WAITING("WAITING"),IN_PROGRESS("IN_PROGRESS"), STOPPED("STOPPED"), COMPLETED("COMPLETED");
-
-    private final String id;
-
-    ImportStatus(String value) {
-        this.id = value;
-    }
-
-
-    public String getId() {
-        return id;
-    }
-
-    @Nullable
-    public static ImportStatus fromId(String id) {
-        for (ImportStatus at : ImportStatus.values()) {
-            if (at.getId().equals(id)) {
-                return at;
-            }
-        }
-        return null;
-    }
-}
-
+public enum WorkTaskStatus { INIT, IN_PROGRESS, COMPLETED, CANCELLED, ERROR }

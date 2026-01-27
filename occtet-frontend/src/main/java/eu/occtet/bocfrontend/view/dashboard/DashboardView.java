@@ -27,8 +27,9 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
+import eu.occtet.boc.model.WorkTaskProgress;
 import eu.occtet.bocfrontend.entity.*;
-import eu.occtet.bocfrontend.service.CuratorTaskProgressMonitor;
+import eu.occtet.bocfrontend.service.WorkTaskProgressMonitor;
 import eu.occtet.bocfrontend.service.CuratorTaskService;
 import eu.occtet.bocfrontend.util.CuratorTaskUI;
 import eu.occtet.bocfrontend.view.main.MainView;
@@ -82,7 +83,7 @@ public class DashboardView extends StandardView {
     protected Chart chartSoftwareComponent;
 
     @ViewComponent
-    private JmixListBox<CuratorTask> runningTasksList;
+    private JmixListBox<WorkTaskProgress> runningTasksList;
 
     @Autowired
     private DialogWindows dialogWindows;
@@ -120,7 +121,7 @@ public class DashboardView extends StandardView {
     private UiComponents uiComponents;
 
     @Autowired
-    CuratorTaskProgressMonitor curatorTaskProgressMonitor;
+    WorkTaskProgressMonitor workTaskProgressMonitor;
 
     @Subscribe
     public void onInit(InitEvent event) {
@@ -156,7 +157,7 @@ public class DashboardView extends StandardView {
 
     @Subscribe("refreshTimer")
     public void onRefreshTimerTimerAction(final Timer.TimerActionEvent event) {
-        List<CuratorTask> currentTasks = curatorTaskService.getCurrentTasks(CURRENT_TASKS_LAST_UPDATE_THRESHOLD_MINUTES);
+        List<WorkTaskProgress> currentTasks = workTaskProgressMonitor.getAllProgress();
         log.debug("found {} tasks to display",currentTasks.size());
         runningTasksList.setItems(currentTasks);
     }
@@ -318,13 +319,13 @@ public class DashboardView extends StandardView {
 
     @Supply(to = "runningTasksList", subject = "renderer")
     private ComponentRenderer runningTasksListRenderer() {
-        return new ComponentRenderer<HorizontalLayout,CuratorTask>(task -> {
+        return new ComponentRenderer<HorizontalLayout,WorkTaskProgress>(task -> {
             HorizontalLayout row = uiComponents.create(HorizontalLayout.class);
             row.setAlignItems(FlexComponent.Alignment.CENTER);
-            Icon icon = CuratorTaskUI.iconForTask(task);
+            Icon icon = CuratorTaskUI.iconForTaskStatus(task.getStatus());
             icon.setSize("10px");
             row.add(icon );
-            row.add(new Span(task.getTaskName() + " " + task.getTaskType() + " (" +task.getStatus().name() + ", " + task.getProgress() + "%)"));
+            row.add(new Span(task.getDetails() + " ("+task.getPercent() + "%)"));
             return row;
         }); 
     }

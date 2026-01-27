@@ -46,6 +46,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class AnswerService {
@@ -106,7 +107,7 @@ public class AnswerService {
             long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
             log.debug("scannerWorkData: {}", sendWorkData.toString());
             if (toCopyrightAi) {
-                WorkTask workTask = new WorkTask(1, "send processed inventory item from spdx microservice to copyrightFilter", actualTimestamp, sendWorkData);
+                WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "send processed inventory item from spdx microservice to copyrightFilter", actualTimestamp, sendWorkData);
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
                 String message = mapper.writeValueAsString(workTask);
@@ -114,7 +115,7 @@ public class AnswerService {
                 natsStreamSenderCopyrightFilter().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
             }
             if (toLicenseMatcher) {
-                WorkTask workTask = new WorkTask(2, "send processed inventory item from spdx microservice to licenseMatcher", actualTimestamp, sendWorkData);
+                WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "send processed inventory item from spdx microservice to licenseMatcher", actualTimestamp, sendWorkData);
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
                 String message = mapper.writeValueAsString(workTask);
@@ -123,7 +124,7 @@ public class AnswerService {
             }
 
             VulnerabilityServiceWorkData vulnerabilityWorkData= new VulnerabilityServiceWorkData(inventoryItem.getSoftwareComponent().getId());
-            WorkTask workTask = new WorkTask(3, "send processed softwareComponent from spdx microservice to vulnerabilityService", actualTimestamp, vulnerabilityWorkData);
+            WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "send processed softwareComponent from spdx microservice to vulnerabilityService", actualTimestamp, vulnerabilityWorkData);
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
             String message = mapper.writeValueAsString(workTask);
@@ -155,7 +156,7 @@ public class AnswerService {
                     isMainPackage);
             LocalDateTime now = LocalDateTime.now();
             long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-            WorkTask workTask = new WorkTask(4, "information about a component to be downloaded to a specific location", actualTimestamp, payload);
+            WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "information about a component to be downloaded to a specific location", actualTimestamp, payload);
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
             String message = mapper.writeValueAsString(workTask);

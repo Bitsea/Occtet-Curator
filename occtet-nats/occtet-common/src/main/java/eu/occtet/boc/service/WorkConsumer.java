@@ -100,7 +100,7 @@ public abstract class WorkConsumer implements InformativeService {
         return progressPercent;
     }
 
-    protected void notifyProgress(long taskId, int progressPercent, String details) {
+    protected void notifyProgress(String taskId, int progressPercent, String details) {
         this.progressPercent = progressPercent;
         ProgressSystemMessage progressSystemMessage = new ProgressSystemMessage(taskId, progressPercent, details);
         String message = null;
@@ -111,7 +111,7 @@ public abstract class WorkConsumer implements InformativeService {
             log.warn("error creating progress message: {}", e.getMessage());
         }
         log.debug("notifying progress: taskId {} has now progress {}", taskId, progressPercent);
-        natsConnection.publish("progress", message.getBytes(StandardCharsets.UTF_8));
+        natsConnection.publish("system", message.getBytes(StandardCharsets.UTF_8));
     }
 
 

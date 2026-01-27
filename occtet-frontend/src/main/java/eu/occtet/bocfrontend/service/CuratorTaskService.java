@@ -36,6 +36,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.reflections.Reflections.log;
 
@@ -63,7 +64,7 @@ public class CuratorTaskService {
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
         curatorTask.notifyStarted();
         dataManager.save(curatorTask);
-        WorkTask workTask = new WorkTask(curatorTask.getId(), optDetails, actualTimestamp, workData);
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), optDetails, actualTimestamp, workData);
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);

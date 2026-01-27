@@ -57,7 +57,7 @@ public class SpdxExportWorkConsumer extends WorkConsumer {
                 @Override
                 public boolean process(SpdxExportWorkData spdxExportWorkData) {
                     exportService.setOnProgress((p,d)->{
-                        notifyProgress(workData.getTaskId(), p, d);
+                        notifyProgress(workTask.taskId(), p, d);
                     });
                     return exportService.process(spdxExportWorkData);
                 }

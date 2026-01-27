@@ -1,15 +1,16 @@
 package eu.occtet.bocfrontend.service;
 
 import eu.occtet.boc.model.ProgressSystemMessage;
-import eu.occtet.bocfrontend.dao.CuratorTaskRepository;
-import eu.occtet.bocfrontend.entity.TaskStatus;
+import eu.occtet.boc.model.WorkTaskProgress;
+import eu.occtet.boc.model.WorkTaskStatus;
 import jakarta.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -35,27 +36,41 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  */
 @Service
-public class CuratorTaskProgressMonitor {
+public class WorkTaskProgressMonitor {
 
     @Autowired
-    private NatsService natsService;
+    NatsService natsService;
 
-    @Autowired
-    private CuratorTaskRepository curatorTaskRepository;
+    private static final Logger log = LogManager.getLogger(WorkTaskProgressMonitor.class);
 
-    private static final Logger log = LogManager.getLogger(CuratorTaskProgressMonitor.class);
+    private Map<String, WorkTaskProgress> taskProgressMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
         natsService.addProgressListener(this::onProgressMessage);
     }
 
-    @Transactional
     public void onProgressMessage(ProgressSystemMessage progressSystemMessage) {
         log.debug("Received progress update for task {}: {}%",progressSystemMessage.getTaskId(),progressSystemMessage.getProgressPercent());
-        curatorTaskRepository.findById(progressSystemMessage.getTaskId()).ifPresent(curatorTask -> {
-            curatorTask.setCurrentProgress(progressSystemMessage.getProgressPercent());
-        });
+        taskProgressMap.put(progressSystemMessage.getTaskId(), systemMessageToWorkTaskProgress(progressSystemMessage));
+    }
+
+    private WorkTaskProgress systemMessageToWorkTaskProgress(ProgressSystemMessage m) {
+        WorkTaskStatus status = WorkTaskStatus.IN_PROGRESS;
+        if (m.getProgressPercent() >= 100) {
+            status = WorkTaskStatus.COMPLETED;
+        } else if(m.getProgressPercent()==0) {
+            status = WorkTaskStatus.INIT;
+        }
+        return new WorkTaskProgress(m.getProgressPercent(), status, m.getDetails());
+    }
+
+    public List<WorkTaskProgress> getAllProgress() {
+        return taskProgressMap.values().stream().toList();
+    }
+
+    public WorkTaskProgress getProgressForTask(String taskId) {
+        return taskProgressMap.get(taskId);
     }
 
 
