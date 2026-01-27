@@ -2,6 +2,7 @@ package eu.occtet.boc.service;
 
 import eu.occtet.boc.util.OnProgress;
 
+
 /*
  *
  *  Copyright (C) 2025 Bitsea GmbH
@@ -25,7 +26,6 @@ import eu.occtet.boc.util.OnProgress;
  */
 public abstract class ProgressReportingService {
 
-
     private OnProgress onProgress;
 
     public void setOnProgress(OnProgress notifyProgress) {
@@ -35,7 +35,7 @@ public abstract class ProgressReportingService {
     protected void notifyProgress(int percent, String details) {
         if(onProgress != null) {
             onProgress.onProgress(percent,details);
-        }
+        } else System.out.println("(no progress handler) Progress: " + percent + "% - " + details);
     }
 
 

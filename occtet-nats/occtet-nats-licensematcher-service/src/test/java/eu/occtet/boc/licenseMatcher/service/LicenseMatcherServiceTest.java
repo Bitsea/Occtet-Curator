@@ -27,17 +27,13 @@ import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.SoftwareComponent;
-import eu.occtet.boc.model.FossReportServiceWorkData;
 import eu.occtet.boc.model.ScannerSendWorkData;
-import eu.occtet.boc.model.WorkTask;
 import io.nats.client.JetStreamApiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;

@@ -43,7 +43,7 @@ public class ConfigurationService {
     }
 
     public Configuration.Type getTypeOfConfiguration(String key, CuratorTask curatorTask) {
-        return importManager.findImportByName(curatorTask.getTaskName()).getTypeOfConfiguration(key);
+        return importManager.findImportByName(curatorTask.getTaskType()).getTypeOfConfiguration(key);
     }
 
     /**

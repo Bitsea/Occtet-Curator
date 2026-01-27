@@ -33,7 +33,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = StatusDescriptor.class, name = "status"),
-        @JsonSubTypes.Type(value = MicroserviceDescriptor.class, name = "descriptor")
+        @JsonSubTypes.Type(value = MicroserviceDescriptor.class, name = "descriptor"),
+        @JsonSubTypes.Type(value = ProgressSystemMessage.class, name = "progress")
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class BaseSystemMessage {

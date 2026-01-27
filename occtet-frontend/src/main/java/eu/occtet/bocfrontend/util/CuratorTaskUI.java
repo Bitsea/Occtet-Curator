@@ -1,6 +1,7 @@
 package eu.occtet.bocfrontend.util;
 
 import com.vaadin.flow.component.icon.Icon;
+import eu.occtet.boc.model.WorkTaskStatus;
 import eu.occtet.bocfrontend.entity.CuratorTask;
 import io.jmix.flowui.kit.component.ComponentUtils;
 
@@ -26,17 +27,11 @@ import io.jmix.flowui.kit.component.ComponentUtils;
  *
  */
 public class CuratorTaskUI {
-    public static Icon iconForTask(CuratorTask task) {
+    public static Icon iconForTaskStatus(WorkTaskStatus status) {
 
-        switch(task.getStatus()) {
-            case CREATING: {
+        switch(status) {
+            case INIT: {
                 Icon icon = ComponentUtils.parseIcon("vaadin:clock");
-                icon.setColor("orange");
-                return icon;
-            }
-            case APPROVE:
-            {
-                Icon icon = ComponentUtils.parseIcon("vaadin:flag");
                 icon.setColor("orange");
                 return icon;
             }
