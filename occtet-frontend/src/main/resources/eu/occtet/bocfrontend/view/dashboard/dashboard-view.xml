@@ -48,17 +48,24 @@
 
     <facets>
         <dataLoadCoordinator auto="true"/>
+        <timer id="refreshTimer" delay="1000" autostart="true" repeating="true"/>
     </facets>
 
     <layout>
         <vbox width="100%" height="100%" expand="vulnerabilitiesGrid">
 
+            <hbox width="100%" alignItems="STRETCH">
             <entityComboBox id="projectSelector"
                             label="msg://eu.occtet.bocfrontend.view.dashboard/dashboardView.projectSelector"
                             themeNames="small"
                             itemsContainer="projectsDc"
                             metaClass="Project"
                             width="20em"/>
+                <vbox>
+                    <span text="msg://dashboardView.runningTasks"/>
+                    <listBox id="runningTasksList" width="700px" height="100px" readOnly="true" />
+                </vbox>
+            </hbox>
 
             <dataGrid id="vulnerabilitiesGrid"
                       dataContainer="vulnerabilitiesDc"

@@ -19,11 +19,11 @@
   -->
 
 <view xmlns="http://jmix.io/schema/flowui/view"
-      title="msg://eu.occtet.bocfrontend.view.importtask/importTask.title"
+      title="msg://eu.occtet.bocfrontend.view.curatortask/curatorTask.title"
       focusComponent="form">
     <data>
-        <instance id="importTaskDc"
-                  class="eu.occtet.bocfrontend.entity.ImportTask">
+        <instance id="curatorTaskDc"
+                  class="eu.occtet.bocfrontend.entity.CuratorTask">
             <loader/>
         </instance>
         <collection id="configurationsDc" class="eu.occtet.bocfrontend.entity.Configuration">
@@ -39,14 +39,17 @@
     </actions>
     <layout>
         <image id="iconPlaceholder" width="80px" height="80px"/>
-        <h3 id="importField"/>
+        <h3 id="curatorTaskField"/>
         <h6 id="description"/>
-        <formLayout id="form" dataContainer="importTaskDc" width="100%" labelsPosition="ASIDE">
+        <formLayout id="form" dataContainer="curatorTaskDc" width="100%" labelsPosition="ASIDE">
             <responsiveSteps>
                 <responsiveStep minWidth="0" columns="3"/>
             </responsiveSteps>
             <formItem label="msg://eu.occtet.bocfrontend.view.project/projectDetailView.title">
                 <comboBox id="projectComboBox"  allowCustomValue="false" title="msg://eu.occtet.bocfrontend.view.project/projectListView.title" colspan="1" css="margin-left: 15px"/>
+            </formItem>
+            <formItem id="importNameField" label="msg://eu.occtet.bocfrontend.view.importer/importName">
+                <textField id="importName"/>
             </formItem>
             <span colspan="2"/>
             <formItem colspan="2" label="msg://eu.occtet.bocfrontend.view.configuration/configurationDetailView.title">

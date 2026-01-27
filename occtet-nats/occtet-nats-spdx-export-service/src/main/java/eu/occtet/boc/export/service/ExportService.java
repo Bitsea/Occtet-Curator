@@ -18,15 +18,14 @@
 
 package eu.occtet.boc.export.service;
 
-import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.entity.Project;
-import eu.occtet.boc.entity.spdxV2.*;
-import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.dao.SpdxDocumentRootRepository;
+import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.entity.Project;
+import eu.occtet.boc.entity.spdxV2.*;
 import eu.occtet.boc.model.SpdxExportWorkData;
-import eu.occtet.boc.service.BaseWorkDataProcessor;
+import eu.occtet.boc.service.ProgressReportingService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
@@ -54,7 +53,7 @@ import java.util.stream.Collectors;
 
 @Transactional
 @Service
-public class ExportService extends BaseWorkDataProcessor {
+public class ExportService  extends ProgressReportingService  {
 
     private static final Logger log = LogManager.getLogger(ExportService.class);
 
@@ -67,7 +66,6 @@ public class ExportService extends BaseWorkDataProcessor {
     @Autowired
     AnswerService answerService;
 
-    @Override
     public boolean process(SpdxExportWorkData spdxExportWorkData) {
         log.info("exporting spdx!");
         return createDocument(spdxExportWorkData);
@@ -82,6 +80,7 @@ public class ExportService extends BaseWorkDataProcessor {
             log.info("fetching project with id: {}", spdxExportWorkData.getProjectId());
             Optional<Project> project = projectRepository.findById(Long.parseLong(spdxExportWorkData.getProjectId()));
             if (project.isEmpty()) return false;
+            notifyProgress(10,"Project fetched");
 
             log.info("fetching document with id: {}", spdxExportWorkData.getSpdxDocumentId());
             Optional<SpdxDocumentRoot> spdxDocumentRootOpt = spdxDocumentRootRepository.findByDocumentUri(spdxExportWorkData.getSpdxDocumentId());
@@ -111,6 +110,8 @@ public class ExportService extends BaseWorkDataProcessor {
             spdxDocument.setDataLicense(LicenseInfoFactory.parseSPDXLicenseStringCompatV2(
                     spdxDocumentRoot.getDataLicense(), modelStore, documentUri, null));
 
+            notifyProgress(20,"created creationInfo");
+
             log.info("create extractedLicense info");
             spdxDocumentRoot.getHasExtractedLicensingInfos().forEach(extractedLicense -> {
                 try {
@@ -133,6 +134,7 @@ public class ExportService extends BaseWorkDataProcessor {
                 }
             });
             spdxDocument.setExternalDocumentRefs(externalRefs);
+            notifyProgress(40,"created externalDocumentRefs");
 
             log.info("map files");
             Map<String, SpdxFileEntity> fileEntityMap = spdxDocumentRoot.getFiles().stream()
@@ -147,6 +149,7 @@ public class ExportService extends BaseWorkDataProcessor {
                     elementMap.put(pkg.getId(), pkg);
                 }
             }
+            notifyProgress(70,"mapped files ");
 
             spdxDocumentRoot.getRelationships().forEach(relationship -> {
                 try {
@@ -176,6 +179,7 @@ public class ExportService extends BaseWorkDataProcessor {
                     log.error("Error adding relationship", e);
                 }
             });
+            notifyProgress(90,"added relationships");
 
             try (ByteArrayOutputStream out = new ByteArrayOutputStream();
                  java.io.BufferedOutputStream bufferedOut = new java.io.BufferedOutputStream(out)) {
@@ -187,7 +191,7 @@ public class ExportService extends BaseWorkDataProcessor {
 
                 answerService.putIntoBucket(objectStoreKey, out.toByteArray());
             }
-
+            notifyProgress(100,"completed");
             return true;
         } catch (Exception e) {
             log.error("Unexpected error during SPDX creation", e);

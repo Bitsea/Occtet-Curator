@@ -1,3 +1,7 @@
+package eu.occtet.boc.service;
+
+import eu.occtet.boc.util.OnProgress;
+
 /*
  *
  *  Copyright (C) 2025 Bitsea GmbH
@@ -19,18 +23,20 @@
  * /
  *
  */
+public abstract class ProgressReportingService {
 
-package eu.occtet.boc.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+    private OnProgress onProgress;
 
-/**
- * the WorkTask which will be sent to microservices. See BaseWorkData for how to transfer actual data.
- * @param taskId unique id of the task the microservice should execute
- * @param details (optional) details (only a string)
- * @param timestamp set by the sender
- * @param workData required data for executing the task. Use the appropriate subclass of BaseWorkData or create your own for your task/microservice
- */
-@JsonDeserialize
-public record WorkTask(long taskId, String details,long timestamp, BaseWorkData workData) {
+    public void setOnProgress(OnProgress notifyProgress) {
+        onProgress = notifyProgress;
+    }
+
+    protected void notifyProgress(int percent, String details) {
+        if(onProgress != null) {
+            onProgress.onProgress(percent,details);
+        }
+    }
+
+
 }

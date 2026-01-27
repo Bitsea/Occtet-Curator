@@ -148,10 +148,10 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
      * @throws JetStreamApiException
      * @throws IOException
      */
-    private void sendAnswerToStream(AILicenseMatcherWorkData aiLicenseMatcherWorkData) throws JetStreamApiException, IOException {
+    private void sendAnswerToStream(AILicenseMatcherWorkData aiLicenseMatcherWorkData) {
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("process_inventoryItems", "sending inventoryItem to next microservice according to config", actualTimestamp, aiLicenseMatcherWorkData);
+        WorkTask workTask = new WorkTask(0, "sending inventoryItem to next microservice according to config", actualTimestamp, aiLicenseMatcherWorkData);
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String message = objectMapper.writeValueAsString(workTask);

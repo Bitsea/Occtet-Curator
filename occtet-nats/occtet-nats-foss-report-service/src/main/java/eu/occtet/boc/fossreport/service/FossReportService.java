@@ -223,7 +223,7 @@ public class FossReportService extends BaseWorkDataProcessor {
         VulnerabilityServiceWorkData vulnerabilityServiceWorkData =
                 new VulnerabilityServiceWorkData(inventoryItem.getSoftwareComponent().getId());
         WorkTask workTask = new WorkTask(
-                "vulnerability_task",
+                44,
                 "sending software component to vulnerability microservice",
                 LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().getEpochSecond(),
                 vulnerabilityServiceWorkData);
@@ -309,7 +309,7 @@ public class FossReportService extends BaseWorkDataProcessor {
         log.debug("SEND inventoryId {}", sendWorkData.getInventoryItemId());
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("process_inventoryItems", "sending inventoryItem to next microservice according to config", actualTimestamp, sendWorkData);
+        WorkTask workTask = new WorkTask(55, "sending inventoryItem to next microservice according to config", actualTimestamp, sendWorkData);
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String message = objectMapper.writeValueAsString(workTask);
