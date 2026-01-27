@@ -77,7 +77,8 @@ public class SpdxWorkConsumer extends WorkConsumer {
                         objectStore.delete(spdxWorkData.getJsonSpdx());
                         spdxWorkData.setJsonBytes(spdxBytes);
                         spdxService.setOnProgress((p,d)->{
-                            notifyProgress(workData.getTaskId(), p, d);
+                            log.debug("progress callback: {} {}", p, d);
+                            notifyProgress(workTask.taskId(), p, d);
                         });
                         return spdxService.process(spdxWorkData);
 

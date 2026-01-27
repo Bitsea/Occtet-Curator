@@ -52,6 +52,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class CopyrightFilterService  extends BaseWorkDataProcessor {
@@ -146,7 +147,7 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
     private void sendAnswerToStream(AICopyrightFilterWorkData aiCopyrightFilterWorkData) {
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask(77, "sending inventoryItem to next microservice according to config", actualTimestamp, aiCopyrightFilterWorkData);
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "sending inventoryItem to next microservice according to config", actualTimestamp, aiCopyrightFilterWorkData);
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String message = objectMapper.writeValueAsString(workTask);
