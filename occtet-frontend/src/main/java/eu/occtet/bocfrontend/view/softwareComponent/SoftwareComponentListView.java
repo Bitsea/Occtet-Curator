@@ -21,6 +21,7 @@ package eu.occtet.bocfrontend.view.softwareComponent;
 
 
 import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
@@ -31,16 +32,13 @@ import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.view.main.MainView;
+import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.component.combobox.JmixComboBox;
-import io.jmix.flowui.component.grid.DataGrid;
-import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.CollectionLoader;
-import io.jmix.flowui.model.DataLoader;
 import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -61,7 +59,13 @@ public class SoftwareComponentListView extends StandardListView<SoftwareComponen
     private HorizontalLayout filterBox;
 
     @Autowired
+    private DialogWindows dialogWindows;
+
+    @Autowired
     private ProjectRepository projectRepository;
+
+    @Autowired
+    private SoftwareComponentRepository softwareComponentRepository;
 
 
     @Subscribe
@@ -73,7 +77,8 @@ public class SoftwareComponentListView extends StandardListView<SoftwareComponen
     @Subscribe(id = "projectComboBox")
     public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
         if(event != null){
-            softwareComponentsDl.setParameter("project",event.getValue());
+            List<SoftwareComponent> softwareComponents = softwareComponentRepository.findByProject(event.getValue());
+            softwareComponentsDl.setParameter("softwareComponents",softwareComponents);
             softwareComponentsDl.load();
             filterBox.setVisible(true);
         }
@@ -92,6 +97,15 @@ public class SoftwareComponentListView extends StandardListView<SoftwareComponen
         });
     }
 
-
-
+    @Subscribe("softwareComponentsDataGrid")
+    public void clickOnSoftwareComponentDatagrid(ItemDoubleClickEvent<SoftwareComponent> event){
+        DialogWindow<SoftwareComponentDetailView> window =
+                dialogWindows.detail(this, SoftwareComponent.class)
+                        .withViewClass(SoftwareComponentDetailView.class)
+                        .editEntity(event.getItem())
+                        .build();
+        window.setWidth("100%");
+        window.setHeight("100%");
+        window.open();
+    }
 }

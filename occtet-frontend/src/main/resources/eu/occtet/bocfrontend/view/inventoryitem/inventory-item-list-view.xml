@@ -53,7 +53,7 @@
             <genericFilter id="genericFilter" dataLoader="inventoryItemsDl" themeNames="small" alignSelf="START" opened="false">
                 <properties include=".*"/>
             </genericFilter>
-            <simplePagination id="pagination" dataLoader="inventoryItemsDl" alignSelf="END"/>
+            <simplePagination id="pagination" dataLoader="inventoryItemsDl" itemsPerPageItems="100"  alignSelf="END"/>
         </hbox>
         <dataGrid classNames="occtet-grid" id="inventoryItemsDataGrid"
                   width="100%"
@@ -74,7 +74,6 @@
                 <column property="linking" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.linking"/>
                 <column property="wasCombined" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.wasCombined"/>
                 <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
-                <column property="project.projectName" header="msg://eu.occtet.bocfrontend.view.project/Project.name"/>
             </columns>
         </dataGrid>
         <hbox id="buttonsPanel" classNames="buttons-panel">

@@ -27,10 +27,7 @@
                     class="eu.occtet.bocfrontend.entity.License" fetchPlan="_local">
             <loader id="licensesDl" readOnly="true">
                 <query>
-                    <![CDATA[select distinct l from InventoryItem i
-                    join i.project p
-                    join i.softwareComponent sc
-                    join sc.licenses l where p = :project]]>
+                    <![CDATA[select l from License l where l in :licenses]]>
                 </query>
             </loader>
         </collection>
@@ -52,7 +49,7 @@
                 <genericFilter id="genericFilter" dataLoader="licensesDl" themeNames="small" alignSelf="START" opened="false" autoApply="true">
                     <properties include=".*"/>
                 </genericFilter>
-                <simplePagination id="pagination" dataLoader="licensesDl" alignSelf="END"/>
+                <simplePagination id="pagination" dataLoader="licensesDl" itemsPerPageItems="100"  alignSelf="END"/>
             </hbox>
             <dataGrid classNames="occtet-grid" id="licensesDataGrid"
                       width="100%"

@@ -19,7 +19,6 @@
 
 package eu.occtet.bocfrontend.dao;
 
-import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.VexData;
 import eu.occtet.bocfrontend.entity.Vulnerability;
@@ -35,4 +34,6 @@ public interface VexDataRepository extends JmixDataRepository<VexData, Long> {
 
     List<VexData> findBySoftwareComponent(SoftwareComponent softwareComponent);
     List<VexData> findBySoftwareComponentAndVulnerability(SoftwareComponent softwareComponent, List<Vulnerability> selected);
+    @Query("select v from VexData v join v.softwareComponent sc where sc in :softwareComponents")
+    List<VexData> findBySoftwareComponents(List<SoftwareComponent> softwareComponents);
 }

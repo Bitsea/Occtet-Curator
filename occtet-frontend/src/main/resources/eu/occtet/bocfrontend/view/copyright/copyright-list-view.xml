@@ -56,14 +56,12 @@
                       width="100%"
                       minHeight="30em"
                       dataContainer="copyrightsDc"
-                      columnReorderingAllowed="true">
+                      columnReorderingAllowed="false"
+                      detailsVisibleOnClick="false">
                 <columns resizable="true">
                     <column property="copyrightText" header="Name" width="50%"/>
                     <column property="garbage" header="msg://eu.occtet.bocfrontend.entity/Copyright.garbage" editable="true"/>
                 </columns>
-                <actions>
-                    <action id="editAction" type="list_edit"/>
-                </actions>
             </dataGrid>
             <hbox >
                 <button id="markButton" text="Change garbage value from selected copyrights" themeNames="primary" visible="false"/>

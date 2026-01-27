@@ -34,7 +34,6 @@ import io.jmix.core.DataManager;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.checkbox.JmixCheckbox;
 import io.jmix.flowui.component.combobox.JmixComboBox;
-import io.jmix.flowui.component.genericfilter.GenericFilter;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.CollectionContainer;
@@ -78,9 +77,6 @@ public class CopyrightListView extends StandardListView<Copyright> {
 
     @ViewComponent
     private HorizontalLayout filterBox;
-
-    @ViewComponent
-    private GenericFilter genericFilter;
 
     @ViewComponent
     private DataGrid<Copyright> copyrightsDataGrid;

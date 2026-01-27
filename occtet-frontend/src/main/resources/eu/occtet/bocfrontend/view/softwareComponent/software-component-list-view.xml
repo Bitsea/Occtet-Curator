@@ -30,10 +30,7 @@
             </fetchPlan>
             <loader id="softwareComponentsDl" readOnly="true">
                 <query>
-                    <![CDATA[select distinct sc from SoftwareComponent sc
-                    join sc.inventoryItems i
-                    join i.project p
-                    where p = :project]]>
+                    <![CDATA[select sc from SoftwareComponent sc where sc in :softwareComponents]]>
                 </query>
             </loader>
         </collection>
@@ -55,7 +52,7 @@
                 <genericFilter id="genericFilter" dataLoader="softwareComponentsDl" themeNames="small" alignSelf="START" opened="false">
                     <properties include=".*"/>
                 </genericFilter>
-                <simplePagination id="pagination" dataLoader="softwareComponentsDl" alignSelf="END"/>
+                <simplePagination id="pagination" dataLoader="softwareComponentsDl" itemsPerPageItems="100" alignSelf="END" />
             </hbox>
             <dataGrid classNames="occtet-grid" id="softwareComponentsDataGrid"
                       width="100%"

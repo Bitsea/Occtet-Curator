@@ -81,9 +81,6 @@ public class SoftwareComponent {
     @JoinColumn(name= "SOFTWARE_COMPONENT_ID")
     private List<Copyright> copyrights;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name= "SOFTWARE_COMPONENT_ID")
-    private List<InventoryItem> inventoryItems;
 
     public SoftwareComponent(){
         this.licenseAiControlled= false;

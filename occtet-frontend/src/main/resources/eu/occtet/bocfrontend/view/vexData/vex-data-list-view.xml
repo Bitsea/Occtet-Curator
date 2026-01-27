@@ -28,7 +28,7 @@
             </fetchPlan>
             <loader id="vexDataDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from VexData e]]>
+                    <![CDATA[select e from VexData e where e in :vexDataList]]>
                 </query>
             </loader>
         </collection>
@@ -50,7 +50,7 @@
                 <genericFilter id="genericFilter" dataLoader="vexDataDl" themeNames="small" alignSelf="START" opened="false">
                     <properties include=".*"/>
                 </genericFilter>
-                <simplePagination id="pagination" dataLoader="vexDataDl" alignSelf="END"/>
+                <simplePagination id="pagination" dataLoader="vexDataDl" itemsPerPageItems="100"  alignSelf="END"/>
             </hbox>
             <dataGrid classNames="occtet-grid" id="vexDataDataGrid"
                       width="100%"
