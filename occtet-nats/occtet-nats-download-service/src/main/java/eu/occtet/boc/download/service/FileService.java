@@ -154,8 +154,8 @@ public class FileService {
                          InventoryItem inventoryItem, Path relativeAnchor, Path projectRootAnchor,
                          Map<String, CodeLocation> codeLocationMap) {
         log.debug("Scanning directory {}", directory.getAbsolutePath());
-        log.debug("Calculated artifact path: {}, calculated project path: {}", relativeAnchor.toString(),
-                projectRootAnchor.toString());
+        log.debug("Calculated artifact path: {}, calculated project path: {}", relativeAnchor.getFileName(),
+                projectRootAnchor.getFileName());
 
         java.io.File[] files = directory.listFiles();
         if (files == null) return;
