@@ -130,6 +130,7 @@ public class DownloadServiceTest {
         String downloadUrl = "http://localhost:" + localPort + "/dummy-repo.zip";
 
         Project mockProject = new Project();
+        mockProject.setId(projectId);
         mockProject.setProjectName("my-target-project");
 
         SoftwareComponent mockComponent = new SoftwareComponent();
@@ -149,7 +150,7 @@ public class DownloadServiceTest {
 
         // Logic: [Base] / [ProjectName] / [RepoName] / [Version] / [InternalZipPath]
         Path expectedFile = rootPath
-                .resolve("my-target-project")  // From project.getProjectName()
+                .resolve("my-target-project_" + projectId)  // From project.getProjectName()
                 .resolve("dummy-repo")         // From URL
                 .resolve("1.0.0")              // From Version
                 .resolve("dummy-project")      // Inside ZIP
@@ -165,7 +166,7 @@ public class DownloadServiceTest {
 
         // Logic: [Base] / dependencies / [RepoName] / [Version] / ...
         Path expectedDepFile = rootPath
-                .resolve("my-target-project")
+                .resolve("my-target-project_" + projectId)
                 .resolve("dependencies")
                 .resolve("dummy-repo")
                 .resolve("1.0.0")
@@ -173,7 +174,7 @@ public class DownloadServiceTest {
                 .resolve("dummy-main")
                 .resolve("dummy-file.txt");
 
-        assertTrue(Files.exists(expectedDepFile), "Dependency file should exist in /dependencies folder");
+        assertTrue(Files.exists(expectedDepFile));
     }
 
     @Test
@@ -194,6 +195,7 @@ public class DownloadServiceTest {
         String resolvedZipUrl = "http://localhost:" + localPort + "/dummy-repo.zip";
 
         Project mockProject = new Project();
+        mockProject.setId(projectId);
         mockProject.setProjectName("git-project");
 
         SoftwareComponent mockComponent = new SoftwareComponent();
@@ -213,7 +215,7 @@ public class DownloadServiceTest {
         assertTrue(result);
 
         Path expectedFile = rootPath
-                .resolve("git-project")     // project.getProjectName()
+                .resolve("git-project_" + projectId)
                 .resolve("dummy-repo")      // From Git URL repo name
                 .resolve("1.0.0")
                 .resolve("dummy-project")   // Inside Zip

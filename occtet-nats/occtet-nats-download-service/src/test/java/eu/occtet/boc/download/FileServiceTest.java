@@ -97,7 +97,7 @@ public class FileServiceTest {
         assertEquals("subFolder1", childFile.getParent().getFileName());
 
         assertEquals("subFolder1/childFile1.txt", childFile.getArtifactPath());
-        assertEquals("subFolder1/childFile1.txt", childFile.getProjectPath());
+        assertEquals("parent1/subFolder1/childFile1.txt", childFile.getProjectPath());
 
         // B. Test SubFolder
         File subFolderEntity = childFile.getParent();
@@ -149,19 +149,19 @@ public class FileServiceTest {
 
         assertEquals("childFile2.txt", childFile.getArtifactPath());
 
-        assertEquals("dependencies/subFolder2/childFile2.txt", childFile.getProjectPath());
+        assertEquals("parent1/dependencies/subFolder2/childFile2.txt", childFile.getProjectPath());
 
         // B. Test SubFolder2 (The Scan Root)
         File subFolderEntity = childFile.getParent();
 
         assertEquals("", subFolderEntity.getArtifactPath());
-        assertEquals("dependencies/subFolder2", subFolderEntity.getProjectPath());
+        assertEquals("parent1/dependencies/subFolder2", subFolderEntity.getProjectPath());
 
         // C. Test Auto-Generated Hierarchy (dependencies)
         File dependenciesEntity = subFolderEntity.getParent();
         assertNotNull(dependenciesEntity);
 
         assertEquals("dependencies", dependenciesEntity.getArtifactPath());
-        assertEquals("dependencies", dependenciesEntity.getProjectPath());
+        assertEquals("parent1/dependencies", dependenciesEntity.getProjectPath());
     }
 }

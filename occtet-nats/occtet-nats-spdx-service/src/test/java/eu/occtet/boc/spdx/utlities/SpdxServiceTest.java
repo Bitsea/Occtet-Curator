@@ -111,10 +111,9 @@ public class SpdxServiceTest {
         try {
             Mockito.when(answerService.sendToDownload(
                     Mockito.anyString(),
-                    Mockito.anyString(),
                     Mockito.anyLong(),
-                    Mockito.anyBoolean(),
-                    Mockito.anyString()
+                    Mockito.anyLong(),
+                    Mockito.anyBoolean()
             )).thenReturn(true);
 
             Mockito.when(answerService.prepareAnswers(Mockito.anyList(), Mockito.eq(true), Mockito.eq(true),
@@ -141,6 +140,9 @@ public class SpdxServiceTest {
 
             Project project = new Project();
             project.setId(PROJECT_ID);
+            project.setProjectName("example-project");
+
+            projectRepository.save(project);
 
             spdxWorkData.setProjectId(PROJECT_ID);
             spdxWorkData.setUseCopyrightAi(true);

@@ -32,7 +32,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Converter(autoApply = true)
+@Converter
 public class StringListJsonbConverter implements AttributeConverter<List<String>, PGobject> {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();

@@ -224,12 +224,14 @@ public class FileService {
 
         String relativeToProject = getRelativePath(projectParentAnchor, startDirectory);
 
+        String relativeToRoot = getRelativePath(projectRootPathObj, startDirectory);
+
         File newEntity = fileFactory.create(
                 project,
                 startDirectory.getName(),
                 currentPhysicalPath,
                 relativeToProject,
-                relativeToProject,
+                relativeToRoot,
                 true,
                 parentOfThis,
                 null,
