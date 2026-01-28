@@ -33,6 +33,7 @@ import eu.occtet.bocfrontend.service.CuratorTaskService;
 import eu.occtet.bocfrontend.service.NatsService;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.Messages;
+import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.download.Downloader;
