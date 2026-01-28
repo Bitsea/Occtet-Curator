@@ -19,17 +19,81 @@
 
 package eu.occtet.bocfrontend.view.project;
 
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile;
+import eu.occtet.bocfrontend.service.Utilities;
 import eu.occtet.bocfrontend.view.main.MainView;
-import io.jmix.flowui.view.EditedEntityContainer;
-import io.jmix.flowui.view.StandardDetailView;
-import io.jmix.flowui.view.ViewController;
-import io.jmix.flowui.view.ViewDescriptor;
+import io.jmix.core.Messages;
+import io.jmix.flowui.Dialogs;
+import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.kit.action.ActionPerformedEvent;
+import io.jmix.flowui.view.*;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Route(value = "projects/:id", layout = MainView.class)
 @ViewController(id = "Project.detail")
 @ViewDescriptor(path = "project-detail-view.xml")
 @EditedEntityContainer("projectDc")
 public class ProjectDetailView extends StandardDetailView<Project> {
+
+    @ViewComponent
+    private DataGrid<SearchTermsProfile> searchTermsProfilesDataGrid;
+    @Autowired
+    private Messages messages;
+    @Autowired
+    private UiComponents uiComponents;
+    @Autowired
+    private Utilities utilities;
+    @Autowired
+    private Dialogs dialogs;
+
+    @Subscribe
+    protected void onInit(InitEvent event) {
+        initHeaderForDataGrid(searchTermsProfilesDataGrid, messages.getMessage("eu.occtet.bocfrontend.view.project/Project.h2.searchTermsProfile"));
+    }
+
+    private <E> void initHeaderForDataGrid(DataGrid<E> dataGrid, String title){
+        HeaderRow headerRow = dataGrid.prependHeaderRow();
+        HeaderRow.HeaderCell headerCell;
+        if (dataGrid.getColumns().size() <= 1){
+            headerCell = headerRow.getCell(dataGrid.getColumns().getFirst());
+        } else {
+            Collection<HeaderRow.HeaderCell> headerCells = dataGrid.getColumns().stream().map(headerRow::getCell).collect(Collectors.toList());
+
+            headerCell = headerRow.join(headerCells);
+        }
+        Span titleSpan = uiComponents.create(Span.class);
+        titleSpan.setText(title);
+        titleSpan.setClassName("occtet-dialog-title");
+        HorizontalLayout layout = new HorizontalLayout(titleSpan);
+        layout.setWidthFull();
+        layout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        headerCell.setComponent(layout);
+    }
+
+    @Subscribe("searchTermsProfilesDataGrid.showTerms")
+    public void onShowTerms(ActionPerformedEvent event){
+        SearchTermsProfile selected = searchTermsProfilesDataGrid.getSingleSelectedItem();
+        if (selected == null) return;
+        String formattedTerms = utilities.convertListToText(selected.getSearchTerms(), "; ");
+        if (formattedTerms.isEmpty()){
+            formattedTerms = "(No search terms found)";
+        }
+        dialogs.createMessageDialog()
+                .withHeader(messages.getMessage("eu.occtet.bocfrontend.view.project/projectDetailView.messageDialogShow.searchTerms"))
+                .withText(formattedTerms)
+                .withCloseOnOutsideClick(true)
+                .withCloseOnEsc(true)
+                .open();
+    }
 }

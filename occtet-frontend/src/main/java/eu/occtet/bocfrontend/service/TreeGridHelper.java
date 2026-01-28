@@ -32,7 +32,7 @@ import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
 import eu.occtet.bocfrontend.dao.FileRepository;
-import eu.occtet.bocfrontend.view.TabManager;
+import eu.occtet.bocfrontend.view.audit.TabManager;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.Project;
@@ -103,7 +103,8 @@ public class TreeGridHelper {
 
     public void copyToClipboard(String text) {
         UiComponentUtils.copyToClipboard(text)
-                .then(success -> notifications.create(messages.getMessage("eu.occtet.bocfrontend.view.audit/notification.copySuccess"))
+                .then(success -> notifications.create(messages.getMessage("eu.occtet.bocfrontend.view.audit/notification.copySuccess")
+                                + " " + text)
                                 .withPosition(Notification.Position.BOTTOM_END)
                                 .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
                                 .show(),
@@ -168,8 +169,12 @@ public class TreeGridHelper {
                     event -> copyToClipboard(file.getFileName()));
 
             contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CLIPBOARD_TEXT,
-                            messages.getMessage("eu.occtet.bocfrontend.view.audit/context.copyPath")),
-                    event -> copyToClipboard(file.getAbsolutePath()));
+                            messages.getMessage("eu.occtet.bocfrontend.view.audit/context.projectPath")),
+                    event -> copyToClipboard(file.getProjectPath()));
+
+            contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CLIPBOARD_TEXT,
+                            messages.getMessage("eu.occtet.bocfrontend.view.audit/context.artifactPath")),
+                    event -> copyToClipboard(file.getArtifactPath()));
 
             boolean isReviewed = Boolean.TRUE.equals(file.getReviewed());
             if (isReviewed) {
