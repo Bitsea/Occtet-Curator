@@ -20,20 +20,25 @@
 package eu.occtet.bocfrontend.view.license;
 
 
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.LicenseRepository;
+import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.service.SPDXLicenseService;
 import eu.occtet.bocfrontend.view.main.MainView;
 import eu.occtet.bocfrontend.view.services.LicenseTextService;
 import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
+import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.grid.DataGridColumn;
-import io.jmix.flowui.kit.action.ActionPerformedEvent;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.CollectionLoader;
@@ -44,10 +49,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.beans.PropertyChangeEvent;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -88,6 +91,33 @@ public class LicenseListView extends StandardListView<License> {
 
     @Autowired
     private LicenseRepository licenseRepository;
+
+    @ViewComponent
+    private JmixComboBox<Project> projectComboBox;
+
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @ViewComponent
+    private HorizontalLayout filterBox;
+
+
+
+    @Subscribe
+    public void onInit(InitEvent event){
+        projectComboBox.setItems(projectRepository.findAll());
+        projectComboBox.setItemLabelGenerator(Project::getProjectName);
+    }
+
+    @Subscribe(id = "projectComboBox")
+    public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
+        if(event != null){
+            List<License> licensesProject = licenseRepository.findLicensesByProject(event.getValue());
+            licensesDl.setParameter("licenses",licensesProject);
+            licensesDl.load();
+            filterBox.setVisible(true);
+        }
+    }
 
     @Subscribe(id = "textSearchLicense", subject = "singleClickListener")
     public void onTextSearchLicenseClick(final ClickEvent<JmixButton> event) {
@@ -142,9 +172,15 @@ public class LicenseListView extends StandardListView<License> {
         licensesDl.load();
     }
 
-
-
-
-
-
+    @Subscribe("licensesDataGrid")
+    public void clickOnLicenseDatagrid(ItemDoubleClickEvent<License> event){
+        DialogWindow<LicenseDetailView> window =
+                dialogWindows.detail(this, License.class)
+                        .withViewClass(LicenseDetailView.class)
+                        .editEntity(event.getItem())
+                        .build();
+        window.setWidth("100%");
+        window.setHeight("100%");
+        window.open();
+    }
 }

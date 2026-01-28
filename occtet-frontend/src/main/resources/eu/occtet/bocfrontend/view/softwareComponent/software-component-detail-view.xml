@@ -81,7 +81,7 @@
             </tab>
             <tab id="vulnerabilitiesTab" label="msg://VulnerabilitiesTab.label">
                 <vbox width="100%" alignItems="CENTER" alignSelf="END" height="100%">
-                    <dataGrid id="vulnerabilityDataContainer" dataContainer="vulnerabilityDc" themeNames="">
+                    <dataGrid id="vulnerabilityDataContainer" dataContainer="vulnerabilityDc" themeNames="" classNames="occtet-grid">
                         <columns resizable="true" sortable="true">
                             <column property="vulnerabilityId" header="msg://Id"/>
                             <column property="aliases" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.aliases" autoWidth="true"/>

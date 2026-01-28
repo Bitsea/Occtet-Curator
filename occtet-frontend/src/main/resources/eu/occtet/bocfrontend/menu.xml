@@ -27,7 +27,7 @@
           icon="vaadin:doctor-briefcase"/>
     <item view="InventoryItem.list" title="msg://eu.occtet.bocfrontend.view.inventoryitem/inventoryItemListView.title"
           icon="vaadin:archives"/>
-    <item view="Copyright.list" title="msg://eu.occtet.bocfrontend.view.copyright/copyrightListView.title"
+    <item view="Copyright.list" title="Copyrights Quick-Check"
           icon="vaadin:copyright"/>
     <item view="License.list" title="msg://eu.occtet.bocfrontend.view.license/licenseListView.title"
           icon="vaadin:file-text-o"/>
