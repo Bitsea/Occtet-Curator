@@ -49,6 +49,11 @@
         <collection id="licenseDc"
                     class="eu.occtet.bocfrontend.entity.License">
             <fetchPlan extends="_base"/>
+            <loader id="licensesDl">
+                <query>
+                    <![CDATA[select e from License e]]>
+                </query>
+            </loader>
         </collection>
         <collection id="copyrightDc"
                     class="eu.occtet.bocfrontend.entity.Copyright">
@@ -103,75 +108,6 @@
                     <htmlObject colspan="2">
                         <hr></hr>
                     </htmlObject>
-                    <hbox spacing="true" width="100%" colspan="2">
-                        <vbox spacing="true" alignItems="CENTER" width="50%">
-                            <dataGrid id="licensesDataGrid"
-                                      width="100%"
-                                      height="20em"
-                                      dataContainer="licenseDc">
-                                <columns>
-                                    <column property="licenseType" header="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.license"/>
-                                </columns>
-                            </dataGrid>
-                            <hbox>
-                                <dropdownButton id="editLicense" text="edit" icon="lumo:edit"
-                                                dropdownIndicatorVisible="false" themeNames="small">
-                                    <items>
-                                        <componentItem id="createLicense">
-                                            <hbox padding="false">
-                                                <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.create"/>
-                                            </hbox>
-                                        </componentItem>
-                                        <componentItem id="addLicense">
-                                            <hbox padding="false">
-                                                <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.add"/>
-                                            </hbox>
-                                        </componentItem>
-                                        <componentItem id="removeLicense">
-                                            <hbox padding="false">
-                                                <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.remove"/>
-                                            </hbox>
-                                        </componentItem>
-                                    </items>
-                                </dropdownButton>
-                                <button id="removeLicenseButton" icon="TRASH" visible="false" themeNames="error small"/>
-                            </hbox>
-                        </vbox>
-                        <vbox spacing="true" alignItems="CENTER" width="50%">
-                            <dataGrid id="copyrightsDataGrid"
-                                      width="100%"
-                                      height="20em"
-                                      dataContainer="copyrightDc">
-                                <columns>
-                                    <column property="copyrightText" header="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.copyright.heaer"/>
-                                </columns>
-                            </dataGrid>
-                            <hbox>
-                                <dropdownButton id="editCopyright" text="edit" icon="lumo:edit"
-                                                dropdownIndicatorVisible="false" themeNames="small">
-                                    <items>
-                                        <componentItem id="createCopyright">
-                                            <hbox padding="false">
-                                                <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.create"/>
-                                            </hbox>
-                                        </componentItem>
-                                        <componentItem id="addCopyright">
-                                            <hbox padding="false">
-                                                <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.add"/>
-                                            </hbox>
-                                        </componentItem>
-                                        <componentItem id="removeCopyright">
-                                            <hbox padding="false">
-                                                <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.remove"/>
-                                            </hbox>
-                                        </componentItem>
-                                    </items>
-                                </dropdownButton>
-                                <button id="removeCopyrightButton" icon="TRASH" visible="false"
-                                        themeNames="error small"/>
-                            </hbox>
-                        </vbox>
-                    </hbox>
                     <hbox>
                         <nativeLabel text="Created at: "/>
                         <nativeLabel id="createdField" property="createdAt" dataContainer="inventoryItemDc" colspan="2"/>
@@ -255,6 +191,105 @@
                            </vbox>
                         </hbox>
                     </split>
+                </vbox>
+            </tab>
+            <tab id="licenseTab" label="msg://eu.occtet.bocfrontend.view.audit/auditView.licenses">
+                <vbox width="100%" height="100%" alignItems="CENTER">
+                    <hbox width="100%">
+                        <genericFilter id="genericFilterLicense" dataLoader="licensesDl" themeNames="small"
+                                       alignSelf="START" opened="false">
+                            <properties include=".*"/>
+                            <conditions> </conditions>
+                        </genericFilter>
+                        <simplePagination id="paginationLicense" dataLoader="licensesDl" alignSelf="END"/>
+                    </hbox>
+                    <dataGrid id="licensesDataGrid"
+                              width="100%"
+                              height="20em"
+                              dataContainer="licenseDc"
+                              classNames="occtet-grid">
+                        <columns>
+                            <column property="licenseType" header="msg://eu.occtet.bocfrontend.entity/License"/>
+                            <column property="priority" header="msg://eu.occtet.bocfrontend.entity/LicenseType.priority"/>
+                            <column property="licenseText" header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseText"/>
+                            <column property="licenseName" header="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
+                            <column property="detailsUrl" header="msg://eu.occtet.bocfrontend.entity/License.detailsUrl"/>
+                            <column property="isModified" header="msg://eu.occtet.bocfrontend.entity/License.isModified"/>
+                            <column property="curated" header="msg://eu.occtet.bocfrontend.entity/License.curated"/>
+                            <column property="isSpdx" header="msg://eu.occtet.bocfrontend.entity/License.isSpdx"/>
+                        </columns>
+                    </dataGrid>
+                    <hbox>
+                        <dropdownButton id="editLicense" text="edit" icon="lumo:edit"
+                                        dropdownIndicatorVisible="false" themeNames="small">
+                            <items>
+                                <componentItem id="createLicense">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.create"/>
+                                    </hbox>
+                                </componentItem>
+                                <componentItem id="addLicense">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.add"/>
+                                    </hbox>
+                                </componentItem>
+                                <componentItem id="removeLicense">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.remove"/>
+                                    </hbox>
+                                </componentItem>
+                            </items>
+                        </dropdownButton>
+                        <button id="removeLicenseButton" icon="TRASH" visible="false" themeNames="error small"/>
+                    </hbox>
+                </vbox>
+            </tab>
+            <tab id="copyrightTab" label="msg://eu.occtet.bocfrontend.view.audit/auditView.copyrights">
+                <vbox width="100%" height="100%" alignItems="CENTER">
+                    <hbox width="100%">
+                        <genericFilter id="genericFilterCopyright" dataLoader="copyrightDl" themeNames="small"
+                                       alignSelf="START" opened="false">
+                            <properties include=".*"/>
+                            <conditions> </conditions>
+                        </genericFilter>
+                        <simplePagination id="paginationCopyright" dataLoader="copyrightDl" alignSelf="END"/>
+                    </hbox>
+                    <dataGrid id="copyrightsDataGrid"
+                              width="100%"
+                              height="20em"
+                              dataContainer="copyrightDc"
+                              classNames="occtet-grid">
+                        <columns>
+                            <column property="copyrightText" header="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.copyright.heaer"/>
+                            <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
+                            <column property="garbage" header="msg://eu.occtet.bocfrontend.entity/Copyright.garbage"/>
+                            <column property="aiControlled" header="Controlled by Ai"/>
+                        </columns>
+                    </dataGrid>
+                    <hbox>
+                        <dropdownButton id="editCopyright" text="edit" icon="lumo:edit"
+                                        dropdownIndicatorVisible="false" themeNames="small">
+                            <items>
+                                <componentItem id="createCopyright">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.create"/>
+                                    </hbox>
+                                </componentItem>
+                                <componentItem id="addCopyright">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.add"/>
+                                    </hbox>
+                                </componentItem>
+                                <componentItem id="removeCopyright">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.remove"/>
+                                    </hbox>
+                                </componentItem>
+                            </items>
+                        </dropdownButton>
+                        <button id="removeCopyrightButton" icon="TRASH" visible="false"
+                                themeNames="error small"/>
+                    </hbox>
                 </vbox>
             </tab>
             <suffix>

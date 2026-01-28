@@ -74,7 +74,7 @@
                                 <column property="filePath" header="msg://eu.occtet.bocfrontend.entity/CodeLocation.filePath"/>
                             </columns>
                         </dataGrid>
-                        <hbox id="detailActions">
+                        <hbox id="detailActions"  alignItems="CENTER" width="100%" justifySelf="CENTER">
                             <button id="saveAndCloseButton" action="saveAction"/>
                             <button id="closeButton" action="closeAction"/>
                         </hbox>

@@ -51,7 +51,6 @@
                 <genericFilter id="genericFilter" dataLoader="softwareComponentsDl" themeNames="small"
                                width="80%" alignSelf="START">
                     <properties include=".*"/>
-                    <conditions> </conditions>
                 </genericFilter>
                 <simplePagination id="pagination" dataLoader="softwareComponentsDl" alignSelf="END"/>
             </hbox>
