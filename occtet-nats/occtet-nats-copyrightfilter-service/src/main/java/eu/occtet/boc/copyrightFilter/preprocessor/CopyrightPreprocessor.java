@@ -24,7 +24,7 @@ package eu.occtet.boc.copyrightFilter.preprocessor;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.copyrightFilter.dao.CopyrightRepository;
+import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.model.CopyrightModel;
 import eu.occtet.boc.model.CopyrightText;
