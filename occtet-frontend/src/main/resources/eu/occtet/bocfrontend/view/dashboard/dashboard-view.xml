@@ -61,7 +61,7 @@
                             itemsContainer="projectsDc"
                             metaClass="Project"
                             width="20em"/>
-                <vbox>
+                <vbox alignSelf="END" >
                     <span text="msg://dashboardView.runningTasks"/>
                     <listBox id="runningTasksList" width="700px" height="100px" readOnly="true" />
                 </vbox>
