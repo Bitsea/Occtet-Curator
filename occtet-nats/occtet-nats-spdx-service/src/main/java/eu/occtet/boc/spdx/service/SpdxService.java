@@ -177,7 +177,7 @@ public class SpdxService extends ProgressReportingService  {
                         }
                 );
                 count++;
-                int progress = 20 + (int) (((double) count / packageUri.size()) * 40);
+                int progress = 20 + (int) ( (40*count) / packageUri.size());
                 if(progress%5 ==0)
                     notifyProgress(progress, "processing packages");
             }
@@ -221,7 +221,6 @@ public class SpdxService extends ProgressReportingService  {
                         log.error("Error sending answers to the answers service", e);
                     }
                     log.debug(("SENT"));
-
                     }
             });
 

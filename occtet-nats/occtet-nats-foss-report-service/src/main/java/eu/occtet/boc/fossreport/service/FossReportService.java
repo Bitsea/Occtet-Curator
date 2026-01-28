@@ -72,10 +72,6 @@ public class FossReportService extends BaseWorkDataProcessor {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
-    private ImportTaskRepository scannerInitializerRepository;
-    @Autowired
-    private ImportTaskService importTaskService;
-    @Autowired
     private ProjectRepository projectRepository;
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;

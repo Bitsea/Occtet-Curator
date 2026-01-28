@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.BaseWorkData;
 import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.model.WorkTask;
+import eu.occtet.boc.model.WorkTaskStatus;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.WorkConsumer;
 import io.nats.client.Connection;
@@ -78,13 +79,16 @@ public class SpdxWorkConsumer extends WorkConsumer {
                         spdxWorkData.setJsonBytes(spdxBytes);
                         spdxService.setOnProgress((p,d)->{
                             log.debug("progress callback: {} {}", p, d);
-                            notifyProgress(workTask.taskId(), p, d);
+                            notifyProgress(workTask.taskId(), workTask.name(), WorkTaskStatus.IN_PROGRESS, p, d);
                         });
-                        return spdxService.process(spdxWorkData);
+                        boolean res= spdxService.process(spdxWorkData);
+                        if(!res) notifyError(workTask.taskId(),workTask.name(), "error during processing");
+                        else notifyCompleted(workTask.taskId(),workTask.name());
+                        return res;
 
-                    } catch (java.io.IOException | io.nats.client.JetStreamApiException | java.lang.InterruptedException |
-                             java.security.NoSuchAlgorithmException e) {
-                       log.error("failed to get json from objectStore: {}", e.toString());
+                    } catch (Exception e) {
+                       log.error("failed to process spdx: {}", e.toString());
+                        notifyError(workTask.taskId(),workTask.name(), "error when getting spdx json from object store");
                         return false;
                     }
                 }
@@ -94,7 +98,7 @@ public class SpdxWorkConsumer extends WorkConsumer {
                 log.error("Could not process workData of type {}", workData.getClass().getName());
             }
         }
-        catch (JsonProcessingException e){
+        catch (Exception e){
             throw new RuntimeException(e);
         }
 

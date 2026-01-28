@@ -22,11 +22,13 @@ package eu.occtet.boc.model;
  *
  */
 public class WorkTaskProgress {
+    private String name;
     private int percent;
     private WorkTaskStatus status;
     private String details;
 
-    public WorkTaskProgress(int percent, WorkTaskStatus status, String details) {
+    public WorkTaskProgress(String name, int percent, WorkTaskStatus status, String details) {
+        this.name = name;
         this.percent = percent;
         this.status = status;
         this.details = details;
@@ -57,6 +59,14 @@ public class WorkTaskProgress {
 
     public void setDetails(String details) {
         this.details = details;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
 
