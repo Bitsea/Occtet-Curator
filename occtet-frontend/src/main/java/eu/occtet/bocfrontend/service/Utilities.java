@@ -21,6 +21,11 @@ package eu.occtet.bocfrontend.service;
 
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class Utilities {
 
@@ -31,5 +36,28 @@ public class Utilities {
         String separated = arg.replaceAll("([a-z])([A-Z])", "$1 $2");
         String firstLetter = separated.substring(0, 1).toUpperCase();
         return firstLetter + separated.substring(1);
+    }
+
+    /**
+     * Converts a text to list using breakers for seperation
+     */
+    public String convertListToText(List<String> list, String breaker) {
+        if (list == null || list.isEmpty()) {
+            return "";
+        }
+        return String.join(breaker, list);
+    }
+
+    /**
+     * Converts a list to text using breakers for seperation
+     */
+    public List<String> convertTextToList(String text, String breaker) {
+        if (text == null || text.isBlank()) {
+            return new ArrayList<>();
+        }
+        return Arrays.stream(text.split(breaker))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
     }
 }
