@@ -57,7 +57,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 public class FileServiceTest {
 
-
     @Autowired
     private TestEntityManager entityManager;
     @Autowired
@@ -67,50 +66,66 @@ public class FileServiceTest {
 
     @Test
     void testCreatingEntitiesFromPathOfMainPackage(@TempDir Path tempDir) throws IOException {
-        // Setup Filesystem
-        Path parent1 = Files.createDirectories(tempDir.resolve("parent1")); // Project Root
+        // Structure:
+        // tempDir/parent1 (Project Root)
+        //          |-- subFolder2 (Root of Scan)
+        //                |-- childFile2.txt
+        //          |-- childFile1.txt
+
+        Path parent1 = Files.createDirectories(tempDir.resolve("parent1"));
         Path subFolder = Files.createDirectories(parent1.resolve("subFolder1"));
         Files.createFile(parent1.resolve("rootFile1.txt"));
         Files.createFile(subFolder.resolve("childFile1.txt"));
 
-        // Setup Project
         Project project = new Project();
         project.setProjectName("TestProject");
-        project.setBasePath(parent1.toAbsolutePath().toString());
         entityManager.persistAndFlush(project);
 
-        fileService.createEntitiesFromPath(project, null, parent1, true);
+        String projectPath = parent1.toAbsolutePath().toString();
+
+        fileService.createEntitiesFromPath(project, null, parent1, projectPath);
 
         List<File> allFiles = fileRepository.findAll();
-        assertEquals(4, allFiles.size());
+        assertEquals(4, allFiles.size(), "Should find: parent1, rootFile1.txt, subFolder1, childFile1.txt");
 
-        // Test Child File
+        // A. test child file
         File childFile = allFiles.stream()
                 .filter(f -> f.getFileName().equals("childFile1.txt"))
                 .findFirst().orElseThrow();
+
         assertNotNull(childFile.getParent());
         assertEquals("subFolder1", childFile.getParent().getFileName());
-        assertEquals("subFolder1/childFile1.txt", childFile.getRelativePath());
 
-        // Test SubFolder
+        assertEquals("subFolder1/childFile1.txt", childFile.getArtifactPath());
+        assertEquals("parent1/subFolder1/childFile1.txt", childFile.getProjectPath());
+
+        // B. Test SubFolder
         File subFolderEntity = childFile.getParent();
         assertTrue(subFolderEntity.getIsDirectory());
-        assertEquals("subFolder1", subFolderEntity.getRelativePath());
+        assertEquals("subFolder1", subFolderEntity.getArtifactPath());
 
-        // Test Root File
+        // C. Test Root File
         File rootFile = allFiles.stream()
                 .filter(f -> f.getFileName().equals("rootFile1.txt"))
                 .findFirst().orElseThrow();
 
-        assertEquals("rootFile1.txt", rootFile.getRelativePath());
+        assertEquals("rootFile1.txt", rootFile.getArtifactPath());
         assertEquals(project.getId(), rootFile.getProject().getId());
 
-        assertNotNull(rootFile.getParent(), "Root file should have the main package folder as parent");
-        assertEquals("parent1", rootFile.getParent().getFileName());
+        // D. Test Project Root Folder Entity
+        File parentEntity = rootFile.getParent();
+        assertNotNull(parentEntity);
+        assertEquals("parent1", parentEntity.getFileName());
     }
 
     @Test
     void testCreatingEntitiesFromPathOfDependencyPackage(@TempDir Path tempDir) throws IOException {
+        // Structure:
+        // tempDir/parent1 (Project Root)
+        //    |-- dependencies
+        //          |-- subFolder2 (Root of Scan)
+        //                |-- childFile2.txt
+
         Path parent1 = Files.createDirectories(tempDir.resolve("parent1"));
         Path dependencies = Files.createDirectories(parent1.resolve("dependencies"));
         Path subFolder = Files.createDirectories(dependencies.resolve("subFolder2"));
@@ -118,32 +133,35 @@ public class FileServiceTest {
 
         Project project = new Project();
         project.setProjectName("TestProject");
-        project.setBasePath(parent1.toAbsolutePath().toString());
         entityManager.persistAndFlush(project);
 
-        fileService.createEntitiesFromPath(project, null, subFolder, false);
+        String projectPath = parent1.toAbsolutePath().toString();
+
+        fileService.createEntitiesFromPath(project, null, subFolder, projectPath);
 
         List<File> allFiles = fileRepository.findAll();
         assertEquals(3, allFiles.size());
 
+        // A. Test Child File
         File childFile = allFiles.stream()
                 .filter(f -> f.getFileName().equals("childFile2.txt"))
                 .findFirst().orElseThrow();
 
-        assertNotNull(childFile.getParent());
-        assertEquals("subFolder2", childFile.getParent().getFileName());
-        assertEquals("childFile2.txt", childFile.getRelativePath());
+        assertEquals("childFile2.txt", childFile.getArtifactPath());
 
+        assertEquals("parent1/dependencies/subFolder2/childFile2.txt", childFile.getProjectPath());
+
+        // B. Test SubFolder2 (The Scan Root)
         File subFolderEntity = childFile.getParent();
-        assertTrue(subFolderEntity.getIsDirectory());
-        assertEquals("", subFolderEntity.getRelativePath()); // relative starts always after project dir which is why
-        // this should be empty in this case
 
+        assertEquals("", subFolderEntity.getArtifactPath());
+        assertEquals("parent1/dependencies/subFolder2", subFolderEntity.getProjectPath());
+
+        // C. Test Auto-Generated Hierarchy (dependencies)
         File dependenciesEntity = subFolderEntity.getParent();
-        assertNotNull(dependenciesEntity, "Parent 'dependencies' folder should have been auto-created");
-        assertEquals("dependencies", dependenciesEntity.getRelativePath());
-        assertTrue(dependenciesEntity.getIsDirectory());
+        assertNotNull(dependenciesEntity);
+
+        assertEquals("dependencies", dependenciesEntity.getArtifactPath());
+        assertEquals("parent1/dependencies", dependenciesEntity.getProjectPath());
     }
 }
-
-

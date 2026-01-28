@@ -42,7 +42,7 @@ public class Copyright {
     private Long id;
 
     @InstanceName
-    @Column(name = "COPYRIGHT_TEXT")
+    @Column(name = "COPYRIGHT_TEXT", columnDefinition = "TEXT")
     private String copyrightText;
 
     @Column(name= "CURATED")

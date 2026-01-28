@@ -24,6 +24,7 @@ import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import io.jmix.core.repository.JmixDataRepository;
+import io.jmix.core.repository.Query;
 
 import java.util.List;
 
@@ -41,4 +42,6 @@ public interface InventoryItemRepository extends JmixDataRepository<InventoryIte
     List<InventoryItem> findInventoryItemsByInventoryNameAndSoftwareComponent(String name,SoftwareComponent softwareComponent);
     List<InventoryItem> findInventoryItemsByParent(InventoryItem item);
     List<InventoryItem> findInventoryItemsByProjectAndParent(Project project, InventoryItem item);
+    @Query("select distinct i from InventoryItem i join i.softwareComponent sc join i.project p where sc in :softwareComponents and p = :project")
+    List<InventoryItem> findBySoftwareComponentInAndProject(List<SoftwareComponent> softwareComponents, Project project);
 }

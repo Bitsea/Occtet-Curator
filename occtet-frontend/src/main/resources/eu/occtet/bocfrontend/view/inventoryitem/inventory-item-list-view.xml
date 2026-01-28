@@ -30,7 +30,9 @@
             </fetchPlan>
             <loader id="inventoryItemsDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from InventoryItem e]]>
+                    <![CDATA[select e from InventoryItem e
+                      join e.project p
+                      where p = :project]]>
                 </query>
             </loader>
         </collection>
@@ -46,13 +48,12 @@
         <action id="discardAction" type="lookup_discard"/>
     </actions>
     <layout>
-        <hbox width="100%">
-            <genericFilter id="genericFilter" dataLoader="inventoryItemsDl" themeNames="small"
-                           width="80%" alignSelf="START">
+        <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
+        <hbox width="100%" visible="false" id="filterBox">
+            <genericFilter id="genericFilter" dataLoader="inventoryItemsDl" themeNames="small" alignSelf="START" opened="false">
                 <properties include=".*"/>
-                <conditions> </conditions>
             </genericFilter>
-            <simplePagination id="pagination" dataLoader="inventoryItemsDl" alignSelf="END"/>
+            <simplePagination id="pagination" dataLoader="inventoryItemsDl" itemsPerPageItems="100"  alignSelf="END"/>
         </hbox>
         <dataGrid classNames="occtet-grid" id="inventoryItemsDataGrid"
                   width="100%"
@@ -73,7 +74,6 @@
                 <column property="linking" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.linking"/>
                 <column property="wasCombined" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.wasCombined"/>
                 <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
-                <column property="project.projectName" header="msg://eu.occtet.bocfrontend.view.project/Project.name"/>
             </columns>
         </dataGrid>
         <hbox id="buttonsPanel" classNames="buttons-panel">

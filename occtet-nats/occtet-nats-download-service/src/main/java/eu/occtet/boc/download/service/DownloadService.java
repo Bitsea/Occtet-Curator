@@ -22,11 +22,14 @@
 package eu.occtet.boc.download.service;
 
 
+import eu.occtet.boc.dao.AppConfigurationRepository;
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.download.controller.GitRepoController;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
+import eu.occtet.boc.entity.appconfigurations.AppConfigKey;
+import eu.occtet.boc.entity.appconfigurations.AppConfiguration;
 import eu.occtet.boc.model.DownloadServiceWorkData;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -89,6 +92,8 @@ public class DownloadService extends BaseWorkDataProcessor {
     private ProjectRepository projectRepository;
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
+    @Autowired
+    private AppConfigurationRepository appConfigurationRepository;
 
     /**
      * Orchestrates the download workflow for a specific {@link DownloadServiceWorkData} task.
@@ -103,31 +108,49 @@ public class DownloadService extends BaseWorkDataProcessor {
      */
     @Override
     public boolean process(DownloadServiceWorkData workData) {
-        log.debug("Processing download task for URL: {} -> {}", workData.getUrl(), workData.getLocation());
-
         try {
-            Project project = projectRepository.findById(Long.parseLong(workData.getProjectId())).orElse(null);
-            InventoryItem inventoryItem = inventoryItemRepository.findById(Long.parseLong(workData.getInventoryItemId())).orElse(null);
+            log.debug("Processing download task for URL: {} -> {}", workData.getDownloadURL());
+
+            Project project = projectRepository.findById(workData.getProjectId()).orElse(null);
+            InventoryItem inventoryItem = inventoryItemRepository.findById(workData.getInventoryItemId()).orElse(null);
+
+            String globalBasePath = appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH)
+                    .map(AppConfiguration::getValue)
+                    .orElseThrow(() -> new RuntimeException("General Base Path not configured!"));
+            String folderName = project.getProjectName() + "_" + project.getId();
+            Path projectDir = Paths.get(globalBasePath).resolve(folderName);
+
+            if (Files.notExists(projectDir)) {
+                Files.createDirectories(projectDir);
+            }
+
+            String path = projectDir.toString();
 
             if (project == null) {
                 log.error("Aborting download: Project not found for ID {}", workData.getProjectId());
                 return false;
             }
             if (inventoryItem == null) {
-                log.warn("Proceeding with warning: InventoryItem not found for ID {}", workData.getInventoryItemId());
+                log.error("Aborting download: InventoryItem not found for ID {}", workData.getInventoryItemId());
+                return false;
             }
-
-            Path downloadedPath = performDownload(workData);
+            if (inventoryItem.getSoftwareComponent() == null) {
+                log.error("Aborting download: InventoryItem has no SoftwareComponent associated with it");
+                return false;
+            }
+            Path downloadedPath = performDownload(workData, path, inventoryItem.getSoftwareComponent().getVersion());
 
             if (downloadedPath == null) {
                 return true; // Handled (skipped intentionally)
             }
 
-            fileService.createEntitiesFromPath(project, inventoryItem, downloadedPath, workData.getIsMainPackage());
+            log.debug("Download successful; calling FileService to create entities from path: {}",
+                    path + File.separator + inventoryItem.getSoftwareComponent().getName());
+            fileService.createEntitiesFromPath(project, inventoryItem, downloadedPath, path);
             return true;
 
         } catch (Exception e) {
-            log.error("Download workflow failed for {}: {}", workData.getUrl(), e.getMessage());
+            log.error("Download workflow failed for {}: {}", workData.getDownloadURL(), e.getMessage());
             throw new RuntimeException("Download failed", e);
         }
     }
@@ -140,10 +163,10 @@ public class DownloadService extends BaseWorkDataProcessor {
      * @throws IOException if file system operations fail
      * @throws InterruptedException if the Git resolution process is interrupted
      */
-    private Path performDownload(DownloadServiceWorkData workData) throws IOException, InterruptedException {
-        log.debug("Performing download for URL: {} -> {}", workData.getUrl(), workData.getLocation());
-        String url = workData.getUrl();
-        String version = workData.getVersion();
+    private Path performDownload(DownloadServiceWorkData workData, String path, String version) throws IOException,
+            InterruptedException {
+        log.debug("Performing download for URL: {} -> {}", workData.getDownloadURL(), path);
+        String url = workData.getDownloadURL();
 
         String downloadUrl = resolveDownloadUrl(url, version);
 
@@ -153,7 +176,7 @@ public class DownloadService extends BaseWorkDataProcessor {
         }
 
         // Calculate target path: [BasePath] / [dependencies?] / [LibName] / [Version]
-        Path baseLocation = Paths.get(workData.getLocation());
+        Path baseLocation = Paths.get(path);
         if (Boolean.FALSE.equals(workData.getIsMainPackage())) {
             baseLocation = baseLocation.resolve("dependencies");
         }

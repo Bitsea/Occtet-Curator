@@ -108,7 +108,7 @@ services:
         - mynet
 
     spdx-service:
-      image: occtet-nats-spdx-service:0.3.3-SNAPSHOT
+      image: occtet-nats-spdx-service:0.3.4-SNAPSHOT
       depends_on:
         - frontend
         - db
@@ -117,7 +117,7 @@ services:
         - mynet
 
     download-service:
-      image: occtet-nats-download-service:0.3.2-SNAPSHOT
+      image: occtet-nats-download-service:0.3.3-SNAPSHOT
       depends_on:
         - frontend
         - db

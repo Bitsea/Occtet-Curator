@@ -24,11 +24,10 @@
       focusComponent="licensesDataGrid">
     <data>
         <collection id="licensesDc"
-                    class="eu.occtet.bocfrontend.entity.License">
-            <fetchPlan extends="_base"/>
+                    class="eu.occtet.bocfrontend.entity.License" fetchPlan="_local">
             <loader id="licensesDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from License e]]>
+                    <![CDATA[select l from License l where l in :licenses]]>
                 </query>
             </loader>
         </collection>
@@ -44,19 +43,17 @@
         <action id="discardAction" type="lookup_discard"/>
     </actions>
     <layout>
-        <vbox>
-            <button id="textSearchLicense" text="msg://licenseListView.searchText"/>
-            <hbox width="100%">
-                <genericFilter id="genericFilter" dataLoader="licensesDl" themeNames="small"
-                               width="80%" alignSelf="START">
+        <vbox height="100%" width="100%">
+            <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
+            <hbox width="100%" visible="false" id="filterBox">
+                <genericFilter id="genericFilter" dataLoader="licensesDl" themeNames="small" alignSelf="START" opened="false" autoApply="true">
                     <properties include=".*"/>
-                    <conditions> </conditions>
                 </genericFilter>
-                <simplePagination id="pagination" dataLoader="licensesDl" alignSelf="END"/>
+                <simplePagination id="pagination" dataLoader="licensesDl" itemsPerPageItems="100"  alignSelf="END"/>
             </hbox>
             <dataGrid classNames="occtet-grid" id="licensesDataGrid"
                       width="100%"
-                      height="30em"
+                      minHeight="20em"
                       dataContainer="licensesDc"
                       columnReorderingAllowed="true">
                 <actions>
@@ -83,6 +80,7 @@
                     <button id="removeButton" action="licensesDataGrid.removeAction"/>
                 </hbox>
                 <hbox alignSelf="END">
+                    <button id="textSearchLicense" text="msg://licenseListView.searchText" themeNames="primary"/>
                     <button id="fetchSPDXButton" text="Fetch spdx licenses" themeNames="primary" alignSelf="END"/>
                 </hbox>
             </hbox>

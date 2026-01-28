@@ -96,8 +96,9 @@ public class AnswerService {
      * @throws JetStreamApiException
      * @throws IOException
      */
-    public boolean prepareAnswers(List<InventoryItem> inventoryItems, boolean toCopyrightAi, boolean toLicenseMatcher
-            , Set<Long> mainInventoryItemIds) throws JetStreamApiException, IOException {
+    public boolean prepareAnswers(List<InventoryItem> inventoryItems, boolean toCopyrightAi,
+                                  boolean toLicenseMatcher, Set<Long> mainInventoryItemIds
+    ) throws JetStreamApiException, IOException {
             log.debug("prepare answer size {}", inventoryItems.size());
         for (InventoryItem inventoryItem : inventoryItems) {
             log.debug("SEND inventoryId {}", inventoryItem.getId());
@@ -129,19 +130,13 @@ public class AnswerService {
             String message = mapper.writeValueAsString(workTask);
             log.debug("sending message to vulnerability service: {}", message);
             natsStreamSenderVulnerabilities().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
+            sendToDownload(
+                    inventoryItem.getSoftwareComponent().getDetailsUrl(),
+                    inventoryItem.getProject().getId(),
+                    inventoryItem.getId(),
+                    mainInventoryItemIds.contains(inventoryItem.getId())
+            );
 
-            String detailsUrl = inventoryItem.getSoftwareComponent().getDetailsUrl(); // DownloadLocation
-            String version = inventoryItem.getSoftwareComponent().getVersion();
-            if (!version.isEmpty() && !detailsUrl.isEmpty() && !"NOASSERTION".equals(detailsUrl)) {
-                sendToDownload(
-                        detailsUrl,
-                        inventoryItem.getProject().getBasePath(),
-                        version,
-                        inventoryItem.getProject().getId().toString(),
-                        mainInventoryItemIds.contains(inventoryItem.getId()),
-                        inventoryItem.getId().toString()
-                );
-            }
         }
 
         return true;
@@ -149,20 +144,16 @@ public class AnswerService {
 
     /**
      * Send messages to the DownloadService, the service downloads the component at the specified link with the provided version to the base path
-     * @param url url where the component is located
-     * @param location location path where the component will be downloaded into
-     * @param version version of the component to be downloaded
      * @param projectId id of the project where the component belongs to
      * @param isMainPackage weather the component is a main package of the project or not -> important for
      *                      differentiating between them and dependencies
      * @return true if sending was successful otherwise false
      */
-    public boolean sendToDownload(String url, String location, String version, String projectId,
-                                  Boolean isMainPackage, String inventoryItemId){
+    public boolean sendToDownload(String downloadURL, Long projectId, Long inventoryItemId, Boolean isMainPackage){
         try {
 
-            DownloadServiceWorkData payload = new DownloadServiceWorkData(url, location, version, projectId,
-                    isMainPackage, inventoryItemId);
+            DownloadServiceWorkData payload = new DownloadServiceWorkData(downloadURL, projectId, inventoryItemId,
+                    isMainPackage);
             LocalDateTime now = LocalDateTime.now();
             long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
             WorkTask workTask = new WorkTask(UUID.randomUUID().toString(),"download-service", "information about a component to be downloaded to a specific location", actualTimestamp, payload);
