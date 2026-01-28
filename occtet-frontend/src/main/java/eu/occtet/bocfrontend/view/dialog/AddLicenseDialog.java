@@ -28,6 +28,7 @@ import eu.occtet.bocfrontend.dao.LicenseRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
 import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import io.jmix.core.DataManager;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;
@@ -41,7 +42,7 @@ import java.util.List;
 
 @ViewController("addLicenseDialog")
 @ViewDescriptor("add-license-dialog.xml")
-@DialogMode(width = "900px", height = "650px")
+@DialogMode(width = "1000px", height = "650px")
 public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent> {
 
     private static final Logger log = LogManager.getLogger(AddLicenseDialog.class);
@@ -58,15 +59,17 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
 
     @ViewComponent
     private TextField searchField;
-    @Autowired
-    private SoftwareComponentRepository softwareComponentRepository;
+
     @ViewComponent
     private DataGrid<License> licensesDataGrid;
+
+    @Autowired
+    private DataManager dataManager;
 
     @Override
     @Subscribe("licenseDc")
     public void setAvailableContent(SoftwareComponent softwareComponent){
-        this.softwareComponent= softwareComponent;
+        this.softwareComponent = dataManager.load(SoftwareComponent.class).id(softwareComponent.getId()).one();
         log.debug("setAvailableContent called with SoftwareComponent: {}", softwareComponent);
         licenseDc.setItems(licenseRepository.findAll());
     }
@@ -80,13 +83,13 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
 
         List<License> licenses = new ArrayList<>(licensesDataGrid.getSelectedItems());
 
-        if(event != null & licenses != null){
+        if(!licenses.isEmpty()){
             for(License license : licenses){
                 if(!this.softwareComponent.getLicenses().contains(license)){
                     this.softwareComponent.getLicenses().add(license);
                 }
             }
-            softwareComponentRepository.save(this.softwareComponent);
+            dataManager.save(this.softwareComponent);
             close(StandardOutcome.CLOSE);
         }
     }

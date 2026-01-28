@@ -51,7 +51,7 @@
             <fetchPlan extends="_base"/>
             <loader id="licensesDl">
                 <query>
-                    <![CDATA[select e from License e]]>
+                    <![CDATA[select e from License e where e in :licensesList]]>
                 </query>
             </loader>
         </collection>
@@ -60,7 +60,7 @@
             <fetchPlan extends="_base"/>
             <loader id="copyrightDl">
                 <query>
-                    <![CDATA[select e from Copyright e]]>
+                    <![CDATA[select e from Copyright e where e in :copyrightsList]]>
                 </query>
             </loader>
         </collection>

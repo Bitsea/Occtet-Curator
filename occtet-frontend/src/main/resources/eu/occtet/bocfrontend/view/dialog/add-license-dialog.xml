@@ -32,8 +32,8 @@
         </collection>
     </data>
     <layout>
-        <vbox>
-            <hbox>
+        <vbox width="100%" height="100%">
+            <hbox width="100%">
                 <textField id="searchField" placeholder="Name..."/>
                 <button id="searchButton" text="Search"/>
             </hbox>
@@ -50,8 +50,8 @@
                     <column property="priority" header="Priority"/>
                 </columns>
             </dataGrid>
-            <hbox>
-                <button id="addLicenseButton" text="Add license" themeNames="primary"/>
+            <hbox alignItems="CENTER" alignSelf="CENTER" justifySelf="CENTER" justifyContent="CENTER" width="100%">
+                <button id="addLicenseButton" text="Add" themeNames="primary"/>
                 <button id="cancelButton" text="Cancel"/>
             </hbox>
         </vbox>

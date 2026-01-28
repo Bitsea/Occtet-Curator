@@ -133,7 +133,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
         this.project = dataContext.merge(project);
         List<InventoryItem> items = inventoryItemRepository.findByProject(project);
         setAllProjectInformation(this.project);
-        addInfoButton();
+        addInfoButton(this.project);
     }
 
     public void setHostView(View<?> hostView) {
@@ -239,7 +239,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
     private void showContentInformationDialog(Object content){
         DialogWindow<OverviewContentInfoDialog> window =
                 dialogWindows.view(hostView, OverviewContentInfoDialog.class).build();
-        window.getView().setInformationContent(content);
+        window.getView().setInformationContent(content,project);
         window.addAfterCloseListener(event -> {
             item = window.getView().getInventoryItem();
             if(hostView instanceof AuditView auditView){
@@ -256,32 +256,32 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
         return showButton;
     }
 
-    private void addInfoButton(){
+    private void addInfoButton(Project project){
 
         if(auditLicensesDataGrid.getColumnByKey("infoButton") == null) {
             auditLicensesDataGrid.addComponentColumn(auditLicenseDTO -> {
                 JmixButton showButton = createShowButton();
-                showButton.addClickListener(click -> openOverviewContentDialog(auditLicenseDTO));
+                showButton.addClickListener(click -> openOverviewContentDialog(auditLicenseDTO,project));
                 return showButton;
             }).setKey("infoButton");
         }
         if(auditVulnerabilityDataGrid.getColumnByKey("infoButton") == null){
             auditVulnerabilityDataGrid.addComponentColumn(auditVulnerabilityDTO -> {
                 JmixButton showButton = createShowButton();
-                showButton.addClickListener(click -> openOverviewContentDialog(auditVulnerabilityDTO));
+                showButton.addClickListener(click -> openOverviewContentDialog(auditVulnerabilityDTO,project));
                 return showButton;
             }).setKey("infoButton");
         }
     }
 
-    private void openOverviewContentDialog(Object content){
+    private void openOverviewContentDialog(Object content, Project project){
         if(content instanceof AuditLicenseDTO auditLicenseDTO){
-            List<License> licenses = licenseRepository.findLicensesByLicenseName(auditLicenseDTO.getLicenseName());
+            List<License> licenses = licenseRepository.findLicensesByLicenseNameAndProject(auditLicenseDTO.getLicenseName(),project);
             showContentInformationDialog(licenses.getFirst());
         }
         if(content instanceof AuditVulnerabilityDTO auditVulnerabilityDTO){
             List<Vulnerability> vulnerabilities = vulnerabilityRepository
-                    .findByVulnerabilityId(auditVulnerabilityDTO.getVulnerabilityName());
+                    .findByVulnerabilityIdAndProject(auditVulnerabilityDTO.getVulnerabilityName(),project);
             showContentInformationDialog(vulnerabilities.getFirst());
         }
     }

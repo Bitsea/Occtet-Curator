@@ -21,6 +21,7 @@ package eu.occtet.bocfrontend.view.audit.fragment;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.notification.Notification;
@@ -29,9 +30,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
-import eu.occtet.bocfrontend.dao.InventoryItemRepository;
-import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
-import eu.occtet.bocfrontend.dao.SuggestionRepository;
+import eu.occtet.bocfrontend.dao.*;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.view.audit.AuditView;
 import eu.occtet.bocfrontend.view.copyright.CopyrightDetailView;
@@ -39,6 +38,7 @@ import eu.occtet.bocfrontend.view.dialog.*;
 import eu.occtet.bocfrontend.view.inventoryitem.InventoryItemDetailView;
 import eu.occtet.bocfrontend.view.license.LicenseDetailView;
 import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
+import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
@@ -53,6 +53,7 @@ import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.component.dropdownbutton.DropdownButton;
 import io.jmix.flowui.kit.component.dropdownbutton.DropdownButtonItem;
 import io.jmix.flowui.model.CollectionContainer;
+import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.model.DataContext;
 import io.jmix.flowui.model.InstanceContainer;
 import io.jmix.flowui.view.*;
@@ -118,6 +119,10 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private CollectionContainer<InventoryItem> inventoryItemDcReuse;
     @ViewComponent
     private JmixComboBox<InventoryItem> parentField;
+    @ViewComponent
+    private CollectionLoader<License> licensesDl;
+    @ViewComponent
+    private CollectionLoader<Copyright> copyrightDl;
 
     // Tab fragments
     @ViewComponent
@@ -148,6 +153,12 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
     @ViewComponent
     private VerticalLayout auditNotesText;
+    @Autowired
+    private CopyrightRepository copyrightRepository;
+    @Autowired
+    private LicenseRepository licenseRepository;
+    @Autowired
+    private DataManager dataManager;
 
 
     public void activateAutocomplete() {
@@ -209,9 +220,9 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         log.debug("Set Inventory Item: {} class: {}", this.inventoryItem.getInventoryName(), this.inventoryItem.getClass().getSimpleName());
         inventoryItemDc.setItem(this.inventoryItem);
         log.debug("1");
-        updateCopyrights(this.inventoryItem, copyrightDc);
+        updateCopyrightsFromInventory(this.inventoryItem);
         log.debug("2");
-        updateLicenses(this.softwareComponent, licenseDc);
+        updateLicensesFromInventoryItem(this.inventoryItem);
         log.debug("Updated copyrights and licenses for Inventory Item: {}", this.inventoryItem.getInventoryName());
         //Reuse of inventory
         setReuseOfInventory(inventoryItem);
@@ -286,7 +297,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             window.getView().setAvailableContent(softwareComponent);
             window.open();
             window.addAfterCloseListener(close ->
-                    updateLicenses(softwareComponent, licenseDc));
+                    updateLicensesFromInventoryItem(inventoryItem));
         }
     }
 
@@ -321,7 +332,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         if (!selectedLicenses.isEmpty()) {
             softwareComponent.getLicenses().removeAll(selectedLicenses);
             softwareComponentRepository.save(softwareComponent);
-            updateLicenses(softwareComponent, licenseDc);
+            updateLicensesFromInventoryItem(inventoryItem);
 
             notifications.create(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.remove"))
                     .withPosition(Notification.Position.BOTTOM_END)
@@ -348,7 +359,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             window.getView().setAvailableContent(softwareComponent);
             window.open();
             window.addAfterCloseListener(close ->
-                    updateLicenses(softwareComponent, licenseDc));
+                    updateLicensesFromInventoryItem(inventoryItem));
         }
 
     }
@@ -395,11 +406,12 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
      */
     @Subscribe(id = "editCopyright.addCopyright")
     public void addCopyright(DropdownButtonItem.ClickEvent event) {
-
-        DialogWindow<AddCopyrightDialog> window = dialogWindow.view(hostView, AddCopyrightDialog.class).build();
-        window.getView().setAvailableContent(inventoryItem);
-        window.open();
-        window.addAfterCloseListener(close -> updateCopyrights(inventoryItem, copyrightDc));
+        if(softwareComponent != null){
+            DialogWindow<AddCopyrightDialog> window = dialogWindow.view(hostView, AddCopyrightDialog.class).build();
+            window.getView().setAvailableContent(softwareComponent);
+            window.open();
+            window.addAfterCloseListener(close -> updateCopyrightsFromInventory(inventoryItem));
+        }
     }
 
     /**
@@ -435,7 +447,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             window.getView().setAvailableContent(inventoryItem);
             window.open();
             window.addAfterCloseListener(close ->
-                    updateCopyrights(inventoryItem, copyrightDc));
+                    updateCopyrightsFromInventory(inventoryItem));
         }
 
     }
@@ -453,10 +465,10 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     public void removeCopyrights(ClickEvent<JmixButton> event) {
         Set<Copyright> selectedCopyrights = copyrightsDataGrid.getSelectedItems();
 
-        if (!selectedCopyrights.isEmpty()) {
-            inventoryItem.getSoftwareComponent().getCopyrights().removeAll(selectedCopyrights);
-            inventoryItemRepository.save(inventoryItem);   // or your proper repo
-            updateCopyrights(inventoryItem, copyrightDc);
+        if (!selectedCopyrights.isEmpty() && softwareComponent != null) {
+            softwareComponent.getCopyrights().removeAll(selectedCopyrights);
+            dataManager.save(softwareComponent);   // or your proper repo
+            updateCopyrightsFromInventory(inventoryItem);
 
             notifications.create("Copyrights removed.")
                     .withPosition(Notification.Position.BOTTOM_END)
@@ -504,17 +516,18 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                 .open().setSizeFull();
     }
 
-    private void updateCopyrights(InventoryItem inventoryItem, CollectionContainer<Copyright> container) {
-        container.setItems(inventoryItem.getSoftwareComponent().getCopyrights());
+    private void updateCopyrightsFromInventory(InventoryItem inventoryItem){
+        List<Copyright> copyrights = copyrightRepository.findByInventoryItem(inventoryItem);
+        copyrightDl.setParameter("copyrightsList",copyrights);
+        copyrightDl.load();
     }
 
-    private void updateLicenses(SoftwareComponent softwareComponent, CollectionContainer<License> container) {
-        if (softwareComponent != null) {
-            container.setItems(softwareComponent.getLicenses());
-        } else {
-            container.setItems(new ArrayList<>());
-        }
+    private void updateLicensesFromInventoryItem(InventoryItem item){
+        List<License> licenses = licenseRepository.findByInventoryItem(item);
+        licensesDl.setParameter("licensesList",licenses);
+        licensesDl.load();
     }
+
 
     @Subscribe(id = "inventoryDataGridReuse")
     public void showReusefromInventoryItem(final ItemClickEvent<InventoryItem> event) {

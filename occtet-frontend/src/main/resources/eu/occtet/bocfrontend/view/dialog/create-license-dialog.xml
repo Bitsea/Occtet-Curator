@@ -37,7 +37,7 @@
         </vbox>
         <hbox width="100%" alignItems="CENTER" justifyContent="CENTER" alignSelf="BASELINE">
             <button id="addLicenseButton" text="Add license" themeNames="primary"/>
-            <button id="cancelButton" text="Cancel" themeNames="primary"/>
+            <button id="cancelButton" text="Cancel"/>
         </hbox>
     </layout>
 </view>

@@ -39,7 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @ViewController("createLicenseDialog")
 @ViewDescriptor("create-license-dialog.xml")
-@DialogMode(width = "900px", height = "650px")
+@DialogMode(width = "1000px", height = "750px")
 public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareComponent>{
 
     private static final Logger log = LogManager.getLogger(CreateLicenseDialog.class);

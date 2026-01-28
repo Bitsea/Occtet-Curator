@@ -29,6 +29,7 @@ import eu.occtet.bocfrontend.dao.CodeLocationRepository;
 import eu.occtet.bocfrontend.entity.CodeLocation;
 import eu.occtet.bocfrontend.entity.Copyright;
 import eu.occtet.bocfrontend.entity.InventoryItem;
+import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.service.CopyrightService;
 import io.jmix.core.DataManager;
 import io.jmix.flowui.Notifications;
@@ -51,6 +52,8 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
     private static final Logger log = LogManager.getLogger(CreateCopyrightDialog.class);
 
     private InventoryItem inventoryItem;
+
+    private SoftwareComponent softwareComponent;
 
     @ViewComponent
     private TextField copyrightNameField;
@@ -91,6 +94,9 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
                         "softwareComponent",
                         "softwareComponent.copyrights"))
                 .one();
+        if(inventoryItem.getSoftwareComponent() != null){
+            this.softwareComponent = this.inventoryItem.getSoftwareComponent();
+        }
     }
 
     @Override
@@ -100,14 +106,14 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
         String copyrightName = copyrightNameField.getValue();
         Set<CodeLocation> location = copyrightFilePathComboBox.getValue();
 
-        if(checkInput(copyrightName,location)){
+        if(checkInput(copyrightName,location) && softwareComponent != null){
 
             Copyright copyright = copyrightService.createCopyright(copyrightName, List.copyOf(location),
                     isCuratedField.getValue(),isGarbageField.getValue());
 
-            this.inventoryItem.getSoftwareComponent().getCopyrights().add(copyright);
-            dataManager.save(inventoryItem.getSoftwareComponent());
-            log.debug("Created and added copyright {} to softwareComponent {}",copyright.getCopyrightText(), inventoryItem.getSoftwareComponent());
+            softwareComponent.getCopyrights().add(copyright);
+            dataManager.save(softwareComponent);
+            log.debug("Created and added copyright {} to softwareComponent {}",copyright.getCopyrightText(),softwareComponent);
             close(StandardOutcome.CLOSE);
         }else{
             notifications.create("Something went wrong, please check your input")

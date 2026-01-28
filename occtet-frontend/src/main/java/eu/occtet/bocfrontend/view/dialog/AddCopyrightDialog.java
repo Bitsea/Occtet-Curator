@@ -28,8 +28,11 @@ import eu.occtet.bocfrontend.dao.CopyrightRepository;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.entity.Copyright;
 import eu.occtet.bocfrontend.entity.InventoryItem;
+import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import io.jmix.core.DataManager;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
+import io.jmix.flowui.model.DataContext;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,14 +44,12 @@ import java.util.List;
 
 @ViewController("addCopyrightDialog")
 @ViewDescriptor("add-copyright-dialog.xml")
-@DialogMode(width = "900px", height = "650px")
-public class AddCopyrightDialog extends AbstractAddContentDialog<InventoryItem> {
+@DialogMode(width = "1000px", height = "650px")
+public class AddCopyrightDialog extends AbstractAddContentDialog<SoftwareComponent> {
 
     private static final Logger log = LogManager.getLogger(AddCopyrightDialog.class);
 
-    private InventoryItem inventoryItem;
-
-    private Copyright copyright;
+    private SoftwareComponent softwareComponent;
 
     @ViewComponent
     private CollectionContainer<Copyright> copyrightDc;
@@ -61,18 +62,14 @@ public class AddCopyrightDialog extends AbstractAddContentDialog<InventoryItem> 
 
     @Autowired
     private CopyrightRepository copyrightRepository;
-    @Autowired
-    private InventoryItemRepository inventoryItemRepository;
 
-    @Subscribe("copyrightDataGrid")
-    public void selectAvailableCopyright(final ItemClickEvent<Copyright> event){
-        copyright = event.getItem();
-    }
+    @Autowired
+    private DataManager dataManager;
 
     @Override
     @Subscribe("copyrightDc")
-    public void setAvailableContent(InventoryItem inventoryItem) {
-        this.inventoryItem = inventoryItem;
+    public void setAvailableContent(SoftwareComponent softwareComponent) {
+        this.softwareComponent = dataManager.load(SoftwareComponent.class).id(softwareComponent.getId()).one();
         log.debug("setAvailableContent");
         copyrightDc.setItems(copyrightRepository.findAll());
     }
@@ -82,14 +79,9 @@ public class AddCopyrightDialog extends AbstractAddContentDialog<InventoryItem> 
     public void addContentButton(ClickEvent<Button> event) {
 
         List<Copyright> copyrights = new ArrayList<>(copyrightDataGrid.getSelectedItems());
-
-        if(event != null & copyrights != null){
-            for(Copyright copyright : copyrights){
-                if(!this.inventoryItem.getSoftwareComponent().getCopyrights().contains(copyright)){
-                    this.inventoryItem.getSoftwareComponent().getCopyrights().add(copyright);
-                }
-            }
-            inventoryItemRepository.save(this.inventoryItem);
+        if(!copyrights.isEmpty()){
+            this.softwareComponent.getCopyrights().addAll(copyrights);
+            dataManager.save(this.softwareComponent);
             close(StandardOutcome.CLOSE);
         }
     }
@@ -100,7 +92,7 @@ public class AddCopyrightDialog extends AbstractAddContentDialog<InventoryItem> 
 
         String searchWord = searchField.getValue();
         if(!searchWord.isEmpty() && event != null){
-            List<Copyright> copyrightsFromItem = inventoryItem.getSoftwareComponent().getCopyrights();
+            List<Copyright> copyrightsFromItem = this.softwareComponent.getCopyrights();
             List<Copyright> searchedCopyrights = new ArrayList<>();
             for(Copyright copyright : copyrightsFromItem){
                 if (copyright.getCopyrightText().contains(searchWord)){
@@ -109,7 +101,7 @@ public class AddCopyrightDialog extends AbstractAddContentDialog<InventoryItem> 
             }
             copyrightDc.setItems(searchedCopyrights);
         }else{
-            copyrightDc.setItems(inventoryItem.getSoftwareComponent().getCopyrights());
+            copyrightDc.setItems(copyrightRepository.findAll());
         }
     }
 
