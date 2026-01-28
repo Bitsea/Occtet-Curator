@@ -123,6 +123,7 @@ public class LLMService extends BaseWorkDataProcessor {
 
 
     private boolean filterCopyrightsWithAI(AICopyrightFilterWorkData aiWorkData) {
+        log.debug("filterCopyrightsWithAI for inventory item id {}", aiWorkData.getInventoryItemId());
         //MemoryAdvisor is default
         Optional<InventoryItem> optItem = inventoryItemRepository.findById(aiWorkData.getInventoryItemId());
         if(!optItem.isPresent()) {
@@ -131,12 +132,12 @@ public class LLMService extends BaseWorkDataProcessor {
         }
         List<Advisor> advisors = advisorFactory.createAdvisors();
         String response = "";
-        Prompt question = promptFactory.createFalseCopyrightPrompt(aiWorkData.getUserMessage());
         List<Copyright> copyrightList= new ArrayList<>();
         String copyrights = createString(aiWorkData.getQuestionableCopyrights(), copyrightList);
-        String userQuestion = "List of copyrights, separated by |||. Delete invalid copyrights from this list: " + copyrights;
+        Prompt question = promptFactory.createFalseCopyrightPrompt(copyrights);
+
         try {
-            response = chatClient.prompt(question).user(userQuestion)
+            response = chatClient.prompt(question)
                     .advisors(advisors)
                     .call().content();
 
@@ -144,7 +145,7 @@ public class LLMService extends BaseWorkDataProcessor {
             log.error("Exception with calling ai {}", e.getMessage());
         }
         String result = postProcessor.deleteThinking(response);
-
+        log.debug("result of AI: {}", result);
         handleAIResult(optItem.get(), result, copyrightList);
         if(!result.isEmpty()) {
             try {

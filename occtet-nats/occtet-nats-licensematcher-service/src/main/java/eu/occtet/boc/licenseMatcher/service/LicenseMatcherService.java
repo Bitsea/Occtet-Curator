@@ -27,10 +27,8 @@ import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.licenseMatcher.dao.InventoryItemRepository;
 import eu.occtet.boc.licenseMatcher.factory.InventoryItemFactory;
-import eu.occtet.boc.licenseMatcher.factory.PromptFactory;
 import eu.occtet.boc.licenseMatcher.tools.LicenseMatcher;
 import eu.occtet.boc.model.AILicenseMatcherWorkData;
-import eu.occtet.boc.model.FossReportServiceWorkData;
 import eu.occtet.boc.model.ScannerSendWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
@@ -44,15 +42,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 public class LicenseMatcherService extends BaseWorkDataProcessor {
@@ -61,9 +57,6 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
 
     @Autowired
     private LicenseMatcher licenseMatcher;
-
-    @Autowired
-    private PromptFactory promptFactory;
 
     @Autowired
     private InventoryItemFactory inventoryItemFactory;
@@ -120,19 +113,10 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
                         //baseURL for the licenseTool is given to the prompt as parameter, AI is using the tool with it
                         //the result of the spdx matcher is also given for further information
                         String baseURL = "https://raw.githubusercontent.com/spdx/license-list-data/main/json/details/" + licenseId + ".json";
-                        String userMessage = promptFactory.createUserMessage(result);
-                        sendAnswerToStream(new AILicenseMatcherWorkData(userMessage, baseURL, result.getDifferenceMessage(), licenseId, licenseText, inventoryItemId));
-
-
-//                    }
-//                    if (licenseId.contains("HPND")) {
-//                        log.debug("license texts are different for licenseId: {}", licenseId);
-//                        //baseURL for the licenseTool is given to the prompt as parameter, AI is using the tool with it
-//                        //the result of the spdx matcher is also given for further information
-//                        String baseURL = "https://raw.githubusercontent.com/spdx/license-list-data/main/json/details/" + licenseId + ".json";
-//                        String userMessage = promptFactory.createUserMessage(result);
-//                        sendAnswerToStream(new AILicenseMatcherWorkData(userMessage, baseURL, result.getDifferenceMessage(), licenseId, licenseText, inventoryItemId));
-
+                        String lineNumbers = result.getDifferences().stream()
+                                .map(d -> String.valueOf(d.getLine()))
+                                .collect(Collectors.joining(", "));
+                        sendAnswerToStream(new AILicenseMatcherWorkData(lineNumbers, baseURL, result.getDifferenceMessage(), licenseId, licenseText, inventoryItemId));
 
                     } else if (result == null) {
                         log.debug("result is null");

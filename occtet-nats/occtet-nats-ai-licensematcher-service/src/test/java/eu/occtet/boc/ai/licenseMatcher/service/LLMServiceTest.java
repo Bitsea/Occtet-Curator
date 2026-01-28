@@ -76,15 +76,4 @@ public class LLMServiceTest {
 
     }
 
-    //@Test
-    void askAIWithoutAnyAdvisorsToolsTest() {
-        String copyright="Copyright (c) today.year INRIA, France Telecom";
-        Prompt prompt = new Prompt((Message) List.of("valid copyright has elements at least two elements: Copyright sign or word and the copyright holder. Addtionally there can be a date", "Is this a valid copyright?: "+ copyright+ "If yes, return the copyright. If no, return 'false'.  Answer only with the valid copyright or 'false'"));
-        AIStatusQueryWorkData workData= new AIStatusQueryWorkData();
-        workData.setDetails("give status");
-        llmService.process(workData);
-        //FIXME answer of ai ?
-
-
-    }
 }

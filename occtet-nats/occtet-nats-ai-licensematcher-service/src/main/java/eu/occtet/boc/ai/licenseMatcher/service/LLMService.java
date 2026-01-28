@@ -128,8 +128,9 @@ public class LLMService extends BaseWorkDataProcessor {
             log.warn("InventoryItem with id {} not found", aiWorkData.getInventoryItemId());
             return false;
         }
+
         String response = "";
-        Prompt question = promptFactory.createLicenseMatcherPrompt(aiWorkData.getUserMessage(), aiWorkData.getUrl());
+        Prompt question = promptFactory.createLicenseMatcherPrompt( aiWorkData.getUrl(), aiWorkData.getLicenseText(), aiWorkData.getLicenseMatcherResult(), aiWorkData.getDifferenceLines());
         try {
             response = chatClient.prompt(question)
                     .tools(licenseTool)
@@ -145,15 +146,12 @@ public class LLMService extends BaseWorkDataProcessor {
                 sendAnswerToStream(result);
             } catch (Exception e) {
                 log.error("Error when sending message to stream: {}", e.getMessage());
+                return false;
             }
         }
-        return true; // FIXME return false on error
+        return true;
     }
 
-    public InventoryItem getInventoryItem(UUID inventoryItemId) {
-        return inventoryItemRepository.findById(inventoryItemId).getFirst();
-
-    }
 
     /**
      * Handles the AI result and updates the InventoryItem's external notes accordingly.

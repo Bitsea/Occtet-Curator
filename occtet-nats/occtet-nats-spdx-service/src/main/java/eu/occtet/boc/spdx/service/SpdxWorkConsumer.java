@@ -55,9 +55,10 @@ public class SpdxWorkConsumer extends WorkConsumer {
     @Override
     protected void handleMessage(Message msg) {
         try {
-            log.debug("handleMessage called");
+
 
             String jsonData = new String(msg.getData(), StandardCharsets.UTF_8);
+            log.debug("handleMessage called json: {}", jsonData);
             ObjectMapper objectMapper = new ObjectMapper();
             WorkTask workTask = objectMapper.readValue(jsonData, WorkTask.class);
             log.debug("workTask: {}", workTask);

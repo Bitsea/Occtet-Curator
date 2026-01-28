@@ -23,13 +23,11 @@
 package eu.occtet.boc.ai.licenseMatcher.service;
 
 
-import eu.occtet.boc.ai.licenseMatcher.service.LicenseTemplateWebService;
 import eu.occtet.boc.model.SPDXLicenseDetails;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

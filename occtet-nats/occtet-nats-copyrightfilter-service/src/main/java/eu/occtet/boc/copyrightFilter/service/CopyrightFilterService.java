@@ -24,13 +24,11 @@ package eu.occtet.boc.copyrightFilter.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.copyrightFilter.dao.InventoryItemRepository;
-import eu.occtet.boc.copyrightFilter.factory.PromptFactory;
 import eu.occtet.boc.copyrightFilter.preprocessor.CopyrightPreprocessor;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.model.AICopyrightFilterWorkData;
-import eu.occtet.boc.model.AIStatusQueryWorkData;
 import eu.occtet.boc.model.ScannerSendWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
@@ -68,8 +66,6 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
 
-    @Autowired
-    private PromptFactory promptFactory;
 
     @Autowired
     private Connection natsConnection;
@@ -83,8 +79,6 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
         return new NatsStreamSender(natsConnection, sendSubject);
     }
 
-
-    private static final Path BASEPATH_JSON = Paths.get("src", "main", "resources", "garbage-Copyrights", "garbage-copyrights.json");
 
     @Override
     public boolean process(ScannerSendWorkData workData) {
@@ -108,11 +102,11 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
             for (Copyright copy : copyrights) {
                 copyrightTexts.add(copy.getCopyrightText());
             }
+
             List<String> questionableCopyrights = filterFalsCopyrightsWithGarbageFile(copyrightTexts, item.getSoftwareComponent());
             if (!questionableCopyrights.isEmpty()) {
                 log.info("sending copyrightList to ai for inventory item: {}, copyrights to check: {}", item.getInventoryName(), questionableCopyrights.size());
-                String message= promptFactory.createFalseCopyrightPrompt();
-                AICopyrightFilterWorkData workData = new AICopyrightFilterWorkData( message,item.getId(), questionableCopyrights);
+                AICopyrightFilterWorkData workData = new AICopyrightFilterWorkData( item.getId(), questionableCopyrights);
                 sendAnswerToStream(workData);
                 return true;
 
@@ -122,7 +116,8 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
 
 
     public List<String> filterFalsCopyrightsWithGarbageFile(List<String> copyrightTexts, SoftwareComponent item) {
-        List<String> garbageCopyrightTexts= copyrightPreprocessor.readGarbageCopyrightsFromJson(BASEPATH_JSON);
+        log.debug("filterFalsCopyrightsWithGarbageFile called with {} copyright texts", copyrightTexts.size());
+        List<String> garbageCopyrightTexts= copyrightPreprocessor.getGarbageCopyrights();
         for(String garbage: garbageCopyrightTexts) {
             if(copyrightTexts.contains(garbage)) {
                 for(Copyright c: item.getCopyrights()){
