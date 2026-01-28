@@ -112,8 +112,13 @@ public class GitRepoController {
         // Check A: Exact match of normalized strings
         if (normalizedTag.equals(normalizedVersion)) return true;
 
-        // Check B: Boundary match (handling suffixes like -RELEASE, -RC1)
-        return isPrefixWithBoundary(normalizedTag, normalizedVersion);
+        // Check B: Tag contains Version (e.g. Tag "v1.2.1" matches Request "1.2")
+        if (isPrefixWithBoundary(normalizedTag, normalizedVersion)) return true;
+
+        // Check C: Version contains Tag (e.g. Tag "14.2.0" matches Request "14.2.0-19")
+        if (isPrefixWithBoundary(normalizedVersion, normalizedTag)) return true;
+
+        return false;
     }
 
     /**

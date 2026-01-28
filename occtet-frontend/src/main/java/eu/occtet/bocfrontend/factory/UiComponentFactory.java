@@ -31,9 +31,6 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.popover.Popover;
-import com.vaadin.flow.component.popover.PopoverPosition;
-import com.vaadin.flow.component.popover.PopoverVariant;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.textfield.TextFieldVariant;
 import eu.occtet.bocfrontend.entity.File;
@@ -59,6 +56,8 @@ public class UiComponentFactory {
     private UiComponents uiComponents;
     @Autowired
     private Messages messages;
+    @Autowired
+    private InfoButtonFactory infoButtonFactory;
 
     public static final String SEARCH_FIELD_ID = "search-field";
     public static final String REVIEWED_FILTER_ID = "reviewed-filter";
@@ -84,35 +83,12 @@ public class UiComponentFactory {
             return;
         }
 
-        JmixButton infoButton = uiComponents.create(JmixButton.class);
-        infoButton.setTooltipText("Show information");
-        infoButton.setIcon(VaadinIcon.INFO_CIRCLE_O.create());
-        infoButton.setThemeName("small icon tertiary");
-        infoButton.setWidth("24px");
-        infoButton.setHeight("24px");
-
-        Popover popover = createInfoPopover(infoButton);
-
-        statusColumn.setHeader(infoButton);
-    }
-
-    private Popover createInfoPopover(JmixButton target) {
-        Popover popover = new Popover();
         VerticalLayout legend = new VerticalLayout(
                 createLegendItem(VaadinIcon.CIRCLE, "curated-icon", "Curated"),
                 createLegendItem(VaadinIcon.CIRCLE, "not-curated-icon", "Not Curated")
         );
 
-        legend.setPadding(true);
-        popover.addThemeVariants(PopoverVariant.ARROW, PopoverVariant.LUMO_NO_PADDING);
-        popover.setPosition(PopoverPosition.TOP);
-        popover.setModal(true);
-        popover.setTarget(target);
-        popover.add(legend);
-
-        popover.setCloseOnOutsideClick(true);
-
-        return popover;
+        statusColumn.setHeader(infoButtonFactory.createInfoButtonFromComponent(legend, null, null));
     }
 
     private HorizontalLayout createLegendItem(VaadinIcon iconType, String className, String labelText) {

@@ -111,11 +111,9 @@ public class SpdxServiceTest {
         try {
             Mockito.when(answerService.sendToDownload(
                     Mockito.anyString(),
-                    Mockito.anyString(),
-                    Mockito.anyString(),
-                    Mockito.anyString(),
-                    Mockito.anyBoolean(),
-                    Mockito.anyString()
+                    Mockito.anyLong(),
+                    Mockito.anyLong(),
+                    Mockito.anyBoolean()
             )).thenReturn(true);
 
             Mockito.when(answerService.prepareAnswers(Mockito.anyList(), Mockito.eq(true), Mockito.eq(true),
@@ -142,6 +140,9 @@ public class SpdxServiceTest {
 
             Project project = new Project();
             project.setId(PROJECT_ID);
+            project.setProjectName("example-project");
+
+            projectRepository.save(project);
 
             spdxWorkData.setProjectId(PROJECT_ID);
             spdxWorkData.setUseCopyrightAi(true);
@@ -161,7 +162,6 @@ public class SpdxServiceTest {
             //Check Project
             Assertions.assertNotNull(inventoryItem.getProject());
             Assertions.assertEquals("example-project", inventoryItem.getProject().getProjectName());
-            Assertions.assertEquals("/home/projects/example", inventoryItem.getProject().getBasePath());
 
             //Check Copyrights
             List<Copyright> copyrights = inventoryItem.getSoftwareComponent().getCopyrights();

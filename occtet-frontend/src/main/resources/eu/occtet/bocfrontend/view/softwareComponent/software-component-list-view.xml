@@ -30,7 +30,7 @@
             </fetchPlan>
             <loader id="softwareComponentsDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from SoftwareComponent e]]>
+                    <![CDATA[select sc from SoftwareComponent sc where sc in :softwareComponents]]>
                 </query>
             </loader>
         </collection>
@@ -46,18 +46,17 @@
         <action id="discardAction" type="lookup_discard"/>
     </actions>
     <layout>
-        <vbox width="100%">
-            <hbox width="100%">
-                <genericFilter id="genericFilter" dataLoader="softwareComponentsDl" themeNames="small"
-                               width="80%" alignSelf="START">
+        <vbox width="100%" height="100%">
+            <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
+            <hbox width="100%" visible="false" id="filterBox">
+                <genericFilter id="genericFilter" dataLoader="softwareComponentsDl" themeNames="small" alignSelf="START" opened="false">
                     <properties include=".*"/>
                 </genericFilter>
-                <simplePagination id="pagination" dataLoader="softwareComponentsDl" alignSelf="END"/>
+                <simplePagination id="pagination" dataLoader="softwareComponentsDl" itemsPerPageItems="100" alignSelf="END" />
             </hbox>
             <dataGrid classNames="occtet-grid" id="softwareComponentsDataGrid"
                       width="100%"
-                      height="30em"
-                      maxHeight="100%"
+                      minHeight="20em"
                       dataContainer="softwareComponentsDc"
                       columnReorderingAllowed="true">
                 <actions>

@@ -29,14 +29,14 @@ import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
-
 @Component
 public class FileFactory {
 
     public File create(Project project,
                        String fileName,
-                       String absolutePath,
-                       String relativePath,
+                       String physicalPath,
+                       String projectPath,
+                       String artifactPath,
                        boolean isDirectory,
                        File parentEntity,
                        InventoryItem inventoryItem,
@@ -44,13 +44,16 @@ public class FileFactory {
 
         Objects.requireNonNull(project, "Project cannot be null");
         Objects.requireNonNull(fileName, "File name cannot be null");
-        Objects.requireNonNull(absolutePath, "Absolute path cannot be null");
+        Objects.requireNonNull(physicalPath, "Physical path cannot be null");
 
         File file = new File();
         file.setProject(project);
         file.setFileName(fileName);
-        file.setAbsolutePath(absolutePath);
-        file.setRelativePath(relativePath);
+
+        file.setPhysicalPath(physicalPath);
+        file.setProjectPath(projectPath);
+        file.setArtifactPath(artifactPath);
+
         file.setIsDirectory(isDirectory);
         file.setParent(parentEntity);
         file.setInventoryItem(inventoryItem);
@@ -61,7 +64,7 @@ public class FileFactory {
         return file;
     }
 
-    public File create(Project project, String fileName, String absolutePath, String relativePath, boolean isDirectory) {
-        return create(project, fileName, absolutePath, relativePath, isDirectory, null, null, null);
+    public File create(Project project, String fileName, String physicalPath, String projectPath, String artifactPath, boolean isDirectory) {
+        return create(project, fileName, physicalPath, projectPath, artifactPath, isDirectory, null, null, null);
     }
 }

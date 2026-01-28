@@ -81,6 +81,7 @@ public class SoftwareComponent {
     @JoinColumn(name= "SOFTWARE_COMPONENT_ID")
     private List<Copyright> copyrights;
 
+
     public SoftwareComponent(){
         this.licenseAiControlled= false;
     }

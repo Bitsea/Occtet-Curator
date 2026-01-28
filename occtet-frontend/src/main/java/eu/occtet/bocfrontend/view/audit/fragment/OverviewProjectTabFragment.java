@@ -132,16 +132,6 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
     public void setProjectOverview(@Nonnull Project project){
         this.project = dataContext.merge(project);
         List<InventoryItem> items = inventoryItemRepository.findByProject(project);
-        List<CodeLocation> codeLocations = new ArrayList<>();
-        List<SoftwareComponent> components = new ArrayList<>();
-        if(items != null){
-            for(InventoryItem item : items){
-                if(item.getSoftwareComponent() != null){
-                    components.add(item.getSoftwareComponent());
-                }
-                codeLocations.addAll(codeLocationRepository.findByInventoryItem(item));
-            }
-        }
         setAllProjectInformation(this.project);
         addInfoButton();
     }
