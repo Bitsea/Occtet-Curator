@@ -37,8 +37,8 @@ public interface FileRepository extends JpaRepository<File, Long> {
 
     List<File> findAllByProject(Project project);
 
-    @Query("select f.absolutePath from File f where f.project = :project")
+    @Query("select f.physicalPath from File f where f.project = :project")
     Collection<String> findAllPathsByProject(@Param("project") Project project);
 
-    File findByProjectAndAbsolutePath(Project project, String absolutePath);
+    File findByProjectAndPhysicalPath(Project project, String physicalPath);
 }

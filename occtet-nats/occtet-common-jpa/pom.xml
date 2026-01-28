@@ -27,10 +27,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>occtet-common-jpa</artifactId>
-    <groupId>eu.occtet.boc</groupId>
     <name>occtet-Common-jpa</name>
     <description>Occtet Common JPA Library</description>
-    <version>0.3.6-SNAPSHOT</version>
+    <version>0.3.7-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <!-- because we have no parent declaration here, we need to redefine the properties -->
@@ -40,6 +39,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springboot.version>3.5.5</springboot.version>
     </properties>
+
+    <parent>
+        <groupId>eu.occtet.boc</groupId>
+        <artifactId>occtet-nats-parent</artifactId>
+        <version>0.3.2-SNAPSHOT</version>
+    </parent>
 
     <dependencies>
         <dependency>
@@ -65,7 +70,7 @@
         <dependency>
             <groupId>eu.occtet.boc</groupId>
             <artifactId>occtet-common</artifactId>
-            <version>0.3.4-SNAPSHOT</version>
+            <version>${common-version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.persistence</groupId>

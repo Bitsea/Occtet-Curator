@@ -50,8 +50,6 @@
                                label="msg://eu.occtet.bocfrontend.view.project/Project.projectContact"/>
                     <textField id="contactEmailField" label="msg://eu.occtet.bocfrontend.view.project/Project.contactEmail"
                                property="contactEmail" width="50%"/>
-                    <textField id="projectBasePathField" property="basePath" required="true" width="50%"
-                               label="Base path" requiredMessage="(absolute)Base path required"/>
                 </vbox>
             </vbox>
             <htmlObject colspan="2" width="100%"><hr/></htmlObject>

@@ -65,11 +65,17 @@ public class File {
     @Column(name = "FILENAME", nullable = false)
     private String fileName;
 
-    @Column(name = "ABSOLUTE_PATH", nullable = false, columnDefinition = "TEXT")
-    private String absolutePath;
+    // Example: C:\Users\Temp\scan\project\dep\lib\com\acme\Util.java
+    @Column(name = "PHYSICAL_PATH", nullable = false, columnDefinition = "TEXT")
+    private String physicalPath;
 
-    @Column(name = "RELATIVE_PATH", nullable = false, columnDefinition = "TEXT")
-    private String relativePath;
+    // Example: dependencies/lib-v1/com/acme/Util.java
+    @Column(name = "PROJECT_PATH", nullable = false, columnDefinition = "TEXT")
+    private String projectPath;
+
+    // Example: com/acme/Util.java
+    @Column(name = "ARTIFACT_PATH", nullable = false, columnDefinition = "TEXT")
+    private String artifactPath;
 
     @Column(name = "IS_DIRECTORY", nullable = false)
     private Boolean isDirectory;
@@ -144,22 +150,6 @@ public class File {
         this.fileName = fileName;
     }
 
-    public String getAbsolutePath() {
-        return absolutePath;
-    }
-
-    public void setAbsolutePath(String absolutePath) {
-        this.absolutePath = absolutePath;
-    }
-
-    public String getRelativePath() {
-        return relativePath;
-    }
-
-    public void setRelativePath(String relativePath) {
-        this.relativePath = relativePath;
-    }
-
     public Boolean getIsDirectory() {
         return isDirectory;
     }
@@ -214,6 +204,30 @@ public class File {
 
     public void setDirectory(Boolean directory) {
         isDirectory = directory;
+    }
+
+    public String getPhysicalPath() {
+        return physicalPath;
+    }
+
+    public void setPhysicalPath(String physicalPath) {
+        this.physicalPath = physicalPath;
+    }
+
+    public String getProjectPath() {
+        return projectPath;
+    }
+
+    public void setProjectPath(String projectPath) {
+        this.projectPath = projectPath;
+    }
+
+    public String getArtifactPath() {
+        return artifactPath;
+    }
+
+    public void setArtifactPath(String artifactPath) {
+        this.artifactPath = artifactPath;
     }
 
     @Override
