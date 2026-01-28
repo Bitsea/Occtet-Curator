@@ -19,19 +19,19 @@
 
 package eu.occtet.bocfrontend.view.project;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.boc.model.SpdxExportWorkData;
-import eu.occtet.boc.model.WorkTask;
-
+import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.factory.CuratorTaskFactory;
+import eu.occtet.bocfrontend.service.CuratorTaskService;
 import eu.occtet.bocfrontend.service.NatsService;
 import eu.occtet.bocfrontend.view.main.MainView;
+import io.jmix.core.Messages;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.download.Downloader;
@@ -40,11 +40,6 @@ import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.nio.charset.Charset;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.concurrent.CompletableFuture;
 
 
 @Route(value = "projects", layout = MainView.class)
@@ -66,6 +61,15 @@ public class ProjectListView extends StandardListView<Project> {
     @Autowired
     private Downloader downloader;
 
+    @Autowired
+    private Messages messages;
+
+    @Autowired
+    private CuratorTaskService curatorTaskService;
+
+    @Autowired
+    private CuratorTaskFactory curatorTaskFactory;
+
     @Subscribe
     public void onInit(final InitEvent event) {
         DataGrid.Column<Project> exportColumn = projectsDataGrid.getColumnByKey("exportBtn");
@@ -74,9 +78,9 @@ public class ProjectListView extends StandardListView<Project> {
 
             JmixButton exportButton = uiComponents.create(JmixButton.class);
             exportButton.setIcon(VaadinIcon.DOWNLOAD.create());
-            exportButton.setText("Export SBOM");
+            exportButton.setText(messages.getMessage("eu.occtet.bocfrontend.view.project/projectListView.exportBtn"));
             exportButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-            exportButton.setTooltipText("Export Project");
+            exportButton.setTooltipText(messages.getMessage("eu.occtet.bocfrontend.view.project/projectListView.exportTooltip"));
             exportButton.addClickListener(clickEvent -> {
                 handleExport(project);
             });
@@ -86,27 +90,22 @@ public class ProjectListView extends StandardListView<Project> {
     }
 
     private void handleExport(Project project){
+
+        CuratorTask curatorTask = curatorTaskFactory.create(project, "SPDX_Export_Task", "processing_spdx");
+
         SpdxExportWorkData spdxExportWorkData = new SpdxExportWorkData(project.getDocumentID(), String.valueOf(project.getId()));
-        LocalDateTime now = LocalDateTime.now();
-        long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("processing_spdx", "send project data to microservice to create new spdx", actualTimestamp, spdxExportWorkData);
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-            String message = mapper.writeValueAsString(workTask);
-            log.debug("sending message to export service: {}", message);
-            natsService.sendWorkMessageToStream("work.export", message.getBytes(Charset.defaultCharset()));
 
-            UI ui = UI.getCurrent();
-            String fileId = project.getDocumentID(); // Assuming this is the key in the bucket
+        boolean res = curatorTaskService.saveAndRunTask(curatorTask, spdxExportWorkData, "send project data to microservice to create new spdx");
 
-            CompletableFuture.runAsync(() -> {
-                waitForFileAndDownload(ui, fileId, project.getProjectName()+".json");
-            });
+        // FIXME we cannot wait here for the file to become available
+//        UI ui = UI.getCurrent();
+//        String fileId = project.getDocumentID(); // Assuming this is the key in the bucket
+//
+//        CompletableFuture.runAsync(() -> {
+//            waitForFileAndDownload(ui, fileId, project.getProjectName()+".json");
+//        });
 
-        }catch(Exception e){
-            log.error("Error with microservice connection: {}", e.getMessage());
-        }
+
     }
 
     private void waitForFileAndDownload(UI ui, String fileId, String fileName) {

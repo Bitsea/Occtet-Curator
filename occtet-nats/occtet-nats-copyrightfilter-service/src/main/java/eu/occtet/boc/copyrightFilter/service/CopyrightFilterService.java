@@ -23,7 +23,7 @@
 package eu.occtet.boc.copyrightFilter.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.copyrightFilter.dao.InventoryItemRepository;
+import eu.occtet.boc.copyrightFilter.factory.PromptFactory;
 import eu.occtet.boc.copyrightFilter.preprocessor.CopyrightPreprocessor;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.InventoryItem;
@@ -33,6 +33,7 @@ import eu.occtet.boc.model.ScannerSendWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
+import eu.occtet.boc.dao.InventoryItemRepository;
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import org.apache.logging.log4j.LogManager;
@@ -102,7 +103,6 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
             for (Copyright copy : copyrights) {
                 copyrightTexts.add(copy.getCopyrightText());
             }
-
             List<String> questionableCopyrights = filterFalsCopyrightsWithGarbageFile(copyrightTexts, item.getSoftwareComponent());
             if (!questionableCopyrights.isEmpty()) {
                 log.info("sending copyrightList to ai for inventory item: {}, copyrights to check: {}", item.getInventoryName(), questionableCopyrights.size());
@@ -142,7 +142,7 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
     private void sendAnswerToStream(AICopyrightFilterWorkData aiCopyrightFilterWorkData) {
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("process_inventoryItems", "sending inventoryItem to next microservice according to config", actualTimestamp, aiCopyrightFilterWorkData);
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "sending inventoryItem to next microservice according to config", actualTimestamp, aiCopyrightFilterWorkData);
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String message = objectMapper.writeValueAsString(workTask);

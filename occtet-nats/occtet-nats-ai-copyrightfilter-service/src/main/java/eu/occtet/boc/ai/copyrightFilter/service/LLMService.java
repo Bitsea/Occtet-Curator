@@ -23,16 +23,17 @@
 package eu.occtet.boc.ai.copyrightFilter.service;
 
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.ai.copyrightFilter.dao.CopyrightRepository;
-import eu.occtet.boc.ai.copyrightFilter.dao.InventoryItemRepository;
 import eu.occtet.boc.ai.copyrightFilter.factory.AdvisorFactory;
 import eu.occtet.boc.ai.copyrightFilter.factory.PromptFactory;
 import eu.occtet.boc.ai.copyrightFilter.postprocessing.PostProcessor;
+import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.model.*;
+import eu.occtet.boc.model.AIAnswerWorkData;
+import eu.occtet.boc.model.AICopyrightFilterWorkData;
+import eu.occtet.boc.model.AIStatusQueryWorkData;
+import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
 import io.nats.client.Connection;
@@ -68,7 +69,8 @@ public class LLMService extends BaseWorkDataProcessor {
     private PostProcessor postProcessor;
 
     @Autowired
-    private InventoryItemRepository inventoryItemRepository;
+    private eu.occtet.boc.dao.InventoryItemRepository inventoryItemRepository;
+
     @Autowired
     private CopyrightRepository copyrightRepository;
 
@@ -208,7 +210,7 @@ public class LLMService extends BaseWorkDataProcessor {
         // Get the current date and time
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("status_request", "question", actualTimestamp, new AIAnswerWorkData(answer));
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "question", actualTimestamp, new AIAnswerWorkData(answer));
         ObjectMapper objectMapper = new ObjectMapper();
         String message = objectMapper.writeValueAsString(workTask);
         log.debug("sending message to ai service: {}", message);

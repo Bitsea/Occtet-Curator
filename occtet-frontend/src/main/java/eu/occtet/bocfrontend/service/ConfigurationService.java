@@ -20,7 +20,7 @@
 package eu.occtet.bocfrontend.service;
 
 import eu.occtet.bocfrontend.entity.Configuration;
-import eu.occtet.bocfrontend.entity.ImportTask;
+import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.factory.ConfigurationFactory;
 import eu.occtet.bocfrontend.importer.ImportManager;
 import org.apache.logging.log4j.LogManager;
@@ -42,8 +42,8 @@ public class ConfigurationService {
         return configurationFactory.create(name, value);
     }
 
-    public Configuration.Type getTypeOfConfiguration(String key, ImportTask importTask) {
-        return importManager.findImportByName(importTask.getImportName()).getTypeOfConfiguration(key);
+    public Configuration.Type getTypeOfConfiguration(String key, CuratorTask curatorTask) {
+        return importManager.findImportByName(curatorTask.getTaskType()).getTypeOfConfiguration(key);
     }
 
     /**
@@ -58,11 +58,11 @@ public class ConfigurationService {
             byte[] uploadFieldValue,
             String uploadFileName,
             Boolean booleanField,
-            ImportTask importTask
+            CuratorTask curatorTask
     ) {
-        if (getTypeOfConfiguration(nameField, importTask) == Configuration.Type.FILE_UPLOAD) {
+        if (getTypeOfConfiguration(nameField, curatorTask) == Configuration.Type.FILE_UPLOAD) {
             return handleFileUploadConfig(config, nameField, uploadFieldValue, uploadFileName);
-        } else if (getTypeOfConfiguration(nameField, importTask) == Configuration.Type.BOOLEAN) {
+        } else if (getTypeOfConfiguration(nameField, curatorTask) == Configuration.Type.BOOLEAN) {
             return handleValueOnly(config, nameField, booleanField.toString());
         } else {
             return handleValueOnly(config, nameField, config.getValue());

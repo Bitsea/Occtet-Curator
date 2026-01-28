@@ -97,17 +97,17 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.5.18</version>
+            <version>${logback-version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>1.5.19</version>
+            <version>${logback-version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback.db</groupId>
             <artifactId>logback-classic-db</artifactId>
-            <version>1.2.11.1</version>
+            <version>${logback-db-version}</version>
         </dependency>
         <dependency>
             <groupId>com.lmax</groupId>

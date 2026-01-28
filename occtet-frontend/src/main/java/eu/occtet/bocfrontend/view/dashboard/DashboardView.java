@@ -21,10 +21,17 @@ package eu.occtet.bocfrontend.view.dashboard;
 
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
-import eu.occtet.bocfrontend.entity.DashboardQueryRisk;
-import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.Vulnerability;
+import eu.occtet.boc.model.WorkTaskProgress;
+import eu.occtet.bocfrontend.entity.*;
+import eu.occtet.bocfrontend.service.WorkTaskProgressMonitor;
+import eu.occtet.bocfrontend.service.CuratorTaskService;
+import eu.occtet.bocfrontend.util.CuratorTaskUI;
 import eu.occtet.bocfrontend.view.main.MainView;
 import eu.occtet.bocfrontend.view.vulnerability.VulnerabilityDetailView;
 import io.jmix.chartsflowui.component.Chart;
@@ -33,10 +40,14 @@ import io.jmix.chartsflowui.kit.component.model.DataSet;
 import io.jmix.chartsflowui.kit.component.model.shared.Color;
 import io.jmix.chartsflowui.kit.data.chart.ListChartItems;
 import io.jmix.core.DataManager;
+import io.jmix.core.Messages;
 import io.jmix.core.ValueLoadContext;
 import io.jmix.flowui.DialogWindows;
+import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.combobox.EntityComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.component.listbox.JmixListBox;
+import io.jmix.flowui.facet.Timer;
 import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
@@ -54,6 +65,8 @@ import java.util.Objects;
 @ViewDescriptor(path = "dashboard-view.xml")
 public class DashboardView extends StandardView {
 
+    private static final int CURRENT_TASKS_LAST_UPDATE_THRESHOLD_MINUTES = 30;
+    
     @ViewComponent
     private CollectionLoader<Project> projectsDl;
 
@@ -69,11 +82,20 @@ public class DashboardView extends StandardView {
     @ViewComponent
     protected Chart chartSoftwareComponent;
 
+    @ViewComponent
+    private JmixListBox<WorkTaskProgress> runningTasksList;
+
     @Autowired
     private DialogWindows dialogWindows;
 
     @Autowired
     private DataManager dataManager;
+
+    @Autowired
+    private CuratorTaskService curatorTaskService;
+
+    @Autowired
+    private Messages messages;
 
     private final static String sumRiskScore = "sumRiskScore";
     private final static String sumRiskValue = "value";
@@ -95,6 +117,11 @@ public class DashboardView extends StandardView {
 
 
     private static final Logger log = LogManager.getLogger(DashboardView.class);
+    @Autowired
+    private UiComponents uiComponents;
+
+    @Autowired
+    WorkTaskProgressMonitor workTaskProgressMonitor;
 
     @Subscribe
     public void onInit(InitEvent event) {
@@ -104,11 +131,13 @@ public class DashboardView extends StandardView {
 
         vulnerabilitiesGrid.getColumnByKey("riskScore")
                 .setTooltipGenerator(v -> v.getRiskScore() != null ?
-                        "Risk Score: " + v.getRiskScore() : "No Score");
+                        messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.riskScore") + ": " + v.getRiskScore() :
+                        messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.NoScore"));
 
         vulnerabilitiesGrid.getColumnByKey("weightedSeverity")
                 .setTooltipGenerator(v -> v.getWeightedSeverity() != null ?
-                        "Weighted Severity: " + v.getWeightedSeverity() : "No Severity");
+                        messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.severity") + ": " + v.getWeightedSeverity() :
+                        messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.NoSeverity"));
     }
 
     @Subscribe("vulnerabilitiesGrid")
@@ -124,6 +153,13 @@ public class DashboardView extends StandardView {
             Project project = (Project) event.getValue();
             setValuesForPieCharts(project);
         }
+    }
+
+    @Subscribe("refreshTimer")
+    public void onRefreshTimerTimerAction(final Timer.TimerActionEvent event) {
+        List<WorkTaskProgress> currentTasks = workTaskProgressMonitor.getAllProgress();
+        log.debug("found {} tasks to display",currentTasks.size());
+        runningTasksList.setItems(currentTasks);
     }
 
     private void openDetailView(Vulnerability vulnerability) {
@@ -177,7 +213,7 @@ public class DashboardView extends StandardView {
         List<Color> dynamicColors = new ArrayList<>();
 
         if (softwareNoRisk != null && softwareNoRisk > ZERO){
-            softwareComponentItems.add(new MapDataItem(Map.of(sumRiskLevel, "No risk", sumRiskValue, softwareNoRisk)));
+            softwareComponentItems.add(new MapDataItem(Map.of(sumRiskLevel, messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.NoRisk"), sumRiskValue, softwareNoRisk)));
             dynamicColors.add(Color.DARKGREEN);
         }
 
@@ -280,4 +316,19 @@ public class DashboardView extends StandardView {
             }
         }
     }
+
+    @Supply(to = "runningTasksList", subject = "renderer")
+    private ComponentRenderer runningTasksListRenderer() {
+        return new ComponentRenderer<HorizontalLayout,WorkTaskProgress>(task -> {
+            HorizontalLayout row = uiComponents.create(HorizontalLayout.class);
+            row.setAlignItems(FlexComponent.Alignment.CENTER);
+            Icon icon = CuratorTaskUI.iconForTaskStatus(task.getStatus());
+            icon.setSize("10px");
+            row.add(icon );
+            row.add(new Span(task.getDetails() + " ("+task.getPercent() + "%)"));
+            return row;
+        }); 
+    }
+    
+    
 }

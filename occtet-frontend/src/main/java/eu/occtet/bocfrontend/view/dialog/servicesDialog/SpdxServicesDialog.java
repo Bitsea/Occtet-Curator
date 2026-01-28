@@ -156,7 +156,8 @@ public class SpdxServicesDialog extends AbstractServicesDialog{
         if(checkData()){
             LocalDateTime now = LocalDateTime.now();
             long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-            WorkTask workTask = new WorkTask("processing_spdx", "question", actualTimestamp, workData);
+
+            WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "question", actualTimestamp, workData);
             try {
                 ObjectMapper objectMapper = new ObjectMapper();
                 String message = objectMapper.writeValueAsString(workTask);

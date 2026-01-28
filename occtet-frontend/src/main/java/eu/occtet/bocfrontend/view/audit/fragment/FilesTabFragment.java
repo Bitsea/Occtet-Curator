@@ -34,6 +34,7 @@ import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.factory.CodeLocationFactory;
 import eu.occtet.bocfrontend.service.FileContentService;
 import eu.occtet.bocfrontend.view.audit.AuditView;
+import io.jmix.core.Messages;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.action.DialogAction;
@@ -88,6 +89,8 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
     private CopyrightRepository copyrightRepository;
     @Autowired
     private CodeLocationRepository codeLocationRepository;
+    @Autowired
+    private Messages messages;
 
     public void setHostView(View<?> hostView) {
         this.hostView = hostView;
@@ -102,12 +105,12 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
     @Subscribe(id = "codeloctionsEditButton.addCodeLocation")
     public void addCodeLocation(DropdownButtonItem.ClickEvent event) {
         dialogs.createInputDialog(hostView)
-                .withHeader("Enter values")
+                .withHeader(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.edit.header"))
                 .withParameters(
-                        InputParameter.stringParameter("filePath").withLabel("File Path").withRequired(true)
-                                .withRequiredMessage("Provide a path"),
-                        InputParameter.intParameter("from").withRequired(false).withLabel("From").withDefaultValue(0),
-                        InputParameter.intParameter("to").withRequired(false).withLabel("To").withDefaultValue(0)
+                        InputParameter.stringParameter("filePath").withLabel(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.filePath")).withRequired(true)
+                                .withRequiredMessage(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.edit.message.required")),
+                        InputParameter.intParameter("from").withRequired(false).withLabel(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.from")).withDefaultValue(0),
+                        InputParameter.intParameter("to").withRequired(false).withLabel(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.to")).withDefaultValue(0)
                 ).withActions(DialogActions.OK_CANCEL)
                 .withCloseListener(closeEvent -> {
                     if (closeEvent.closedWith(DialogOutcome.OK)) {
@@ -131,10 +134,10 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
             optionsButton.addThemeVariants(DropdownButtonVariant.LUMO_ICON, DropdownButtonVariant.LUMO_SMALL, DropdownButtonVariant.LUMO_TERTIARY);
             optionsButton.setWidth("40px");
 
-            optionsButton.addItem("copy", "Copy", clickEvent -> copyCodeLocation(codeLocation));
-            optionsButton.addItem("view", "View", clickEvent -> viewCodeLocation(codeLocation));
-            optionsButton.addItem("edit", "edit", clickEvent -> editCodeLocation(codeLocation));
-            optionsButton.addItem("delete", "delete", clickEvent -> deleteCodeLocation(codeLocation));
+            optionsButton.addItem("copy", messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.button.copy"), clickEvent -> copyCodeLocation(codeLocation));
+            optionsButton.addItem("view", messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.button.view"), clickEvent -> viewCodeLocation(codeLocation));
+            optionsButton.addItem("edit", messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.button.edit"), clickEvent -> editCodeLocation(codeLocation));
+            optionsButton.addItem("delete", messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.button.delete"), clickEvent -> deleteCodeLocation(codeLocation));
 
             return optionsButton;
         });
@@ -150,7 +153,7 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
                 log.error("Host view is not AuditView, cannot open tab.");
             }
         } else {
-            notifications.create("File not found in database for this code location.")
+            notifications.create(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.message.error"))
                     .withPosition(Notification.Position.BOTTOM_END)
                     .withThemeVariant(NotificationVariant.LUMO_ERROR)
                     .withDuration(3000)
@@ -160,11 +163,11 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
 
     private void copyCodeLocation(CodeLocation codeLocation) {
         UiComponentUtils.copyToClipboard(codeLocation.getFilePath())
-                .then(successResult -> notifications.create("Text copied!")
+                .then(successResult -> notifications.create(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.copy.notification"))
                                 .withPosition(Notification.Position.BOTTOM_END)
                                 .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
                                 .show(),
-                        errorResult -> notifications.create("Copy failed!")
+                        errorResult -> notifications.create(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.copy.notification.error"))
                                 .withPosition(Notification.Position.BOTTOM_END)
                                 .withThemeVariant(NotificationVariant.LUMO_ERROR)
                                 .show());
@@ -174,9 +177,9 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
         dialogs.createInputDialog(hostView)
                 .withHeader("Enter values")
                 .withParameters(
-                        InputParameter.stringParameter("filePath").withLabel("File Path").withDefaultValue(codeLocation.getFilePath()),
-                        InputParameter.intParameter("from").withRequired(false).withLabel("From").withDefaultValue(codeLocation.getLineNumber()),
-                        InputParameter.intParameter("to").withRequired(false).withLabel("To").withDefaultValue(codeLocation.getLineNumberTo())
+                        InputParameter.stringParameter("filePath").withLabel(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.filePath")).withDefaultValue(codeLocation.getFilePath()),
+                        InputParameter.intParameter("from").withRequired(false).withLabel(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.from")).withDefaultValue(codeLocation.getLineNumber()),
+                        InputParameter.intParameter("to").withRequired(false).withLabel(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.to")).withDefaultValue(codeLocation.getLineNumberTo())
                 ).withActions(DialogActions.OK_CANCEL)
                 .withCloseListener( closeEvent ->{
                     if (!closeEvent.closedWith(DialogOutcome.OK)){
@@ -195,11 +198,11 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
 
     private void deleteCodeLocation(CodeLocation codeLocation){
         List<Copyright> associatedCopyrights = copyrightRepository.findCopyrightsByCodeLocationsIn(List.of(codeLocation));
-        String message = "Are you sure you want to delete this code location?\n"+codeLocation.getFilePath();
+        String message = messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.delete.message")+"\n"+codeLocation.getFilePath();
         if (!associatedCopyrights.isEmpty()) {
-            message += "\n\n" + associatedCopyrights.size() + " associated copyrights with only this location will also be deleted.";
+            message += "\n\n" + associatedCopyrights.size() + messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.delete.message.empty");
         }
-        dialogs.createOptionDialog().withHeader("Delete code location")
+        dialogs.createOptionDialog().withHeader(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.delete.header"))
                 .withText(message)
                 .withActions(
                         new DialogAction(DialogAction.Type.YES).withHandler(event -> {

@@ -27,7 +27,7 @@ import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.SoftwareComponent;
-import eu.occtet.boc.fossreport.dao.InventoryItemRepository;
+import eu.occtet.boc.dao.InventoryItemRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

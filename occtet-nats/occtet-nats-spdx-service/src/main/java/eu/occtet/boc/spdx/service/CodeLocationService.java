@@ -25,7 +25,7 @@ package eu.occtet.boc.spdx.service;
 
 import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.spdx.dao.CodeLocationRepository;
+import eu.occtet.boc.dao.CodeLocationRepository;
 import eu.occtet.boc.spdx.factory.CodeLocationFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

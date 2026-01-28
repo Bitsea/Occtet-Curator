@@ -22,8 +22,8 @@
 
 package eu.occtet.boc.fossreport.service;
 
+import eu.occtet.boc.dao.ImportTaskRepository;
 import eu.occtet.boc.entity.ImportTask;
-import eu.occtet.boc.fossreport.dao.ScannerInitializerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +34,7 @@ import java.util.ArrayList;
 public class ImportTaskService {
 
     @Autowired
-    private ScannerInitializerRepository scannerInitializerRepository;
+    private ImportTaskRepository importTaskRepository;
 
     public void updateImportFeedback(ImportTask importTask, String msg){
         if (importTask == null) return;
@@ -42,6 +42,6 @@ public class ImportTaskService {
             importTask.setFeedback(new ArrayList<>());
 
         importTask.getFeedback().add(msg);
-        scannerInitializerRepository.save(importTask);
+        importTaskRepository.save(importTask);
     }
 }

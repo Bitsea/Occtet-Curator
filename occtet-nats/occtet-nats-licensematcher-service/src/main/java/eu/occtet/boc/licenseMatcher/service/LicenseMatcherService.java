@@ -23,9 +23,9 @@
 package eu.occtet.boc.licenseMatcher.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.License;
-import eu.occtet.boc.licenseMatcher.dao.InventoryItemRepository;
 import eu.occtet.boc.licenseMatcher.factory.InventoryItemFactory;
 import eu.occtet.boc.licenseMatcher.tools.LicenseMatcher;
 import eu.occtet.boc.model.AILicenseMatcherWorkData;
@@ -155,7 +155,7 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
     private void sendAnswerToStream(AILicenseMatcherWorkData aiLicenseMatcherWorkData) {
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("process_inventoryItems", "sending inventoryItem to next microservice according to config", actualTimestamp, aiLicenseMatcherWorkData);
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "sending inventoryItem to next microservice according to config", actualTimestamp, aiLicenseMatcherWorkData);
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String message = objectMapper.writeValueAsString(workTask);

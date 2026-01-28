@@ -24,9 +24,9 @@ package eu.occtet.boc.fossreport.service;
 
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
-import eu.occtet.boc.fossreport.dao.CodeLocationRepository;
-import eu.occtet.boc.fossreport.dao.ProjectRepository;
-import eu.occtet.boc.fossreport.dao.ScannerInitializerRepository;
+import eu.occtet.boc.dao.CodeLocationRepository;
+import eu.occtet.boc.dao.ProjectRepository;
+import eu.occtet.boc.dao.ImportTaskRepository;
 import eu.occtet.boc.fossreport.factory.InventoryItemFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +50,7 @@ public class FOSSReportServiceTest {
     @Autowired
     private InventoryItemFactory inventoryItemFactory;
     @Autowired
-    private ScannerInitializerRepository scannerInitializerRepository;
+    private ImportTaskRepository scannerInitializerRepository;
     @Autowired
     private CodeLocationRepository codeLocationRepository;
     @Autowired

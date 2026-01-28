@@ -41,7 +41,7 @@ public class Configuration {
     @Column(name = "NAME")
     private String name;
 
-    @Column(name = "VALUE")
+    @Column(name = "VALUE_")
     private String value;
 
     @Column(name = "UPLOAD", length =1000000000)

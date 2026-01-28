@@ -90,7 +90,7 @@
                             <column property="riskScore" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.riskScore"/>
                             <column property="sourceUrl" header="msg://softwareComponent.sourceUrl"/>
                             <column property="createdAt"
-                                    header="msg://eu.occtet.bocfrontend.entity/ImportTask.lastUpdate"/>
+                                    header="msg://eu.occtet.bocfrontend.entity/CuratorTask.lastUpdate"/>
                             <column key="actions"
                                     sortable="false"
                                     autoWidth="true"

@@ -65,6 +65,10 @@
         <common-version>0.3.5-SNAPSHOT</common-version>
         <common-jpa-version>0.3.6-SNAPSHOT</common-jpa-version>
         <ort-client-version>0.3.2-SNAPSHOT</ort-client-version>
+        <logback-version>1.5.19</logback-version>
+        <logback-db-version>1.2.11.1</logback-db-version>
+        <postgresql.version>42.7.8</postgresql.version>
+        <h2db.version>2.3.232</h2db.version>
 	</properties>
 
 	<dependencies>

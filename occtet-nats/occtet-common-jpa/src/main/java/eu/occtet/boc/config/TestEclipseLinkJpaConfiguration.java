@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter;
@@ -38,6 +39,7 @@ import java.util.Map;
  *
  */
 @Configuration
+@Profile({"test"})
 public class TestEclipseLinkJpaConfiguration extends JpaBaseConfiguration {
 
     @Autowired
@@ -45,6 +47,7 @@ public class TestEclipseLinkJpaConfiguration extends JpaBaseConfiguration {
 
     protected TestEclipseLinkJpaConfiguration(DataSource dataSource, JpaProperties properties, ObjectProvider<JtaTransactionManager> jtaTransactionManager) {
         super(dataSource, properties, jtaTransactionManager);
+        System.out.println("using TestEclipseLinkJpaConfiguration");
     }
 
     @Override
@@ -55,9 +58,12 @@ public class TestEclipseLinkJpaConfiguration extends JpaBaseConfiguration {
     @Override
     protected Map<String, Object> getVendorProperties(DataSource dataSource) {
         HashMap<String, Object> map = new HashMap<>(properties.getProperties());
-        //map.put("eclipselink.ddl-generation","none");
+
+        map.put("eclipselink.ddl-generation","create-tables");
+        map.put("eclipselink.logging.level","FINE");
+        map.put("eclipselink.weaving","static");
         //map.put("eclipselink.jdbc.allow-native-sql-queries","true");
-        //map.put("eclipselink.target-database","postgresql");
+        map.put("eclipselink.target-database","org.eclipse.persistence.platform.database.H2Platform");
         return map;
     }
 

@@ -55,17 +55,17 @@
     </actions>
     <layout>
         <tabSheet width="100%" themeNames="no-padding" height="100%">
-            <tab id="generalInformationTab" label="General information" >
+            <tab id="generalInformationTab" label="msg://eu.occtet.bocfrontend.view.inventoryitem/inventoryList.tab.general.label" >
                 <vbox alignItems="CENTER" justifyContent="START" alignSelf="START" height="100%">
                     <formLayout id="form" dataContainer="inventoryItemDc" width="100%" alignSelf="CENTER">
                         <vbox id="inventoryNameField" width="100%"/>
                         <hbox>
-                            <comboBox id="projectField" label="Project" required="true"/>
-                            <textField id="sizeField" property="size" label="Size" width="10%"/>
-                            <textField id="linkingField" property="linking" label="Linking" width="10%"/>
+                            <comboBox id="projectField" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.project" required="true"/>
+                            <textField id="sizeField" property="size" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.size" width="10%"/>
+                            <textField id="linkingField" property="linking" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.linking" width="10%"/>
                             <hbox>
-                                <checkbox id="curatedField" property="curated" label="Curated" alignSelf="END"/>
-                                <checkbox id="wasCombinedField" property="wasCombined" label="Combined" alignSelf="END"/>
+                                <checkbox id="curatedField" property="curated" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.curated" alignSelf="END"/>
+                                <checkbox id="wasCombinedField" property="wasCombined" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.wasCombined" alignSelf="END"/>
                             </hbox>
                         </hbox>
                         <hbox width="100%">
@@ -75,9 +75,9 @@
                                     width="15em" alignSelf="END"/>
                         </hbox>
                         <hbox width="100%">
-                            <comboBox id="softwareComponentField" label="Software component" width="25em"
+                            <comboBox id="softwareComponentField" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.softwareComponent" width="25em"
                                       required="false"/>
-                            <button id="softwareComponentButton" text="Show software component" width="15em" alignSelf="END"/>
+                            <button id="softwareComponentButton" text="msg://eu.occtet.bocfrontend.view.inventoryitem/button.showComponent" width="15em" alignSelf="END"/>
                         </hbox>
                         <vbox id="auditNotesText" width="100%" height="100%"/>
                         <vbox spacing="true" alignItems="CENTER" width="50%" padding="false">
@@ -86,7 +86,7 @@
                                   height="20em"
                                   dataContainer="licenseDc">
                             <columns>
-                                <column property="licenseType" header="License"/>
+                                <column property="licenseType" header="msg://eu.occtet.bocfrontend.entity/License"/>
                             </columns>
                         </dataGrid>
                         <hbox>
@@ -95,17 +95,17 @@
                                 <items>
                                     <componentItem id="createLicense">
                                         <hbox padding="false">
-                                            <span text="create new"/>
+                                            <span text="msg://eu.occtet.bocfrontend.view.inventoryitem/button.dropdown.create"/>
                                         </hbox>
                                     </componentItem>
                                     <componentItem id="addLicense">
                                         <hbox padding="false">
-                                            <span text="add"/>
+                                            <span text="msg://eu.occtet.bocfrontend.view.inventoryitem/button.dropdown.add"/>
                                         </hbox>
                                     </componentItem>
                                     <componentItem id="removeLicense">
                                         <hbox padding="false">
-                                            <span text="remove"/>
+                                            <span text="msg://eu.occtet.bocfrontend.view.inventoryitem/button.dropdown.remove"/>
                                         </hbox>
                                     </componentItem>
                                 </items>
@@ -121,7 +121,7 @@
                     </hbox>
                 </vbox>
             </tab>
-            <tab id="copyrightsTab" label="Copyrights">
+            <tab id="copyrightsTab" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.copyrights">
                 <vbox alignItems="CENTER" height="100%">
                     <dataGrid id="copyrightsDataGrid"
                               width="100%"
@@ -129,9 +129,9 @@
                               columnReorderingAllowed="true"
                               classNames="occtet-grid">
                     <columns resizable="true">
-                        <column property="copyrightText" header="Name"/>
-                        <column property="curated" header="Curated"/>
-                        <column property="garbage" header="Garbage"/>
+                        <column property="copyrightText" header="msg://eu.occtet.bocfrontend.entity/Copyright.copyrightText"/>
+                        <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
+                        <column property="garbage" header="msg://eu.occtet.bocfrontend.entity/Copyright.garbage"/>
                     </columns>
                     </dataGrid>
                     <hbox>

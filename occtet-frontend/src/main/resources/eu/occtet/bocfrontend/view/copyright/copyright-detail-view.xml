@@ -55,7 +55,7 @@
     </actions>
     <layout width="100%">
         <tabSheet width="100%" themeNames="no-padding" height="100%">
-            <tab id="generalInformationTab" label="General information">
+            <tab id="generalInformationTab" label="msg://eu.occtet.bocfrontend.view.copyright/tab.general">
                 <vbox id="form" width="100%">
                     <vbox>
                         <textField id="copyrightTextField" property="copyrightText" dataContainer="copyrightDc"

@@ -1,8 +1,9 @@
 package eu.occtet.bocfrontend.importer;
 
-import eu.occtet.bocfrontend.entity.ImportStatus;
-import eu.occtet.bocfrontend.entity.ImportTask;
-import eu.occtet.bocfrontend.factory.ImportTaskFactory;
+import eu.occtet.bocfrontend.entity.CuratorTask;
+import eu.occtet.bocfrontend.entity.TaskStatus;
+import eu.occtet.bocfrontend.factory.CuratorTaskFactory;
+import eu.occtet.bocfrontend.service.CuratorTaskService;
 import io.jmix.core.DataManager;
 import jakarta.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +21,7 @@ public class ImportManager {
 
 
     private static final Logger log = LogManager.getLogger(ImportManager.class);
+    private final CuratorTaskService curatorTaskService;
 
 
     // Connect to all available Importer implementations. Small but effective Spring autowire trick :-)
@@ -30,10 +32,12 @@ public class ImportManager {
     private DataManager dataManager;
 
     @Autowired
-    private ImportTaskFactory importTaskFactory;
+    private CuratorTaskFactory curatorTaskFactory;
 
+    public ImportManager(CuratorTaskService curatorTaskService) {
+        this.curatorTaskService = curatorTaskService;
+    }
 
-    private Importer preselectedImporter;
 
     /**
      * @return list of available import names (for dropdown when selecting which importer to create)
@@ -43,33 +47,28 @@ public class ImportManager {
         return importers.stream().filter(i -> !i.getName().equals("Dumb")).collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public void preselectNewImport(Importer importer) {
-        this.preselectedImporter = importer;
-    }
 
-    public Importer getPreselectedImporter() {
-        log.debug("preselected import: {}", preselectedImporter);
-        return preselectedImporter;
-    }
-
-    public void processImport(ImportTask importTask){
+    public void startImport(Importer importer, CuratorTask curatorTask) {
 
         // if a initializer available, process it
-        if(importTask != null) {
+        if (curatorTask != null) {
             boolean res = false;
 
             try {
-                log.debug("processing scannerInitializer from queue: {}", importTask);
-                res = preselectedImporter.processTask(importTask);
-                log.info("finished processing task for Scanner: {}. Result: {}", importTask.getId(), res);
-                importTaskFactory.saveWithFeedBack(importTask, List.of("Finished processing task for Scanner: " + importTask.getImportName() + ". Result: " + res),  res ? ImportStatus.COMPLETED : ImportStatus.STOPPED);
+
+                res = importer.prepareAndStartTask(curatorTask);
+                log.info("started task {}, importer {}. Result: {}", curatorTask.getId(), importer.getName(), res);
+                if(!res) {
+                    curatorTask.setStatus(TaskStatus.CANCELLED);
+                }
+                dataManager.save(curatorTask);
             } catch (Exception e) {
-                importTaskFactory.saveWithFeedBack(importTask,List.of("Exception during processing: " + e.getMessage()), ImportStatus.STOPPED);
-                log.error("exception during processing of scannerInitializer {}", importTask.getImportName(), e);
+                curatorTaskService.saveWithFeedBack(curatorTask, List.of("Exception during processing: " + e.getMessage()), TaskStatus.CANCELLED);
+                log.error("exception during start of scannerInitializer {}", curatorTask.getTaskName(), e);
             }
 
             // clear file upload once finished
-            clearFileUpload(importTask);
+            clearFileUpload(curatorTask);
         }
     }
 
@@ -83,19 +82,13 @@ public class ImportManager {
         return importers.stream().filter(s -> StringUtils.equals(name, s.getName())).findFirst().orElse(null);
     }
 
-    private void clearFileUpload(ImportTask importTask){
-       ImportTask existingSc = dataManager.load(ImportTask.class).id(importTask.getId()).one();
-        existingSc.getImportConfiguration()
-                .stream()
-                .filter(config -> config.getUpload() != null)
-                .findFirst()
-                .ifPresent(config -> {
-                    log.debug(config.getUpload() != null ? "upload not null" : "upload null");
+    private void clearFileUpload(CuratorTask curatorTask) {
+        curatorTask.getTaskConfiguration().stream().filter(config -> config.getUpload() != null)
+                .findFirst().ifPresent(config -> {
                     config.setUpload(null);
-                    log.debug(config.getUpload() != null ? "upload not null" : "upload null");
-                    dataManager.save(config);
+                    dataManager.save(curatorTask);
+                    log.info("cleared file upload for scanner {}", curatorTask.getId());
                 });
-        dataManager.save(existingSc);
-        log.info("cleared file upload for scanner {}", importTask.getId());
+
     }
 }

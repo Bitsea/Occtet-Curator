@@ -23,7 +23,7 @@
 package eu.occtet.boc.spdx.service;
 
 import eu.occtet.boc.entity.SoftwareComponent;
-import eu.occtet.boc.spdx.dao.SoftwareComponentRepository;
+import eu.occtet.boc.dao.SoftwareComponentRepository;
 import eu.occtet.boc.spdx.factory.SoftwareComponentFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

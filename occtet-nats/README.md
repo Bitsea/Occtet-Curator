@@ -1,4 +1,4 @@
-Occtet NATS Parent
+Occtet Curator NATS Backend
 -
 
 ### Building
@@ -7,11 +7,11 @@ To build everything, in the root directory, execute
 
 `mvn package`
 
-To build a sigle module, for example the template, execute the same command in its directory.
+To build a single module, for example the template, execute the same command in its directory.
 
 You can skip tests with `-DskipTests=true`.
 
-Create docker images:
+**Create docker images:**
 
 Enter the module directory which includes a Dockerfile, for example occtet-nats-ai-service, and execute
 `mvn clean package dockerfile:build`
@@ -50,7 +50,7 @@ To create the required tables, use create-logback-tables-postgresql.sql
 
 ### Docker setup
 
-We provice a docker-compose.yml file to start a NATS server and a Postgres database init script (init-postgresql-db.sql,
+We provide a docker-compose.yml file to start a NATS server and a Postgres database init script (init-postgresql-db.sql,
 this includes the logback tables creation script) to create and initialize a Postgres database
 with the required tables.
 
@@ -74,6 +74,12 @@ Once you have built and installed all docker images locally (see above), you can
 To start up just a single service, use
 `docker-compose up -d <service-name>`
 (Without -d if you want to see the log output in the console. Press Ctrl-C to stop.)
+
+# Funding
+
+OCCTET project has received funding from the Digital Europe Programme (DIGITAL), under grant agreement number: 101190474.
+
+![Funded by EU](./assets/funded.jpg)
 
 
 

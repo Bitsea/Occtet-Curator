@@ -54,7 +54,7 @@ import java.util.concurrent.Executor;
 @SpringBootApplication(scanBasePackages = {"eu.occtet.boc"})
 @EnableAsync
 @EntityScan(basePackages = "eu.occtet.boc")
-@EnableJpaRepositories(basePackages = "eu.occtet.boc.copyrightFilter.dao")
+@EnableJpaRepositories(basePackages = "eu.occtet.boc.dao")
 @Profile({"!test"})
 public class CopyrightFilterServiceApp {
 

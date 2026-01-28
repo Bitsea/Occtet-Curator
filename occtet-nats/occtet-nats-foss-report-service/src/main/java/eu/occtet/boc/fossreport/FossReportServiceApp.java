@@ -52,7 +52,7 @@ import java.util.concurrent.Executor;
 @SpringBootApplication(scanBasePackages = {"eu.occtet.boc"})
 @EnableAsync
 @EntityScan("eu.occtet.boc.entity")
-@EnableJpaRepositories(basePackages = "eu.occtet.boc.fossreport.dao")
+@EnableJpaRepositories(basePackages = "eu.occtet.boc.dao")
 @Profile({"!test"})
 public class FossReportServiceApp {
 

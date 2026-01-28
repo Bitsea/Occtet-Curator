@@ -35,6 +35,7 @@ import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.service.CopyrightService;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
+import io.jmix.core.Messages;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.checkbox.JmixCheckbox;
@@ -92,6 +93,9 @@ public class CopyrightListView extends StandardListView<Copyright> {
 
     @ViewComponent
     private JmixButton saveButton;
+
+    @Autowired
+    private Messages messages;
 
     private final Set<Copyright> copyrights = new HashSet<>();
 
@@ -178,7 +182,7 @@ public class CopyrightListView extends StandardListView<Copyright> {
                 copyrightService.createYML(garbageList);
                 downloader.download(copyrightService.getYmlFileRef());
             }else{
-                getInfoMessage("No garbage copyrights");
+                getInfoMessage(messages.getMessage("eu.occtet.bocfrontend.view.copyright/notification.noGarbage"));
             }
         }
     }
@@ -191,9 +195,9 @@ public class CopyrightListView extends StandardListView<Copyright> {
             List<String> garbageCopys = copyrightService.readYML(file);
             if(!garbageCopys.isEmpty()){
                 copyrightService.setGarbageCopyrightsInJSON(garbageCopys);
-                getInfoMessage("File uploaded successfully");
+                getInfoMessage(messages.getMessage("eu.occtet.bocfrontend.view.copyright/notification.uploadSuccess"));
             }else{
-                getInfoMessage("Upload failed!");
+                getInfoMessage(messages.getMessage("eu.occtet.bocfrontend.view.copyright/notification.uploadFailed"));
             }
         }
     }
@@ -234,15 +238,14 @@ public class CopyrightListView extends StandardListView<Copyright> {
     private void saveChanges(Copyright copyright) {
         Copyright savedCopyright = dataManager.save(copyright);
         copyrightsDc.replaceItem(savedCopyright);
-        notifications.show("Changes saved to the database");
-
+        notifications.show(messages.getMessage("eu.occtet.bocfrontend.view.copyright/notification.dbChanges.save"));
     }
 
     private void saveEnqueuedChanges() {
         if (!copyrights.isEmpty()) {
             dataManager.saveAll(copyrights);
             copyrights.clear();
-            notifications.show("Changes saved to the database");
+            notifications.show(messages.getMessage("eu.occtet.bocfrontend.view.copyright/notification.dbChanges.save"));
             copyrightsDl.load();
         }
     }
