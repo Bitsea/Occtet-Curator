@@ -51,7 +51,7 @@ import java.util.concurrent.Executor;
 @SpringBootApplication(scanBasePackages = {"eu.occtet.boc"})
 @EnableJpaAuditing
 @EnableAsync
-@EnableJpaRepositories(basePackages = "eu.occtet.boc.download.dao")
+@EnableJpaRepositories(basePackages = "eu.occtet.boc.dao")
 @EntityScan({"eu.occtet.boc.entity", "eu.occtet.boc.converter"})
 @Profile("!test")
 public class DownloadServiceApp {

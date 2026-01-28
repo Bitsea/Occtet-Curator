@@ -45,7 +45,7 @@ public class License {
     @Column(name= "LICENSE_TYPE")
     private String licenseType;
 
-    @Column(name= "LICENSE_TEXT",length = Integer.MAX_VALUE)
+    @Column(name= "LICENSE_TEXT",columnDefinition = "TEXT")
     private String licenseText;
 
     @Column(name= "LICENSE_NAME")

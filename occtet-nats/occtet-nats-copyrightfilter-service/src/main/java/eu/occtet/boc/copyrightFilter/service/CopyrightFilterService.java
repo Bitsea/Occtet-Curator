@@ -23,18 +23,17 @@
 package eu.occtet.boc.copyrightFilter.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.copyrightFilter.dao.InventoryItemRepository;
 import eu.occtet.boc.copyrightFilter.factory.PromptFactory;
 import eu.occtet.boc.copyrightFilter.preprocessor.CopyrightPreprocessor;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.model.AICopyrightFilterWorkData;
-import eu.occtet.boc.model.AIStatusQueryWorkData;
 import eu.occtet.boc.model.ScannerSendWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
+import eu.occtet.boc.dao.InventoryItemRepository;
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import org.apache.logging.log4j.LogManager;
@@ -53,6 +52,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class CopyrightFilterService  extends BaseWorkDataProcessor {
@@ -147,7 +147,7 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
     private void sendAnswerToStream(AICopyrightFilterWorkData aiCopyrightFilterWorkData) {
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("process_inventoryItems", "sending inventoryItem to next microservice according to config", actualTimestamp, aiCopyrightFilterWorkData);
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "sending inventoryItem to next microservice according to config", actualTimestamp, aiCopyrightFilterWorkData);
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String message = objectMapper.writeValueAsString(workTask);

@@ -48,17 +48,24 @@
 
     <facets>
         <dataLoadCoordinator auto="true"/>
+        <timer id="refreshTimer" delay="1000" autostart="true" repeating="true"/>
     </facets>
 
     <layout>
         <vbox width="100%" height="100%" expand="vulnerabilitiesGrid">
 
+            <hbox width="100%" alignItems="STRETCH">
             <entityComboBox id="projectSelector"
-                            label="Select Project"
+                            label="msg://eu.occtet.bocfrontend.view.dashboard/dashboardView.projectSelector"
                             themeNames="small"
                             itemsContainer="projectsDc"
                             metaClass="Project"
                             width="20em"/>
+                <vbox>
+                    <span text="msg://dashboardView.runningTasks"/>
+                    <listBox id="runningTasksList" width="700px" height="100px" readOnly="true" />
+                </vbox>
+            </hbox>
 
             <dataGrid id="vulnerabilitiesGrid"
                       dataContainer="vulnerabilitiesDc"
@@ -74,8 +81,8 @@
             </dataGrid>
             <hbox width="100%" height="100%" alignItems="END">
                 <charts:chart id="chartVulnerabilites" width="100%" height="100%" justifySelf="CENTER">
-                    <charts:title text="Vulnerability overview"
-                                  subtext="Number of vulnerabilites in a specific risk category"/>
+                    <charts:title text="msg://eu.occtet.bocfrontend.view.dashboard/dashboardView.charts.vulnerability.title"
+                                  subtext="msg://eu.occtet.bocfrontend.view.dashboard/dashboardView.charts.vulnerability.subtext"/>
                     <charts:tooltip trigger="ITEM"/>
                     <charts:series>
                         <charts:pie radius="0% 65%">
@@ -84,8 +91,8 @@
                     </charts:series>
                 </charts:chart>
                 <charts:chart id="chartSoftwareComponent" width="100%" height="100%" justifySelf="CENTER">
-                    <charts:title text="Software component overview"
-                                  subtext="Number of software components in a specific risk category depending on vulnerabilites"/>
+                    <charts:title text="msg://eu.occtet.bocfrontend.view.dashboard/dashboardView.charts.softwareComponent.title"
+                                  subtext="msg://eu.occtet.bocfrontend.view.dashboard/dashboardView.charts.softwareComponent.subtext"/>
                     <charts:tooltip trigger="ITEM"/>
                     <charts:series>
                         <charts:pie radius="0% 65%">

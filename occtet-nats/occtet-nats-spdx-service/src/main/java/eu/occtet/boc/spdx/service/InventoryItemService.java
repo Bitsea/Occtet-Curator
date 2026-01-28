@@ -26,7 +26,7 @@ package eu.occtet.boc.spdx.service;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.SoftwareComponent;
-import eu.occtet.boc.spdx.dao.InventoryItemRepository;
+import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.factory.InventoryItemFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

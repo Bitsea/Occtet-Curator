@@ -24,14 +24,15 @@ package eu.occtet.boc.ai.licenseMatcher.service;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.ai.licenseMatcher.dao.InventoryItemRepository;
-import eu.occtet.boc.ai.licenseMatcher.dao.SoftwareComponentRepository;
 import eu.occtet.boc.ai.licenseMatcher.factory.PromptFactory;
 import eu.occtet.boc.ai.licenseMatcher.postprocessing.PostProcessor;
 import eu.occtet.boc.ai.licenseMatcher.tools.LicenseTool;
+import eu.occtet.boc.dao.SoftwareComponentRepository;
 import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.entity.SoftwareComponent;
-import eu.occtet.boc.model.*;
+import eu.occtet.boc.model.AIAnswerWorkData;
+import eu.occtet.boc.model.AILicenseMatcherWorkData;
+import eu.occtet.boc.model.AIStatusQueryWorkData;
+import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
 import io.nats.client.Connection;
@@ -44,7 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -65,7 +65,7 @@ public class LLMService extends BaseWorkDataProcessor {
     private PostProcessor postProcessor;
 
     @Autowired
-    private InventoryItemRepository inventoryItemRepository;
+    private eu.occtet.boc.dao.InventoryItemRepository inventoryItemRepository;
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
 
@@ -150,8 +150,8 @@ public class LLMService extends BaseWorkDataProcessor {
         return true; // FIXME return false on error
     }
 
-    public InventoryItem getInventoryItem(UUID inventoryItemId) {
-        return inventoryItemRepository.findById(inventoryItemId).getFirst();
+    public InventoryItem getInventoryItem(Long inventoryItemId) {
+        return inventoryItemRepository.findById(inventoryItemId).orElse(null);
 
     }
 
@@ -183,7 +183,7 @@ public class LLMService extends BaseWorkDataProcessor {
         // Get the current date and time
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("status_request", "question", actualTimestamp, new AIAnswerWorkData(answer));
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "question", actualTimestamp, new AIAnswerWorkData(answer));
         ObjectMapper objectMapper = new ObjectMapper();
         String message = objectMapper.writeValueAsString(workTask);
 

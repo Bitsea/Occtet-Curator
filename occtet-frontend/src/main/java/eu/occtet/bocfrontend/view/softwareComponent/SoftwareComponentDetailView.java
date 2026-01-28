@@ -19,7 +19,6 @@
 
 package eu.occtet.bocfrontend.view.softwareComponent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -28,14 +27,17 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.boc.model.VulnerabilityServiceWorkData;
-import eu.occtet.boc.model.WorkTask;
+import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.Vulnerability;
+import eu.occtet.bocfrontend.factory.CuratorTaskFactory;
+import eu.occtet.bocfrontend.service.CuratorTaskService;
 import eu.occtet.bocfrontend.service.NatsService;
 import eu.occtet.bocfrontend.view.dialog.AddLicenseDialog;
 import eu.occtet.bocfrontend.view.main.MainView;
 import eu.occtet.bocfrontend.view.vulnerability.VulnerabilityDetailView;
+import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
@@ -45,10 +47,6 @@ import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 @Route(value = "software-components/:id", layout = MainView.class)
 @ViewController(id = "SoftwareComponent.detail")
@@ -72,6 +70,15 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
 
     @Autowired
     private NatsService natsService;
+
+    @Autowired
+    private Messages messages;
+
+    @Autowired
+    private CuratorTaskService curatorTaskService;
+
+    @Autowired
+    private CuratorTaskFactory curatorTaskFactory;
 
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
@@ -106,7 +113,7 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
             JmixButton infoButton = uiComponents.create(JmixButton.class);
             infoButton.setIcon(VaadinIcon.INFO_CIRCLE.create());
             infoButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-            infoButton.setTooltipText("View Details");
+            infoButton.setTooltipText(messages.getMessage("eu.occtet.bocfrontend.view.softwareComponent/softwareComponent.tooltip.detailButton"));
 
             infoButton.addClickListener(e -> {
                 dialogWindow.view(this, VulnerabilityDetailView.class)
@@ -119,21 +126,15 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
 
     @Subscribe("updateData")
     public void updateDataButtonAction(ClickEvent<JmixButton> event) {
+        // FIXME where to take the project and other params from?
+        CuratorTask task = curatorTaskFactory.create(null, null, null);
+
         VulnerabilityServiceWorkData vulnerabilityServiceWorkData =
                 new VulnerabilityServiceWorkData(getEditedEntity().getId());
-        WorkTask workTask = new WorkTask(
-                "vulnerability_task",
-                "sending software component to vulnerability microservice",
-                LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().getEpochSecond(),
-                vulnerabilityServiceWorkData);
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            String message = objectMapper.writeValueAsString(workTask);
-            log.info("Sending software id to vulnerability microservice with message: {}", message);
-            natsService.sendWorkMessageToStream("work.vulnerability", message.getBytes(StandardCharsets.UTF_8));
-        } catch (Exception e){
-            log.error(e);
-            notifications.show("Error sending data to vulnerability microservice: " + e.getMessage());
-        }
+
+        boolean res = curatorTaskService.saveAndRunTask(task,vulnerabilityServiceWorkData,"sending software component to vulnerability microservice");
+
+        // TODO show message if failed?
+
     }
 }

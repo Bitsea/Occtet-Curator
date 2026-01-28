@@ -51,7 +51,7 @@ import java.nio.file.Paths;
 @SpringBootApplication(scanBasePackages = {"eu.occtet.boc"})
 @EnableJpaAuditing
 @EnableAsync
-@EnableJpaRepositories(basePackages = {"eu.occtet.boc.spdx.dao"})
+@EnableJpaRepositories(basePackages = {"eu.occtet.boc.dao"})
 @EntityScan(basePackages = {"eu.occtet.boc.entity"})
 @Profile({"!test"})
 public class SpdxServiceApp {

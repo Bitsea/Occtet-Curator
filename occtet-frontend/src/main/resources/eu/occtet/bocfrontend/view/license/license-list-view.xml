@@ -63,14 +63,14 @@
                     <action id="removeAction" type="list_remove"/>
                 </actions>
                 <columns resizable="true">
-                    <column property="licenseType" header="Type"/>
-                    <column property="priority" header="Priority"/>
-                    <column property="licenseText" header="License text"/>
-                    <column property="licenseName" header="Licence name"/>
-                    <column property="detailsUrl" header="Details url"/>
-                    <column property="isModified" header="Modified"/>
-                    <column property="curated" header="Curated"/>
-                    <column property="isSpdx" header="SPDX"/>
+                    <column property="licenseType" header="msg://eu.occtet.bocfrontend.entity/License"/>
+                    <column property="priority" header="msg://eu.occtet.bocfrontend.entity/LicenseType.priority"/>
+                    <column property="licenseText" header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseText"/>
+                    <column property="licenseName" header="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
+                    <column property="detailsUrl" header="msg://eu.occtet.bocfrontend.entity/License.detailsUrl"/>
+                    <column property="isModified" header="msg://eu.occtet.bocfrontend.entity/License.isModified"/>
+                    <column property="curated" header="msg://eu.occtet.bocfrontend.entity/License.curated"/>
+                    <column property="isSpdx" header="msg://eu.occtet.bocfrontend.entity/License.isSpdx"/>
                 </columns>
             </dataGrid>
             <hbox width="100%">

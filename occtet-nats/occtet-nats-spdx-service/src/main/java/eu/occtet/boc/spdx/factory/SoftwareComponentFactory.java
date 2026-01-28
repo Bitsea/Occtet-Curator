@@ -25,7 +25,7 @@ package eu.occtet.boc.spdx.factory;
 
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.SoftwareComponent;
-import eu.occtet.boc.spdx.dao.SoftwareComponentRepository;
+import eu.occtet.boc.dao.SoftwareComponentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

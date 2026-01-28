@@ -23,7 +23,7 @@ import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.Configuration;
-import eu.occtet.bocfrontend.entity.ImportTask;
+import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.importer.ImportManager;
 import eu.occtet.bocfrontend.service.ConfigurationService;
 import eu.occtet.bocfrontend.validator.NumericValidator;
@@ -81,14 +81,14 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
     private final String SPDX = "SPDX_Import";
 
     private Configuration configPayload;
-    private ImportTask importTask;
+    private CuratorTask curatorTask;
     private result finalResult;
 
     public enum result {Cancel, Edit}
 
 
-    public void setup(ImportTask sI) {
-        this.importTask = sI;
+    public void setup(CuratorTask sI) {
+        this.curatorTask = sI;
     }
 
     @Subscribe
@@ -97,7 +97,7 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
         this.nameField.setValue(entity.getName());
 
         // Initialize booleanField if the type is BOOLEAN
-        if (configurationService.getTypeOfConfiguration(entity.getName(), importTask) == Configuration.Type.BOOLEAN) {
+        if (configurationService.getTypeOfConfiguration(entity.getName(), curatorTask) == Configuration.Type.BOOLEAN) {
             booleanField.setValue("true".equals(entity.getValue()));
             booleanField.setVisible(true);
             valueField.setVisible(false);
@@ -118,7 +118,7 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
     }
 
     private void updateValueFieldVisibility(String key) {
-        Configuration.Type typeOfConfiguration = configurationService.getTypeOfConfiguration(key, importTask);
+        Configuration.Type typeOfConfiguration = configurationService.getTypeOfConfiguration(key, curatorTask);
         switch (typeOfConfiguration) {
             case FILE_UPLOAD:
                 setupForFileUpload();
@@ -165,7 +165,7 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
                     uploadField.getValue(),
                     uploadField.getUploadedFileName(),
                     booleanField.getValue(),
-                    importTask
+                    curatorTask
             );
 
             if (res) {
@@ -219,7 +219,7 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
         uploadField.setMaxFileSize(maxFileSizeInBytes);
 
         // Here the setup might vary depending on the import
-        if (importTask.getImportName().equals(FLEXERA)) {
+        if (curatorTask.getTaskName().equals(FLEXERA)) {
             uploadField.setAcceptedFileTypes(".xlsx");
             uploadField.setHelperText("Upload a Flexera report in Excel format (.xlsx, max 70 MB)");
         }

@@ -76,7 +76,12 @@ public class SpdxWorkConsumer extends WorkConsumer {
                         //delete the object after we are done
                         objectStore.delete(spdxWorkData.getJsonSpdx());
                         spdxWorkData.setJsonBytes(spdxBytes);
+                        spdxService.setOnProgress((p,d)->{
+                            log.debug("progress callback: {} {}", p, d);
+                            notifyProgress(workTask.taskId(), p, d);
+                        });
                         return spdxService.process(spdxWorkData);
+
                     } catch (java.io.IOException | io.nats.client.JetStreamApiException | java.lang.InterruptedException |
                              java.security.NoSuchAlgorithmException e) {
                        log.error("failed to get json from objectStore: {}", e.toString());

@@ -24,8 +24,8 @@
         <vbox>
             <textArea id="text" label="text" width="100%" height="400px"/>
             <hbox>
-                <button id="searchBtn" text="search"/>
-                <button id="closeBtn" text="close"/>
+                <button id="searchBtn" text="msg://eu.occtet.bocfrontend.view.licensetype/licenseTypeBrowse.search"/>
+                <button id="closeBtn" text="msg://eu.occtet.bocfrontend.view.licensetype/licenseTypeBrowse.close"/>
             </hbox>
         </vbox>
     </layout>

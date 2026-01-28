@@ -63,9 +63,9 @@
                     <action id="removeAction" type="list_remove"/>
                 </actions>
                 <columns resizable="true">
-                    <column property="projectName" header="Name" filterable="true" autoWidth="true"/>
+                    <column property="projectName" header="msg://eu.occtet.bocfrontend.view.project/projectDetailView.projectName" filterable="true" autoWidth="true"/>
                     <column key="exportBtn" header="" sortable="false" autoWidth="true" flexGrow="0"/>
-                    <column property="basePath" header="Basepath"/>
+                    <column property="basePath" header="msg://eu.occtet.bocfrontend.view.project/projectDetailView.basePath"/>
                 </columns>
             </dataGrid>
             <hbox id="buttonsPanel" classNames="buttons-panel">
