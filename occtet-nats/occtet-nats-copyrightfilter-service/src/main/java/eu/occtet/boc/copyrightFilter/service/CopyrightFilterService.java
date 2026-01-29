@@ -23,7 +23,6 @@
 package eu.occtet.boc.copyrightFilter.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.copyrightFilter.factory.PromptFactory;
 import eu.occtet.boc.copyrightFilter.preprocessor.CopyrightPreprocessor;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.InventoryItem;
@@ -52,6 +51,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class CopyrightFilterService  extends BaseWorkDataProcessor {
