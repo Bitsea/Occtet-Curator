@@ -44,14 +44,13 @@
         <action id="discardAction" type="lookup_discard"/>
     </actions>
     <layout>
-        <vbox width="100%">
+        <vbox width="100%" height="100%">
             <hbox width="100%">
-                <genericFilter id="genericFilter" dataLoader="projectsDl" themeNames="small"
-                               width="80%" alignSelf="START">
+                <genericFilter id="genericFilter" dataLoader="projectsDl" themeNames="small" alignSelf="START" opened="true">
                     <properties include=".*"/>
                     <conditions> </conditions>
                 </genericFilter>
-                <simplePagination id="pagination" dataLoader="projectsDl" alignSelf="END"/>
+                <simplePagination id="pagination" dataLoader="projectsDl" itemsPerPageItems="100" alignSelf="END"/>
             </hbox>
             <dataGrid classNames="occtet-grid" id="projectsDataGrid"
                       width="100%"

@@ -43,12 +43,17 @@ public class CuratorTaskUI {
             }
             case IN_PROGRESS: {
                 Icon icon = ComponentUtils.parseIcon("vaadin:clock");
-                icon.setColor("green");
+                icon.setColor("blue");
                 return icon;
             }
             case COMPLETED: {
                 Icon icon = ComponentUtils.parseIcon("vaadin:check");
-                icon.setColor("green");
+                icon.setColor("blue");
+                return icon;
+            }
+            case ERROR: {
+                Icon icon = ComponentUtils.parseIcon("vaadin:exclamation-circle");
+                icon.setColor("red");
                 return icon;
             }
 

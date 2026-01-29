@@ -25,6 +25,8 @@ package eu.occtet.boc.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.ProgressSystemMessage;
+import eu.occtet.boc.model.WorkTaskProgress;
+import eu.occtet.boc.model.WorkTaskStatus;
 import eu.occtet.boc.model.WorkerStatus;
 import io.nats.client.*;
 import io.nats.client.api.AckPolicy;
@@ -100,9 +102,17 @@ public abstract class WorkConsumer implements InformativeService {
         return progressPercent;
     }
 
-    protected void notifyProgress(String taskId, int progressPercent, String details) {
+    protected void notifyCompleted(String taskId, String taskName) {
+        notifyProgress(taskId, taskName, WorkTaskStatus.COMPLETED, 100, "completed");
+    }
+
+    protected void notifyError(String taskId, String taskName, String details) {
+        notifyProgress(taskId, taskName, WorkTaskStatus.ERROR, progressPercent, details);
+    }
+
+    protected void notifyProgress(String taskId, String taskName, WorkTaskStatus status, int progressPercent, String details) {
         this.progressPercent = progressPercent;
-        ProgressSystemMessage progressSystemMessage = new ProgressSystemMessage(taskId, progressPercent, details);
+        ProgressSystemMessage progressSystemMessage = new ProgressSystemMessage(taskId, taskName, status, progressPercent, details);
         String message = null;
         try {
             message = (new ObjectMapper()).writerFor(ProgressSystemMessage.class)

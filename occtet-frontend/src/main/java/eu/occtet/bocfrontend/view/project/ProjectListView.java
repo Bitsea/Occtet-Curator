@@ -21,6 +21,7 @@ package eu.occtet.bocfrontend.view.project;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
@@ -32,6 +33,7 @@ import eu.occtet.bocfrontend.service.CuratorTaskService;
 import eu.occtet.bocfrontend.service.NatsService;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.Messages;
+import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.download.Downloader;
@@ -60,6 +62,8 @@ public class ProjectListView extends StandardListView<Project> {
     private NatsService natsService;
     @Autowired
     private Downloader downloader;
+    @Autowired
+    private DialogWindows dialogWindows;
 
     @Autowired
     private Messages messages;
@@ -140,6 +144,18 @@ public class ProjectListView extends StandardListView<Project> {
                 );
         }
     });
+    }
+
+    @Subscribe("projectsDataGrid")
+    public void clickOnProjectsDataGrid(ItemDoubleClickEvent<Project> event){
+        DialogWindow<ProjectDetailView> window =
+                dialogWindows.detail(this, Project.class)
+                        .withViewClass(ProjectDetailView.class)
+                        .editEntity(event.getItem())
+                        .build();
+        window.setWidth("100%");
+        window.setHeight("100%");
+        window.open();
     }
 
 }

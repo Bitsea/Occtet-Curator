@@ -20,6 +20,7 @@
 package eu.occtet.bocfrontend.dao;
 
 
+import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.Vulnerability;
 import io.jmix.core.repository.JmixDataRepository;
@@ -35,7 +36,10 @@ public interface SoftwareComponentRepository extends JmixDataRepository<Software
     SoftwareComponent findByName(String softwareComponentName);
     List<SoftwareComponent> findAll();
     List<SoftwareComponent> findSoftwareComponentsByCurated(Boolean curated);
-
     @Query("select sc from SoftwareComponent sc join sc.vulnerabilities v where v = :vuln")
     List<SoftwareComponent> findByVulnerability(Vulnerability vuln);
+    @Query("select distinct sc from InventoryItem i join i.project p join i.softwareComponent sc where p = :project")
+    List<SoftwareComponent> findByProject(Project project);
+
+
 }

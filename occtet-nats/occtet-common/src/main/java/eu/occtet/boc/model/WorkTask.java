@@ -32,5 +32,5 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
  * @param workData required data for executing the task. Use the appropriate subclass of BaseWorkData or create your own for your task/microservice
  */
 @JsonDeserialize
-public record WorkTask(String taskId, String details,long timestamp, BaseWorkData workData) {
+public record WorkTask(String taskId, String name, String details,long timestamp, BaseWorkData workData) {
 }

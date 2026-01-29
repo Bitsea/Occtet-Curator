@@ -90,7 +90,7 @@
             </vbox>
 
         </formLayout>
-        <hbox id="detailActions">
+        <hbox id="detailActions" justifyContent="CENTER" alignItems="END" alignSelf="CENTER" height="100%" width="100%">
             <button id="saveAndCloseButton" action="saveAction"/>
             <button id="closeButton" action="closeAction"/>
         </hbox>
