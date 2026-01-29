@@ -42,7 +42,7 @@ public class CopyrightService {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public Copyright findOrCreateCopyright(String copyrightString, List<CodeLocation> codeLocations){
+    public Copyright findOrCreateCopyright(String copyrightString, Set<CodeLocation> codeLocations){
         List<Copyright> copyrights = copyrightRepository.findByCopyrightText(copyrightString);
         Copyright copyright;
         if (copyrights.isEmpty()) {
@@ -79,10 +79,10 @@ public class CopyrightService {
             found.forEach(c -> cache.put(c.getCopyrightText(), c));
         }
 
-        List<Copyright> toSave = new ArrayList<>();
+        Set<Copyright> toSave = new HashSet<>();
         for (String text : copyrightTexts) {
             if (!cache.containsKey(text)) {
-                Copyright newCopyright = copyrightFactory.createTransient(text, new ArrayList<>());
+                Copyright newCopyright = copyrightFactory.createTransient(text, new HashSet<>());
                 toSave.add(newCopyright);
                 cache.put(text, newCopyright);
             }

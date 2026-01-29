@@ -635,15 +635,6 @@ public class AuditView extends StandardView{
         updateUrl();
     }
 
-//    @Subscribe("inventoryItemDataGrid")
-//    public void onInventoryItemDataGridClick(final ItemClickEvent<InventoryItem> event) {
-//        if (event.getClickCount() == 2) {
-//            inventoryItemSection.setVisible(true);
-//            tabManager.openInventoryItemTab(event.getItem(), true);
-//        } else {
-//            treeGridHelper.toggleExpansion(inventoryItemDataGrid, event.getItem());
-//        }
-//    }
 
     private void clearView() {
         inventoryItemDc.setItems(Collections.emptyList());

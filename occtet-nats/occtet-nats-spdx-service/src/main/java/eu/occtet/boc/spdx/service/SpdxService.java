@@ -247,7 +247,6 @@ public class SpdxService extends ProgressReportingService  {
 
         String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
         String version = spdxPackage.getVersionInfo().orElse("");
-        List<CodeLocation> codeLocations = new ArrayList<>();
         List<Copyright> copyrights = new ArrayList<>();
 
         String componentKey = packageName + ":" + version;

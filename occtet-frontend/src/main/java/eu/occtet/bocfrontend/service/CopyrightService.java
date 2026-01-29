@@ -149,7 +149,7 @@ public class CopyrightService {
         }
     }
 
-    public Copyright createCopyright(String name, List<CodeLocation> codeLocation, boolean isCurated, boolean isGarbage){
+    public Copyright createCopyright(String name, Set<CodeLocation> codeLocation, boolean isCurated, boolean isGarbage){
         return copyrightFactory.create(name,codeLocation,isCurated,isGarbage);
     }
 }

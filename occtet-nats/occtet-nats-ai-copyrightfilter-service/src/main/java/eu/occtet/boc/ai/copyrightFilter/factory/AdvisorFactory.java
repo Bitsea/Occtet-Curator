@@ -23,6 +23,8 @@
 package eu.occtet.boc.ai.copyrightFilter.factory;
 
 import eu.occtet.boc.ai.copyrightFilter.retriever.CopyrightRetriever;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -35,10 +37,12 @@ public class AdvisorFactory {
     @Autowired
     private CopyrightRetriever copyrightRetriever;
 
+    private static final Logger log = LogManager.getLogger(AdvisorFactory.class);
+
 
     public List<Advisor> createAdvisors(){
         List<Advisor> advisors = new ArrayList<>();
-
+        log.debug("Creating advisors for copyright filtering");
         //TODO figure out where we get topK and similarityThreshold from and find suitable values for our usecases
         //advisor for "good copyrights"
         advisors.add(copyrightRetriever.buildQuestionAnswerAdvisor(10, 0.25, "Examples of good copyrights: ", "fileName == 'good-copyrights.txt'"));

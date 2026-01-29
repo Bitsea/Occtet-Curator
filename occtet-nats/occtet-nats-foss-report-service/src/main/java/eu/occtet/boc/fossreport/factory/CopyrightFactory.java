@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class CopyrightFactory {
@@ -40,7 +41,7 @@ public class CopyrightFactory {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public Copyright create(String copyrightString, List<CodeLocation> codeLocations){
+    public Copyright create(String copyrightString, Set<CodeLocation> codeLocations){
         log.debug("Creating Copyright with copyright text: {} and code location: {}", copyrightString, codeLocations);
         return copyrightRepository.save(new Copyright(copyrightString, codeLocations));
     }

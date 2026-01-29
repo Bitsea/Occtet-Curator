@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class CopyrightFactory {
@@ -37,13 +38,13 @@ public class CopyrightFactory {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public Copyright create(String copyrightString, List<CodeLocation> codeLocations){
+    public Copyright create(String copyrightString, Set<CodeLocation> codeLocations){
         Copyright copyright = new Copyright(copyrightString, codeLocations);
 
         return copyrightRepository.save(copyright);
     }
 
-    public Copyright createTransient(String copyrightString, List<CodeLocation> codeLocations){
+    public Copyright createTransient(String copyrightString, Set<CodeLocation> codeLocations){
         return new Copyright(copyrightString, codeLocations);
     }
 }

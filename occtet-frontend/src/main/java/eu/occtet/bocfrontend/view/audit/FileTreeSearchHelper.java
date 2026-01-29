@@ -225,7 +225,7 @@ public class FileTreeSearchHelper {
         treeGrid.addComponentHierarchyColumn(file -> {
                     Span span = new Span();
                     String text = file.getFileName();
-
+                    log.debug("see filename {}", text);
                     if (Strings.isNullOrEmpty(lastSearchText) || Strings.isNullOrEmpty(text)) {
                         span.setText(text);
                         return span;

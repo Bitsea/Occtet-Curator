@@ -26,7 +26,9 @@ package eu.occtet.boc.entity;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @Entity
@@ -57,13 +59,13 @@ public class Copyright {
             name = "COPYRIGHT_CODE_LOCATION_LINK",
             joinColumns = @JoinColumn(name = "COPYRIGHT_ID", referencedColumnName = "ID"),
             inverseJoinColumns = @JoinColumn(name = "CODE_LOCATION_ID", referencedColumnName = "ID"))
-    private List<CodeLocation> codeLocations;
+    private Set<CodeLocation> codeLocations = new HashSet<>();;
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name= "COPYRIGHT_ID")
     private List<License> licenses;
 
-    public Copyright(String copyrightText, List<CodeLocation> cl) {
+    public Copyright(String copyrightText, Set<CodeLocation> cl) {
         this.copyrightText = copyrightText;
         this.codeLocations = cl;
         this.curated = false;
@@ -109,11 +111,11 @@ public class Copyright {
         this.curated = curated;
     }
 
-    public List<CodeLocation> getCodeLocations() {
+    public Set<CodeLocation> getCodeLocations() {
         return codeLocations;
     }
 
-    public void setCodeLocations(List<CodeLocation> codeLocation) {
+    public void setCodeLocations(Set<CodeLocation> codeLocation) {
         this.codeLocations = codeLocation;
     }
 

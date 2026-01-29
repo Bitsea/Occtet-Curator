@@ -33,7 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class CopyrightService {
@@ -52,14 +54,14 @@ public class CopyrightService {
         List<Copyright> copyright = copyrightRepository.findByCopyrightText(copyrightString);
         if (!copyright.isEmpty() && copyright.getFirst() != null) {
             if(copyright.getFirst().getCodeLocations()==null){
-                copyright.getFirst().setCodeLocations(new ArrayList<>(List.of(codeLocation)));
+                copyright.getFirst().setCodeLocations(new HashSet<>(List.of(codeLocation)));
             }else if( !copyright.getFirst().getCodeLocations().contains(codeLocation)) {
                 copyright.getFirst().getCodeLocations().add(codeLocation);
             }
             return copyright.getFirst();
         }
 
-        return copyrightFactory.create(copyrightString, List.of(codeLocation));
+        return copyrightFactory.create(copyrightString, Set.of(codeLocation));
     }
 
 
