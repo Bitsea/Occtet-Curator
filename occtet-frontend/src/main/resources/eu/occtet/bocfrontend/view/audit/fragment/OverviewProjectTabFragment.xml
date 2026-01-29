@@ -23,15 +23,15 @@
 <fragment xmlns="http://jmix.io/schema/flowui/fragment">
     <data>
         <collection id="auditCopyrightDc"
-                    class="eu.occtet.bocfrontend.dto.AuditCopyrightDTO">
+                    class="eu.occtet.bocfrontend.model.AuditCopyrightDTO">
             <fetchPlan extends="_base"/>
         </collection>
         <collection id="auditLicensesDc"
-                    class="eu.occtet.bocfrontend.dto.AuditLicenseDTO">
+                    class="eu.occtet.bocfrontend.model.AuditLicenseDTO">
             <fetchPlan extends="_base"/>
         </collection>
         <collection id="auditVulnerabilitiesDc"
-                    class="eu.occtet.bocfrontend.dto.AuditVulnerabilityDTO">
+                    class="eu.occtet.bocfrontend.model.AuditVulnerabilityDTO">
             <fetchPlan extends="_base"/>
         </collection>
     </data>

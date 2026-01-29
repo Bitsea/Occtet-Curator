@@ -24,9 +24,9 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import eu.occtet.bocfrontend.dao.*;
-import eu.occtet.bocfrontend.dto.AuditCopyrightDTO;
-import eu.occtet.bocfrontend.dto.AuditLicenseDTO;
-import eu.occtet.bocfrontend.dto.AuditVulnerabilityDTO;
+import eu.occtet.bocfrontend.model.AuditCopyrightDTO;
+import eu.occtet.bocfrontend.model.AuditLicenseDTO;
+import eu.occtet.bocfrontend.model.AuditVulnerabilityDTO;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.view.audit.AuditView;
 import eu.occtet.bocfrontend.view.dialog.OverviewContentInfoDialog;
@@ -52,7 +52,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Nonnull;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 @FragmentDescriptor("OverviewProjectTabFragment.xml")
