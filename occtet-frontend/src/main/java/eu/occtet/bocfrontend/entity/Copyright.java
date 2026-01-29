@@ -27,8 +27,9 @@ import io.jmix.core.metamodel.annotation.InstanceName;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
+import java.util.HashSet;
 import java.util.List;
-
+import java.util.Set;
 
 
 @JmixEntity
@@ -60,7 +61,8 @@ public class Copyright {
             joinColumns = @JoinColumn(name = "COPYRIGHT_ID", referencedColumnName = "ID"),
             inverseJoinColumns = @JoinColumn(name = "CODE_LOCATION_ID", referencedColumnName = "ID"))
     @OnDelete(DeletePolicy.CASCADE)
-    private List<CodeLocation> codeLocations;
+    private Set<CodeLocation> codeLocations = new HashSet<>();;
+
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name= "COPYRIGHT_ID")
@@ -86,9 +88,9 @@ public class Copyright {
 
     public void setGarbage(Boolean garbage) {this.garbage = garbage;}
 
-    public List<CodeLocation> getCodeLocations(){return this.codeLocations;}
+    public Set<CodeLocation> getCodeLocations(){return this.codeLocations;}
 
-    public void setCodeLocations(List<CodeLocation> codeLocations) {this.codeLocations = codeLocations;}
+    public void setCodeLocations(Set<CodeLocation> codeLocations) {this.codeLocations = codeLocations;}
 
     public Boolean getCurated() {
         return curated;

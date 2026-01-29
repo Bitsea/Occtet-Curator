@@ -43,20 +43,21 @@ public class PromptFactory {
      * to discern false copyrights and put them into a output list
      * @return
      */
-    public Prompt createFalseCopyrightPrompt(String userMessage ){
+    public Prompt createFalseCopyrightPrompt(String copyrights ){
         try {
 
-            String systemText = """
-                    You provide correct information.
-                    You discern between wrong and right copyrights for open source software libraries according to european laws
-                    valid copyright objects have copyright and/or copyright sign and/or (c) at first, followed by valid year date with one year or a span of years similar such as for example 2000-2019.
-                    After that a valid personal name, which can have a forename and/or a surname, and/or a brand name and/or a company name. Without a yer or time span the copyright is still valid. 
-                    """;
+            String enrichedUserMessage = """
+                    Copyrights:
+                    %s
 
-            SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(systemText);
-            Message systemMessage = systemPromptTemplate.createMessage();
-            Message userMsg = new UserMessage(userMessage);
-            Prompt prompt = new Prompt( List.of(systemMessage, userMsg));
+                    """.formatted(
+                    copyrights
+            );
+
+
+            Message userMsg = new UserMessage(enrichedUserMessage);
+
+            Prompt prompt = new Prompt( List.of( userMsg));
             log.debug("created prompt");
             return prompt;
         }catch(Exception e){

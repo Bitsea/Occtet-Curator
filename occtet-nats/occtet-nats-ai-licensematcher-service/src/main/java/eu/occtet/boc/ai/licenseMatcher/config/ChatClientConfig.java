@@ -44,10 +44,26 @@ public class ChatClientConfig {
      */
     @Bean(name= "chatClient")
     public ChatClient chatClient(ChatClient.Builder builder) {
-        ChatMemory chatMemory = new InMemoryChatMemory();
-        MessageChatMemoryAdvisor chatMemoryAdvisor = new MessageChatMemoryAdvisor(chatMemory);
-        return builder.defaultSystem("You provide answers given on provided information. Do not think too much.")
-                .defaultAdvisors(chatMemoryAdvisor).build();
+        return builder.build();
+    }
+
+    @Bean(name="judgeClient")
+    public ChatClient judgeClient(ChatClient.Builder builder) {
+        return builder
+                .defaultSystem("""
+                        You are a deterministic license compliance judge.
+
+                        Decide MATCH or NO MATCH only.
+
+                        MATCH only if:
+                            - all differences are inside SPDX optional or replaceable blocks
+                            - no required text missing
+
+                        Otherwise NO MATCH.
+
+                        Output only MATCH or NO MATCH.
+                        """)
+                .build();
     }
 
 

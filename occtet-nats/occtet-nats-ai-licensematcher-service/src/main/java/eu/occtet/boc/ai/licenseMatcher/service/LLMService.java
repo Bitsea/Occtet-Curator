@@ -22,7 +22,7 @@
 
 package eu.occtet.boc.ai.licenseMatcher.service;
 
-
+import eu.occtet.boc.dao.InventoryItemRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.ai.licenseMatcher.factory.PromptFactory;
 import eu.occtet.boc.ai.licenseMatcher.postprocessing.PostProcessor;
@@ -65,7 +65,7 @@ public class LLMService extends BaseWorkDataProcessor {
     private PostProcessor postProcessor;
 
     @Autowired
-    private eu.occtet.boc.dao.InventoryItemRepository inventoryItemRepository;
+    private InventoryItemRepository inventoryItemRepository;
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
 
@@ -129,7 +129,7 @@ public class LLMService extends BaseWorkDataProcessor {
             return false;
         }
         String response = "";
-        Prompt question = promptFactory.createLicenseMatcherPrompt(aiWorkData.getUserMessage(), aiWorkData.getUrl());
+        Prompt question = promptFactory.createLicenseMatcherPrompt( aiWorkData.getUrl(), aiWorkData.getLicenseText(), aiWorkData.getLicenseMatcherResult(), aiWorkData.getDifferenceLines());
         try {
             response = chatClient.prompt(question)
                     .tools(licenseTool)
@@ -145,9 +145,10 @@ public class LLMService extends BaseWorkDataProcessor {
                 sendAnswerToStream(result);
             } catch (Exception e) {
                 log.error("Error when sending message to stream: {}", e.getMessage());
+                return false;
             }
         }
-        return true; // FIXME return false on error
+        return true;
     }
 
     public InventoryItem getInventoryItem(Long inventoryItemId) {

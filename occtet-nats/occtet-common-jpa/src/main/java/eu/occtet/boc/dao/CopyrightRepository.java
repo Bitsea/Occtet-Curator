@@ -14,4 +14,6 @@ public interface CopyrightRepository extends JpaRepository<Copyright, Long> {
     List<Copyright> findByCodeLocationsIn(List<CodeLocation> codeLocation);
 
     List<Copyright> findByCopyrightTextIn(Collection<String> copyrightTexts);
+
+    List<Copyright> findByGarbageTrue();
 }

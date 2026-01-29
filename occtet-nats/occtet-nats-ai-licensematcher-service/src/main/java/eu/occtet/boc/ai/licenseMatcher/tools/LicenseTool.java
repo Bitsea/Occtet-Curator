@@ -40,9 +40,9 @@ public class LicenseTool {
     private static final Logger log =LoggerFactory.getLogger(LicenseTool.class);
 
 
-    @Tool(description = "get specific license information for one licenseId")
-    public SPDXLicenseDetails getLicenseInformation(@ToolParam(description = "url to fetch license details") String url){
-        log.debug("using Licensetool");
+    @Tool(description = "Fetch SPDX license details. URL is REQUIRED.")
+    public SPDXLicenseDetails getLicenseInformation(@ToolParam(description = "REQUIRED. Absolute URL to SPDX license details JSON. Must not be null.") String url){
+        log.debug("using Licensetool with url {}", url);
         try {
             LicenseTemplateWebService ltWebService = new LicenseTemplateWebService();
 
