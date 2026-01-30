@@ -46,6 +46,7 @@ import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.ArrayList;
@@ -67,7 +68,8 @@ public class ServicesView extends StandardView {
     protected UiComponents uiComponents;
     @Autowired
     protected Resources resources;
-
+    @ViewComponent
+    private Span applicationVersion;
     @Autowired
     private NatsService natsService;
     @ViewComponent
@@ -85,7 +87,8 @@ public class ServicesView extends StandardView {
 
     @Autowired
     private DialogWindows dialogWindow;
-
+    @Autowired
+    private BuildProperties buildProperties;
 
     @Subscribe
     protected void onInit(InitEvent event) {
@@ -99,6 +102,8 @@ public class ServicesView extends StandardView {
         updateServiceStatus();
 
         updateNatsStreamStatus();
+
+        applicationVersion.setText("Application Version: " + buildProperties.getVersion());
 
     }
 
