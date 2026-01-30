@@ -1,7 +1,6 @@
 {
   "type": "descriptor",
   "name": "occtet-nats-issueCatcher-service",
-  "version": "2025.09.1",
   "description": "A microservice for catching issues from ort run",
   "usageType": "RUNNABLE_BY_SERVICE",
   "acceptableWorkData": "ORTRunWorkData"

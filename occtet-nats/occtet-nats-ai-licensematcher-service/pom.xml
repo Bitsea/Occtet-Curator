@@ -28,14 +28,13 @@
     <artifactId>occtet-nats-ai-licensematcher-service</artifactId>
     <name>occtet-nats-ai-licensematcher-service</name>
     <description>Occtet Nats Service for calling AI for licenseMatching</description>
-    <version>0.3.2-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>0.3.2-SNAPSHOT</version>
+        <version>0.3.8-SNAPSHOT</version>
     </parent>
 
     <properties>

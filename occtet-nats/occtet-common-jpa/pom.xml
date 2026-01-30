@@ -29,7 +29,7 @@
     <artifactId>occtet-common-jpa</artifactId>
     <name>occtet-Common-jpa</name>
     <description>Occtet Common JPA Library</description>
-    <version>0.3.7-SNAPSHOT</version>
+    <version>0.3.8-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <!-- because we have no parent declaration here, we need to redefine the properties -->
@@ -43,7 +43,7 @@
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>0.3.2-SNAPSHOT</version>
+        <version>0.3.8-SNAPSHOT</version>
     </parent>
 
     <dependencies>
