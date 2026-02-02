@@ -45,7 +45,7 @@
     </facets>
     <layout>
         <vbox width="100%" height="100%">
-            <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
+            <comboBox id="projectComboBox" property="projectName" label="msg://chooseProject"/>
             <hbox width="100%" visible="false" id="filterBox">
                 <genericFilter id="genericFilter" dataLoader="copyrightsDl" themeNames="small" alignSelf="START" opened="false">
                     <properties include=".*"/>
@@ -59,14 +59,14 @@
                       columnReorderingAllowed="false"
                       detailsVisibleOnClick="false">
                 <columns resizable="true">
-                    <column property="copyrightText" header="Name" width="50%"/>
+                    <column property="copyrightText" header="msg://copyrightDetailView.title" width="50%"/>
                     <column property="garbage" header="msg://eu.occtet.bocfrontend.entity/Copyright.garbage" editable="true"/>
                 </columns>
             </dataGrid>
             <hbox >
-                <button id="markButton" text="Change garbage value from selected copyrights" themeNames="primary" visible="false"/>
-                <button id="saveButton" text="Save changes" themeNames="primary" visible="false"/>
-                <button id="exitButton" text="Exit" visible="false" themeNames="error"/>
+                <button id="markButton" text="msg://Changegarbagevaluefromselectedcopyrights" themeNames="primary" visible="false"/>
+                <button id="saveButton" text="msg://saveChanges" themeNames="primary" visible="false"/>
+                <button id="exitButton" text="msg://exit" visible="false" themeNames="error"/>
             </hbox>
         </vbox>
     </layout>
