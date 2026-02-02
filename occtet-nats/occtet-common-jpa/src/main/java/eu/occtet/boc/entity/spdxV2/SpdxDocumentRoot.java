@@ -189,4 +189,8 @@ public class SpdxDocumentRoot {
     public Long getId() {
         return id;
     }
+
+    public void addSnippet(Snippet snippet){
+        this.snippets.add(snippet);
+    }
 }

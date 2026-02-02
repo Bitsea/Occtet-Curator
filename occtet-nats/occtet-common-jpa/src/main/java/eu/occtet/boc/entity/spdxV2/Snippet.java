@@ -80,10 +80,6 @@ public class Snippet {
         this.id = id;
     }
 
-    public void setSpdxId(String spdxId) {
-        this.spdxId = spdxId;
-    }
-
     public String getCopyrightText() {
         return copyrightText;
     }

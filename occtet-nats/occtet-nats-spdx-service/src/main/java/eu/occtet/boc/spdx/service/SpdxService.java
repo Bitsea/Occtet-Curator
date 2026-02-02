@@ -54,6 +54,7 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Transactional
@@ -94,7 +95,7 @@ public class SpdxService extends ProgressReportingService  {
     }
 
     /**
-     * Takes spdxWorkData, extracts contained json and creates entities based on the deserialized spdxDocument created from the json.
+     * Takes spdxWorkData, extracts contained JSON and creates entities based on the deserialized spdxDocument created from the JSON.
      * If the entities are already present then no new ones will be created, however some of their attributes may change.
      *
      * @param spdxWorkData
@@ -158,6 +159,7 @@ public class SpdxService extends ProgressReportingService  {
             //Caches for component and license
             Map<String, SoftwareComponent> componentCache = new HashMap<>();
             Map<String, License> licenseCache = new HashMap<>();
+            Map<String, InventoryItem> fileToInventoryItemMap = new HashMap<>();
             int count=0;
             for (TypedValue uri : packageUri) {
                 SpdxModelFactory.getSpdxObjects(spdxDocument.getModelStore(), null, "Package", uri.getObjectUri(), null).forEach(
@@ -167,7 +169,7 @@ public class SpdxService extends ProgressReportingService  {
                                     log.debug("Processing unseen package: {}", spdxPackage.toString());
                                     inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,
                                             spdxDocumentRoot, packageLookupMap, componentCache, licenseCache,
-                                            mainInventoryItems, mainPackageIds));
+                                            mainInventoryItems, mainPackageIds, fileToInventoryItemMap));
                                     spdxPackages.add((SpdxPackage) spdxPackage);
                                     seenPackages.add((spdxPackage).toString());
                                 }
@@ -201,6 +203,29 @@ public class SpdxService extends ProgressReportingService  {
                 if(progress%5 ==0)
                     notifyProgress(progress, "converting relationships");
             }
+
+            Stream<?> rawStream = SpdxModelFactory.getSpdxObjects(
+                    spdxDocument.getModelStore(),
+                    spdxDocument.getCopyManager(),
+                    SpdxConstantsCompatV2.CLASS_SPDX_SNIPPET,
+                    spdxDocument.getDocumentUri(),
+                    null
+            );
+
+            Stream<SpdxSnippet> snippetStream = rawStream
+                    .filter(obj -> obj instanceof SpdxSnippet)
+                    .map(obj -> (SpdxSnippet) obj);
+
+            snippetStream.forEach(snippet -> {
+                //create conversion objects
+                spdxDocumentRoot.addSnippet(spdxConverter.convertSnippets(snippet, spdxDocumentRoot));
+
+                try {
+                    enrichComponentFromSnippet(snippet, fileToInventoryItemMap, licenseCache);
+                } catch (Exception e) {
+                    log.error("Failed to enrich component from snippet: {}", snippet.getId(), e);
+                }
+            });
 
             spdxDocumentRootRepository.save(spdxDocumentRoot);
 
@@ -238,7 +263,8 @@ public class SpdxService extends ProgressReportingService  {
                                         Map<String, SpdxPackageEntity> packageLookupMap,
                                         Map<String, SoftwareComponent> componentCache,
                                         Map<String, License> licenseCache,Set<Long> mainInvetoryItems,
-                                        Set<String> mainPackageIds)
+                                        Set<String> mainPackageIds,
+                                        Map<String, InventoryItem> fileToInventoryItemMap)
             throws Exception {
 
         log.info("Looking at package: {}", spdxPackage.getId());
@@ -298,6 +324,7 @@ public class SpdxService extends ProgressReportingService  {
         log.info("Converting {} files", spdxPackage.getFiles().size());
         spdxPackage.getFiles().forEach(f -> {
             spdxConverter.convertFile(f, spdxDocumentRoot);
+            fileToInventoryItemMap.put(f.getId(), inventoryItem);
         });
 
         try {
@@ -496,6 +523,53 @@ public class SpdxService extends ProgressReportingService  {
             }
         }
 
+    }
+
+    private void enrichComponentFromSnippet(SpdxSnippet snippet,
+                                            Map<String, InventoryItem> fileMap,
+                                            Map<String, License> licenseCache) throws InvalidSPDXAnalysisException {
+
+        SpdxFile snippetFile = snippet.getSnippetFromFile();
+        if (snippetFile == null) return;
+
+        InventoryItem item = fileMap.get(snippetFile.getId());
+        if (item == null || item.getSoftwareComponent() == null) {
+            return;
+        }
+
+        SoftwareComponent component = item.getSoftwareComponent();
+        boolean componentUpdated = false;
+
+        String snippetCopyright = snippet.getCopyrightText();
+        if (snippetCopyright != null && !snippetCopyright.isEmpty()
+                && !"NOASSERTION".equals(snippetCopyright) && !"NONE".equals(snippetCopyright)) {
+
+            boolean exists = component.getCopyrights() != null && component.getCopyrights().stream()
+                    .anyMatch(c -> c.getCopyrightText().equals(snippetCopyright));
+
+            if (!exists) {
+                Copyright copyright = copyrightService.findOrCreateBatch(Set.of(snippetCopyright)).get(snippetCopyright);
+                if (copyright != null) {
+                    component.getCopyrights().add(copyright);
+                    componentUpdated = true;
+                }
+            }
+        }
+
+        AnyLicenseInfo concluded = snippet.getLicenseConcluded();
+        if (concluded != null && !concluded.isNoAssertion(concluded) && !concluded.isNoAssertion(concluded)) {
+            List<License> licenses = createLicenses(concluded, licenseCache);
+            for (License license : licenses) {
+                if (!component.getLicenses().contains(license)) {
+                    component.addLicense(license);
+                    componentUpdated = true;
+                }
+            }
+        }
+
+        if (componentUpdated) {
+            softwareComponentService.update(component);
+        }
     }
 
 }

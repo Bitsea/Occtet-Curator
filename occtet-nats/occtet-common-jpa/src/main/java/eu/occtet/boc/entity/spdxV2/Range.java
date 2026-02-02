@@ -23,35 +23,53 @@ import jakarta.persistence.*;
 
 @Embeddable
 public class Range {
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "reference", column = @Column(name = "start_reference", nullable = false)),
-            @AttributeOverride(name = "offset", column = @Column(name = "start_offset")),
-            @AttributeOverride(name = "lineNumber", column = @Column(name = "start_line_number"))
-    })
-    private Pointer startPointer;
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "reference", column = @Column(name = "end_reference", nullable = false)),
-            @AttributeOverride(name = "offset", column = @Column(name = "end_offset")),
-            @AttributeOverride(name = "lineNumber", column = @Column(name = "end_line_number"))
-    })
-    private Pointer endPointer;
+    @Column(name="start")
+    private int start;
+    @Column(name="end")
+    private int end;
+    @Column(name="type")
+    private String type;
+    @Column(name="reference")
+    private String reference;
 
-    public Pointer getEndPointer() {
-        return endPointer;
+    public Range() {}
+
+    public Range(int start, int end, String type, String reference) {
+        this.start = start;
+        this.end = end;
+        this.type = type;
+        this.reference = reference;
     }
 
-    public Pointer getStartPointer() {
-        return startPointer;
+    public int getStart() {
+        return start;
+    }
+    public void setStart(int start) {
+        this.start = start;
     }
 
-    public void setEndPointer(Pointer endPointer) {
-        this.endPointer = endPointer;
+    public int getEnd() {
+        return end;
     }
 
-    public void setStartPointer(Pointer startPointer) {
-        this.startPointer = startPointer;
+    public void setEnd(int end) {
+        this.end = end;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getReference() {
+        return reference;
+    }
+
+    public void setReference(String reference) {
+        this.reference = reference;
     }
 }
