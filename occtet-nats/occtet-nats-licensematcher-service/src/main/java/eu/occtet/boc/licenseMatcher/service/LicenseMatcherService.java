@@ -49,6 +49,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
@@ -70,6 +72,9 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
 
     @Value("${nats.send-subject}")
     private String sendSubject;
+
+    private final static String[] commentSignsRegex = {"\\_","\\-","\\#","\\%","\\=", "\\\\", "//", "\\+", "\\-", "\\*"};
+
 
 
     @Bean
@@ -106,6 +111,7 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
                     if(licenseId.contains("LicenseRef-") || licenseId.contains("licenseref-")){
                         licenseId= licenseId.replace("LicenseRef-","").replace("licenseref-","");
                     }
+                    licenseText= cleanupLicenseText(licenseText);
                     log.debug("checking inventory item: {}, licenseId: {}", item.getInventoryName(), licenseId);
                     //rule-based, comparing original license text with specific file license text with spdx library
                     CompareTemplateOutputHandler.DifferenceDescription result = licenseMatcher.spdxCompareLicense(licenseId, licenseText);
@@ -144,6 +150,40 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
             return false;
         }
         return true;
+    }
+
+    /**
+     * remove comment characters like /* # ...
+     *
+     * @param licenseText
+     * @return
+     */
+    private static String cleanupLicenseText(String licenseText) {
+        licenseText = licenseText
+                .replace("/*", "")
+                .replace("*/", "")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("<br>", " ");
+        char[] array=  licenseText.toCharArray();
+        //make the threshold dependent on the length of text
+        int commentThreshold = array.length/ 80;
+        try {
+            for (String sign : commentSignsRegex) {
+                int count= 0;
+                Pattern pattern = Pattern.compile(sign);
+                Matcher matches = pattern.matcher(licenseText);
+                while (matches.find()) {
+                    count++;
+                }
+                if( count > commentThreshold) {
+                    licenseText = licenseText.replaceAll(pattern.pattern(), "");
+                }
+            }
+        } catch (Exception ex) {
+            log.error("comment match not found: {}", ex.getMessage());
+        }
+        return licenseText;
     }
 
 
