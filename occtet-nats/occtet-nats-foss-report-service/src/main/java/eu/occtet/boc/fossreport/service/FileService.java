@@ -23,13 +23,13 @@
 package eu.occtet.boc.fossreport.service;
 
 
-import eu.occtet.boc.dao.CodeLocationRepository;
 import eu.occtet.boc.dao.CopyrightRepository;
+import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.dao.InventoryItemRepository;
-import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.Copyright;
+import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.fossreport.factory.CodeLocationFactory;
+import eu.occtet.boc.fossreport.factory.FileFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,48 +38,46 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class CodeLocationService {
+public class FileService {
 
-    private static final Logger log = LoggerFactory.getLogger(CodeLocationService.class);
+    private static final Logger log = LoggerFactory.getLogger(FileService.class);
 
-
-    @Autowired
-    private CodeLocationFactory codeLocationFactory;
 
     @Autowired
-    private CodeLocationRepository codeLocationRepository;
+    private FileFactory fileFactory;
+
+    @Autowired
+    private FileRepository fileRepository;
 
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    @Autowired
-    private InventoryItemRepository inventoryItemRepository;
 
-    public CodeLocation findOrCreateCodeLocationWithInventory(String filePath, InventoryItem inventoryItem) {
-        return codeLocationFactory.createWithInventory(filePath, inventoryItem);
+    public File findOrCreateFileWithInventory(String filePath, InventoryItem inventoryItem) {
+        return fileFactory.createWithInventory(filePath, inventoryItem);
     }
 
-    public void CreateCodeLocationsWithInventory(List<String> filePaths, InventoryItem inventoryItem) {
-        filePaths.forEach(filePath -> codeLocationFactory.createWithInventory(filePath, inventoryItem));
+    public void createFilesWithInventory(List<String> filePaths, InventoryItem inventoryItem) {
+        filePaths.forEach(filePath -> fileFactory.createWithInventory(filePath, inventoryItem));
     }
 
-    public void deleteOldCodeLocationsOfInventoryItem(InventoryItem inventoryItem, CodeLocation basePathCodeLocation){
-        List<CodeLocation> toBeDeletedCls = codeLocationRepository.findByInventoryItem(inventoryItem);
+    public void deleteOldFilesOfInventoryItem(InventoryItem inventoryItem, File basePathFile){
+        List<File> toBeDeletedCls = fileRepository.findByInventoryItem(inventoryItem);
         if (toBeDeletedCls.isEmpty()) return;
 
-        toBeDeletedCls.remove(basePathCodeLocation);
+        toBeDeletedCls.remove(basePathFile);
 
-        for (CodeLocation cl : toBeDeletedCls) {
-            List<Copyright> copyrights = copyrightRepository.findByCodeLocationsIn(List.of(cl));
+        for (File f : toBeDeletedCls) {
+            List<Copyright> copyrights = copyrightRepository.findByFilesIn(List.of(f));
             for (Copyright c : copyrights) {
-                c.getCodeLocations().remove(cl);
-                log.debug("CodeLocation {} has been removed from copyright {}", cl.getFilePath(), c.getCopyrightText());
+                c.getFiles().remove(f);
+                log.debug("CodeLocation {} has been removed from copyright {}", f.getProjectPath(), c.getCopyrightText());
             }
             copyrightRepository.saveAll(copyrights);
             copyrightRepository.flush();
         }
-        codeLocationRepository.deleteAll(toBeDeletedCls);
-        codeLocationRepository.flush();
+        fileRepository.deleteAll(toBeDeletedCls);
+        fileRepository.flush();
         log.debug("Deleted {} old code locations of inventory item: {}", toBeDeletedCls.size(),
                 inventoryItem.getInventoryName());
     }

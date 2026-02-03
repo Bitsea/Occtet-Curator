@@ -20,7 +20,6 @@
 package eu.occtet.bocfrontend.service;
 
 import eu.occtet.bocfrontend.dao.FileRepository;
-import eu.occtet.bocfrontend.entity.CodeLocation;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.model.FileResult;
@@ -53,15 +52,11 @@ public class FileContentService {
     /**
      * Find the correlated file for a code location.
      */
-    public Optional<File> findFileEntityForCodeLocation(CodeLocation codeLocation, InventoryItem inventoryItem) {
-        // Try Direct Link (If your DownloadService set it)
-        File linkedFile = fileRepository.findByCodeLocation(codeLocation);
-        if (linkedFile != null) {
-            return Optional.of(linkedFile);
-        }
+    public Optional<File> findFileEntityForCodeLocation(File file, InventoryItem inventoryItem) {
+
 
         // Try Fuzzy Path Matching
-        String relativePathStr = codeLocation.getFilePath();
+        String relativePathStr = file.getProjectPath();
         if (relativePathStr == null) return Optional.empty();
 
         String searchSuffix = relativePathStr.replace("\\", "/");

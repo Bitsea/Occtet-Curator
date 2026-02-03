@@ -23,13 +23,12 @@
 package eu.occtet.boc.spdx.factory;
 
 
-import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.dao.CopyrightRepository;
+import eu.occtet.boc.entity.File;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Set;
 
 @Component
@@ -38,13 +37,13 @@ public class CopyrightFactory {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public Copyright create(String copyrightString, Set<CodeLocation> codeLocations){
+    public Copyright create(String copyrightString, Set<File> codeLocations){
         Copyright copyright = new Copyright(copyrightString, codeLocations);
 
         return copyrightRepository.save(copyright);
     }
 
-    public Copyright createTransient(String copyrightString, Set<CodeLocation> codeLocations){
+    public Copyright createTransient(String copyrightString, Set<File> codeLocations){
         return new Copyright(copyrightString, codeLocations);
     }
 }

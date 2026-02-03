@@ -22,15 +22,14 @@
 
 package eu.occtet.boc.fossreport.factory;
 
-import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.dao.CopyrightRepository;
+import eu.occtet.boc.entity.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Set;
 
 @Component
@@ -41,7 +40,7 @@ public class CopyrightFactory {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public Copyright create(String copyrightString, Set<CodeLocation> codeLocations){
+    public Copyright create(String copyrightString, Set<File> codeLocations){
         log.debug("Creating Copyright with copyright text: {} and code location: {}", copyrightString, codeLocations);
         return copyrightRepository.save(new Copyright(copyrightString, codeLocations));
     }

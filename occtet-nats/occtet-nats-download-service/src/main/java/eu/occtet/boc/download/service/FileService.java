@@ -21,10 +21,8 @@
 
 package eu.occtet.boc.download.service;
 
-import eu.occtet.boc.dao.CodeLocationRepository;
 import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.download.factory.FileFactory;
-import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
@@ -59,8 +57,7 @@ public class FileService {
     private FileRepository fileRepository;
     @Autowired
     private FileFactory fileFactory;
-    @Autowired
-    private CodeLocationRepository codeLocationRepository;
+
 
     @Value("${occtet.scanner.ignored-names:}")
     private List<String> ignoredNames = Collections.emptyList();
@@ -86,11 +83,11 @@ public class FileService {
             Map<String, File> projectFileCache = fileRepository.findAllByProject(project).stream()
                     .collect(Collectors.toMap(File::getPhysicalPath, Function.identity(), (a, b) -> a));
 
-            Map<String, CodeLocation> codeLocationMap = new HashMap<>();
+            Map<String, File> codeLocationMap = new HashMap<>();
             if (inventoryItem != null) {
-                List<CodeLocation> cls = codeLocationRepository.findByInventoryItem(inventoryItem);
-                for (CodeLocation cl : cls) {
-                    codeLocationMap.put(cl.getFilePath(), cl);
+                List<File> cls = fileRepository.findByInventoryItem(inventoryItem);
+                for (File file : cls) {
+                    codeLocationMap.put(file.getProjectPath(), file);
                 }
             }
 
@@ -110,7 +107,6 @@ public class FileService {
             String calculatedArtifactPath = getRelativePath(rootPath, rootDirectory); // Relative to scan anchor
             String calculatedProjectPath = getRelativePath(projectParentAnchor, rootDirectory); // Relative to Project root
 
-            CodeLocation rootCodeLocation = determineCodeLocation(calculatedArtifactPath, codeLocationMap);
             String rootPhysicalPath = rootDirectory.getAbsolutePath();
 
             File rootEntity = projectFileCache.get(rootPhysicalPath);
@@ -124,13 +120,12 @@ public class FileService {
                         calculatedArtifactPath,
                         true,
                         parentForRoot,
-                        rootCodeLocation != null ? inventoryItem : null,
-                        rootCodeLocation
+                        inventoryItem
                 );
                 projectFileCache.put(rootPhysicalPath, rootEntity);
                 addToBatch(rootEntity, batchBuffer, batchSize);
             } else {
-                updateFileLinkage(rootEntity, rootCodeLocation, batchBuffer, batchSize);
+                //TODO addToBatch(fileEntity, batch, batchSize);
             }
 
             scanDir(project, rootDirectory, rootEntity, batchBuffer, projectFileCache, batchSize, inventoryItem,
@@ -152,7 +147,7 @@ public class FileService {
     private void scanDir(Project project, java.io.File directory, File parentEntity,
                          List<File> batchBuffer, Map<String, File> projectFileCache, int batchSize,
                          InventoryItem inventoryItem, Path relativeAnchor, Path projectRootAnchor,
-                         Map<String, CodeLocation> codeLocationMap) {
+                         Map<String, File> fileMap) {
         log.debug("Scanning directory {}", directory.getAbsolutePath());
         log.debug("Calculated artifact path: {}, calculated project path: {}", relativeAnchor.getFileName(),
                 projectRootAnchor.getFileName());
@@ -168,14 +163,12 @@ public class FileService {
             String artifactPath = getRelativePath(relativeAnchor, file);
             String projectPath = getRelativePath(projectRootAnchor, file);
 
-            CodeLocation codeLocation = determineCodeLocation(artifactPath, codeLocationMap);
-
             File existingFile = projectFileCache.get(physicalPath);
 
             if (existingFile != null) {
-                updateFileLinkage(existingFile, codeLocation, batchBuffer, batchSize);
+                addToBatch(existingFile, batchBuffer, batchSize);
                 if (file.isDirectory()) {
-                    scanDir(project, file, existingFile, batchBuffer, projectFileCache, batchSize, inventoryItem, relativeAnchor, projectRootAnchor, codeLocationMap);
+                    scanDir(project, file, existingFile, batchBuffer, projectFileCache, batchSize, inventoryItem, relativeAnchor, projectRootAnchor, fileMap);
                 }
                 continue;
             }
@@ -188,15 +181,14 @@ public class FileService {
                     artifactPath,
                     file.isDirectory(),
                     parentEntity,
-                    codeLocation != null ? inventoryItem : null,
-                    codeLocation
+                    inventoryItem
             );
 
             projectFileCache.put(physicalPath, fileEntity);
             addToBatch(fileEntity, batchBuffer, batchSize);
 
             if (file.isDirectory()) {
-                scanDir(project, file, fileEntity, batchBuffer, projectFileCache, batchSize, inventoryItem, relativeAnchor, projectRootAnchor, codeLocationMap);
+                scanDir(project, file, fileEntity, batchBuffer, projectFileCache, batchSize, inventoryItem, relativeAnchor, projectRootAnchor, fileMap);
             }
         }
     }
@@ -234,7 +226,6 @@ public class FileService {
                 relativeToRoot,
                 true,
                 parentOfThis,
-                null,
                 null
         );
 
@@ -244,38 +235,7 @@ public class FileService {
         return newEntity;
     }
 
-    private CodeLocation determineCodeLocation(String currentPath, Map<String, CodeLocation> map) {
-        if (map.isEmpty()) return null;
 
-        if (map.containsKey(currentPath)) {
-            return map.get(currentPath);
-        }
-
-        Path pathObj = Paths.get(currentPath);
-        Path parent = pathObj.getParent();
-
-        while (parent != null) {
-            String parentStr = FilenameUtils.separatorsToUnix(parent.toString());
-            if (map.containsKey(parentStr)) {
-                return map.get(parentStr);
-            }
-            parent = parent.getParent();
-        }
-
-        return null;
-    }
-
-    private void updateFileLinkage(File fileEntity, CodeLocation newCodeLocation, List<File> batch, int batchSize) {
-        if (newCodeLocation == null) return;
-
-        CodeLocation current = fileEntity.getCodeLocation();
-        if (current != null && current.getId().equals(newCodeLocation.getId())) {
-            return;
-        }
-
-        fileEntity.setCodeLocation(newCodeLocation);
-        addToBatch(fileEntity, batch, batchSize);
-    }
 
     private void addToBatch(File entity, List<File> batch, int batchSize) {
         batch.add(entity);

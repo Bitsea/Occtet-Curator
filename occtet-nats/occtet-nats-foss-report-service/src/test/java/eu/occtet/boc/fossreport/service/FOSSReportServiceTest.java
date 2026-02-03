@@ -24,7 +24,6 @@ package eu.occtet.boc.fossreport.service;
 
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
-import eu.occtet.boc.dao.CodeLocationRepository;
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.fossreport.factory.InventoryItemFactory;
 import org.slf4j.Logger;

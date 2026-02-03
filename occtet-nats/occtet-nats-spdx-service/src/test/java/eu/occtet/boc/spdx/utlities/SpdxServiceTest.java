@@ -55,15 +55,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {SpdxService.class, SoftwareComponentService.class, SoftwareComponentRepository.class,
-        CopyrightService.class, InventoryItemService.class, LicenseService.class, CodeLocationService.class,
+        CopyrightService.class, InventoryItemService.class, LicenseService.class, FileService.class,
         ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class,
-        CopyrightFactory.class, CodeLocationFactory.class, InventoryItemFactory.class,
+        CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class,
         LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class
 })
 @EnableJpaRepositories(basePackages = {
@@ -170,8 +169,8 @@ public class SpdxServiceTest {
            Assertions.assertEquals(1, copyrights.size());
            Copyright sampleCopyright = copyrights.getFirst();
            Assertions.assertEquals("Copyright 2020 Some copyright holder in source artifact", sampleCopyright.getCopyrightText());
-           Assertions.assertNotNull(sampleCopyright.getCodeLocations());
-           Assertions.assertEquals("some/file", sampleCopyright.getCodeLocations().stream().toList().getFirst().getFilePath());
+           Assertions.assertNotNull(sampleCopyright.getFiles());
+           Assertions.assertEquals("some/file", sampleCopyright.getFiles().stream().toList().getFirst().getProjectPath());
 
             //Check SoftwareComponent
             SoftwareComponent softwareComponent = inventoryItem.getSoftwareComponent();

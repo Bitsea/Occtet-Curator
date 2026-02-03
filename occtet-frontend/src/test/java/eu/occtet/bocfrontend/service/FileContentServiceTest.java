@@ -20,9 +20,7 @@
 package eu.occtet.bocfrontend.service;
 
 
-import eu.occtet.bocfrontend.entity.CodeLocation;
 import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.factory.CodeLocationFactory;
 import eu.occtet.bocfrontend.model.FileResult;
 import eu.occtet.bocfrontend.test_support.AuthenticatedAsAdmin;
 import org.apache.logging.log4j.LogManager;

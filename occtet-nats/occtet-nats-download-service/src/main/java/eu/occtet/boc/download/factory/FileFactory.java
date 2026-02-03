@@ -21,7 +21,6 @@
 
 package eu.occtet.boc.download.factory;
 
-import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
@@ -39,8 +38,7 @@ public class FileFactory {
                        String artifactPath,
                        boolean isDirectory,
                        File parentEntity,
-                       InventoryItem inventoryItem,
-                       CodeLocation codeLocation) {
+                       InventoryItem inventoryItem) {
 
         Objects.requireNonNull(project, "Project cannot be null");
         Objects.requireNonNull(fileName, "File name cannot be null");
@@ -57,7 +55,6 @@ public class FileFactory {
         file.setIsDirectory(isDirectory);
         file.setParent(parentEntity);
         file.setInventoryItem(inventoryItem);
-        file.setCodeLocation(codeLocation);
 
         file.setReviewed(false);
 
@@ -65,6 +62,8 @@ public class FileFactory {
     }
 
     public File create(Project project, String fileName, String physicalPath, String projectPath, String artifactPath, boolean isDirectory) {
-        return create(project, fileName, physicalPath, projectPath, artifactPath, isDirectory, null, null, null);
+        return create(project, fileName, physicalPath, projectPath, artifactPath, isDirectory, null, null);
     }
+
+
 }

@@ -66,10 +66,6 @@ public class File {
     @OnDelete(DeletePolicy.CASCADE)
     private File parent;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "CODE_LOCATION_ID", nullable = true)
-    @OnDelete(DeletePolicy.UNLINK)
-    private CodeLocation codeLocation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "INVENTORY_ITEM_ID")
@@ -114,6 +110,11 @@ public class File {
     public File() {
     }
 
+    public File( InventoryItem inventoryItem, String filePath){
+        this.inventoryItem= inventoryItem;
+        this.projectPath= filePath;
+    }
+
     public Long getId() {
         return id;
     }
@@ -144,14 +145,6 @@ public class File {
 
     public void setParent(File parent) {
         this.parent = parent;
-    }
-
-    public CodeLocation getCodeLocation() {
-        return codeLocation;
-    }
-
-    public void setCodeLocation(CodeLocation codeLocation) {
-        this.codeLocation = codeLocation;
     }
 
     public Boolean getIsDirectory() {

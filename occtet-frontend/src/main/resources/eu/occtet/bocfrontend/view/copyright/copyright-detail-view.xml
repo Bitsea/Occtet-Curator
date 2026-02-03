@@ -25,7 +25,7 @@
         <instance id="copyrightDc"
                   class="eu.occtet.bocfrontend.entity.Copyright">
             <fetchPlan extends="_base">
-                <property name="codeLocations" fetchPlan="_base"/>
+                <property name="files" fetchPlan="_base"/>
                 <property name="licenses" fetchPlan="_base"/>
             </fetchPlan>
             <loader id="copyrightDl">
@@ -38,7 +38,7 @@
 
             </loader>
             <collection id="licenseDataGrid" property="licenses"/>
-            <collection id="codeLocationsDc" property="codeLocations"/>
+            <collection id="codeLocationsDc" property="files"/>
         </instance>
 
         <collection id="licenseDc"

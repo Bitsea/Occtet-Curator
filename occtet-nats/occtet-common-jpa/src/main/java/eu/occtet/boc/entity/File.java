@@ -54,9 +54,6 @@ public class File {
     @JoinColumn(name = "PARENT_ID")
     private File parent;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "CODE_LOCATION_ID", nullable = true)
-    private CodeLocation codeLocation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "INVENTORY_ITEM_ID")
@@ -99,8 +96,20 @@ public class File {
     @Column(name = "LAST_MODIFIED_BY")
     private String lastModifiedBy;
 
+
     public File() {
     }
+
+    public File( String filePath){
+        this.projectPath= filePath;
+    }
+
+    public File ( InventoryItem inventoryItem, String filePath, String fileName){
+        this.inventoryItem= inventoryItem;
+        this.projectPath= filePath;
+        this.fileName= fileName;
+    }
+
 
     public InventoryItem getInventoryItem() {
         return inventoryItem;
@@ -132,14 +141,6 @@ public class File {
 
     public void setParent(File parent) {
         this.parent = parent;
-    }
-
-    public CodeLocation getCodeLocation() {
-        return codeLocation;
-    }
-
-    public void setCodeLocation(CodeLocation codeLocation) {
-        this.codeLocation = codeLocation;
     }
 
     public String getFileName() {

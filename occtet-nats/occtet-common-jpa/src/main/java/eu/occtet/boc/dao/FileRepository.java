@@ -22,6 +22,7 @@
 package eu.occtet.boc.dao;
 
 import eu.occtet.boc.entity.File;
+import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -39,6 +40,6 @@ public interface FileRepository extends JpaRepository<File, Long> {
 
     @Query("select f.physicalPath from File f where f.project = :project")
     Collection<String> findAllPathsByProject(@Param("project") Project project);
-
+    List<File> findByInventoryItem(InventoryItem inventoryItem);
     File findByProjectAndPhysicalPath(Project project, String physicalPath);
 }

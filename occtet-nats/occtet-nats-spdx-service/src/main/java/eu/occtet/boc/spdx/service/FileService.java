@@ -23,10 +23,10 @@
 package eu.occtet.boc.spdx.service;
 
 
-import eu.occtet.boc.entity.CodeLocation;
+import eu.occtet.boc.dao.FileRepository;
+import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.dao.CodeLocationRepository;
-import eu.occtet.boc.spdx.factory.CodeLocationFactory;
+import eu.occtet.boc.spdx.factory.FileFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,59 +38,51 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-public class CodeLocationService {
+public class FileService {
 
-    private static final Logger log = LogManager.getLogger(CodeLocationService.class);
+    private static final Logger log = LogManager.getLogger(FileService.class);
 
-
-    @Autowired
-    private CodeLocationFactory codeLocationFactory;
 
     @Autowired
-    private CodeLocationRepository codeLocationRepository;
+    private FileRepository fileRepository;
 
-    public CodeLocation findOrCreateCodeLocationWithInventory(String filePath, InventoryItem inventoryItem) {
-        return codeLocationFactory.createWithInventory(filePath, inventoryItem);
-    }
-
-    public CodeLocation update(CodeLocation codeLocation){
-        return codeLocationRepository.save(codeLocation);
-    }
 
     /**
-     * Finds or creates a batch of {@link CodeLocation} objects based on the provided file paths and associated
+     * Finds or creates a batch of {@link File} objects based on the provided file paths and associated
      * {@link InventoryItem}. If a code location corresponding to a file path already exists in the database for
      * the given inventory item, it is reused. Otherwise, new code locations are created and persisted.
      *
      * @param filePaths a list of file paths for which code locations need to be found or created
      * @param inventoryItem the inventory item associated with the code locations
-     * @return a map where the keys are the file paths and the values are the corresponding {@link CodeLocation} objects
+     * @return a map where the keys are the file paths and the values are the corresponding {@link File} objects
      */
     @Transactional
-    public Map<String, CodeLocation> findOrCreateBatch(List<String> filePaths, InventoryItem inventoryItem) {
+    public Map<String, File> findOrCreateBatch(List<String> filePaths, InventoryItem inventoryItem) {
 
-        List<CodeLocation> existingList = codeLocationRepository.findByInventoryItem(inventoryItem);
+        List<File> existingList = fileRepository.findByInventoryItem(inventoryItem);
 
-        Map<String, CodeLocation> cache = existingList.stream()
+        Map<String, File> cache = existingList.stream()
                 .collect(Collectors.toMap(
-                        CodeLocation::getFilePath,
+                        File::getProjectPath,
                         Function.identity(),
                         (p1, p2) -> p1
                 ));
-        List<CodeLocation> toSave = new ArrayList<>();
+        List<File> toSave = new ArrayList<>();
 
         Set<String> uniquePaths = new HashSet<>(filePaths);
 
         for (String path : uniquePaths) {
             if (!cache.containsKey(path)) {
-                CodeLocation newLoc = new CodeLocation(inventoryItem, path);
+                int p=path.lastIndexOf(java.io.File.pathSeparator);
+                String name =path.substring(p+1);
+                File newLoc = new File(inventoryItem, path, name);
                 toSave.add(newLoc);
                 cache.put(path, newLoc);
             }
         }
 
         if (!toSave.isEmpty()) {
-            codeLocationRepository.saveAll(toSave);
+            fileRepository.saveAll(toSave);
         }
         return cache;
     }

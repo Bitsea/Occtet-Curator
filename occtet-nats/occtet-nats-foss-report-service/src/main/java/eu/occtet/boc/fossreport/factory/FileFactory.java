@@ -20,28 +20,32 @@
  *
  */
 
-package eu.occtet.boc.spdx.factory;
+package eu.occtet.boc.fossreport.factory;
 
 
-
-import eu.occtet.boc.entity.CodeLocation;
+import eu.occtet.boc.dao.FileRepository;
+import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.dao.CodeLocationRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CodeLocationFactory {
+public class FileFactory {
+
+    private static final Logger log = LoggerFactory.getLogger(FileFactory.class);
 
     @Autowired
-    private CodeLocationRepository codeLocationRepository;
+    private FileRepository codeLocationRepository;
 
-    public CodeLocation create(String filePath) {
-        return codeLocationRepository.save(new CodeLocation(filePath));
+    public File create(String filePath) {
+        log.debug("Creating File with filePath: {}", filePath);
+        return codeLocationRepository.save(new File(filePath));
     }
 
-    public CodeLocation createWithInventory(String filePath, InventoryItem inventoryItem) {
-        return codeLocationRepository.save(new CodeLocation(inventoryItem, filePath));
+    public File createWithInventory(String filePath, InventoryItem inventoryItem) {
+        log.debug("Creating CodeLocation with filePath: {}, with inventory item: {}", filePath, inventoryItem);
+        return codeLocationRepository.save(new File(inventoryItem, filePath));
     }
-
 }

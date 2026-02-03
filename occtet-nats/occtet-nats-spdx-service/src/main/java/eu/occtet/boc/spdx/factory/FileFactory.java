@@ -1,11 +1,12 @@
 /*
- *  Copyright (C) 2025 Bitsea GmbH
  *
+ *  Copyright (C) 2025 Bitsea GmbH
+ *  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *      https:www.apache.orglicensesLICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,18 +16,29 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- *
+ * /
  *
  */
 
-package eu.occtet.boc.dao;
+package eu.occtet.boc.spdx.factory;
 
-import eu.occtet.boc.entity.CodeLocation;
+
+
+import eu.occtet.boc.dao.FileRepository;
+import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
+@Component
+public class FileFactory {
 
-public interface CodeLocationRepository  extends JpaRepository<CodeLocation, Long> {
-    List<CodeLocation> findByInventoryItem(InventoryItem inventoryItem);
+    @Autowired
+    private FileRepository fileRepository;
+
+    public File create(String filePath) {
+        return fileRepository.save(new File(filePath));
+    }
+
+
 }

@@ -101,14 +101,10 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
 
-    @Autowired
-    private CodeLocationRepository codeLocationRepository;
 
     @Autowired
     private UiComponents uiComponents;
 
-    @Autowired
-    private Notifications notifications;
 
     @Autowired
     private DialogWindows dialogWindows;

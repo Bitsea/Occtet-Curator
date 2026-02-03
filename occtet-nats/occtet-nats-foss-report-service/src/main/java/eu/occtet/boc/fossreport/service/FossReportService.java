@@ -58,7 +58,7 @@ public class FossReportService extends ProgressReportingService {
     @Autowired
     private SoftwareComponentService softwareComponentService;
     @Autowired
-    private CodeLocationService codeLocationService;
+    private FileService fileService;
     @Autowired
     private LicenseService licenseService;
     @Autowired
@@ -175,12 +175,12 @@ public class FossReportService extends ProgressReportingService {
                     rowDto.linking(), rowDto.externalNotes(),
                     parentInventory, softwareComponent, wasCombined, copyrights, priority
             );
-            CodeLocation basePathCodeLocation = codeLocationService.findOrCreateCodeLocationWithInventory(basePath, inventoryItem);
+            File basePathFile = fileService.findOrCreateFileWithInventory(basePath, inventoryItem);
             notifyProgress(30, "preparing codelocations");
 
-            prepareCodeLocations(rowDto, inventoryItem, basePathCodeLocation);
+            prepareCodeLocations(rowDto, inventoryItem, basePathFile);
             //as we have no specific codeLocation for the copyrights here, we just use the basepath
-            copyrights = prepareCopyrights(rowDto, basePathCodeLocation);
+            copyrights = prepareCopyrights(rowDto, basePathFile);
 
             inventoryItem.getSoftwareComponent().setCopyrights(copyrights);
             inventoryItemRepository.save(inventoryItem);
@@ -244,17 +244,17 @@ public class FossReportService extends ProgressReportingService {
         return licenses;
     }
 
-    private void prepareCodeLocations(RowDto rowDto, InventoryItem inventoryItem, CodeLocation basePathCodeLocation) {
+    private void prepareCodeLocations(RowDto rowDto, InventoryItem inventoryItem, File basePathFile) {
         log.debug("prepare codeLocations with paths: {}", rowDto.files());
 
         if (rowDto.files() != null && !rowDto.files().isEmpty()) {
             List<String> filePaths = PathUtilities.cleanAndSplits(rowDto.files());
-            codeLocationService.deleteOldCodeLocationsOfInventoryItem(inventoryItem, basePathCodeLocation);
-            codeLocationService.CreateCodeLocationsWithInventory(filePaths, inventoryItem);
+            fileService.deleteOldFilesOfInventoryItem(inventoryItem, basePathFile);
+            fileService.createFilesWithInventory(filePaths, inventoryItem);
         }
     }
 
-    private List<Copyright> prepareCopyrights(RowDto rowDto, CodeLocation basePathCodeLocation) {
+    private List<Copyright> prepareCopyrights(RowDto rowDto, File basePathFile) {
         log.debug("prepare copyrights with text: {}", rowDto.copyright());
         List<Copyright> copyrights = new ArrayList<>();
         List<String> copyrightTexts = FossReportUtilities.getCopyrights(rowDto.copyright());
@@ -262,7 +262,7 @@ public class FossReportService extends ProgressReportingService {
         if (!copyrightTexts.isEmpty()) {
             copyrightTexts.forEach(copyrightText -> {
                 // For FlexeraReport use the basepath for copyrights, as we dont have a specific path for them.
-                Copyright copyright = copyrightService.findOrCreateCopyright(copyrightText, basePathCodeLocation);
+                Copyright copyright = copyrightService.findOrCreateCopyright(copyrightText, basePathFile);
                 copyrights.add(copyright);
             });
         }
