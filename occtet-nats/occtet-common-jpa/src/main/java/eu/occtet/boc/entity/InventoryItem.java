@@ -69,9 +69,6 @@ public class InventoryItem {
     @JoinColumn(name = "SOFTWARE_COMPONENT_ID", nullable = true)
     private SoftwareComponent softwareComponent;
 
-    @Column(name= "WAS_COMBINED")
-    private Boolean wasCombined;
-
     @Column(name= "CURATED")
     private Boolean curated;
 
@@ -104,7 +101,6 @@ public class InventoryItem {
         this.externalNotes = externalNotes;
         this.parent = parent;
         this.softwareComponent = softwareComponent;
-        this.wasCombined = wasCombined;
         this.curated = curated;
         this.project = project;
         this.spdxId = spdxId;
@@ -175,14 +171,6 @@ public class InventoryItem {
         this.softwareComponent = softwareComponent;
     }
 
-    public boolean isWasCombined() {
-        return wasCombined;
-    }
-
-    public void setWasCombined(boolean wasCombined) {
-        this.wasCombined = wasCombined;
-    }
-
     public boolean isCurated() {
         return curated;
     }
@@ -230,14 +218,6 @@ public class InventoryItem {
 
     public void setConspicuous(Boolean conspicuous) {
         this.conspicuous = conspicuous;
-    }
-
-    public Boolean getWasCombined() {
-        return wasCombined;
-    }
-
-    public void setWasCombined(Boolean wasCombined) {
-        this.wasCombined = wasCombined;
     }
 
     public Boolean getCurated() {

@@ -30,24 +30,26 @@ import eu.occtet.bocfrontend.view.audit.fragment.InventoryItemTabFragment;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
+import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 @ViewController("overviewContentInfoDialog")
 @ViewDescriptor("overview-content-info-dialog.xml")
-@DialogMode(width = "1000px", height = "650px")
+@DialogMode(width = "1000px", height = "700px")
 public class OverviewContentInfoDialog extends StandardView {
 
     private static final Logger log = LogManager.getLogger(OverviewContentInfoDialog.class);
 
     @ViewComponent
-    private CollectionContainer<InventoryItem> inventoryItemsDc;
+    private CollectionLoader<InventoryItem> inventoryItemsDl;
 
     @ViewComponent
     private DataGrid<InventoryItem> inventoryItemsDataGrid;
@@ -70,36 +72,16 @@ public class OverviewContentInfoDialog extends StandardView {
     private InventoryItem inventoryItem;
 
 
-    public void setInformationContent(Object content){
-        List<SoftwareComponent> components = softwareComponentRepository.findAll();
-        Set<SoftwareComponent> softwareComponents = new HashSet<>();
-        Set<InventoryItem> items = new HashSet<>();
-
+    public void setInformationContent(Object content, Project project){
+        List<InventoryItem> items = new ArrayList<>();
         if(content instanceof License license){
-            components.forEach(softwareComponent -> {
-                List<License> licenses = softwareComponent.getLicenses();
-                if(licenses != null){
-                    if(licenses.contains(license)){
-                        softwareComponents.add(softwareComponent);
-                    }
-                }
-            });
+            items = inventoryItemRepository.findByLicenseAndProject(license,project);
             title.setText(license.getLicenseName());
         }else if(content instanceof Vulnerability vulnerability){
-            components.forEach(softwareComponent -> {
-                List<Vulnerability> vulnerabilities = softwareComponent.getVulnerabilities();
-                if(vulnerabilities != null){
-                    if(vulnerabilities.contains(vulnerability)){
-                        softwareComponents.add(softwareComponent);
-                    }
-                }
-            });
+            items = inventoryItemRepository.findByVulnerabilityAndProject(vulnerability,project);
             title.setText(vulnerability.getVulnerabilityId());
         }
-        softwareComponents.forEach(softwareComponent -> {
-            items.addAll(inventoryItemRepository.findBySoftwareComponent(softwareComponent));
-        });
-        inventoryItemsDc.setItems(items);
+        updateDatagridForProject(items);
     }
 
     @Subscribe("inventoryItemsDataGrid")
@@ -115,5 +97,10 @@ public class OverviewContentInfoDialog extends StandardView {
 
     private void setInventoryItem(InventoryItem item){inventoryItem = item;}
     public InventoryItem getInventoryItem(){return inventoryItem;}
+
+    private void updateDatagridForProject(List<InventoryItem> items){
+        inventoryItemsDl.setParameter("items",items);
+        inventoryItemsDl.load();
+    }
 
 }
