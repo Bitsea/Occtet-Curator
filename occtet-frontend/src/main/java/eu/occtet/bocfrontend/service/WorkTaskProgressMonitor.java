@@ -56,13 +56,7 @@ public class WorkTaskProgressMonitor {
     }
 
     private WorkTaskProgress systemMessageToWorkTaskProgress(ProgressSystemMessage m) {
-        WorkTaskStatus status = WorkTaskStatus.IN_PROGRESS;
-        if (m.getProgressPercent() >= 100) {
-            status = WorkTaskStatus.COMPLETED;
-        } else if(m.getProgressPercent()==0) {
-            status = WorkTaskStatus.INIT;
-        }
-        return new WorkTaskProgress(m.getProgressPercent(), status, m.getDetails());
+        return new WorkTaskProgress(m.getName(), m.getProgressPercent(), m.getStatus(), m.getDetails());
     }
 
     public List<WorkTaskProgress> getAllProgress() {

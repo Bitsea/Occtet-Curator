@@ -31,24 +31,26 @@ import java.util.Map;
 
 public class FossReportServiceWorkData extends BaseWorkData{
 
-    private Long scannerInitializerId;
+    private Long projectId;
     private Map<String, Object> rowData;
+    private boolean useLicenseMatcher;
+    private boolean useCopyrightFilter;
 
     @JsonCreator
     public FossReportServiceWorkData(
-            @JsonProperty("scannerInitializerId") Long scannerInitializerId,
+            @JsonProperty("projectId") Long projectId,
             @JsonProperty("rowData") Map<String, Object> rowData
     ) {
-        this.scannerInitializerId = scannerInitializerId;
+        this.projectId = projectId;
         this.rowData = rowData;
     }
 
-    public Long getScannerInitializerId() {
-        return scannerInitializerId;
+    public Long getProjectId() {
+        return projectId;
     }
 
-    public void setScannerInitializerId(Long scannerInitializerId) {
-        this.scannerInitializerId = scannerInitializerId;
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 
     public Map<String, Object> getRowData() {
@@ -62,5 +64,21 @@ public class FossReportServiceWorkData extends BaseWorkData{
     @Override
     public boolean process(IWorkDataProcessor processor) {
         return processor.process(this);
+    }
+
+    public boolean isUseLicenseMatcher() {
+        return useLicenseMatcher;
+    }
+
+    public void setUseLicenseMatcher(boolean useLicenseMatcher) {
+        this.useLicenseMatcher = useLicenseMatcher;
+    }
+
+    public boolean isUseCopyrightFilter() {
+        return useCopyrightFilter;
+    }
+
+    public void setUseCopyrightFilter(boolean useCopyrightFilter) {
+        this.useCopyrightFilter = useCopyrightFilter;
     }
 }

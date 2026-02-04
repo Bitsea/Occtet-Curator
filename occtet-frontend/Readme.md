@@ -49,7 +49,7 @@ Run the jar with dev profile active:
 
 **Step 2:** build the docker image (in the same directory as the Dockerfile, replace correct version):
 
-`docker build -t occtet-boc-frontend:0.3.3-SNAPSHOT .`
+`docker build -t occtet-boc-frontend:0.3.8-SNAPSHOT .`
 
 **IMPORTANT:** Do not use gradle jibDockerBuild to build currently, because due to
 an unknown bug it does not build in production mode.

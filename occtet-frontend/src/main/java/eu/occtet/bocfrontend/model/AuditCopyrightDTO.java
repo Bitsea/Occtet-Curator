@@ -16,26 +16,28 @@
  * SPDX-License-Identifier: Apache-2.0
  * License-Filename: LICENSE
  */
-package eu.occtet.bocfrontend.dto;
+package eu.occtet.bocfrontend.model;
 
 import io.jmix.core.metamodel.annotation.JmixEntity;
 
+
+
 @JmixEntity
-public class AuditLicenseDTO {
+public class AuditCopyrightDTO {
 
-    private String licenseName;
+    private String copyrightName;
 
-    private Integer numSc;
+    private Integer numFiles;
 
-    public AuditLicenseDTO(){}
+    public AuditCopyrightDTO(){}
 
-    public AuditLicenseDTO(String licenseName, Integer numSc){
-        this.licenseName = licenseName;
-        this.numSc = numSc;
+    public AuditCopyrightDTO(String copyrightName, Integer numFiles){
+        this.copyrightName = copyrightName;
+        this.numFiles = numFiles;
     }
 
-    public void setLicenseName(String licenseName) {this.licenseName = licenseName;}
-    public String getLicenseName() {return licenseName;}
-    public void setNumSc(Integer numSc) {this.numSc = numSc;}
-    public Integer getNumSc() {return numSc;}
+    public void setCopyrightName(String copyrightName) {this.copyrightName = copyrightName;}
+    public String getCopyrightName() {return copyrightName;}
+    public void setNumFiles(Integer numFiles) {this.numFiles = numFiles;}
+    public Integer getNumFiles() {return numFiles;}
 }

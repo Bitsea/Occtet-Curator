@@ -325,7 +325,7 @@ public class DashboardView extends StandardView {
             Icon icon = CuratorTaskUI.iconForTaskStatus(task.getStatus());
             icon.setSize("10px");
             row.add(icon );
-            row.add(new Span(task.getDetails() + " ("+task.getPercent() + "%)"));
+            row.add(new Span(task.getName() + " ("+ task.getDetails() + ", "+task.getPercent() + "%)"));
             return row;
         }); 
     }

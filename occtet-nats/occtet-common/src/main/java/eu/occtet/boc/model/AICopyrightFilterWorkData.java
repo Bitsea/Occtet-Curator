@@ -31,7 +31,7 @@ import java.util.List;
 
 public class AICopyrightFilterWorkData extends BaseWorkData {
 
-    private String userMessage;
+
     private Long inventoryItemId;
     private List<String> questionableCopyrights;
 
@@ -41,21 +41,12 @@ public class AICopyrightFilterWorkData extends BaseWorkData {
     }
 
     @JsonCreator
-    public AICopyrightFilterWorkData(@JsonProperty("userMessage")String userMessage,
-                                     @JsonProperty("inventoryItemId")Long inventoryItemId,
+    public AICopyrightFilterWorkData(@JsonProperty("inventoryItemId")Long inventoryItemId,
                                      @JsonProperty("questionableCopyrights")List<String> questionableCopyrights) {
-        this.userMessage = userMessage;
         this.inventoryItemId = inventoryItemId;
         this.questionableCopyrights= questionableCopyrights;
     }
 
-    public String getUserMessage() {
-        return userMessage;
-    }
-
-    public void setUserMessage(String userMessage) {
-        this.userMessage = userMessage;
-    }
 
     public Long getInventoryItemId() {
         return inventoryItemId;

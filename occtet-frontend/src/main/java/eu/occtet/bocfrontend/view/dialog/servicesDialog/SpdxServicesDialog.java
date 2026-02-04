@@ -157,7 +157,7 @@ public class SpdxServicesDialog extends AbstractServicesDialog{
             LocalDateTime now = LocalDateTime.now();
             long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
 
-            WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "question", actualTimestamp, workData);
+            WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "spdx-service","sending", actualTimestamp, workData);
             try {
                 ObjectMapper objectMapper = new ObjectMapper();
                 String message = objectMapper.writeValueAsString(workTask);

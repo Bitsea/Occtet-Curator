@@ -152,6 +152,7 @@ public class CopyrightListView extends StandardListView<Copyright> {
     }
 
     private void updateDatagridForProject(Project project){
+        log.debug("Loading copyrights for project: " + project.getProjectName());
         copyrightsDl.setParameter("project",project);
         copyrightsDl.load();
     }

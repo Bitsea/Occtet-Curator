@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.BaseWorkData;
 import eu.occtet.boc.model.SpdxExportWorkData;
 import eu.occtet.boc.model.WorkTask;
+import eu.occtet.boc.model.WorkTaskStatus;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.WorkConsumer;
 import io.nats.client.Message;
@@ -57,7 +58,7 @@ public class SpdxExportWorkConsumer extends WorkConsumer {
                 @Override
                 public boolean process(SpdxExportWorkData spdxExportWorkData) {
                     exportService.setOnProgress((p,d)->{
-                        notifyProgress(workTask.taskId(), p, d);
+                        notifyProgress(workTask.taskId(),workTask.name(), WorkTaskStatus.IN_PROGRESS,  p, d);
                     });
                     return exportService.process(spdxExportWorkData);
                 }
@@ -65,6 +66,9 @@ public class SpdxExportWorkConsumer extends WorkConsumer {
             log.debug("RESULT {}", result);
             if(!result){
                 log.error("Could not process workData of type {}", workData.getClass().getName());
+                notifyError(workTask.taskId(),workTask.name(), "error during processing");
+            } else {
+                notifyCompleted(workTask.taskId(),workTask.name());
             }
         }
         catch (JsonProcessingException e){

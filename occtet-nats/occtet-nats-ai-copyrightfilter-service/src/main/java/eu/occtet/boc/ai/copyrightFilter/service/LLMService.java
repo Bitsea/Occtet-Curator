@@ -125,6 +125,7 @@ public class LLMService extends BaseWorkDataProcessor {
 
 
     private boolean filterCopyrightsWithAI(AICopyrightFilterWorkData aiWorkData) {
+        log.debug("filterCopyrightsWithAI for inventory item id {}", aiWorkData.getInventoryItemId());
         //MemoryAdvisor is default
         Optional<InventoryItem> optItem = inventoryItemRepository.findById(aiWorkData.getInventoryItemId());
         if(!optItem.isPresent()) {
@@ -133,12 +134,12 @@ public class LLMService extends BaseWorkDataProcessor {
         }
         List<Advisor> advisors = advisorFactory.createAdvisors();
         String response = "";
-        Prompt question = promptFactory.createFalseCopyrightPrompt(aiWorkData.getUserMessage());
         List<Copyright> copyrightList= new ArrayList<>();
         String copyrights = createString(aiWorkData.getQuestionableCopyrights(), copyrightList);
-        String userQuestion = "List of copyrights, separated by |||. Delete invalid copyrights from this list: " + copyrights;
+        Prompt question = promptFactory.createFalseCopyrightPrompt(copyrights);
+
         try {
-            response = chatClient.prompt(question).user(userQuestion)
+            response = chatClient.prompt(question)
                     .advisors(advisors)
                     .call().content();
 
@@ -146,7 +147,7 @@ public class LLMService extends BaseWorkDataProcessor {
             log.error("Exception with calling ai {}", e.getMessage());
         }
         String result = postProcessor.deleteThinking(response);
-
+        log.debug("result of AI: {}", result);
         handleAIResult(optItem.get(), result, copyrightList);
         if(!result.isEmpty()) {
             try {
@@ -209,7 +210,7 @@ public class LLMService extends BaseWorkDataProcessor {
         // Get the current date and time
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "question", actualTimestamp, new AIAnswerWorkData(answer));
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "ai-answer","question", actualTimestamp, new AIAnswerWorkData(answer));
         ObjectMapper objectMapper = new ObjectMapper();
         String message = objectMapper.writeValueAsString(workTask);
         log.debug("sending message to ai service: {}", message);

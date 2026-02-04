@@ -53,16 +53,26 @@ public class FlexeraReportImporter extends Importer {
                 .stream()
                 .filter(c -> c.getName().equals(CONFIG_KEY_FILENAME))
                 .findFirst().orElse(null));
+        boolean useLicenseMatcher = curatorTask.getTaskConfiguration().stream()
+                .filter(c -> CONFIG_KEY_USE_LICENSE_MATCHER.equals(c.getName()))
+                .map(c -> Boolean.parseBoolean(c.getValue()))
+                .findFirst()
+                .orElse(false);
 
+        boolean useCopyrightFilter = curatorTask.getTaskConfiguration().stream()
+                .filter(c -> CONFIG_KEY_USE_FALSE_COPYRIGHT_FILTER.equals(c.getName()))
+                .map(c -> Boolean.parseBoolean(c.getValue()))
+                .findFirst()
+                .orElse(false);
         byte[] contentInByte = configuration.getUpload();
         log.debug("contentInByte: {}", contentInByte.length);
 
         log.info("Processing Flexera Report for Project: {}...", curatorTask.getProject().getProjectName());
-        return readExcelRows(curatorTask, contentInByte );
+        return readExcelRows(curatorTask, contentInByte, useLicenseMatcher, useCopyrightFilter);
 
     }
 
-    private boolean readExcelRows(CuratorTask curatorTask, byte[] contentInByte) {
+    private boolean readExcelRows(CuratorTask curatorTask, byte[] contentInByte, boolean useLicenseMatcher, boolean useCopyrightFilter) {
         boolean res=false;
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(contentInByte)){
             OPCPackage pkg = OPCPackage.open(byteArrayInputStream);
@@ -95,7 +105,7 @@ public class FlexeraReportImporter extends Importer {
                     }
                 }
                 if(!rowData.isEmpty()){
-                    res = startTask(curatorTask, rowData);
+                    res = startTask(curatorTask, rowData, useLicenseMatcher, useCopyrightFilter);
                 }
 
             }
@@ -134,9 +144,11 @@ public class FlexeraReportImporter extends Importer {
     }
 
 
-    private boolean startTask(CuratorTask task, Map<String, Object> rowData)  {
+    private boolean startTask(CuratorTask task, Map<String, Object> rowData, boolean useLicenseMatcher, boolean useFalseCopyrightFilter)  {
 
         FossReportServiceWorkData fossReportServiceWorkData = new FossReportServiceWorkData(task.getId(), rowData);
+        fossReportServiceWorkData.setUseLicenseMatcher(useLicenseMatcher);
+        fossReportServiceWorkData.setUseCopyrightFilter(useFalseCopyrightFilter);
 
         return curatorTaskService.saveAndRunTask(task,fossReportServiceWorkData,"converted flexera row to work task");
 

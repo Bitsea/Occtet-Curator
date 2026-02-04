@@ -108,7 +108,7 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
 
         if(checkInput(copyrightName,location) && softwareComponent != null){
 
-            Copyright copyright = copyrightService.createCopyright(copyrightName, List.copyOf(location),
+            Copyright copyright = copyrightService.createCopyright(copyrightName, Set.copyOf(location),
                     isCuratedField.getValue(),isGarbageField.getValue());
 
             softwareComponent.getCopyrights().add(copyright);

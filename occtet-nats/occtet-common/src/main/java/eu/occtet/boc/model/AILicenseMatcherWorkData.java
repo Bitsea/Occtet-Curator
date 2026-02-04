@@ -32,7 +32,7 @@ import eu.occtet.boc.service.IWorkDataProcessor;
 public class AILicenseMatcherWorkData extends BaseWorkData{
 
 
-    private String userMessage;
+    private String differenceLines;
     private String url;
     private String licenseId;
     private String licenseText;
@@ -40,14 +40,14 @@ public class AILicenseMatcherWorkData extends BaseWorkData{
     private String licenseMatcherResult;
 
     @JsonCreator
-    public AILicenseMatcherWorkData(@JsonProperty("userMessage")String userMessage,
+    public AILicenseMatcherWorkData(@JsonProperty("differenceLines")String differenceLines,
                                     @JsonProperty("url")String url,
                                     @JsonProperty("licenseMatcherResult")String licenseMatcherResult,
                                     @JsonProperty("licenseId")String licenseId,
                                     @JsonProperty("licenseText")String licenseText,
                                     @JsonProperty("inventoryItemId")Long inventoryItemId) {
 
-        this.userMessage= userMessage;
+        this.differenceLines = differenceLines;
         this.url = url;
         this.licenseMatcherResult = licenseMatcherResult;
         this.licenseId = licenseId;
@@ -86,12 +86,12 @@ public class AILicenseMatcherWorkData extends BaseWorkData{
         this.licenseMatcherResult = licenseMatcherResult;
     }
 
-    public String getUserMessage() {
-        return userMessage;
+    public String getDifferenceLines() {
+        return differenceLines;
     }
 
-    public void setUserMessage(String userMessage) {
-        this.userMessage = userMessage;
+    public void setDifferenceLines(String differenceLines) {
+        this.differenceLines = differenceLines;
     }
 
     public String getUrl() {
@@ -111,7 +111,7 @@ public class AILicenseMatcherWorkData extends BaseWorkData{
     }
 
     public String toString() {
-        return "AILicenseMatcherWorkData{userMessage='" + userMessage + "', url='" + url + "'}";
+        return "AILicenseMatcherWorkData{userMessage='" + differenceLines + "', url='" + url + "'}";
     }
 
     @Override

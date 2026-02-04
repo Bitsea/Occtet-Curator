@@ -57,12 +57,12 @@ public class LicenseTemplateWebService {
             WebClient.RequestHeadersUriSpec<?> uriSpec = client.get();
             Mono<SPDXLicenseDetails> response = uriSpec.retrieve().bodyToMono(SPDXLicenseDetails.class);
             details = response.block();
-            log.debug("control upload, licenseId: {}", details.licenseId());
+            log.debug("control upload, licenseId: {}", details.getLicenseId());
 
             return details;
         }   catch (WebClientResponseException e){
             //Handling of 404 Not Found from GET https://spdx.org/licenses/<license>.json error.
-            log.error("License information not Found from GET {} for the license: {} ",url, details.licenseId());
+            log.error("License information not Found from GET {} for the license: {} ",url, details.getLicenseId());
             return null;
         }
 
@@ -72,6 +72,7 @@ public class LicenseTemplateWebService {
 
     public SPDXLicenseDetails readDefaultLicenseInfos( String url) {
         try {
+            log.debug("read URL {}", url);
             URL detailUrl = new URL(url);
             return readLicenseInfos(detailUrl.openStream());
         } catch (IOException e) {
@@ -88,7 +89,7 @@ public class LicenseTemplateWebService {
             Gson gson = gsonBuilder.create();
             SPDXLicenseDetails spdxLicenseDetails = gson.fromJson(br, SPDXLicenseDetails.class);
 
-            log.info("processed '{}' license", spdxLicenseDetails.licenseId());
+            log.info("processed '{}' license", spdxLicenseDetails.getLicenseId());
             return spdxLicenseDetails;
         } catch (Exception e) {
             log.error("licenses file could not be processed ", e);

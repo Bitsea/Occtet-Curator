@@ -64,7 +64,7 @@ public class CuratorTaskService {
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
         curatorTask.notifyStarted();
         dataManager.save(curatorTask);
-        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), optDetails, actualTimestamp, workData);
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), curatorTask.getTaskName(), optDetails, actualTimestamp, workData);
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
