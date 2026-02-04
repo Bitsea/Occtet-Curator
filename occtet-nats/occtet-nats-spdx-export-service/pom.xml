@@ -24,14 +24,14 @@
 
     <artifactId>occtet-nats-spdx-export-service</artifactId>
     <description>Occtet Nats service used to create new spdx SBOM</description>
-    <version>0.3.2-SNAPSHOT</version>
+    <version>0.3.8-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>0.3.2-SNAPSHOT</version>
+        <version>0.3.8-SNAPSHOT</version>
     </parent>
 
     <properties>

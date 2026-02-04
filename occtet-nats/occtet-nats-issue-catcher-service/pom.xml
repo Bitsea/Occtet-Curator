@@ -28,13 +28,12 @@
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>0.3.2-SNAPSHOT</version>
+        <version>0.3.8-SNAPSHOT</version>
     </parent>
 
     <artifactId>occtet-nats-issue-catcher-service</artifactId>
     <name>occtet-nats-issue-catcher-service</name>
     <description>Occtet Nats Issue Catcher Microservice</description>
-    <version>0.3.2-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

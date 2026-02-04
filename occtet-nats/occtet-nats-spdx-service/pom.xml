@@ -28,14 +28,14 @@
     <artifactId>occtet-nats-spdx-service</artifactId>
     <name>occtet-nats-spdx-service</name>
     <description>Occtet Nats Service for taking spdx json and turning it into entities</description>
-    <version>0.3.4-SNAPSHOT</version>
+    <version>0.3.8-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>0.3.2-SNAPSHOT</version>
+        <version>0.3.8-SNAPSHOT</version>
     </parent>
 
     <properties>

@@ -85,6 +85,8 @@ public class SpdxService extends ProgressReportingService  {
     private SpdxDocumentRootRepository spdxDocumentRootRepository;
     @Autowired
     private CopyrightRepository copyrightRepository;
+    @Autowired
+    private CleanUpService cleanUpService;
 
     private Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc = new ArrayList<>();
 
@@ -145,6 +147,8 @@ public class SpdxService extends ProgressReportingService  {
             } catch (InvalidSPDXAnalysisException e) {
                 log.warn("Could not read DocumentDescribes: {}", e.getMessage());
             }
+            //before entities are created and saved a clean up for file entities connected to the project is done
+            cleanUpService.cleanUpFileTree(project);
 
             Map<String, SpdxPackageEntity> packageLookupMap = new HashMap<>();
             if (spdxDocumentRoot.getPackages() != null) {
@@ -206,6 +210,8 @@ public class SpdxService extends ProgressReportingService  {
 
             log.info("processed spdx with {} items", inventoryItems.size());
 
+
+
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
@@ -232,6 +238,8 @@ public class SpdxService extends ProgressReportingService  {
             return false;
         }
     }
+
+
 
     private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project,
                                         SpdxDocumentRoot spdxDocumentRoot,

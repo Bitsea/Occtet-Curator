@@ -28,14 +28,13 @@
     <artifactId>occtet-nats-template</artifactId>
     <name>occtet-nats-template</name>
     <description>Occtet Nats Spring Boot Template</description>
-    <version>0.3.2-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
     <parent>
         <groupId>eu.occtet.boc</groupId>
         <artifactId>occtet-nats-parent</artifactId>
-        <version>0.3.2-SNAPSHOT</version>
+        <version>0.3.8-SNAPSHOT</version>
     </parent>
 
     <properties>

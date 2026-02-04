@@ -1,4 +1,4 @@
-#version: '0.3.3'
+#version: '0.3.8'
 services:
     db:
         image: pgvector/pgvector:pg17-trixie
@@ -41,7 +41,7 @@ services:
         - mynet
 
     frontend:
-      image: occtet-boc-frontend:0.3.3-SNAPSHOT
+      image: occtet-boc-frontend:0.3.8-SNAPSHOT
       ports:
         - "8090:8090"
       volumes:
@@ -53,7 +53,7 @@ services:
         - mynet
 
     licensematcher-service:
-      image: occtet-nats-licensematcher-service:0.3.2-SNAPSHOT
+      image: occtet-nats-licensematcher-service:0.3.8-SNAPSHOT
       depends_on:
         - frontend
         - db
@@ -62,7 +62,7 @@ services:
         - mynet
 
     ai-copyrightfilter-service:
-      image: occtet-nats-ai-copyrightfilter-service:0.3.2-SNAPSHOT
+      image: occtet-nats-ai-copyrightfilter-service:0.3.8-SNAPSHOT
       depends_on:
         - frontend
         - ollama
@@ -72,7 +72,7 @@ services:
         - mynet
 
     copyrightfilter-service:
-      image: occtet-nats-copyrightfilter-service:0.3.2-SNAPSHOT
+      image: occtet-nats-copyrightfilter-service:0.3.8-SNAPSHOT
       depends_on:
         - frontend
         - db
@@ -81,7 +81,7 @@ services:
         - mynet
 
     foss-report-service:
-      image: occtet-nats-foss-report-service:0.3.2-SNAPSHOT
+      image: occtet-nats-foss-report-service:0.3.8-SNAPSHOT
       depends_on:
         - frontend
         - db
@@ -90,7 +90,7 @@ services:
         - mynet
 
     vulnerability-service:
-      image: occtet-nats-vulnerability-service:0.3.2-SNAPSHOT
+      image: occtet-nats-vulnerability-service:0.3.8-SNAPSHOT
       depends_on:
         - frontend
         - db
@@ -99,7 +99,7 @@ services:
         - mynet
 
     ai-licensematcher-service:
-      image: occtet-nats-ai-licensematcher-service:0.3.2-SNAPSHOT
+      image: occtet-nats-ai-licensematcher-service:0.3.8-SNAPSHOT
       depends_on:
         - ollama
         - frontend
@@ -108,7 +108,7 @@ services:
         - mynet
 
     spdx-service:
-      image: occtet-nats-spdx-service:0.3.4-SNAPSHOT
+      image: occtet-nats-spdx-service:0.3.8-SNAPSHOT
       depends_on:
         - frontend
         - db
@@ -117,7 +117,7 @@ services:
         - mynet
 
     download-service:
-      image: occtet-nats-download-service:0.3.3-SNAPSHOT
+      image: occtet-nats-download-service:0.3.8-SNAPSHOT
       depends_on:
         - frontend
         - db
@@ -128,7 +128,7 @@ services:
         - mynet
 
     spdx-export-service:
-      image: occtet-nats-spdx-export-service:0.3.2-SNAPSHOT
+      image: occtet-nats-spdx-export-service:0.3.8-SNAPSHOT
       depends_on:
         - frontend
         - db

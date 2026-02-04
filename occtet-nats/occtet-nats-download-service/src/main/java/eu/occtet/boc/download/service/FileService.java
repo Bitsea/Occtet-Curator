@@ -80,7 +80,7 @@ public class FileService {
         try {
             log.info("Starting scan for project {} in path {}", project.getId(), rootPath);
 
-            Map<String, File> projectFileCache = fileRepository.findAllByProject(project).stream()
+            Map<String, File> oldExistingProjectFileCache = fileRepository.findAllByProject(project).stream()
                     .collect(Collectors.toMap(File::getPhysicalPath, Function.identity(), (a, b) -> a));
 
 
@@ -94,7 +94,7 @@ public class FileService {
                 projectParentAnchor = projectRootPathObj;
             }
 
-            File parentForRoot = ensureParentHierarchy(project, rootDirectory.getParentFile(), projectFileCache,
+            File parentForRoot = ensureParentHierarchy(project, rootDirectory.getParentFile(), oldExistingProjectFileCache,
                     batchBuffer, projectPath);
 
             String calculatedArtifactPath = getRelativePath(rootPath, rootDirectory); // Relative to scan anchor
@@ -102,7 +102,7 @@ public class FileService {
 
             String rootPhysicalPath = rootDirectory.getAbsolutePath();
             log.debug("physical path: {}", rootDirectory.getAbsolutePath());
-            File rootEntity = projectFileCache.get(rootPhysicalPath);
+            File rootEntity = oldExistingProjectFileCache.get(rootPhysicalPath);
 
             if (rootEntity == null) {
                 rootEntity = fileFactory.create(
@@ -115,11 +115,11 @@ public class FileService {
                         parentForRoot,
                         inventoryItem
                 );
-                projectFileCache.put(rootPhysicalPath, rootEntity);
+                oldExistingProjectFileCache.put(rootPhysicalPath, rootEntity);
             }
 
             addToBatch(rootEntity, batchBuffer, batchSize);
-            scanDir(project, rootDirectory, rootEntity, batchBuffer, projectFileCache, batchSize, inventoryItem,
+            scanDir(project, rootDirectory, rootEntity, batchBuffer, oldExistingProjectFileCache, batchSize, inventoryItem,
                     rootPath, projectParentAnchor);
 
             if (!batchBuffer.isEmpty()) {

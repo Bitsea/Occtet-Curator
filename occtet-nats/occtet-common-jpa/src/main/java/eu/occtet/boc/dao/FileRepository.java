@@ -25,21 +25,24 @@ import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 @Repository
 public interface FileRepository extends JpaRepository<File, Long> {
 
     List<File> findAllByProject(Project project);
+    List<File> findByInventoryItem(InventoryItem inventoryItem);
 
     @Query("select f.physicalPath from File f where f.project = :project")
     Collection<String> findAllPathsByProject(@Param("project") Project project);
-    List<File> findByInventoryItem(InventoryItem inventoryItem);
+    @Modifying
+    @Query("delete from File f where f.project = :project")
+    void deleteAllByProject(@Param("project") Project project);
     File findByProjectAndPhysicalPath(Project project, String physicalPath);
 }
