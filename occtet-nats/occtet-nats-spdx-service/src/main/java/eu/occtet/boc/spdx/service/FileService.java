@@ -75,7 +75,7 @@ public class FileService {
             if (!cache.containsKey(path)) {
                 int p=path.lastIndexOf(java.io.File.pathSeparator);
                 String name =path.substring(p+1);
-                File newLoc = new File(inventoryItem, path, name);
+                File newLoc = new File(inventoryItem, path, name, inventoryItem.getProject());
                 toSave.add(newLoc);
                 cache.put(path, newLoc);
             }

@@ -32,5 +32,5 @@ public interface CopyrightRepository extends JmixDataRepository<Copyright, Long>
 
    List<Copyright> findAll();
    Copyright findCopyrightById(Long id);
-   List<Copyright> findCopyrightsByFilesIn(List<File> codeLocations);
+   List<Copyright> findCopyrightsByFilesIn(List<File> files);
 }

@@ -175,11 +175,11 @@ public class FossReportService extends ProgressReportingService {
                     rowDto.linking(), rowDto.externalNotes(),
                     parentInventory, softwareComponent, wasCombined, copyrights, priority
             );
-            File basePathFile = fileService.findOrCreateFileWithInventory(basePath, inventoryItem);
-            notifyProgress(30, "preparing codelocations");
+            File basePathFile = fileService.findOrCreateFileWithInventory(basePath, inventoryItem, inventoryItem.getProject());
+            notifyProgress(30, "preparing files");
 
-            prepareCodeLocations(rowDto, inventoryItem, basePathFile);
-            //as we have no specific codeLocation for the copyrights here, we just use the basepath
+            prepareFiles(rowDto, inventoryItem, basePathFile);
+            //as we have no specific file for the copyrights here, we just use the basepath
             copyrights = prepareCopyrights(rowDto, basePathFile);
 
             inventoryItem.getSoftwareComponent().setCopyrights(copyrights);
@@ -244,13 +244,13 @@ public class FossReportService extends ProgressReportingService {
         return licenses;
     }
 
-    private void prepareCodeLocations(RowDto rowDto, InventoryItem inventoryItem, File basePathFile) {
-        log.debug("prepare codeLocations with paths: {}", rowDto.files());
+    private void prepareFiles(RowDto rowDto, InventoryItem inventoryItem, File basePathFile) {
+        log.debug("prepare files with paths: {}", rowDto.files());
 
         if (rowDto.files() != null && !rowDto.files().isEmpty()) {
             List<String> filePaths = PathUtilities.cleanAndSplits(rowDto.files());
             fileService.deleteOldFilesOfInventoryItem(inventoryItem, basePathFile);
-            fileService.createFilesWithInventory(filePaths, inventoryItem);
+            fileService.createFilesWithInventory(filePaths, inventoryItem,inventoryItem.getProject() );
         }
     }
 

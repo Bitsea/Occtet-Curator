@@ -37,13 +37,13 @@ public class CopyrightFactory {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public Copyright create(String copyrightString, Set<File> codeLocations){
-        Copyright copyright = new Copyright(copyrightString, codeLocations);
+    public Copyright create(String copyrightString, Set<File> files){
+        Copyright copyright = new Copyright(copyrightString, files);
 
         return copyrightRepository.save(copyright);
     }
 
-    public Copyright createTransient(String copyrightString, Set<File> codeLocations){
-        return new Copyright(copyrightString, codeLocations);
+    public Copyright createTransient(String copyrightString, Set<File> files){
+        return new Copyright(copyrightString, files);
     }
 }

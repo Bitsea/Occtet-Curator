@@ -26,6 +26,7 @@ package eu.occtet.boc.fossreport.factory;
 import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.entity.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,15 +38,10 @@ public class FileFactory {
     private static final Logger log = LoggerFactory.getLogger(FileFactory.class);
 
     @Autowired
-    private FileRepository codeLocationRepository;
+    private FileRepository fileRepository;
 
-    public File create(String filePath) {
-        log.debug("Creating File with filePath: {}", filePath);
-        return codeLocationRepository.save(new File(filePath));
-    }
-
-    public File createWithInventory(String filePath, InventoryItem inventoryItem) {
-        log.debug("Creating CodeLocation with filePath: {}, with inventory item: {}", filePath, inventoryItem);
-        return codeLocationRepository.save(new File(inventoryItem, filePath));
+    public File createWithInventory(String filePath, InventoryItem inventoryItem, Project project) {
+        log.debug("Creating Files with filePath: {}, with inventory item: {}", filePath, inventoryItem);
+        return fileRepository.save(new File(inventoryItem, filePath, project));
     }
 }

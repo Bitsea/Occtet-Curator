@@ -53,7 +53,7 @@ public class File {
     private Long id;
 
     @InstanceName
-    @Column(name = "FILENAME", nullable = false)
+    @Column(name = "FILENAME")
     private String fileName;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -74,21 +74,21 @@ public class File {
 
     // Example: C:\Users\Temp\scan\project\dep\lib\com\acme\Util.java
     @SystemLevel
-    @Column(name = "PHYSICAL_PATH", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "PHYSICAL_PATH", columnDefinition = "TEXT")
     private String physicalPath;
 
     // Example: dependencies/lib-v1/com/acme/Util.java
-    @Column(name = "PROJECT_PATH", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "PROJECT_PATH", columnDefinition = "TEXT")
     private String projectPath;
 
     // Example: com/acme/Util.java
-    @Column(name = "ARTIFACT_PATH", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "ARTIFACT_PATH", columnDefinition = "TEXT")
     private String artifactPath;
 
-    @Column(name = "IS_DIRECTORY", nullable = false)
+    @Column(name = "IS_DIRECTORY")
     private Boolean isDirectory = false;
 
-    @Column(name = "REVIEWED", nullable = false)
+    @Column(name = "REVIEWED")
     private Boolean reviewed = false;
 
     @CreatedDate

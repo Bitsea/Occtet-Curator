@@ -46,41 +46,6 @@ public class FileContentService {
 
     private static final Logger log = LogManager.getLogger(FileContentService.class);
 
-    @Autowired
-    private FileRepository fileRepository;
-
-    /**
-     * Find the correlated file for a code location.
-     */
-    public Optional<File> findFileEntityForCodeLocation(File file, InventoryItem inventoryItem) {
-
-
-        // Try Fuzzy Path Matching
-        String relativePathStr = file.getProjectPath();
-        if (relativePathStr == null) return Optional.empty();
-
-        String searchSuffix = relativePathStr.replace("\\", "/");
-        String fileName = Paths.get(relativePathStr).getFileName().toString();
-
-        // Find all files with this name in the project
-        List<File> candidates = fileRepository.findCandidates(
-                inventoryItem.getProject(),
-                fileName
-        );
-
-        for (File candidate : candidates) {
-            String projectPath = candidate.getProjectPath();
-            if (projectPath != null && projectPath.replace("\\", "/").endsWith(searchSuffix)) {
-                return Optional.of(candidate);
-            }
-            String physicalPath = candidate.getPhysicalPath();
-            if (physicalPath != null && physicalPath.replace("\\", "/").endsWith(searchSuffix)) {
-                return Optional.of(candidate);
-            }
-        }
-
-        return Optional.empty();
-    }
 
     /**
      * Reads content using the physical path.
@@ -91,6 +56,7 @@ public class FileContentService {
      */
     public FileResult getFileContent(String physicalPath) {
         try {
+            log.debug("Reading file at path '{}'", physicalPath);
             Path path = Paths.get(physicalPath);
 
             String content = Files.readString(path);

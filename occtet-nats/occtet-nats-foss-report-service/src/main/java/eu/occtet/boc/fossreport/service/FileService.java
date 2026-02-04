@@ -29,6 +29,7 @@ import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.fossreport.factory.FileFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,12 +54,12 @@ public class FileService {
     private CopyrightRepository copyrightRepository;
 
 
-    public File findOrCreateFileWithInventory(String filePath, InventoryItem inventoryItem) {
-        return fileFactory.createWithInventory(filePath, inventoryItem);
+    public File findOrCreateFileWithInventory(String filePath, InventoryItem inventoryItem, Project project) {
+        return fileFactory.createWithInventory(filePath, inventoryItem, project);
     }
 
-    public void createFilesWithInventory(List<String> filePaths, InventoryItem inventoryItem) {
-        filePaths.forEach(filePath -> fileFactory.createWithInventory(filePath, inventoryItem));
+    public void createFilesWithInventory(List<String> filePaths, InventoryItem inventoryItem, Project project) {
+        filePaths.forEach(filePath -> fileFactory.createWithInventory(filePath, inventoryItem, project));
     }
 
     public void deleteOldFilesOfInventoryItem(InventoryItem inventoryItem, File basePathFile){
@@ -71,14 +72,14 @@ public class FileService {
             List<Copyright> copyrights = copyrightRepository.findByFilesIn(List.of(f));
             for (Copyright c : copyrights) {
                 c.getFiles().remove(f);
-                log.debug("CodeLocation {} has been removed from copyright {}", f.getProjectPath(), c.getCopyrightText());
+                log.debug("File {} has been removed from copyright {}", f.getProjectPath(), c.getCopyrightText());
             }
             copyrightRepository.saveAll(copyrights);
             copyrightRepository.flush();
         }
         fileRepository.deleteAll(toBeDeletedCls);
         fileRepository.flush();
-        log.debug("Deleted {} old code locations of inventory item: {}", toBeDeletedCls.size(),
+        log.debug("Deleted {} old files of inventory item: {}", toBeDeletedCls.size(),
                 inventoryItem.getInventoryName());
     }
 }

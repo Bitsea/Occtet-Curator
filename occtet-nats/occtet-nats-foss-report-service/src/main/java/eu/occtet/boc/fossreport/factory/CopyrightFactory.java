@@ -40,9 +40,9 @@ public class CopyrightFactory {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public Copyright create(String copyrightString, Set<File> codeLocations){
-        log.debug("Creating Copyright with copyright text: {} and code location: {}", copyrightString, codeLocations);
-        return copyrightRepository.save(new Copyright(copyrightString, codeLocations));
+    public Copyright create(String copyrightString, Set<File> files){
+        log.debug("Creating Copyright with copyright text: {} and file: {}", copyrightString, files);
+        return copyrightRepository.save(new Copyright(copyrightString, files));
     }
 
 

@@ -27,6 +27,7 @@ package eu.occtet.boc.spdx.factory;
 import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.entity.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,8 +37,8 @@ public class FileFactory {
     @Autowired
     private FileRepository fileRepository;
 
-    public File create(String filePath) {
-        return fileRepository.save(new File(filePath));
+    public File create(String filePath, Project project) {
+        return fileRepository.save(new File(filePath, project));
     }
 
 

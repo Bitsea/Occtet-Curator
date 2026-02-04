@@ -83,13 +83,6 @@ public class FileService {
             Map<String, File> projectFileCache = fileRepository.findAllByProject(project).stream()
                     .collect(Collectors.toMap(File::getPhysicalPath, Function.identity(), (a, b) -> a));
 
-            Map<String, File> codeLocationMap = new HashMap<>();
-            if (inventoryItem != null) {
-                List<File> cls = fileRepository.findByInventoryItem(inventoryItem);
-                for (File file : cls) {
-                    codeLocationMap.put(file.getProjectPath(), file);
-                }
-            }
 
             List<File> batchBuffer = new ArrayList<>();
             int batchSize = 500;
@@ -108,7 +101,7 @@ public class FileService {
             String calculatedProjectPath = getRelativePath(projectParentAnchor, rootDirectory); // Relative to Project root
 
             String rootPhysicalPath = rootDirectory.getAbsolutePath();
-
+            log.debug("physical path: {}", rootDirectory.getAbsolutePath());
             File rootEntity = projectFileCache.get(rootPhysicalPath);
 
             if (rootEntity == null) {
@@ -123,13 +116,11 @@ public class FileService {
                         inventoryItem
                 );
                 projectFileCache.put(rootPhysicalPath, rootEntity);
-                addToBatch(rootEntity, batchBuffer, batchSize);
-            } else {
-                //TODO addToBatch(fileEntity, batch, batchSize);
             }
 
+            addToBatch(rootEntity, batchBuffer, batchSize);
             scanDir(project, rootDirectory, rootEntity, batchBuffer, projectFileCache, batchSize, inventoryItem,
-                    rootPath, projectParentAnchor, codeLocationMap);
+                    rootPath, projectParentAnchor);
 
             if (!batchBuffer.isEmpty()) {
                 fileRepository.saveAll(batchBuffer);
@@ -146,8 +137,7 @@ public class FileService {
 
     private void scanDir(Project project, java.io.File directory, File parentEntity,
                          List<File> batchBuffer, Map<String, File> projectFileCache, int batchSize,
-                         InventoryItem inventoryItem, Path relativeAnchor, Path projectRootAnchor,
-                         Map<String, File> fileMap) {
+                         InventoryItem inventoryItem, Path relativeAnchor, Path projectRootAnchor) {
         log.debug("Scanning directory {}", directory.getAbsolutePath());
         log.debug("Calculated artifact path: {}, calculated project path: {}", relativeAnchor.getFileName(),
                 projectRootAnchor.getFileName());
@@ -168,7 +158,8 @@ public class FileService {
             if (existingFile != null) {
                 addToBatch(existingFile, batchBuffer, batchSize);
                 if (file.isDirectory()) {
-                    scanDir(project, file, existingFile, batchBuffer, projectFileCache, batchSize, inventoryItem, relativeAnchor, projectRootAnchor, fileMap);
+                    scanDir(project, file, existingFile, batchBuffer, projectFileCache,
+                            batchSize, inventoryItem, relativeAnchor, projectRootAnchor);
                 }
                 continue;
             }
@@ -188,7 +179,8 @@ public class FileService {
             addToBatch(fileEntity, batchBuffer, batchSize);
 
             if (file.isDirectory()) {
-                scanDir(project, file, fileEntity, batchBuffer, projectFileCache, batchSize, inventoryItem, relativeAnchor, projectRootAnchor, fileMap);
+                scanDir(project, file, fileEntity, batchBuffer, projectFileCache,
+                        batchSize, inventoryItem, relativeAnchor, projectRootAnchor);
             }
         }
     }

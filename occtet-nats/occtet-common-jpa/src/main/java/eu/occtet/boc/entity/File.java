@@ -59,11 +59,11 @@ public class File {
     @JoinColumn(name = "INVENTORY_ITEM_ID")
     private InventoryItem inventoryItem;
 
-    @Column(name = "FILENAME", nullable = false)
+    @Column(name = "FILENAME")
     private String fileName;
 
     // Example: C:\Users\Temp\scan\project\dep\lib\com\acme\Util.java
-    @Column(name = "PHYSICAL_PATH", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "PHYSICAL_PATH", columnDefinition = "TEXT")
     private String physicalPath;
 
     // Example: dependencies/lib-v1/com/acme/Util.java
@@ -71,17 +71,17 @@ public class File {
     private String projectPath;
 
     // Example: com/acme/Util.java
-    @Column(name = "ARTIFACT_PATH", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "ARTIFACT_PATH", columnDefinition = "TEXT")
     private String artifactPath;
 
-    @Column(name = "IS_DIRECTORY", nullable = false)
-    private Boolean isDirectory;
+    @Column(name = "IS_DIRECTORY")
+    private Boolean isDirectory = false;
 
-    @Column(name = "REVIEWED", nullable = false)
-    private Boolean reviewed;
+    @Column(name = "REVIEWED")
+    private Boolean reviewed = false;
 
     @CreatedDate
-    @Column(name = "CREATED_DATE", nullable = false, updatable = false)
+    @Column(name = "CREATED_DATE", updatable = false)
     private LocalDateTime createdDate;
 
     @LastModifiedDate
@@ -100,16 +100,23 @@ public class File {
     public File() {
     }
 
-    public File( String filePath){
+    public File( String filePath, Project project){
         this.projectPath= filePath;
+        this.project= project;
     }
 
-    public File ( InventoryItem inventoryItem, String filePath, String fileName){
+    public File ( InventoryItem inventoryItem, String filePath, String fileName, Project project){
         this.inventoryItem= inventoryItem;
         this.projectPath= filePath;
         this.fileName= fileName;
+        this.project= project;
     }
 
+    public File ( InventoryItem inventoryItem, String filePath, Project project) {
+        this.inventoryItem = inventoryItem;
+        this.projectPath = filePath;
+        this.project= project;
+    }
 
     public InventoryItem getInventoryItem() {
         return inventoryItem;

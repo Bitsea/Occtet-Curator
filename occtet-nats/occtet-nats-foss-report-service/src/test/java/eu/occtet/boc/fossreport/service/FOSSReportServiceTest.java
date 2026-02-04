@@ -22,6 +22,7 @@
 
 package eu.occtet.boc.fossreport.service;
 
+import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.dao.ProjectRepository;
@@ -48,7 +49,7 @@ public class FOSSReportServiceTest {
     @Autowired
     private InventoryItemFactory inventoryItemFactory;
     @Autowired
-    private CodeLocationRepository codeLocationRepository;
+    private FileRepository fileRepository;
     @Autowired
     private FossReportService fossReportService;
 
@@ -97,7 +98,7 @@ public class FOSSReportServiceTest {
 //                () -> assertEquals(7, inventoryItem.getSize()),
 //                () -> assertEquals("chromium/third_party/ashmem", inventoryItem.getBasePath()),
 //                () -> {
-//                    List<CodeLocation> codeLocations = codeLocationRepository.findByInventoryItem(inventoryItem);
+//                    List<File> codeLocations = codeLocationRepository.findByInventoryItem(inventoryItem);
 //                    assertTrue(codeLocations.stream()
 //                            .anyMatch(c -> "chromium/third_party/ashmem/LICENSE".equals(c.getFilePath())));
 //                },
