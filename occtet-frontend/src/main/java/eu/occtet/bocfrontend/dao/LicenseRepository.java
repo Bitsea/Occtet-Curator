@@ -42,4 +42,6 @@ public interface LicenseRepository  extends JmixDataRepository<License, Long> {
     List<License> findLicensesByLicenseNameAndProject(String licenseName, Project project);
     @Query("select l from InventoryItem i join i.softwareComponent sc join sc.licenses l where i = :item")
     List<License> findByInventoryItem(InventoryItem item);
+    @Query("select l from License l where l not in :licenses")
+    List<License> findAvailableLicenses(List<License> licenses);
 }

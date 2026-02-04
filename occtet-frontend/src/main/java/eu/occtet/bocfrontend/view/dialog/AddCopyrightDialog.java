@@ -69,9 +69,10 @@ public class AddCopyrightDialog extends AbstractAddContentDialog<SoftwareCompone
     @Override
     @Subscribe("copyrightDc")
     public void setAvailableContent(SoftwareComponent softwareComponent) {
-        this.softwareComponent = dataManager.load(SoftwareComponent.class).id(softwareComponent.getId()).one();
+        this.softwareComponent = dataManager.load(SoftwareComponent.class)
+                .id(softwareComponent.getId()).fetchPlan(f -> f.add("copyrights")).one();
         log.debug("setAvailableContent");
-        copyrightDc.setItems(copyrightRepository.findAll());
+        copyrightDc.setItems(copyrightRepository.findAvailableCopyrights(this.softwareComponent.getCopyrights()));
     }
 
     @Override
@@ -79,10 +80,10 @@ public class AddCopyrightDialog extends AbstractAddContentDialog<SoftwareCompone
     public void addContentButton(ClickEvent<Button> event) {
 
         List<Copyright> copyrights = new ArrayList<>(copyrightDataGrid.getSelectedItems());
-        if(!copyrights.isEmpty()){
-            this.softwareComponent.getCopyrights().addAll(copyrights);
-            dataManager.save(this.softwareComponent);
-            close(StandardOutcome.CLOSE);
+        if(!copyrights.isEmpty() && softwareComponent != null){
+            softwareComponent.getCopyrights().addAll(copyrights);
+            dataManager.save(softwareComponent);
+            close(StandardOutcome.SAVE);
         }
     }
 
@@ -92,7 +93,7 @@ public class AddCopyrightDialog extends AbstractAddContentDialog<SoftwareCompone
 
         String searchWord = searchField.getValue();
         if(!searchWord.isEmpty() && event != null){
-            List<Copyright> copyrightsFromItem = this.softwareComponent.getCopyrights();
+            List<Copyright> copyrightsFromItem = softwareComponent.getCopyrights();
             List<Copyright> searchedCopyrights = new ArrayList<>();
             for(Copyright copyright : copyrightsFromItem){
                 if (copyright.getCopyrightText().contains(searchWord)){
@@ -101,7 +102,7 @@ public class AddCopyrightDialog extends AbstractAddContentDialog<SoftwareCompone
             }
             copyrightDc.setItems(searchedCopyrights);
         }else{
-            copyrightDc.setItems(copyrightRepository.findAll());
+            copyrightDc.setItems(copyrightRepository.findAvailableCopyrights(softwareComponent.getCopyrights()));
         }
     }
 

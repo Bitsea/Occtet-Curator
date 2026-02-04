@@ -111,7 +111,7 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
             this.softwareComponent.getLicenses().add(license);
             dataManager.save(this.softwareComponent);
             log.debug("Created and added license {} to softwareComponent",license.getLicenseName());
-            close(StandardOutcome.CLOSE);
+            close(StandardOutcome.SAVE);
 
         }else{
             notifications.create("Something went wrong, please check your input, some fields are required")

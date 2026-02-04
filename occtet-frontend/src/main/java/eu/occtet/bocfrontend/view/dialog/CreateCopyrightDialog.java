@@ -114,7 +114,7 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
             softwareComponent.getCopyrights().add(copyright);
             dataManager.save(softwareComponent);
             log.debug("Created and added copyright {} to softwareComponent {}",copyright.getCopyrightText(),softwareComponent);
-            close(StandardOutcome.CLOSE);
+            close(StandardOutcome.SAVE);
         }else{
             notifications.create("Something went wrong, please check your input")
                     .withDuration(3000)

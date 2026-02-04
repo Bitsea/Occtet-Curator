@@ -35,4 +35,6 @@ public interface CopyrightRepository extends JmixDataRepository<Copyright, Long>
    List<Copyright> findCopyrightsByCodeLocationsIn(List<CodeLocation> codeLocations);
    @Query("select c from InventoryItem i join i.softwareComponent sc join sc.copyrights c where i = :item")
    List<Copyright> findByInventoryItem(InventoryItem item);
+   @Query("select c from Copyright c where c not in :copyrights")
+   List<Copyright> findAvailableCopyrights(List<Copyright> copyrights);
 }

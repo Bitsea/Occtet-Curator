@@ -131,7 +131,6 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
 
     public void setProjectOverview(@Nonnull Project project){
         this.project = dataContext.merge(project);
-        List<InventoryItem> items = inventoryItemRepository.findByProject(project);
         setAllProjectInformation(this.project);
         addInfoButton(this.project);
     }

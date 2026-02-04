@@ -291,7 +291,6 @@ public class SpdxService extends ProgressReportingService  {
         boolean isCombined = pattern.matcher(packageLicenseString).find();
 
         InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, component, project);
-        inventoryItem.setWasCombined(isCombined);
         inventoryItem.setSpdxId(spdxPackage.getId());
         inventoryItem.setCurated(false);
 

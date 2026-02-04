@@ -69,9 +69,10 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
     @Override
     @Subscribe("licenseDc")
     public void setAvailableContent(SoftwareComponent softwareComponent){
-        this.softwareComponent = dataManager.load(SoftwareComponent.class).id(softwareComponent.getId()).one();
+        this.softwareComponent = dataManager.load(SoftwareComponent.class)
+                .id(softwareComponent.getId()).fetchPlan(f -> f.add("licenses")).one();
         log.debug("setAvailableContent called with SoftwareComponent: {}", softwareComponent);
-        licenseDc.setItems(licenseRepository.findAll());
+        licenseDc.setItems(licenseRepository.findAvailableLicenses(this.softwareComponent.getLicenses()));
     }
 
     @Subscribe("licensesDataGrid")
@@ -82,15 +83,10 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
     public void addContentButton(ClickEvent<Button> event) {
 
         List<License> licenses = new ArrayList<>(licensesDataGrid.getSelectedItems());
-
-        if(!licenses.isEmpty()){
-            for(License license : licenses){
-                if(!this.softwareComponent.getLicenses().contains(license)){
-                    this.softwareComponent.getLicenses().add(license);
-                }
-            }
+        if(!licenses.isEmpty() && softwareComponent != null){
+            softwareComponent.getLicenses().addAll(licenses);
             dataManager.save(this.softwareComponent);
-            close(StandardOutcome.CLOSE);
+            close(StandardOutcome.SAVE);
         }
     }
 
@@ -104,7 +100,7 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
                     || l.getLicenseType().toLowerCase().contains(searchWord.toLowerCase())).toList();
             licenseDc.setItems(listFindings);
         }else{
-            licenseDc.setItems(licenseRepository.findAll());
+            licenseDc.setItems(licenseRepository.findAvailableLicenses(softwareComponent.getLicenses()));
         }
     }
 
