@@ -29,7 +29,9 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 
 @Entity
@@ -46,14 +48,17 @@ public class File {
     @GeneratedValue(strategy= GenerationType.SEQUENCE)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PROJECT_ID", nullable = false)
     private Project project;
 
-    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     @JoinColumn(name = "PARENT_ID")
     private File parent;
 
+
+    @ManyToMany(mappedBy = "files", cascade = CascadeType.REMOVE)
+    private Set<Copyright> copyrights = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "INVENTORY_ITEM_ID")
@@ -115,6 +120,12 @@ public class File {
     public File ( InventoryItem inventoryItem, String filePath, Project project) {
         this.inventoryItem = inventoryItem;
         this.projectPath = filePath;
+        this.project= project;
+    }
+
+    public File ( String artifactPath, Project project, String fileName) {
+        this.artifactPath= artifactPath;
+        this.fileName = fileName;
         this.project= project;
     }
 
@@ -255,4 +266,21 @@ public class File {
     public String toString() {
         return "File{" + "id=" + id + ", fileName='" + fileName + '\'' + ", isDirectory=" + isDirectory + '}';
     }
+
+    public Set<Copyright> getCopyrights() {
+        return copyrights;
+    }
+
+    public void setCopyrights(Set<Copyright> copyrights) {
+        this.copyrights = copyrights;
+    }
+
+    @PreRemove
+    private void removeBookAssociations() {
+        for (Copyright copyright: this.copyrights) {
+            copyright.getFiles().remove(this);
+        }
+    }
+
+
 }

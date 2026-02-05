@@ -25,6 +25,8 @@ package eu.occtet.boc.spdx.utlities;
 import eu.occtet.boc.config.TestEclipseLinkJpaConfiguration;
 import eu.occtet.boc.dao.*;
 import eu.occtet.boc.entity.*;
+import eu.occtet.boc.entity.appconfigurations.AppConfigKey;
+import eu.occtet.boc.entity.appconfigurations.AppConfiguration;
 import eu.occtet.boc.entity.spdxV2.RelationshipEntity;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.entity.spdxV2.SpdxFileEntity;
@@ -60,9 +62,9 @@ import java.util.List;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {SpdxService.class, SoftwareComponentService.class, SoftwareComponentRepository.class,
-        CopyrightService.class, InventoryItemService.class, LicenseService.class, FileService.class,
-        ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class,
-        CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class,
+        CopyrightService.class, InventoryItemService.class, LicenseService.class,FileService.class,
+        ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class,FileRepository.class,
+        CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class,
         LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class
 })
 @EnableJpaRepositories(basePackages = {
@@ -79,11 +81,15 @@ public class SpdxServiceTest {
 
     @MockitoBean
     private SpdxConverter spdxConverter;
+
     @MockitoBean
     private SpdxDocumentRootRepository spdxDocumentRootRepository;
 
     @Autowired
     private SpdxService spdxService;
+
+    @MockitoBean
+    private CleanUpService cleanUpService;
 
     @Autowired
     private ProjectRepository projectRepository;
@@ -116,6 +122,8 @@ public class SpdxServiceTest {
                     Mockito.anyBoolean()
             )).thenReturn(true);
 
+            Mockito.doNothing().when(cleanUpService).cleanUpFileTree(Mockito.any());
+
             Mockito.when(answerService.prepareAnswers(Mockito.anyList(), Mockito.eq(true), Mockito.eq(true),
                             Mockito.any()))
                     .thenReturn(true);
@@ -132,6 +140,7 @@ public class SpdxServiceTest {
             Mockito.when(spdxConverter.convertRelationShip(Mockito.any(), Mockito.any(), Mockito.any()))
                     .thenReturn(new RelationshipEntity());
 
+
             Mockito.when(spdxDocumentRootRepository.save(Mockito.any())).thenReturn(new SpdxDocumentRoot());
 
             SpdxWorkData spdxWorkData = new SpdxWorkData();
@@ -141,8 +150,8 @@ public class SpdxServiceTest {
             Project project = new Project();
             project.setId(PROJECT_ID);
             project.setProjectName("example-project");
-
             projectRepository.save(project);
+
 
             spdxWorkData.setProjectId(PROJECT_ID);
             spdxWorkData.setUseCopyrightAi(true);

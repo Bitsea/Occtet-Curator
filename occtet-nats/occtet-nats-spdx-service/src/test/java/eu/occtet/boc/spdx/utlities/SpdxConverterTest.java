@@ -20,6 +20,7 @@ package eu.occtet.boc.spdx.utlities;
 
 import eu.occtet.boc.config.TestEclipseLinkJpaConfiguration;
 import eu.occtet.boc.dao.*;
+import eu.occtet.boc.entity.appconfigurations.AppConfigKey;
 import eu.occtet.boc.entity.spdxV2.*;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.spdx.converter.SpdxConverter;

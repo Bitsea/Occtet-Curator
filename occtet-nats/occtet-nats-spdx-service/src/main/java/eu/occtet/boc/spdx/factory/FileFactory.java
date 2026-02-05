@@ -28,17 +28,23 @@ import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
+import eu.occtet.boc.spdx.service.CleanUpService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FileFactory {
+    private static final Logger log = LoggerFactory.getLogger(FileFactory.class);
+
 
     @Autowired
     private FileRepository fileRepository;
 
-    public File create(String filePath, Project project) {
-        return fileRepository.save(new File(filePath, project));
+    public File create(String artifactPath, String fileName, Project project) {
+        log.debug("Creating file with name {} for project {}", fileName, project.getProjectName());
+        return fileRepository.save(new File(artifactPath, project, fileName));
     }
 
 

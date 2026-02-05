@@ -54,7 +54,8 @@ public class Copyright {
     @Column(name= "AI_CONTROLLED")
     private Boolean aiControlled;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(
             name = "COPYRIGHT_FILE_LINK",
             joinColumns = @JoinColumn(name = "COPYRIGHT_ID", referencedColumnName = "ID"),

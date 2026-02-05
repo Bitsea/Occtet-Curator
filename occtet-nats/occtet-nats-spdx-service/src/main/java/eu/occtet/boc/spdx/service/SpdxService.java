@@ -307,13 +307,12 @@ public class SpdxService extends ProgressReportingService  {
         spdxPackage.getFiles().forEach(f -> {
             spdxConverter.convertFile(f, spdxDocumentRoot);
         });
-        log.debug("test");
+
         try {
             copyrights = parseFiles(spdxPackage, inventoryItem);
         } catch (InvalidSPDXAnalysisException e) {
             log.error("Error batch processing files", e);
         }
-        log.debug("test1");
 
 
         if (component.getCopyrights() == null){
@@ -323,7 +322,6 @@ public class SpdxService extends ProgressReportingService  {
             uniqueCopyrights.addAll(copyrights);
             component.setCopyrights(new ArrayList<>(uniqueCopyrights));
         }
-        log.debug("test2");
 
 
         String downloadLocation = spdxPackage.getDownloadLocation().orElse("");
@@ -433,7 +431,7 @@ public class SpdxService extends ProgressReportingService  {
                 }
             }
         }
-        log.debug("test3 create batch");
+
 
         Map<String, File> locationMap = fileService.findOrCreateBatch(allFileNames, inventoryItem);
         Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts);
@@ -445,6 +443,7 @@ public class SpdxService extends ProgressReportingService  {
             File loc = locationMap.get(path);
             Copyright copyright = copyrightMap.get(copyrightText);
             if (loc != null && copyright != null) {
+                log.debug("Associating copyright '{}' with file '{}'", copyrightText, path);
                 copyright.getFiles().add(loc);
                 copyrightsToUpdate.add(copyright);
             }

@@ -78,10 +78,9 @@ public class FileService {
                                        String projectPath) {
         long start = System.currentTimeMillis();
         try {
-            log.info("Starting scan for project {} in path {}", project.getId(), rootPath);
 
-            Map<String, File> oldExistingProjectFileCache = fileRepository.findAllByProject(project).stream()
-                    .collect(Collectors.toMap(File::getPhysicalPath, Function.identity(), (a, b) -> a));
+            List<File> oldExistingProjectFileCache = fileRepository.findAllByProject(project);
+            log.debug("Loaded {} existing File entities for project {}", oldExistingProjectFileCache.size(), project.getId());
 
 
             List<File> batchBuffer = new ArrayList<>();
@@ -95,17 +94,14 @@ public class FileService {
             }
 
             File parentForRoot = ensureParentHierarchy(project, rootDirectory.getParentFile(), oldExistingProjectFileCache,
-                    batchBuffer, projectPath);
+                    batchBuffer, projectPath, inventoryItem);
 
             String calculatedArtifactPath = getRelativePath(rootPath, rootDirectory); // Relative to scan anchor
             String calculatedProjectPath = getRelativePath(projectParentAnchor, rootDirectory); // Relative to Project root
 
             String rootPhysicalPath = rootDirectory.getAbsolutePath();
-            log.debug("physical path: {}", rootDirectory.getAbsolutePath());
-            File rootEntity = oldExistingProjectFileCache.get(rootPhysicalPath);
-
-            if (rootEntity == null) {
-                rootEntity = fileFactory.create(
+            log.debug("physical path: {} creating root directory", rootDirectory.getAbsolutePath());
+            File rootEntity = fileFactory.create(
                         project,
                         rootDirectory.getName(),
                         rootPhysicalPath,
@@ -115,8 +111,8 @@ public class FileService {
                         parentForRoot,
                         inventoryItem
                 );
-                oldExistingProjectFileCache.put(rootPhysicalPath, rootEntity);
-            }
+            oldExistingProjectFileCache.add( rootEntity);
+
 
             addToBatch(rootEntity, batchBuffer, batchSize);
             scanDir(project, rootDirectory, rootEntity, batchBuffer, oldExistingProjectFileCache, batchSize, inventoryItem,
@@ -136,11 +132,10 @@ public class FileService {
     }
 
     private void scanDir(Project project, java.io.File directory, File parentEntity,
-                         List<File> batchBuffer, Map<String, File> projectFileCache, int batchSize,
+                         List<File> batchBuffer, List<File> projectFileCache, int batchSize,
                          InventoryItem inventoryItem, Path relativeAnchor, Path projectRootAnchor) {
-        log.debug("Scanning directory {}", directory.getAbsolutePath());
-        log.debug("Calculated artifact path: {}, calculated project path: {}", relativeAnchor.getFileName(),
-                projectRootAnchor.getFileName());
+        log.debug("Calculated artifact path: {}, calculated project path: {} directory {}", relativeAnchor.getFileName(),
+                projectRootAnchor.getFileName(), directory.getAbsoluteFile());
 
         java.io.File[] files = directory.listFiles();
         if (files == null) return;
@@ -152,10 +147,17 @@ public class FileService {
 
             String artifactPath = getRelativePath(relativeAnchor, file);
             String projectPath = getRelativePath(projectRootAnchor, file);
-
-            File existingFile = projectFileCache.get(physicalPath);
+            log.debug("artifactPath {} and projectPath {}", artifactPath, projectPath);
+            File existingFile = projectFileCache.stream()
+                            .filter(f -> f.getArtifactPath().equals(artifactPath))
+                            .findFirst()
+                            .orElse(null);
 
             if (existingFile != null) {
+                //for updating the data
+                if(existingFile.getProjectPath()==null)
+                    fileFactory.updateFileEntity(existingFile, project, physicalPath, projectPath,file.isDirectory(), parentEntity, inventoryItem);
+                log.debug("File already exists in cache: {} with artefactPath {}", physicalPath, existingFile.getArtifactPath());
                 addToBatch(existingFile, batchBuffer, batchSize);
                 if (file.isDirectory()) {
                     scanDir(project, file, existingFile, batchBuffer, projectFileCache,
@@ -175,7 +177,7 @@ public class FileService {
                     inventoryItem
             );
 
-            projectFileCache.put(physicalPath, fileEntity);
+            projectFileCache.add(fileEntity);
             addToBatch(fileEntity, batchBuffer, batchSize);
 
             if (file.isDirectory()) {
@@ -185,22 +187,23 @@ public class FileService {
         }
     }
 
-    private File ensureParentHierarchy(Project project, java.io.File startDirectory, Map<String, File> projectFileCache,
-                                       List<File> batchBuffer, String projectPath) {
+    private File ensureParentHierarchy(Project project, java.io.File startDirectory, List<File> oldFileCache,
+                                       List<File> batchBuffer, String projectPath, InventoryItem inventoryItem) {
         if (startDirectory == null) return null;
 
         String currentPhysicalPath = startDirectory.getAbsolutePath();
-
+        log.debug("Starting ensureParentHierarchy for path: {}", currentPhysicalPath);
         if (!currentPhysicalPath.startsWith(projectPath) || currentPhysicalPath.equals(projectPath)) {
             return null;
         }
-
-        if (projectFileCache.containsKey(currentPhysicalPath)) {
-            return projectFileCache.get(currentPhysicalPath);
+        for(File f: oldFileCache) {
+            if (f.getPhysicalPath()!= null && f.getPhysicalPath().equals(currentPhysicalPath)) {
+                return f;
+            }
         }
 
-        File parentOfThis = ensureParentHierarchy(project, startDirectory.getParentFile(), projectFileCache,
-                batchBuffer, projectPath);
+        File parentOfThis = ensureParentHierarchy(project, startDirectory.getParentFile(), oldFileCache,
+                batchBuffer, projectPath, inventoryItem);
 
         Path projectRootPathObj = Paths.get(projectPath);
         Path projectParentAnchor = projectRootPathObj.getParent();
@@ -209,7 +212,7 @@ public class FileService {
         String relativeToProject = getRelativePath(projectParentAnchor, startDirectory);
 
         String relativeToRoot = getRelativePath(projectRootPathObj, startDirectory);
-
+        log.debug("creating file with projectPath {} and artifactPath {}", relativeToProject, relativeToRoot);
         File newEntity = fileFactory.create(
                 project,
                 startDirectory.getName(),
@@ -218,10 +221,10 @@ public class FileService {
                 relativeToRoot,
                 true,
                 parentOfThis,
-                null
+                inventoryItem
         );
 
-        projectFileCache.put(currentPhysicalPath, newEntity);
+        oldFileCache.add( newEntity);
         addToBatch(newEntity, batchBuffer, 500);
 
         return newEntity;

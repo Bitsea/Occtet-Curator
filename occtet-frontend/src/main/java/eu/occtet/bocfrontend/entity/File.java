@@ -34,8 +34,9 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
-
+import java.util.Set;
 
 
 @JmixEntity
@@ -94,6 +95,10 @@ public class File {
     @CreatedDate
     @Column(name = "CREATED_DATE")
     private LocalDateTime createdDate;
+
+
+    @ManyToMany(mappedBy = "files", cascade = CascadeType.REMOVE)
+    private Set<Copyright> copyrights = new HashSet<>();
 
     @LastModifiedDate
     @Column(name = "LAST_MODIFIED_DATE")
@@ -235,6 +240,14 @@ public class File {
         this.artifactPath = artifactPath;
     }
 
+    public Set<Copyright> getCopyrights() {
+        return copyrights;
+    }
+
+    public void setCopyrights(Set<Copyright> copyrights) {
+        this.copyrights = copyrights;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -255,4 +268,5 @@ public class File {
                 ", fileName='" + fileName + '\'' +
                 '}';
     }
+
 }

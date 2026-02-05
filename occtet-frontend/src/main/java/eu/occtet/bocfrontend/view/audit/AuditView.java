@@ -539,7 +539,7 @@ public class AuditView extends StandardView{
             return;
         }
         refreshInventoryItemDc(project);
-
+        log.debug("Setting new FileHierarchyProvider for project {}", project.getProjectName());
         fileTreeGrid.setDataProvider(new FileHierarchyProvider(fileRepository, project));
     }
 

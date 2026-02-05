@@ -45,44 +45,43 @@ public class FileService {
 
     @Autowired
     private FileRepository fileRepository;
+    @Autowired
+    private FileFactory filefactory;
 
 
     /**
-     * Finds or creates a batch of {@link File} objects based on the provided file paths and associated
-     * {@link InventoryItem}. If a code location corresponding to a file path already exists in the database for
-     * the given inventory item, it is reused. Otherwise, new code locations are created and persisted.
+     * Creates a batch of {@link File} objects based on the provided file paths and associated
+     * {@link InventoryItem}.
      *
-     * @param filePaths a list of file paths for which code locations need to be found or created
-     * @param inventoryItem the inventory item associated with the code locations
+     * @param filePaths a list of file paths for which copyrights exist
+     * @param inventoryItem the inventory item associated with the file and copyrights
      * @return a map where the keys are the file paths and the values are the corresponding {@link File} objects
-     */
+    */
     @Transactional
     public Map<String, File> findOrCreateBatch(List<String> filePaths, InventoryItem inventoryItem) {
+        log.debug("Create Batch of File entities for InventoryItem id={} with {} paths",
+                inventoryItem.getId(), filePaths.size());
 
-        List<File> existingList = fileRepository.findByInventoryItem(inventoryItem);
-
-        Map<String, File> cache = existingList.stream()
-                .collect(Collectors.toMap(
-                        File::getProjectPath,
-                        Function.identity(),
-                        (p1, p2) -> p1
-                ));
         List<File> toSave = new ArrayList<>();
-
+        Map<String, File> cache= new HashMap<>();
         Set<String> uniquePaths = new HashSet<>(filePaths);
 
         for (String path : uniquePaths) {
-            if (!cache.containsKey(path)) {
-                int p=path.lastIndexOf(java.io.File.pathSeparator);
-                String name =path.substring(p+1);
-                File newLoc = new File(inventoryItem, path, name, inventoryItem.getProject());
-                toSave.add(newLoc);
-                cache.put(path, newLoc);
+
+            int p = path.lastIndexOf("/");
+            if(p == -1){
+                p = path.lastIndexOf("\\");
             }
+            String name = path.substring(p + 1);
+            log.debug("Creating new File entity for path {} with name {} for InventoryItem id={}", path, name, inventoryItem.getInventoryName());
+            File newLoc = filefactory.create(path, name, inventoryItem.getProject());
+            toSave.add(newLoc);
+            cache.put(path, newLoc);
         }
 
         if (!toSave.isEmpty()) {
             fileRepository.saveAll(toSave);
+            fileRepository.flush();
         }
         return cache;
     }

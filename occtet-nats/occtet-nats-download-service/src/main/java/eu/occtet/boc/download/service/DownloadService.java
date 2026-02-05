@@ -113,7 +113,7 @@ public class DownloadService extends BaseWorkDataProcessor {
 
             Project project = projectRepository.findById(workData.getProjectId()).orElse(null);
             InventoryItem inventoryItem = inventoryItemRepository.findById(workData.getInventoryItemId()).orElse(null);
-
+            log.debug("Working on InventoryItem {}", inventoryItem.getInventoryName());
             String globalBasePath = appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH)
                     .map(AppConfiguration::getValue)
                     .orElseThrow(() -> new RuntimeException("General Base Path not configured!"));
@@ -125,7 +125,7 @@ public class DownloadService extends BaseWorkDataProcessor {
             }
 
             String path = projectDir.toString();
-
+            log.debug("downloading to projectDir {}", path);
             if (project == null) {
                 log.error("Aborting download: Project not found for ID {}", workData.getProjectId());
                 return false;
@@ -146,6 +146,7 @@ public class DownloadService extends BaseWorkDataProcessor {
 
             log.debug("Download successful; calling FileService to create entities from path: {}",
                     path + File.separator + inventoryItem.getSoftwareComponent().getName());
+
             fileService.createEntitiesFromPath(project, inventoryItem, downloadedPath, path);
             return true;
 
