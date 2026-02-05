@@ -121,6 +121,7 @@ public class FileService {
             if (!batchBuffer.isEmpty()) {
                 fileRepository.saveAll(batchBuffer);
                 fileRepository.flush();
+                log.debug("Saved {} File entities in batch", batchBuffer.size());
             }
 
             log.info("Scan completed. Processed files in {} ms", System.currentTimeMillis() - start);
@@ -155,8 +156,9 @@ public class FileService {
 
             if (existingFile != null) {
                 //for updating the data
-                if(existingFile.getProjectPath()==null)
-                    fileFactory.updateFileEntity(existingFile, project, physicalPath, projectPath,file.isDirectory(), parentEntity, inventoryItem);
+                if(existingFile.getProjectPath()==null || existingFile.getPhysicalPath()==null)
+                    existingFile = fileFactory.updateFileEntity(existingFile, project, physicalPath, projectPath,
+                            file.isDirectory(), parentEntity);
                 log.debug("File already exists in cache: {} with artefactPath {}", physicalPath, existingFile.getArtifactPath());
                 addToBatch(existingFile, batchBuffer, batchSize);
                 if (file.isDirectory()) {

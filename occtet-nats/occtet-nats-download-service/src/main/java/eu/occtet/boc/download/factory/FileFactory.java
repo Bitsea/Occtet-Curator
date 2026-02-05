@@ -54,8 +54,8 @@ public class FileFactory {
         Objects.requireNonNull(fileName, "File name cannot be null");
         Objects.requireNonNull(physicalPath, "Physical path cannot be null");
 
-        File file = fileRepository.findByArtifactPathAndFileName(artifactPath, fileName);
-        if(file== null){
+        File file = fileRepository.findByArtifactPathAndFileNameAndProject(artifactPath, fileName, project);
+        if(file == null){
             log.debug("File {} not found in repository, creating new one.", fileName);
             file = new File();
             file.setFileName(fileName);
@@ -80,23 +80,20 @@ public class FileFactory {
         String physicalPath,
         String projectPath,
         boolean isDirectory,
-        File parentEntity,
-        InventoryItem inventoryItem) {
+        File parentEntity) {
+        log.debug("Updating file entity: {}, for inventoryItem: {}", file.getFileName(),
+                file.getInventoryItem()!=null ? file.getInventoryItem().getInventoryName():null);
 
-            Objects.requireNonNull(project, "Project cannot be null");
-            Objects.requireNonNull(physicalPath, "Physical path cannot be null");
-            log.debug("updating file with filename {} and inventoryItem {}", file.getFileName(), inventoryItem.getInventoryName());
+        Objects.requireNonNull(project, "Project cannot be null");
+        Objects.requireNonNull(physicalPath, "Physical path cannot be null");
 
-            file.setPhysicalPath(physicalPath);
-            file.setProjectPath(projectPath);
+        file.setPhysicalPath(physicalPath);
+        file.setProjectPath(projectPath);
+        file.setIsDirectory(isDirectory);
+        file.setParent(parentEntity);
 
-            file.setIsDirectory(isDirectory);
-            file.setParent(parentEntity);
-            file.setInventoryItem(inventoryItem);
+        file.setReviewed(false);
 
-            file.setReviewed(false);
-
-            return file;
-
+        return file;
     }
 }
