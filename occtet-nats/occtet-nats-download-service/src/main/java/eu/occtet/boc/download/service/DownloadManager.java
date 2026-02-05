@@ -74,6 +74,8 @@ public class DownloadManager extends BaseWorkDataProcessor {
             Path targetDir = calculateTargetPath(project.getProjectName() ,project.getId());
             Path downloadedPath = null;
 
+            boolean isMainPkg = Boolean.TRUE.equals(data.getIsMainPackage());
+
             // Process download
             // Attempt using downloadLocation
             if (softwareComponent.getDetailsUrl() != null) {
@@ -82,10 +84,10 @@ public class DownloadManager extends BaseWorkDataProcessor {
                     Optional<DownloadStrategy> strategy = downloadStrategyFactory.findForUrl(durl, softwareComponent.getVersion());
                     if (strategy.isPresent()) {
                         log.info("Downloading via URL using {}", strategy.get().getClass().getSimpleName());
-                        downloadedPath = strategy.get().download(durl, targetDir);
+                        downloadedPath = strategy.get().download(durl, targetDir, isMainPkg);
                     }
                 } catch (Exception e) {
-                    log.warn("Failed to download via URL, falling back...", e.getMessage());
+                    log.warn("Failed to download via URL, falling back. Error: {}", e.getMessage());
                 }
             }
             // Attempt using PURL
@@ -95,10 +97,10 @@ public class DownloadManager extends BaseWorkDataProcessor {
                     Optional<DownloadStrategy> strategy = downloadStrategyFactory.findForPurl(purl);
                     if (strategy.isPresent()) {
                         log.info("Downloading via PURL using {}", strategy.get().getClass().getSimpleName());
-                        downloadedPath = strategy.get().download(purl, targetDir);
+                        downloadedPath = strategy.get().download(purl, targetDir, isMainPkg);
                     }
                 } catch (Exception e) {
-                    log.warn("Failed to download via PURL, falling back...", e.getMessage());
+                    log.warn("Failed to download via PURL, falling back. Error: {}", e.getMessage());
                 }
             }
             // Attempt using name/version
@@ -107,10 +109,11 @@ public class DownloadManager extends BaseWorkDataProcessor {
                     Optional<DownloadStrategy> strategy = downloadStrategyFactory.findForName(softwareComponent.getName(), softwareComponent.getVersion());
                     if (strategy.isPresent()) {
                         log.info("Downloading via Name lookup using {}", strategy.get().getClass().getSimpleName());
-                        downloadedPath = strategy.get().download(softwareComponent.getName(), softwareComponent.getVersion(), targetDir);
+                        downloadedPath = strategy.get().download(softwareComponent.getName(),
+                                softwareComponent.getVersion(), targetDir, isMainPkg);
                     }
                 } catch (Exception e) {
-                    log.warn("Failed to download via Name/Version, falling back...", e.getMessage());
+                    log.warn("Failed to download via Name/Version, falling back. Error: {}", e.getMessage());
                 }
             }
 
@@ -127,7 +130,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
             fileService.createEntitiesFromPath(project, inventoryItem, downloadedPath, targetDir.toString());
             return true;
         } catch (Exception e) {
-            log.error("Process failed", e.getMessage());
+            log.error("Process failed: {}", e.getMessage());
             return false;
         }
     }

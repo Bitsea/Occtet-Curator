@@ -33,15 +33,15 @@ public interface DownloadStrategy {
     default boolean canHandle(PackageURL purl) { return false; }
     default boolean canHandle(String pckName, String version) { return false; }
 
-    default Path download(URL durl, Path targetDirectory) throws IOException {
+    default Path download(URL durl, Path targetDirectory, boolean isMainPkg) throws IOException {
         throw new UnsupportedOperationException("URL download not supported by this strategy");
     }
 
-    default Path download(PackageURL purl, Path targetDirectory) throws IOException {
+    default Path download(PackageURL purl, Path targetDirectory, boolean isMainPkg) throws IOException {
         throw new UnsupportedOperationException("PURL download not supported by this strategy");
     }
 
-    default Path download(String name, String version, Path targetDirectory) throws IOException {
+    default Path download(String name, String version, Path targetDirectory, boolean isMainPkg) throws IOException {
         throw new UnsupportedOperationException("Name/Version download not supported by this strategy");
     }
 }
