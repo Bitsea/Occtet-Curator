@@ -149,8 +149,8 @@ public class CopyrightService {
         }
     }
 
-    public Copyright createCopyright(String name, Set<CodeLocation> codeLocation, boolean isCurated, boolean isGarbage){
-        return copyrightFactory.create(name,codeLocation,isCurated,isGarbage);
+    public Copyright createCopyright(String name, Set<eu.occtet.bocfrontend.entity.File> files, boolean isCurated, boolean isGarbage){
+        return copyrightFactory.create(name,files,isCurated,isGarbage);
     }
 }
 

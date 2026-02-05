@@ -101,7 +101,7 @@ public class AnswerService {
     ) throws JetStreamApiException, IOException {
             log.debug("prepare answer size {}", inventoryItems.size());
         for (InventoryItem inventoryItem : inventoryItems) {
-            log.debug("SEND inventoryId {}", inventoryItem.getId());
+            log.debug("SEND inventoryId {} inventoryName {}", inventoryItem.getId(), inventoryItem.getInventoryName());
             ScannerSendWorkData sendWorkData = new ScannerSendWorkData(inventoryItem.getId());
             LocalDateTime now = LocalDateTime.now();
             long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();

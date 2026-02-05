@@ -21,7 +21,6 @@
 
 package eu.occtet.bocfrontend.dao;
 
-import eu.occtet.bocfrontend.entity.CodeLocation;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.Project;
 import io.jmix.core.repository.JmixDataRepository;
@@ -35,6 +34,7 @@ import java.util.List;
 
 public interface FileRepository extends JmixDataRepository<File, Long> {
     final static String DEPENDENCY_FOLDER_NAME = "dependencies";
+    List<File> findByProject(Project project);
 
     // Root Nodes (Reviewed Filter)
     @Query("select f from File f " +
@@ -72,8 +72,6 @@ public interface FileRepository extends JmixDataRepository<File, Long> {
     long countChildren(@Param("parent") File parent,
                        @Param("targetStatus") Boolean targetStatus);
 
-    // Methods for FileContentService & DownloadService
-    File findByCodeLocation(CodeLocation codeLocation);
 
     @Query("select f from File f where f.project = :project and f.fileName = :fileName")
     List<File> findCandidates(@Param("project") Project project, @Param("fileName") String fileName);

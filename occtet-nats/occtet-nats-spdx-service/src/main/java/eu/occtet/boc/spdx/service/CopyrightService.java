@@ -23,9 +23,9 @@
 package eu.occtet.boc.spdx.service;
 
 
-import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.dao.CopyrightRepository;
+import eu.occtet.boc.entity.File;
 import eu.occtet.boc.spdx.factory.CopyrightFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,16 +42,16 @@ public class CopyrightService {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public Copyright findOrCreateCopyright(String copyrightString, Set<CodeLocation> codeLocations){
+    public Copyright findOrCreateCopyright(String copyrightString, Set<File> files){
         List<Copyright> copyrights = copyrightRepository.findByCopyrightText(copyrightString);
         Copyright copyright;
         if (copyrights.isEmpty()) {
-            copyright = copyrightFactory.create(copyrightString, codeLocations);
+            copyright = copyrightFactory.create(copyrightString, files);
         }else{
             copyright= copyrights.getFirst();
-            for(CodeLocation cl: codeLocations) {
-               if(! copyright.getCodeLocations().contains(cl)){
-                   copyright.getCodeLocations().add(cl);
+            for(File cl: files) {
+               if(! copyright.getFiles().contains(cl)){
+                   copyright.getFiles().add(cl);
                }
             }
         }

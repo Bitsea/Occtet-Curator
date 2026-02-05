@@ -20,9 +20,10 @@
 package eu.occtet.bocfrontend.service;
 
 
-import eu.occtet.bocfrontend.entity.CodeLocation;
+import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.factory.CodeLocationFactory;
+import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.factory.FileFactory;
 import eu.occtet.bocfrontend.model.FileResult;
 import eu.occtet.bocfrontend.test_support.AuthenticatedAsAdmin;
 import org.apache.logging.log4j.LogManager;
@@ -46,18 +47,18 @@ public class FileContentServiceTest {
     @Autowired
     private FileContentService fileContentService;
     @Autowired
-    private CodeLocationFactory codeLocationFactory;
+    private FileFactory fileFactory;
 
     @Test
     void getFileContent_fromRelativePath_succeeds() {
         InventoryItem rootItem = mock(InventoryItem.class);
+        Project project = mock(Project.class);
 
         String projectRootPath = Paths.get("").toAbsolutePath().toString();
-        when(rootItem.getProject().getBasePath()).thenReturn(projectRootPath);
         when(rootItem.getParent()).thenReturn(null);
 
-        CodeLocation codeLocation = codeLocationFactory.create(null,
-                "src/test/resources/FileContentTestFile", 0, 0);
+        File file = fileFactory.create(new InventoryItem(),
+                "src/test/resources/FileContentTestFile",project);
 
         FileResult result = fileContentService.getFileContent(projectRootPath);
 

@@ -25,21 +25,19 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextField;
-import eu.occtet.bocfrontend.dao.CodeLocationRepository;
-import eu.occtet.bocfrontend.entity.CodeLocation;
+import eu.occtet.bocfrontend.dao.FileRepository;
 import eu.occtet.bocfrontend.entity.Copyright;
+import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.service.CopyrightService;
 import io.jmix.core.DataManager;
 import io.jmix.flowui.Notifications;
-import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.multiselectcombobox.JmixMultiSelectComboBox;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
 import java.util.Set;
 
 
@@ -56,7 +54,7 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
     private TextField copyrightNameField;
 
     @ViewComponent
-    private JmixMultiSelectComboBox<CodeLocation> copyrightFilePathComboBox;
+    private JmixMultiSelectComboBox<File> filePathComboBox;
 
     @ViewComponent
     private Checkbox isGarbageField;
@@ -71,7 +69,7 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
     @Autowired
     private Notifications notifications;
     @Autowired
-    private CodeLocationRepository codeLocationRepository;
+    private FileRepository fileRepository;
 
 
     @Subscribe
@@ -79,8 +77,8 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
         isGarbageField.setValue(false);
         isCuratedField.setValue(false);
 
-        copyrightFilePathComboBox.setItems(codeLocationRepository.findByInventoryItem_Project(inventoryItem.getProject()));
-        copyrightFilePathComboBox.setItemLabelGenerator(CodeLocation::getFilePath);
+        filePathComboBox.setItems(fileRepository.findByProject(inventoryItem.getProject()));
+        filePathComboBox.setItemLabelGenerator(File::getProjectPath);
     }
 
     @Override
@@ -98,7 +96,7 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
     public void addContentButton(ClickEvent<Button> event) {
 
         String copyrightName = copyrightNameField.getValue();
-        Set<CodeLocation> location = copyrightFilePathComboBox.getValue();
+        Set<File> location = filePathComboBox.getValue();
 
         if(checkInput(copyrightName,location)){
 
@@ -121,9 +119,9 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
     @Subscribe(id = "cancelButton")
     public void cancelCopyright(ClickEvent<Button> event){cancelButton(event);}
 
-    private boolean checkInput(String name, Set<CodeLocation> codeLocation){
+    private boolean checkInput(String name, Set<File> files){
 
-        if(!name.isEmpty() && codeLocation != null){
+        if(!name.isEmpty() && files != null){
             return true;
         }
         return false;

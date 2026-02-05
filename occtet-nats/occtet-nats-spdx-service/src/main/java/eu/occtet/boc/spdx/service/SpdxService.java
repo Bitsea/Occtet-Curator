@@ -72,7 +72,7 @@ public class SpdxService extends ProgressReportingService  {
     @Autowired
     private LicenseService licenseService;
     @Autowired
-    private CodeLocationService codeLocationService;
+    private FileService fileService;
     @Autowired
     private LicenseRepository licenseRepository;
     @Autowired
@@ -431,17 +431,20 @@ public class SpdxService extends ProgressReportingService  {
                 }
             }
         }
-        Map<String, CodeLocation> locationMap = codeLocationService.findOrCreateBatch(allFileNames, inventoryItem);
+
+
+        Map<String, File> locationMap = fileService.findOrCreateBatch(allFileNames, inventoryItem);
         Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts);
 
         List<Copyright> copyrightsToUpdate = new ArrayList<>();
         for (Map.Entry<String, String> entry : fileToCopyrightMap.entrySet()) {
             String path = entry.getKey();
             String copyrightText = entry.getValue();
-            CodeLocation loc = locationMap.get(path);
+            File loc = locationMap.get(path);
             Copyright copyright = copyrightMap.get(copyrightText);
             if (loc != null && copyright != null) {
-                copyright.getCodeLocations().add(loc);
+                log.debug("Associating copyright '{}' with file '{}'", copyrightText, path);
+                copyright.getFiles().add(loc);
                 copyrightsToUpdate.add(copyright);
             }
         }

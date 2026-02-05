@@ -25,13 +25,12 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
-import eu.occtet.bocfrontend.dao.CodeLocationRepository;
 import eu.occtet.bocfrontend.dao.CopyrightRepository;
-import eu.occtet.bocfrontend.entity.CodeLocation;
+import eu.occtet.bocfrontend.dao.FileRepository;
 import eu.occtet.bocfrontend.entity.Copyright;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.factory.CodeLocationFactory;
+import eu.occtet.bocfrontend.factory.FileFactory;
 import eu.occtet.bocfrontend.service.FileContentService;
 import eu.occtet.bocfrontend.view.audit.AuditView;
 import io.jmix.core.Messages;
@@ -58,7 +57,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * The FilesTabFragment class represents a fragment of a user interface for managing and interacting
@@ -75,12 +73,12 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
     @ViewComponent
     private DataContext dataContext;
     @ViewComponent
-    private CollectionLoader<CodeLocation> codeLocationDl;
+    private CollectionLoader<File> fileDl;
 
     @Autowired
     private Dialogs dialogs;
     @Autowired
-    private CodeLocationFactory codeLocationFactory;
+    private FileFactory fileFactory;
     @Autowired
     private Notifications notifications;
     @Autowired
@@ -88,7 +86,7 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
     @Autowired
     private CopyrightRepository copyrightRepository;
     @Autowired
-    private CodeLocationRepository codeLocationRepository;
+    private FileRepository fileRepository;
     @Autowired
     private Messages messages;
 
@@ -98,25 +96,21 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
 
     public void setInventoryItemId(InventoryItem inventoryItem) {
         this.inventoryItem = dataContext.merge(inventoryItem);
-        codeLocationDl.setParameter("inventoryItem", this.inventoryItem);
-        codeLocationDl.load();
+        fileDl.setParameter("inventoryItem", this.inventoryItem);
+        fileDl.load();
     }
 
-    @Subscribe(id = "codeloctionsEditButton.addCodeLocation")
-    public void addCodeLocation(DropdownButtonItem.ClickEvent event) {
+    @Subscribe(id = "filesEditButton.addFile")
+    public void addFile(DropdownButtonItem.ClickEvent event) {
         dialogs.createInputDialog(hostView)
                 .withHeader(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.edit.header"))
                 .withParameters(
-                        InputParameter.stringParameter("filePath").withLabel(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.filePath")).withRequired(true)
-                                .withRequiredMessage(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.edit.message.required")),
-                        InputParameter.intParameter("from").withRequired(false).withLabel(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.from")).withDefaultValue(0),
-                        InputParameter.intParameter("to").withRequired(false).withLabel(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.to")).withDefaultValue(0)
+                        InputParameter.stringParameter("projectPath").withLabel(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.filePath")).withRequired(true)
+                                .withRequiredMessage(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.edit.message.required"))
                 ).withActions(DialogActions.OK_CANCEL)
                 .withCloseListener(closeEvent -> {
                     if (closeEvent.closedWith(DialogOutcome.OK)) {
-                        String filePath = closeEvent.getValue("filePath");
-                        Integer from = closeEvent.getValue("from");
-                        Integer to = closeEvent.getValue("to");
+                        String filePath = closeEvent.getValue("projectPath");
                         //TODO fix this!
                         //codeLocationFactory.create(inventoryItem, filePath, from, to);
                         //codeLocationDl.load();
@@ -125,28 +119,25 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
                 }).open();
     }
 
-    @Supply(to = "codeLocationDataGrid.options", subject = "renderer")
-    protected Renderer<CodeLocation> codeLocationRenderer() {
-        return new ComponentRenderer<>(codeLocation -> {
+    @Supply(to = "fileDataGrid.options", subject = "renderer")
+    protected Renderer<File> fileRenderer() {
+        return new ComponentRenderer<>(file -> {
             DropdownButton optionsButton = uiComponents.create(DropdownButton.class);
             optionsButton.setDropdownIndicatorVisible(false);
             optionsButton.setIcon(VaadinIcon.ELLIPSIS_DOTS_H.create());
             optionsButton.addThemeVariants(DropdownButtonVariant.LUMO_ICON, DropdownButtonVariant.LUMO_SMALL, DropdownButtonVariant.LUMO_TERTIARY);
             optionsButton.setWidth("40px");
 
-            optionsButton.addItem("copy", messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.button.copy"), clickEvent -> copyCodeLocation(codeLocation));
-            optionsButton.addItem("view", messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.button.view"), clickEvent -> viewCodeLocation(codeLocation));
-            optionsButton.addItem("edit", messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.button.edit"), clickEvent -> editCodeLocation(codeLocation));
-            optionsButton.addItem("delete", messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.button.delete"), clickEvent -> deleteCodeLocation(codeLocation));
+            optionsButton.addItem("copy", messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.button.copy"), clickEvent -> copyFile(file));
+            optionsButton.addItem("view", messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.button.view"), clickEvent -> viewFile(file));
+            optionsButton.addItem("edit", messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.button.edit"), clickEvent -> editFile(file));
+            optionsButton.addItem("delete", messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.button.delete"), clickEvent -> deleteFile(file));
 
             return optionsButton;
         });
     }
-    private void viewCodeLocation(CodeLocation codeLocation) {
-        Optional<File> fileOpt = fileContentService.findFileEntityForCodeLocation(codeLocation, inventoryItem);
-
-        if (fileOpt.isPresent()) {
-            File file = fileOpt.get();
+    private void viewFile(File file) {
+        if(file!= null){
             if (hostView instanceof AuditView auditView) {
                 auditView.getTabManager().openFileTab(file, true);
             } else {
@@ -161,8 +152,8 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
         }
     }
 
-    private void copyCodeLocation(CodeLocation codeLocation) {
-        UiComponentUtils.copyToClipboard(codeLocation.getFilePath())
+    private void copyFile(File file) {
+        UiComponentUtils.copyToClipboard(file.getProjectPath())
                 .then(successResult -> notifications.create(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.copy.notification"))
                                 .withPosition(Notification.Position.BOTTOM_END)
                                 .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
@@ -173,32 +164,26 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
                                 .show());
     }
 
-    private void editCodeLocation(CodeLocation codeLocation){
+    private void editFile(File file){
         dialogs.createInputDialog(hostView)
                 .withHeader("Enter values")
                 .withParameters(
-                        InputParameter.stringParameter("filePath").withLabel(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.filePath")).withDefaultValue(codeLocation.getFilePath()),
-                        InputParameter.intParameter("from").withRequired(false).withLabel(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.from")).withDefaultValue(codeLocation.getLineNumber()),
-                        InputParameter.intParameter("to").withRequired(false).withLabel(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.to")).withDefaultValue(codeLocation.getLineNumberTo())
+                        InputParameter.stringParameter("projectPath").withLabel(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.filePath")).withDefaultValue(file.getProjectPath())
                 ).withActions(DialogActions.OK_CANCEL)
                 .withCloseListener( closeEvent ->{
                     if (!closeEvent.closedWith(DialogOutcome.OK)){
                         return;
                     }
-                    String filePath = closeEvent.getValue("filePath");
-                    Integer from = closeEvent.getValue("from");
-                    Integer to = closeEvent.getValue("to");
-                    codeLocation.setFilePath(filePath);
-                    codeLocation.setLineNumber(from);
-                    codeLocation.setLineNumberTo(to);
-                    codeLocationRepository.save(codeLocation);
-                    log.debug("Code location {} edited.", codeLocation.getId());
+                    String filePath = closeEvent.getValue("projectPath");
+                    file.setProjectPath(filePath);
+                    fileRepository.save(file);
+                    log.debug("File {} edited.", file.getId());
                 }).open();
     }
 
-    private void deleteCodeLocation(CodeLocation codeLocation){
-        List<Copyright> associatedCopyrights = copyrightRepository.findCopyrightsByCodeLocationsIn(List.of(codeLocation));
-        String message = messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.delete.message")+"\n"+codeLocation.getFilePath();
+    private void deleteFile(File file){
+        List<Copyright> associatedCopyrights = copyrightRepository.findCopyrightsByFilesIn(List.of(file));
+        String message = messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.delete.message")+"\n"+file.getProjectPath();
         if (!associatedCopyrights.isEmpty()) {
             message += "\n\n" + associatedCopyrights.size() + messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.delete.message.empty");
         }
@@ -207,7 +192,7 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
                 .withActions(
                         new DialogAction(DialogAction.Type.YES).withHandler(event -> {
                             //TODO fix this!
-                            //codeLocationRepository.delete(codeLocation);
+                            //codeLocationRepository.delete(file);
                             //copyrightRepository.deleteAll(associatedCopyrights);
                             //codeLocationDl.load();
                             notifications.create("Not yet implemented").show();

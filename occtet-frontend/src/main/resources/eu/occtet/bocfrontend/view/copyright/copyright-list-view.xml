@@ -29,7 +29,7 @@
             <loader id="copyrightsDl">
                 <query>
                     <![CDATA[select distinct c from Copyright c
-                    join c.codeLocations cl
+                    join c.files cl
                     join cl.inventoryItem i
                     join i.project p
                     where p = :project and c.aiControlled = True]]>

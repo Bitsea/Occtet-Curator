@@ -19,11 +19,9 @@
 
 package eu.occtet.bocfrontend.dao;
 
-import eu.occtet.bocfrontend.entity.CodeLocation;
 import eu.occtet.bocfrontend.entity.Copyright;
-import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.entity.File;
 import io.jmix.core.repository.JmixDataRepository;
-import io.jmix.core.repository.Query;
 
 import java.util.List;
 
@@ -34,5 +32,5 @@ public interface CopyrightRepository extends JmixDataRepository<Copyright, Long>
 
    List<Copyright> findAll();
    Copyright findCopyrightById(Long id);
-   List<Copyright> findCopyrightsByCodeLocationsIn(List<CodeLocation> codeLocations);
+   List<Copyright> findCopyrightsByFilesIn(List<File> files);
 }

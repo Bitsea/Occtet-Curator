@@ -135,10 +135,8 @@ public class TreeGridHelper {
 
                 contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CUBE,
                         messages.getMessage("eu.occtet.bocfrontend.view.audit/context.openInventory")), event -> {
-                    InventoryItem item = null;
-                    if (file.getCodeLocation() != null) {
-                        item = file.getCodeLocation().getInventoryItem();
-                    }
+                    InventoryItem item =  file.getInventoryItem();
+
                     if (item != null) {
                         log.debug("Opening inventory: {}", item.getInventoryName());
                         tabManager.openInventoryItemTab(item, true);

@@ -67,10 +67,6 @@ public class InventoryItem {
     @JoinColumn(name = "SOFTWARE_COMPONENT_ID", nullable = true)
     private SoftwareComponent softwareComponent;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "INVENTORY_ITEM_ID")
-    private List<CodeLocation> codeLocations;
-
 
     @Column(name= "WAS_COMBINED")
     private Boolean wasCombined;
@@ -231,7 +227,5 @@ public class InventoryItem {
         return curated;
     }
 
-    public List<CodeLocation> getCodeLocations() {return codeLocations;}
 
-    public void setCodeLocations(List<CodeLocation> codeLocations) {this.codeLocations = codeLocations;}
 }
