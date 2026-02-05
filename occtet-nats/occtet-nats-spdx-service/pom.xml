@@ -185,6 +185,12 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
+            <resource>
+                <directory>../occtet-common-jpa/src/main/resources</directory>
+                <includes>
+                    <include>application-common-jpa.properties</include>
+                </includes>
+            </resource>
         </resources>
         <plugins>
             <plugin>
