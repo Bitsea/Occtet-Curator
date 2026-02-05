@@ -74,7 +74,7 @@ public class FileService {
             }
             String name = path.substring(p + 1);
             log.debug("Creating new File entity for path {} with name {} for InventoryItem id={}", path, name, inventoryItem.getInventoryName());
-            File newLoc = filefactory.create(path, name, inventoryItem.getProject());
+            File newLoc = filefactory.create(path, name, inventoryItem.getProject(), inventoryItem);
             toSave.add(newLoc);
             cache.put(path, newLoc);
         }

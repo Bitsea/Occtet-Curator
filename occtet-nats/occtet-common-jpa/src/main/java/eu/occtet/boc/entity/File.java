@@ -123,10 +123,11 @@ public class File {
         this.project= project;
     }
 
-    public File ( String artifactPath, Project project, String fileName) {
+    public File ( String artifactPath, Project project, String fileName, InventoryItem inventoryItem) {
         this.artifactPath= artifactPath;
         this.fileName = fileName;
         this.project= project;
+        this.inventoryItem= inventoryItem;
     }
 
     public InventoryItem getInventoryItem() {

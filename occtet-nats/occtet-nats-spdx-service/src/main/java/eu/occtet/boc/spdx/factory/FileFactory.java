@@ -38,13 +38,10 @@ import org.springframework.stereotype.Component;
 public class FileFactory {
     private static final Logger log = LoggerFactory.getLogger(FileFactory.class);
 
-
-    @Autowired
-    private FileRepository fileRepository;
-
-    public File create(String artifactPath, String fileName, Project project) {
-        log.debug("Creating file with name {} for project {}", fileName, project.getProjectName());
-        return fileRepository.save(new File(artifactPath, project, fileName));
+    public File create(String artifactPath, String fileName, Project project, InventoryItem inventoryItem) {
+        log.debug("Creating file with name {} for project {} for inventory item {}", fileName,
+                project.getProjectName(), inventoryItem.getInventoryName());
+        return new File(artifactPath, project, fileName, inventoryItem);
     }
 
 
