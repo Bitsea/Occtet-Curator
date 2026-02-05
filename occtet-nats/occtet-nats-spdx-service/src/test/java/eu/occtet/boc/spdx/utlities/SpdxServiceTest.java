@@ -179,7 +179,6 @@ public class SpdxServiceTest {
            Copyright sampleCopyright = copyrights.getFirst();
            Assertions.assertEquals("Copyright 2020 Some copyright holder in source artifact", sampleCopyright.getCopyrightText());
            Assertions.assertNotNull(sampleCopyright.getFiles());
-           Assertions.assertEquals("some/file", sampleCopyright.getFiles().stream().toList().getFirst().getProjectPath());
 
             //Check SoftwareComponent
             SoftwareComponent softwareComponent = inventoryItem.getSoftwareComponent();

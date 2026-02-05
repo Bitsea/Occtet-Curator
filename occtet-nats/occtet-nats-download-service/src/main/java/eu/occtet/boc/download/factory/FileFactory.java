@@ -53,7 +53,6 @@ public class FileFactory {
         Objects.requireNonNull(project, "Project cannot be null");
         Objects.requireNonNull(fileName, "File name cannot be null");
         Objects.requireNonNull(physicalPath, "Physical path cannot be null");
-        log.debug("created file with filename {} and inventoryItem {}", fileName, inventoryItem.getInventoryName());
 
         File file = fileRepository.findByArtifactPathAndFileName(artifactPath, fileName);
         if(file== null){
