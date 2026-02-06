@@ -24,19 +24,20 @@ import java.util.List;
 
 
 @Entity
+@Table(name = "Snippet")
 public class Snippet {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "spdxId")
     private String spdxId;
 
     @ManyToOne
     @JoinColumn(name = "spdx_document_id", nullable = false)
     private SpdxDocumentRoot spdxDocument;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "name")
     private String name;
 
     @Column(nullable = false, name= "snippet_from_file", length = 2048)
@@ -49,10 +50,6 @@ public class Snippet {
     @Column(name= "license_concluded", columnDefinition = "TEXT")
     private String licenseConcluded;
 
-    public String getSpdxId() {
-        return spdxId;
-    }
-
     @ElementCollection
     @CollectionTable(name = "snippet_licenses", joinColumns = @JoinColumn(name = "snippet_id"))
     private List<String> licenseInfoInSnippets;
@@ -60,13 +57,14 @@ public class Snippet {
     @Column(name= "copyright_text", columnDefinition = "TEXT")
     private String copyrightText;
 
+    public String getSpdxId() {
+        return spdxId;
+    }
+
     public SpdxDocumentRoot getSpdxDocument() {
         return spdxDocument;
     }
 
-    public String getSPDXID() {
-        return spdxId;
-    }
 
     public String getLicenseConcluded() {
         return licenseConcluded;
