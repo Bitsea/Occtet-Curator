@@ -84,7 +84,6 @@ public class FileHierarchyProvider extends AbstractBackEndHierarchicalDataProvid
     @Override
     public int getChildCount(HierarchicalQuery<File, Void> query) {
         File parent = query.getParent();
-        //log.debug("Counting children {} for parent {}",fileRepository.countRoots(project, targetStatus), parent.getFileName() );
         if (parent == null) {
             return (int) fileRepository.countRoots(project, targetStatus);
         }

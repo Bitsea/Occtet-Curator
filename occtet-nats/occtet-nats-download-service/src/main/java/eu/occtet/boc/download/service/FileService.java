@@ -81,7 +81,7 @@ public class FileService {
 
             List<File> oldExistingProjectFileCache = fileRepository.findAllByProject(project);
             log.debug("Loaded {} existing File entities for project {}", oldExistingProjectFileCache.size(), project.getId());
-
+            log.debug("Handle inventoryItem {}", inventoryItem.getInventoryName());
 
             List<File> batchBuffer = new ArrayList<>();
             int batchSize = 500;
@@ -157,6 +157,7 @@ public class FileService {
             if (existingFile != null) {
                 //for updating the data
                 if(existingFile.getProjectPath()==null || existingFile.getPhysicalPath()==null)
+                    log.debug("handling inventoryItem {}", inventoryItem.getInventoryName());
                     existingFile = fileFactory.updateFileEntity(existingFile, project, physicalPath, projectPath,
                             file.isDirectory(), parentEntity);
                 log.debug("File already exists in cache: {} with artefactPath {}", physicalPath, existingFile.getArtifactPath());
