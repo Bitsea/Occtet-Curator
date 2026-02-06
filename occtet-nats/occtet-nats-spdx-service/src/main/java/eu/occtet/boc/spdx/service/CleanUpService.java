@@ -34,13 +34,14 @@ public class CleanUpService {
      * @param project
      */
     public void cleanUpFileTree(Project project) {
+
         String globalBasePath = appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH)
                 .map(AppConfiguration::getValue)
                 .orElseThrow(() -> new RuntimeException("General Base Path not configured!"));
         String folderName = project.getProjectName() + "_" + project.getId();
         Path projectDir = Paths.get(globalBasePath).resolve(folderName);
         deleteProjectDirectory(projectDir);
-
+        log.debug("Cleaning up directory {}", projectDir);
         //deleting all entities in the file tree associated with the project
         fileRepository.deleteAllByProject(project);
 

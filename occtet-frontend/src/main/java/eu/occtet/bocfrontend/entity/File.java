@@ -34,8 +34,9 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
-
+import java.util.Set;
 
 
 @JmixEntity
@@ -53,7 +54,7 @@ public class File {
     private Long id;
 
     @InstanceName
-    @Column(name = "FILENAME", nullable = false)
+    @Column(name = "FILENAME")
     private String fileName;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -66,10 +67,6 @@ public class File {
     @OnDelete(DeletePolicy.CASCADE)
     private File parent;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "CODE_LOCATION_ID", nullable = true)
-    @OnDelete(DeletePolicy.UNLINK)
-    private CodeLocation codeLocation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "INVENTORY_ITEM_ID")
@@ -78,26 +75,30 @@ public class File {
 
     // Example: C:\Users\Temp\scan\project\dep\lib\com\acme\Util.java
     @SystemLevel
-    @Column(name = "PHYSICAL_PATH", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "PHYSICAL_PATH", columnDefinition = "TEXT")
     private String physicalPath;
 
     // Example: dependencies/lib-v1/com/acme/Util.java
-    @Column(name = "PROJECT_PATH", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "PROJECT_PATH", columnDefinition = "TEXT")
     private String projectPath;
 
     // Example: com/acme/Util.java
-    @Column(name = "ARTIFACT_PATH", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "ARTIFACT_PATH", columnDefinition = "TEXT")
     private String artifactPath;
 
-    @Column(name = "IS_DIRECTORY", nullable = false)
+    @Column(name = "IS_DIRECTORY")
     private Boolean isDirectory = false;
 
-    @Column(name = "REVIEWED", nullable = false)
+    @Column(name = "REVIEWED")
     private Boolean reviewed = false;
 
     @CreatedDate
     @Column(name = "CREATED_DATE")
     private LocalDateTime createdDate;
+
+
+    @ManyToMany(mappedBy = "files", cascade = CascadeType.REMOVE)
+    private Set<Copyright> copyrights = new HashSet<>();
 
     @LastModifiedDate
     @Column(name = "LAST_MODIFIED_DATE")
@@ -112,6 +113,11 @@ public class File {
     private String lastModifiedBy;
 
     public File() {
+    }
+
+    public File( InventoryItem inventoryItem, String filePath){
+        this.inventoryItem= inventoryItem;
+        this.projectPath= filePath;
     }
 
     public Long getId() {
@@ -144,14 +150,6 @@ public class File {
 
     public void setParent(File parent) {
         this.parent = parent;
-    }
-
-    public CodeLocation getCodeLocation() {
-        return codeLocation;
-    }
-
-    public void setCodeLocation(CodeLocation codeLocation) {
-        this.codeLocation = codeLocation;
     }
 
     public Boolean getIsDirectory() {
@@ -242,6 +240,14 @@ public class File {
         this.artifactPath = artifactPath;
     }
 
+    public Set<Copyright> getCopyrights() {
+        return copyrights;
+    }
+
+    public void setCopyrights(Set<Copyright> copyrights) {
+        this.copyrights = copyrights;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -262,4 +268,5 @@ public class File {
                 ", fileName='" + fileName + '\'' +
                 '}';
     }
+
 }

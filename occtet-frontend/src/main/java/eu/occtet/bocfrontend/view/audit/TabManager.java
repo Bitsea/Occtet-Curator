@@ -118,6 +118,7 @@ public class TabManager {
      * Opens or focuses a tab for the given File object.
      */
     public void openFileTab(File file, boolean selectTab) {
+        log.debug("Request to open file tab: {} projectPath: {}", file.getPhysicalPath(), file.getProjectPath());
         if (file == null || Boolean.TRUE.equals(file.getIsDirectory())) {
             log.debug("Skipping tab creation for null or directory node");
             return;
@@ -205,9 +206,9 @@ public class TabManager {
 
     private Component createCodeViewerFragment(File file) {
         CodeViewerFragment fragment = fragments.create(hostView, CodeViewerFragment.class);
-
-        FileResult result = fileContentService.getFileContent(file.getPhysicalPath());
         log.debug("Opening file: {}", file.getPhysicalPath());
+        FileResult result = fileContentService.getFileContent(file.getPhysicalPath());
+
         switch (result) {
             case FileResult.Success(String content, String fileName) ->
                     fragment.setCodeEditorContent(content, fileName);

@@ -24,15 +24,14 @@ package eu.occtet.boc.fossreport.service;
 
 
 import eu.occtet.boc.dao.CopyrightRepository;
-import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.Copyright;
+import eu.occtet.boc.entity.File;
 import eu.occtet.boc.fossreport.factory.CopyrightFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,18 +49,18 @@ public class CopyrightService {
     private CopyrightRepository copyrightRepository;
 
 
-    public Copyright findOrCreateCopyright(String copyrightString, CodeLocation codeLocation) {
+    public Copyright findOrCreateCopyright(String copyrightString, File file) {
         List<Copyright> copyright = copyrightRepository.findByCopyrightText(copyrightString);
         if (!copyright.isEmpty() && copyright.getFirst() != null) {
-            if(copyright.getFirst().getCodeLocations()==null){
-                copyright.getFirst().setCodeLocations(new HashSet<>(List.of(codeLocation)));
-            }else if( !copyright.getFirst().getCodeLocations().contains(codeLocation)) {
-                copyright.getFirst().getCodeLocations().add(codeLocation);
+            if(copyright.getFirst().getFiles()==null){
+                copyright.getFirst().setFiles(new HashSet<>(List.of(file)));
+            }else if( !copyright.getFirst().getFiles().contains(file)) {
+                copyright.getFirst().getFiles().add(file);
             }
             return copyright.getFirst();
         }
 
-        return copyrightFactory.create(copyrightString, Set.of(codeLocation));
+        return copyrightFactory.create(copyrightString, Set.of(file));
     }
 
 

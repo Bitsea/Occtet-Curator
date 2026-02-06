@@ -20,7 +20,6 @@
 package eu.occtet.bocfrontend.service;
 
 import eu.occtet.bocfrontend.dao.FileRepository;
-import eu.occtet.bocfrontend.entity.CodeLocation;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.model.FileResult;
@@ -47,45 +46,6 @@ public class FileContentService {
 
     private static final Logger log = LogManager.getLogger(FileContentService.class);
 
-    @Autowired
-    private FileRepository fileRepository;
-
-    /**
-     * Find the correlated file for a code location.
-     */
-    public Optional<File> findFileEntityForCodeLocation(CodeLocation codeLocation, InventoryItem inventoryItem) {
-        // Try Direct Link (If your DownloadService set it)
-        File linkedFile = fileRepository.findByCodeLocation(codeLocation);
-        if (linkedFile != null) {
-            return Optional.of(linkedFile);
-        }
-
-        // Try Fuzzy Path Matching
-        String relativePathStr = codeLocation.getFilePath();
-        if (relativePathStr == null) return Optional.empty();
-
-        String searchSuffix = relativePathStr.replace("\\", "/");
-        String fileName = Paths.get(relativePathStr).getFileName().toString();
-
-        // Find all files with this name in the project
-        List<File> candidates = fileRepository.findCandidates(
-                inventoryItem.getProject(),
-                fileName
-        );
-
-        for (File candidate : candidates) {
-            String projectPath = candidate.getProjectPath();
-            if (projectPath != null && projectPath.replace("\\", "/").endsWith(searchSuffix)) {
-                return Optional.of(candidate);
-            }
-            String physicalPath = candidate.getPhysicalPath();
-            if (physicalPath != null && physicalPath.replace("\\", "/").endsWith(searchSuffix)) {
-                return Optional.of(candidate);
-            }
-        }
-
-        return Optional.empty();
-    }
 
     /**
      * Reads content using the physical path.
@@ -96,6 +56,7 @@ public class FileContentService {
      */
     public FileResult getFileContent(String physicalPath) {
         try {
+            log.debug("Reading file at path '{}'", physicalPath);
             Path path = Paths.get(physicalPath);
 
             String content = Files.readString(path);
