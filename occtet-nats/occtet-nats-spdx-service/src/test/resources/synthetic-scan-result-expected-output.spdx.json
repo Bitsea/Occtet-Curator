@@ -276,7 +276,23 @@
     "fileName" : "some/file",
     "licenseConcluded" : "NOASSERTION",
     "licenseInfoInFiles" : [ "NONE" ]
-  } ],
+  } ,
+    {
+      "SPDXID": "SPDXRef-OrphanedFile1",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "4552f707bdf537911c9943cec56a0bf11bd8468d"
+        }
+      ],
+      "copyrightText": "Copyright 2020 Some copyright holder in source artifact",
+      "fileName": "some/file",
+      "licenseConcluded": "NOASSERTION",
+      "licenseInfoInFiles": [
+        "NONE"
+      ]
+    }
+  ],
   "relationships" : [ {
     "spdxElementId" : "SPDXRef-Package-Go-gopkg.in.yaml.v3-3.0.1",
     "relationshipType" : "GENERATED_FROM",

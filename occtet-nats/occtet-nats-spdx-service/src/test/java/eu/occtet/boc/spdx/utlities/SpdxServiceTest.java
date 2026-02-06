@@ -211,6 +211,27 @@ public class SpdxServiceTest {
                             license -> license.getLicenseName().contains("GPL-2.0-only"))
             );
 
+            //Check Orphaned file
+            List<InventoryItem> orphanItems = inventoryItemRepository.findBySpdxIdAndProject("SPDXRef-OrphanedFile1", project);
+
+            Assertions.assertFalse(orphanItems.isEmpty(), "Orphaned inventory item should exist for the specific file");
+            InventoryItem orphanItem = orphanItems.getFirst();
+
+            Assertions.assertEquals("some/file", orphanItem.getInventoryName());
+            Assertions.assertEquals(1, orphanItem.getSize());
+            Assertions.assertFalse(orphanItem.getCurated());
+
+            SoftwareComponent orphanComponent = orphanItem.getSoftwareComponent();
+            Assertions.assertNotNull(orphanComponent);
+            Assertions.assertEquals("some/file", orphanComponent.getName());
+            Assertions.assertEquals("Standalone", orphanComponent.getVersion());
+
+            List<Copyright> orphanCopyrights = orphanComponent.getCopyrights();
+            Assertions.assertFalse(orphanCopyrights.isEmpty(), "Orphan component should have copyrights");
+            Assertions.assertTrue(orphanCopyrights.stream()
+                            .anyMatch(c -> c.getCopyrightText().contains("Copyright 2020 Some copyright holder in source artifact")),
+                    "Expected copyright text not found in orphan component");
+
         } catch (IOException | JetStreamApiException e) {
             Assertions.fail("An unexpected error occurred: " + e);
         }

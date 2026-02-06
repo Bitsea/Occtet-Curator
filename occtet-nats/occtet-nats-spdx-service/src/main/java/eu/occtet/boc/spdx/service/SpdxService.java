@@ -135,6 +135,7 @@ public class SpdxService extends ProgressReportingService  {
             //avoid looking at packages multiple times
             HashSet<String> seenPackages = new HashSet<>();
             licenseInfosExtractedSpdxDoc = spdxDocument.getExtractedLicenseInfos();
+            Set<String> processedFileIds = new HashSet<>();
 
             //get the list of described packages for the download-service to differentiate between them and dependencies
             Set<String> mainPackageIds = new HashSet<>();
@@ -148,7 +149,7 @@ public class SpdxService extends ProgressReportingService  {
             } catch (InvalidSPDXAnalysisException e) {
                 log.warn("Could not read DocumentDescribes: {}", e.getMessage());
             }
-            //before entities are created and saved a clean up for file entities connected to the project is done
+            //before entities are created and saved a cleanup for file entities connected to the project is done
             cleanUpService.cleanUpFileTree(project);
 
             Map<String, SpdxPackageEntity> packageLookupMap = new HashMap<>();
@@ -173,7 +174,9 @@ public class SpdxService extends ProgressReportingService  {
                                     log.debug("Processing unseen package: {}", spdxPackage.toString());
                                     inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,
                                             spdxDocumentRoot, packageLookupMap, componentCache, licenseCache,
-                                            mainInventoryItems, mainPackageIds, fileToInventoryItemMap));
+                                            mainInventoryItems, mainPackageIds, fileToInventoryItemMap,
+                                            processedFileIds));
+                                    spdxPackages.add((SpdxPackage) spdxPackage);
                                     spdxPackages.add((SpdxPackage) spdxPackage);
                                     seenPackages.add((spdxPackage).toString());
                                 }
@@ -193,7 +196,12 @@ public class SpdxService extends ProgressReportingService  {
                     .filter(i -> i.getSpdxId() != null)
                     .collect(Collectors.toMap(InventoryItem::getSpdxId, item -> item, (p1, p2) -> p1));
 
-
+            try {
+                processOrphanFiles(spdxDocument, project, spdxDocumentRoot,
+                        licenseCache, fileToInventoryItemMap, processedFileIds, inventoryItems);
+            } catch (Exception e) {
+                log.error("Error processing orphan files", e);
+            }
 
             count=0;
             for (SpdxPackage spdxPackage : spdxPackages) {
@@ -270,9 +278,10 @@ public class SpdxService extends ProgressReportingService  {
                                         SpdxDocumentRoot spdxDocumentRoot,
                                         Map<String, SpdxPackageEntity> packageLookupMap,
                                         Map<String, SoftwareComponent> componentCache,
-                                        Map<String, License> licenseCache,Set<Long> mainInvetoryItems,
+                                        Map<String, License> licenseCache, Set<Long> mainInvetoryItems,
                                         Set<String> mainPackageIds,
-                                        Map<String, InventoryItem> fileToInventoryItemMap)
+                                        Map<String, InventoryItem> fileToInventoryItemMap,
+                                        Set<String> processedFileIds)
             throws Exception {
 
         log.info("Looking at package: {}", spdxPackage.getId());
@@ -333,6 +342,7 @@ public class SpdxService extends ProgressReportingService  {
         spdxPackage.getFiles().forEach(f -> {
             spdxConverter.convertFile(f, spdxDocumentRoot);
             fileToInventoryItemMap.put(f.getId(), inventoryItem);
+            processedFileIds.add(f.getId());
         });
 
         try {
@@ -580,6 +590,104 @@ public class SpdxService extends ProgressReportingService  {
 
         if (componentUpdated) {
             softwareComponentService.update(component);
+        }
+    }
+
+    private void processOrphanFiles(SpdxDocument spdxDocument, Project project,
+                                    SpdxDocumentRoot spdxDocumentRoot,
+                                    Map<String, License> licenseCache,
+                                    Map<String, InventoryItem> fileToInventoryItemMap,
+                                    Set<String> processedFileIds,
+                                    List<InventoryItem> inventoryItems) throws Exception {
+
+        List<TypedValue> allFileUris = spdxDocument.getModelStore().getAllItems(null, "File").toList();
+        List<SpdxFile> orphanFiles = new ArrayList<>();
+
+        for (TypedValue uri : allFileUris) {
+            SpdxModelFactory.getSpdxObjects(
+                    spdxDocument.getModelStore(),
+                    spdxDocument.getCopyManager(),
+                    "File",
+                    uri.getObjectUri(),
+                    null
+            ).forEach(obj -> {
+                if (obj instanceof SpdxFile file) {
+                    if (!processedFileIds.contains(file.getId())) {
+                        orphanFiles.add(file);
+                    }
+                }
+            });
+        }
+
+        if (orphanFiles.isEmpty()) {
+            return;
+        }
+
+        log.info("Found {} orphan files. Creating individual inventory items for each.", orphanFiles.size());
+
+
+        for (SpdxFile file : orphanFiles) {
+
+            String filePath = file.getName().orElse("Unknown File");
+
+            SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(filePath, "Standalone");
+
+
+            InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(filePath, component, project);
+            inventoryItem.setSpdxId(file.getId());
+            inventoryItem.setCurated(false);
+            inventoryItem.setSize(1);
+
+
+            spdxConverter.convertFile(file, spdxDocumentRoot);
+            fileToInventoryItemMap.put(file.getId(), inventoryItem);
+
+            Map<String, File> locationMap = fileService.findOrCreateBatch(Collections.singletonList(filePath), inventoryItem);
+            File dbFile = locationMap.get(filePath);
+
+            String copyrightText = file.getCopyrightText();
+            if (copyrightText != null && !"NONE".equals(copyrightText) && !"NOASSERTION".equals(copyrightText)) {
+
+                Map<String, Copyright> createdCopyrights = copyrightService.findOrCreateBatch(Collections.singleton(copyrightText));
+                Copyright copyright = createdCopyrights.get(copyrightText);
+
+                if (copyright != null) {
+                    if (dbFile != null) {
+                        copyright.getFiles().add(dbFile);
+                        copyrightRepository.save(copyright);
+                    }
+
+                    if (component.getCopyrights() == null) {
+                        component.setCopyrights(new ArrayList<>());
+                    }
+                    if (!component.getCopyrights().contains(copyright)) {
+                        component.getCopyrights().add(copyright);
+                    }
+                }
+            }
+
+            AnyLicenseInfo fileLicense = file.getLicenseConcluded();
+            if (fileLicense.isNoAssertion(fileLicense)) {
+                fileLicense = file.getLicenseInfoFromFiles().stream().findFirst().orElse(null);
+            }
+
+            if (fileLicense != null) {
+                List<License> licenses = createLicenses(fileLicense, licenseCache);
+
+                if (component.getLicenses() == null) {
+                    component.setLicenses(new ArrayList<>());
+                }
+
+                for (License l : licenses) {
+                    if (!component.getLicenses().contains(l)) {
+                        component.addLicense(l);
+                    }
+                }
+            }
+
+            softwareComponentService.update(component);
+            inventoryItemService.update(inventoryItem);
+            inventoryItems.add(inventoryItem);
         }
     }
 
