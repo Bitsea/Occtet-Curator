@@ -55,7 +55,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -190,6 +189,19 @@ public class SpdxServiceTest {
             Assertions.assertEquals("GPL-2.0-only", sampleLicense.getLicenseName());
             Assertions.assertEquals("GPL-2.0-only", sampleLicense.getLicenseType());
             Assertions.assertEquals(buildLicenseText(), sampleLicense.getLicenseText());
+
+            //Check snippet handling
+            InventoryItem inventoryItemSnippet = inventoryItemRepository.findBySpdxIdAndProject("SPDXRef-Package-Go-gopkg.in.yaml.v3-3.0.1-vcs", project).getFirst();
+            SoftwareComponent snippetComponent = inventoryItemSnippet.getSoftwareComponent();
+            Assertions.assertTrue(
+                    snippetComponent.getCopyrights().stream().anyMatch(
+                            c -> c.getCopyrightText().contains("Copyright 2008-2010 John Smith")
+                    )
+            );
+            Assertions.assertTrue(
+                    snippetComponent.getLicenses().stream().anyMatch(
+                            license -> license.getLicenseName().contains("GPL-2.0-only"))
+            );
 
         } catch (IOException | JetStreamApiException e) {
             Assertions.fail("An unexpected error occurred: " + e);

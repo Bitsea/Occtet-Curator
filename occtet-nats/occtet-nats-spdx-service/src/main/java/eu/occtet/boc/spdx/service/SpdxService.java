@@ -218,7 +218,7 @@ public class SpdxService extends ProgressReportingService  {
 
             snippetStream.forEach(snippet -> {
                 //create conversion objects
-                spdxDocumentRoot.addSnippet(spdxConverter.convertSnippets(snippet, spdxDocumentRoot));
+                spdxConverter.convertSnippets(snippet, spdxDocumentRoot);
 
                 try {
                     enrichComponentFromSnippet(snippet, fileToInventoryItemMap, licenseCache);

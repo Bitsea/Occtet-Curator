@@ -279,32 +279,34 @@ public class SpdxConverter {
         }
     }
 
-    public Snippet convertSnippets(SpdxSnippet libSnippet, SpdxDocumentRoot parentDoc) {
-        Snippet entity = new Snippet();
+    public Snippet convertSnippets(SpdxSnippet libSnippet, SpdxDocumentRoot spdxDocumentRoot) {
+        Snippet snippet = new Snippet();
         try {
-            entity.setSpdxDocument(parentDoc);
-            entity.setSPDXID(libSnippet.getId());
-            entity.setName(libSnippet.getName().orElse(null));
-            entity.setCopyrightText(libSnippet.getCopyrightText());
+            snippet.setSpdxDocument(spdxDocumentRoot);
+            snippet.setSPDXID(libSnippet.getId());
+            snippet.setName(libSnippet.getName().orElse(null));
+            snippet.setCopyrightText(libSnippet.getCopyrightText());
 
-            entity.setSnippetFromFile(libSnippet.getSnippetFromFile().getId());
+            snippet.setSnippetFromFile(libSnippet.getSnippetFromFile().getId());
 
-            entity.setLicenseConcluded(libSnippet.getLicenseConcluded().toString());
+            snippet.setLicenseConcluded(libSnippet.getLicenseConcluded().toString());
             List<String> licenses = libSnippet.getLicenseInfoFromFiles().stream()
                     .map(Object::toString)
                     .collect(Collectors.toList());
-            entity.setLicenseInfoInSnippets(licenses);
+            snippet.setLicenseInfoInSnippets(licenses);
 
 
             List<Range> entityRanges = getRanges(libSnippet);
-            entity.setRanges(entityRanges);
+            snippet.setRanges(entityRanges);
+
+            spdxDocumentRoot.addSnippet(snippet);
 
         } catch (Exception e) {
             log.error("error while converting snippets: {}", e.toString());
             return null;
         }
 
-        return entity;
+        return snippet;
     }
 
     private static List<Range> getRanges(SpdxSnippet libSnippet) throws InvalidSPDXAnalysisException {
@@ -313,7 +315,7 @@ public class SpdxConverter {
         StartEndPointer byteRange = libSnippet.getByteRange();
         Range range = new Range();
         range.setType(byteRange.getType());
-        range.setReference(byteRange.getStartPointer().getReference().getDocumentUri());
+        range.setReference(byteRange.getEndPointer().getReference().getId());
         entityRanges.add(range);
 
         Optional<StartEndPointer> lineRangeOpt = libSnippet.getLineRange();
