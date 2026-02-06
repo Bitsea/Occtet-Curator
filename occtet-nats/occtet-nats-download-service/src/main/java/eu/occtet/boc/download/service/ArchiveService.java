@@ -76,6 +76,7 @@ public class ArchiveService {
     }
 
     private void moveToFinalDestination(Path sandbox, Path target) throws IOException {
+        log.debug("Moving contents of {} to {}", sandbox, target);
         if (Files.notExists(target)) Files.createDirectories(target);
 
         List<Path> contents;
@@ -86,9 +87,10 @@ public class ArchiveService {
         }
         if (contents.size() == 1 && Files.isDirectory(contents.getFirst())) {
             Path wrapperDir = contents.getFirst();
-            log.info("Flattening wrapper folder: {}", wrapperDir.getFileName());
+            log.debug("Moving children of {} to {}", wrapperDir, target);
             moveChildren(wrapperDir, target);
         } else {
+            log.debug("Moving children of {} to {}", sandbox, target);
             moveChildren(sandbox, target);
         }
     }
@@ -108,6 +110,7 @@ public class ArchiveService {
 
     @SuppressWarnings("DuplicatedCode")
     private void unpackZip(Path archive, Path outputDir) throws IOException {
+        log.debug("Unpacking zip, Extracting {} to {}", archive, outputDir);
         try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(archive))){
             ZipEntry zipEntry;
             String canonicalDest = outputDir.toFile().getCanonicalPath();
@@ -132,6 +135,7 @@ public class ArchiveService {
 
     @SuppressWarnings("DuplicatedCode")
     private void unpackTarGz(Path archive, Path outputDir) throws IOException {
+        log.debug("Unpacking tar, Extracting {} to {}", archive, outputDir);
         try (InputStream inputStream = Files.newInputStream(archive);
              GzipCompressorInputStream gzi = new GzipCompressorInputStream(inputStream);
              TarArchiveInputStream ti = new TarArchiveInputStream(gzi)){

@@ -26,6 +26,7 @@ import eu.occtet.boc.dao.AppConfigurationRepository;
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.download.factory.DownloadStrategyFactory;
+import eu.occtet.boc.download.strategies.DownloadStrategy;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.SoftwareComponent;
@@ -39,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
@@ -59,11 +61,24 @@ public class DownloadManager extends BaseWorkDataProcessor {
     @Autowired private ArchiveService archiveService;
     @Autowired private FileService fileService;
 
+    private static final String SAFE_FILENAME_REGEX = "[^a-zA-Z0-9.\\-_]";
+    private final String DEPENDENCIES_FOLDER = "dependencies";
+
     @Override
     @Transactional
     public boolean process(DownloadServiceWorkData data) {
-        log.info("Starting download process for Item {}", data.getInventoryItemId());
+        log.info("Starting download process");
+
+        Path downloadedPath = null;
+        Path projectBaseDir = null; // project root folder
+        Path finalComponentDir = null; // Component folder
+
         try{
+            AppConfiguration globalBasePath = appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH)
+                    .orElseThrow(() -> new RuntimeException("System base path is not set in the configuration"));
+            if (globalBasePath.getValue() == null || globalBasePath.getValue().isBlank())
+                throw new RuntimeException("System base path is not set in the configuration");
+
             Project project = projectRepository.findById(data.getProjectId())
                     .orElseThrow(() -> new RuntimeException("Project with id " + data.getProjectId() + " not found"));
             InventoryItem inventoryItem = inventoryItemRepository.findById(data.getInventoryItemId())
@@ -71,10 +86,23 @@ public class DownloadManager extends BaseWorkDataProcessor {
             SoftwareComponent softwareComponent = inventoryItem.getSoftwareComponent();
             if (softwareComponent == null) throw new RuntimeException("SoftwareComponent for InventoryItem with id " + data.getInventoryItemId() + " not found");
 
-            Path targetDir = calculateTargetPath(project.getProjectName() ,project.getId());
-            Path downloadedPath = null;
-
             boolean isMainPkg = Boolean.TRUE.equals(data.getIsMainPackage());
+
+            // calc base project path (e.g., /data/Project_101)
+            projectBaseDir = calculateTargetPath(globalBasePath.getValue(), project.getProjectName(), project.getId());
+
+            // Structure: [project] / [dependencies?] / [component_name] / [version]
+            Path workingPath = projectBaseDir;
+
+            if (!isMainPkg) {
+                log.debug("Resolving dependencies folder for item {}", data.getInventoryItemId());
+                workingPath = workingPath.resolve(DEPENDENCIES_FOLDER);
+            }
+            String safeSoftwareComponentName = sanitizeFilename(softwareComponent.getName(), "unknown_component_" + data.getInventoryItemId());
+
+            String safeComponentVersion = sanitizeFilename(softwareComponent.getVersion(), "unknown_version");
+
+            finalComponentDir = workingPath.resolve(safeSoftwareComponentName).resolve(safeComponentVersion);
 
             // Process download
             // Attempt using downloadLocation
@@ -84,7 +112,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
                     Optional<DownloadStrategy> strategy = downloadStrategyFactory.findForUrl(durl, softwareComponent.getVersion());
                     if (strategy.isPresent()) {
                         log.info("Downloading via URL using {}", strategy.get().getClass().getSimpleName());
-                        downloadedPath = strategy.get().download(durl, targetDir, isMainPkg);
+                        downloadedPath = strategy.get().download(durl, softwareComponent.getVersion(), finalComponentDir);
                     }
                 } catch (Exception e) {
                     log.warn("Failed to download via URL, falling back. Error: {}", e.getMessage());
@@ -97,7 +125,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
                     Optional<DownloadStrategy> strategy = downloadStrategyFactory.findForPurl(purl);
                     if (strategy.isPresent()) {
                         log.info("Downloading via PURL using {}", strategy.get().getClass().getSimpleName());
-                        downloadedPath = strategy.get().download(purl, targetDir, isMainPkg);
+                        downloadedPath = strategy.get().download(purl, finalComponentDir);
                     }
                 } catch (Exception e) {
                     log.warn("Failed to download via PURL, falling back. Error: {}", e.getMessage());
@@ -110,7 +138,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
                     if (strategy.isPresent()) {
                         log.info("Downloading via Name lookup using {}", strategy.get().getClass().getSimpleName());
                         downloadedPath = strategy.get().download(softwareComponent.getName(),
-                                softwareComponent.getVersion(), targetDir, isMainPkg);
+                                softwareComponent.getVersion(), finalComponentDir);
                     }
                 } catch (Exception e) {
                     log.warn("Failed to download via Name/Version, falling back. Error: {}", e.getMessage());
@@ -119,26 +147,51 @@ public class DownloadManager extends BaseWorkDataProcessor {
 
             if (downloadedPath == null){
                 log.error("All download strategies failed for item {}", data.getInventoryItemId());
+                String oldNotes = inventoryItem.getExternalNotes();
+                // TODO improve the message
+                oldNotes += "\n\nWARNING: Unable to download resources for this inventory item.";
+                inventoryItem.setExternalNotes(oldNotes);
+                inventoryItemRepository.save(inventoryItem);
+                log.debug("InventoryItem '{}' audit notes updated with WARNING message: {}", inventoryItem.getId(),
+                        oldNotes);
                 return false;
             }
 
             if (Files.isRegularFile(downloadedPath)){
-                archiveService.unpack(downloadedPath, targetDir);
+                archiveService.unpack(downloadedPath, finalComponentDir);
             }
 
             // TODO get rid of arg `targetDir.toString()` unneeded plus why is it using String instead of path
-            fileService.createEntitiesFromPath(project, inventoryItem, downloadedPath, targetDir.toString());
+            fileService.createEntitiesFromPath(
+                    project,
+                    inventoryItem,
+                    finalComponentDir,
+                    projectBaseDir.toString()
+            );
+
             return true;
         } catch (Exception e) {
             log.error("Process failed: {}", e.getMessage());
             return false;
+        } finally {
+            if (downloadedPath != null) {
+                log.debug("Cleaning up, deleting the source archive: {}", downloadedPath.getFileName());
+                try {
+                    Files.deleteIfExists(downloadedPath);
+                } catch (IOException ioe) {
+                    log.warn("Failed to delete temporary file {} after failed download: {}", downloadedPath, ioe.getMessage());
+                }
+            }
         }
     }
 
-    private Path calculateTargetPath(String projectName, Long projectId) throws RuntimeException{
-        AppConfiguration globalBasePath = appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH)
-                .orElseThrow(() -> new RuntimeException("System base path is not set in the configuration"));
-        String folderName = projectName + "_" + projectId;
-        return Paths.get(globalBasePath.getValue()).resolve(folderName);
+    private Path calculateTargetPath(String globalBasePath,String projectName, Long projectId) throws RuntimeException{
+        String folderName =  projectName + "_" + projectId;
+        return Paths.get(globalBasePath).resolve(folderName);
+    }
+
+    private String sanitizeFilename(String input, String fallback) {
+        if (input == null || input.isBlank()) return fallback;
+        return input.replaceAll(SAFE_FILENAME_REGEX, "_");
     }
 }

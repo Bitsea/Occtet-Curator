@@ -42,7 +42,7 @@ public class DownloadWorkConsumer extends WorkConsumer {
     private static final Logger log = LoggerFactory.getLogger(DownloadWorkConsumer.class);
 
     @Autowired
-    private DownloadService downloadService;
+    private DownloadManager downloadManager;
 
     @Override
     protected void handleMessage(Message msg) {
@@ -60,7 +60,7 @@ public class DownloadWorkConsumer extends WorkConsumer {
                 @Override
                 public boolean process(DownloadServiceWorkData workData) {
                     try {
-                        return downloadService.process(workData);
+                        return downloadManager.process(workData);
                     } catch (Exception e) {
                         log.error("Could not process workData of type {} with error message: ", workData.getClass().getName(), e);
                         return false;

@@ -22,7 +22,7 @@
 package eu.occtet.boc.download.factory;
 
 import com.github.packageurl.PackageURL;
-import eu.occtet.boc.download.service.DownloadStrategy;
+import eu.occtet.boc.download.strategies.DownloadStrategy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,6 @@ import org.springframework.stereotype.Component;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 /**
  * Factory responsible for selecting the appropriate {@link DownloadStrategy}
