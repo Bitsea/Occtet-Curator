@@ -21,15 +21,21 @@ package eu.occtet.bocfrontend.view.project;
 
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.Route;
+import eu.occtet.bocfrontend.dao.AppConfigurationRepository;
 import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
+import eu.occtet.bocfrontend.entity.appconfigurations.AppConfiguration;
 import eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile;
 import eu.occtet.bocfrontend.service.Utilities;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.Messages;
 import io.jmix.flowui.Dialogs;
+import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.kit.action.ActionPerformedEvent;
@@ -55,6 +61,10 @@ public class ProjectDetailView extends StandardDetailView<Project> {
     private Utilities utilities;
     @Autowired
     private Dialogs dialogs;
+    @Autowired
+    private AppConfigurationRepository appConfigurationRepository;
+    @Autowired
+    private Notifications notifications;
 
     @Subscribe
     protected void onInit(InitEvent event) {
@@ -95,5 +105,27 @@ public class ProjectDetailView extends StandardDetailView<Project> {
                 .withCloseOnOutsideClick(true)
                 .withCloseOnEsc(true)
                 .open();
+    }
+
+    @Subscribe
+    protected void onBeforeSave(BeforeSaveEvent event){
+        AppConfiguration globalBasePath =
+                appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH).orElse(null);
+
+        if (globalBasePath == null ||
+                globalBasePath.getValue() == null ||
+                globalBasePath.getValue().isBlank()) {
+
+            notifications.create(
+                            messages.getMessage(
+                                    "eu.occtet.bocfrontend.view.project/Project.globalPathNotSet.WarningMsg"
+                            )
+                    )
+                    .withPosition(Notification.Position.TOP_CENTER)
+                    .withThemeVariant(NotificationVariant.LUMO_WARNING)
+                    .show();
+
+            event.preventSave();
+        }
     }
 }

@@ -19,16 +19,26 @@
  *
  */
 
-package eu.occtet.bocfrontend.converter;
+package eu.occtet.bocfrontend.service;
 
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
-import jakarta.persistence.AttributeConverter;
-import jakarta.persistence.Converter;
+import eu.occtet.bocfrontend.entity.appconfigurations.AppConfiguration;
+import io.jmix.core.DataManager;
+import io.jmix.core.querycondition.PropertyCondition;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-@Converter
-public class AppConfigKeyConverter extends AbstractEnumClassConverter<AppConfigKey>
-        implements AttributeConverter<AppConfigKey, String> {
-    public AppConfigKeyConverter() {
-        super(AppConfigKey.class);
+import java.util.Optional;
+
+@Service
+public class AppConfigurationService {
+
+    @Autowired
+    private DataManager dataManager;
+
+    public Optional<AppConfiguration> findByConfigKey(AppConfigKey configKey) {
+        return dataManager.load(AppConfiguration.class)
+                .condition(PropertyCondition.equal("configKey", configKey))
+                .optional();
     }
 }

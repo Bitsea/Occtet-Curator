@@ -19,16 +19,8 @@
  *
  */
 
-package eu.occtet.bocfrontend.converter;
+package eu.occtet.bocfrontend.entity.appconfigurations;
 
-import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
-import jakarta.persistence.AttributeConverter;
-import jakarta.persistence.Converter;
-
-@Converter
-public class AppConfigKeyConverter extends AbstractEnumClassConverter<AppConfigKey>
-        implements AttributeConverter<AppConfigKey, String> {
-    public AppConfigKeyConverter() {
-        super(AppConfigKey.class);
-    }
+public interface EnumClass<T> {
+    T getId();
 }
