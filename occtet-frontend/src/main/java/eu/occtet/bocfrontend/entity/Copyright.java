@@ -57,11 +57,11 @@ public class Copyright {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "COPYRIGHT_CODE_LOCATION_LINK",
+            name = "COPYRIGHT_FILE_LINK",
             joinColumns = @JoinColumn(name = "COPYRIGHT_ID", referencedColumnName = "ID"),
-            inverseJoinColumns = @JoinColumn(name = "CODE_LOCATION_ID", referencedColumnName = "ID"))
+            inverseJoinColumns = @JoinColumn(name = "FILE_ID", referencedColumnName = "ID"))
     @OnDelete(DeletePolicy.CASCADE)
-    private Set<CodeLocation> codeLocations = new HashSet<>();;
+    private Set<File> files = new HashSet<>();;
 
 
     @OneToMany(fetch = FetchType.LAZY)
@@ -88,9 +88,9 @@ public class Copyright {
 
     public void setGarbage(Boolean garbage) {this.garbage = garbage;}
 
-    public Set<CodeLocation> getCodeLocations(){return this.codeLocations;}
+    public Set<File> getFiles(){return this.files;}
 
-    public void setCodeLocations(Set<CodeLocation> codeLocations) {this.codeLocations = codeLocations;}
+    public void setFiles(Set<File> files) {this.files = files;}
 
     public Boolean getCurated() {
         return curated;

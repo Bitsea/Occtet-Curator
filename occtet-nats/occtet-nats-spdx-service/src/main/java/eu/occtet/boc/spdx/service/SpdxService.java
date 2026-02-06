@@ -73,7 +73,7 @@ public class SpdxService extends ProgressReportingService  {
     @Autowired
     private LicenseService licenseService;
     @Autowired
-    private CodeLocationService codeLocationService;
+    private FileService fileService;
     @Autowired
     private LicenseRepository licenseRepository;
     @Autowired
@@ -86,6 +86,8 @@ public class SpdxService extends ProgressReportingService  {
     private SpdxDocumentRootRepository spdxDocumentRootRepository;
     @Autowired
     private CopyrightRepository copyrightRepository;
+    @Autowired
+    private CleanUpService cleanUpService;
 
     private Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc = new ArrayList<>();
 
@@ -146,6 +148,8 @@ public class SpdxService extends ProgressReportingService  {
             } catch (InvalidSPDXAnalysisException e) {
                 log.warn("Could not read DocumentDescribes: {}", e.getMessage());
             }
+            //before entities are created and saved a clean up for file entities connected to the project is done
+            cleanUpService.cleanUpFileTree(project);
 
             Map<String, SpdxPackageEntity> packageLookupMap = new HashMap<>();
             if (spdxDocumentRoot.getPackages() != null) {
@@ -231,6 +235,8 @@ public class SpdxService extends ProgressReportingService  {
 
             log.info("processed spdx with {} items", inventoryItems.size());
 
+
+
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
@@ -257,6 +263,8 @@ public class SpdxService extends ProgressReportingService  {
             return false;
         }
     }
+
+
 
     private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project,
                                         SpdxDocumentRoot spdxDocumentRoot,
@@ -450,17 +458,20 @@ public class SpdxService extends ProgressReportingService  {
                 }
             }
         }
-        Map<String, CodeLocation> locationMap = codeLocationService.findOrCreateBatch(allFileNames, inventoryItem);
+
+
+        Map<String, File> locationMap = fileService.findOrCreateBatch(allFileNames, inventoryItem);
         Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts);
 
         List<Copyright> copyrightsToUpdate = new ArrayList<>();
         for (Map.Entry<String, String> entry : fileToCopyrightMap.entrySet()) {
             String path = entry.getKey();
             String copyrightText = entry.getValue();
-            CodeLocation loc = locationMap.get(path);
+            File loc = locationMap.get(path);
             Copyright copyright = copyrightMap.get(copyrightText);
             if (loc != null && copyright != null) {
-                copyright.getCodeLocations().add(loc);
+                log.debug("Associating copyright '{}' with file '{}'", copyrightText, path);
+                copyright.getFiles().add(loc);
                 copyrightsToUpdate.add(copyright);
             }
         }

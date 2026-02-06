@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+
+
+  <!--  <changeSet id="mergeCodeLocation" author="leoni">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="code_location"/>
+        </preConditions>
+
+        <dropForeignKeyConstraint
+                baseTableName="file"
+                constraintName="fk_file_code_location_id"/>
+
+        <dropForeignKeyConstraint
+                baseTableName="copyright_code_location_link"
+                constraintName="fk_copyright_code_location_link_code_location_id"/>
+
+        <dropForeignKeyConstraint
+                baseTableName="copyright"
+                constraintName="fk_copyright_code_location_id"/>
+
+        <createTable tableName="COPYRIGHT_FILE_LINK">
+            <column name="COPYRIGHT_ID" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="FILE_ID" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <dropTable tableName="CODE_LOCATION"/>
+        <dropTable tableName="COPYRIGHT_CODE_LOCATION_LINK"/>
+    </changeSet>
+-->
+
+  <changeSet id="rename-app-config-value" author="leoni">
+    <renameColumn
+            tableName="APP_CONFIGURATION"
+            oldColumnName="VALUE"
+            newColumnName="CONFIG_VALUE"
+            columnDataType="TEXT"/>
+  </changeSet>
+
+
+</databaseChangeLog>

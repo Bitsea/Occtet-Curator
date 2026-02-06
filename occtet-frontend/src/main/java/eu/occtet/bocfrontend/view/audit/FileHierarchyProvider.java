@@ -27,6 +27,8 @@ import eu.occtet.bocfrontend.dao.FileRepository;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -47,6 +49,9 @@ import java.util.stream.Stream;
  */
 public class FileHierarchyProvider extends AbstractBackEndHierarchicalDataProvider<File, Void> {
 
+    private static final Logger log = LogManager.getLogger(FileHierarchyProvider.class);
+
+
     private final FileRepository fileRepository;
     private final Project project;
 
@@ -65,11 +70,13 @@ public class FileHierarchyProvider extends AbstractBackEndHierarchicalDataProvid
     @Override
     protected Stream<File> fetchChildrenFromBackEnd(HierarchicalQuery<File, Void> query) {
         File parent = query.getParent();
+        log.debug("Fetching children for parent: {}", parent != null ? parent.getFileName() : "null (roots)");
         Pageable pageable = PageRequest.of(query.getOffset() / query.getLimit(), query.getLimit());
 
         if (parent == null) {
             return fileRepository.findRootsSorted(project, targetStatus, pageable).stream();
         } else {
+            log.debug("Fetching children of {} with reviewed status {}", parent.getFileName(), targetStatus);
             return fileRepository.findChildrenSorted(parent, targetStatus, pageable).stream();
         }
     }
