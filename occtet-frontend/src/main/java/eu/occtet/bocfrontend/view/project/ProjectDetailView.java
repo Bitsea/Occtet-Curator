@@ -126,6 +126,7 @@ public class ProjectDetailView extends StandardDetailView<Project> {
                     .show();
 
             event.preventSave();
+            return;
         }
     }
 }
