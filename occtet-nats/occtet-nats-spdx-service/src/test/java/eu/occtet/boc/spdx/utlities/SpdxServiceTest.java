@@ -25,8 +25,6 @@ package eu.occtet.boc.spdx.utlities;
 import eu.occtet.boc.config.TestEclipseLinkJpaConfiguration;
 import eu.occtet.boc.dao.*;
 import eu.occtet.boc.entity.*;
-import eu.occtet.boc.entity.appconfigurations.AppConfigKey;
-import eu.occtet.boc.entity.appconfigurations.AppConfiguration;
 import eu.occtet.boc.entity.spdxV2.RelationshipEntity;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.entity.spdxV2.SpdxFileEntity;
@@ -65,7 +63,7 @@ import java.util.List;
         CopyrightService.class, InventoryItemService.class, LicenseService.class,FileService.class,
         ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class,FileRepository.class,
         CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class,
-        LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class
+        LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class, LicenseHandler.class
 })
 @EnableJpaRepositories(basePackages = {
         "eu.occtet.boc.dao"})
