@@ -19,35 +19,103 @@
 package eu.occtet.boc.spdx.service.handler;
 
 import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.spdx.context.SpdxImportContext;
+import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.service.InventoryItemService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.core.TypedValue;
+import org.spdx.library.SpdxModelFactory;
 import org.spdx.library.model.v2.Relationship;
 import org.spdx.library.model.v2.SpdxElement;
 import org.spdx.library.model.v2.SpdxPackage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @Service
+@Transactional
 public class RelationshipHandler {
 
     private static final Logger log = LogManager.getLogger(RelationshipHandler.class);
 
     @Autowired
     private InventoryItemService inventoryItemService;
+    @Autowired
+    SpdxConverter spdxConverter;
 
-    public void parseRelationships(SpdxPackage spdxPackage, List<Relationship> relationships
-            , Map<String, InventoryItem> inventoryCache) throws InvalidSPDXAnalysisException {
+    /**
+     * Orchestrates the processing of all relationships in the document.
+     * Iterates through all packages, parses their relationships, and updates the entities.
+     *
+     * @param context The shared import context containing the document, root, and caches.
+     * @param progressCallback A callback to report progress (0-40 scale based on your prompt's usage).
+     */
+    public void processAllRelationships(SpdxImportContext context, Consumer<Integer> progressCallback) {
+        try {
+            List<TypedValue> packageUris = context.getSpdxDocument().getModelStore()
+                    .getAllItems(null, "Package").toList();
+
+            int total = packageUris.size();
+            int count = 0;
+
+            for (TypedValue uri : packageUris) {
+                SpdxModelFactory.getSpdxObjects(context.getSpdxDocument().getModelStore(), null, "Package", uri.getObjectUri(), null)
+                        .forEach(obj -> {
+                            if (obj instanceof SpdxPackage spdxPackage) {
+                                try {
+                                    processSinglePackageRelationships(spdxPackage, context);
+                                } catch (InvalidSPDXAnalysisException e) {
+                                    log.error("Failed to process relationships for package: {}", spdxPackage.getId(), e);
+                                }
+                            }
+                        });
+
+                count++;
+                int currentProgress = (int) (((double) count / total) * 40);
+                if (count % 5 == 0 || count == total) {
+                    progressCallback.accept(currentProgress);
+                }
+            }
+        } catch (InvalidSPDXAnalysisException e) {
+            log.error("Error retrieving packages for relationship processing", e);
+        }
+    }
+
+    /**
+     * Processes relationships for a single package.
+     * Combined logic from the original parseRelationships and the Service's loop.
+     */
+    private void processSinglePackageRelationships(SpdxPackage spdxPackage, SpdxImportContext context) throws InvalidSPDXAnalysisException {
+
+        List<Relationship> relationships = spdxPackage.getRelationships().stream().toList();
+        parseRelationshipsLogic(spdxPackage, relationships, context.getInventoryCache());
+
+
+        for (Relationship relationship : relationships) {
+            spdxConverter.convertRelationShip(relationship, context.getSpdxDocumentRoot(), spdxPackage);
+        }
+
+        log.debug("Converted {} relationships for package {}", relationships.size(), spdxPackage.getId());
+    }
+
+    /**
+     * Core logic to interpret relationships and update InventoryItems.
+     * (Renamed from parseRelationships to clarify intent, kept logic mostly same)
+     */
+    private void parseRelationshipsLogic(SpdxPackage spdxPackage, List<Relationship> relationships,
+                                         Map<String, InventoryItem> inventoryCache) throws InvalidSPDXAnalysisException {
 
         InventoryItem sourceItem = inventoryCache.get(spdxPackage.getId());
 
         if (sourceItem == null) {
-            log.error("Relationship source package not found in inventory: {}", spdxPackage.getId());
+            log.debug("Relationship source package not found in inventory: {}", spdxPackage.getId());
             return;
         }
 
@@ -56,13 +124,11 @@ public class RelationshipHandler {
             if (targetOpt.isEmpty()) continue;
 
             SpdxElement targetElement = targetOpt.get();
-
             InventoryItem targetItem = inventoryCache.get(targetElement.getId());
 
-            if (targetItem == null) {
-                continue;
-            }
+            if (targetItem == null) continue;
 
+            // lines 64-88
             switch (relationship.getRelationshipType()) {
                 case CONTAINS, DEPENDS_ON, ANCESTOR_OF -> {
                     if (targetElement.getType().equals("Package")) {
@@ -90,10 +156,8 @@ public class RelationshipHandler {
                         inventoryItemService.update(targetItem);
                     }
                 }
-                case null, default -> {
-                }
+                case null, default -> { }
             }
         }
-
     }
 }

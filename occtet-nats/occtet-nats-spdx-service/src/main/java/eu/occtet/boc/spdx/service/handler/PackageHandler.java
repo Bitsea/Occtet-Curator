@@ -20,8 +20,7 @@ package eu.occtet.boc.spdx.service.handler;
 
 import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.entity.*;
-import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
-import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
+import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.service.CopyrightService;
 import eu.occtet.boc.spdx.service.FileService;
@@ -30,16 +29,19 @@ import eu.occtet.boc.spdx.service.SoftwareComponentService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.core.TypedValue;
+import org.spdx.library.SpdxModelFactory;
 import org.spdx.library.model.v2.ExternalRef;
+import org.spdx.library.model.v2.SpdxDocument;
 import org.spdx.library.model.v2.SpdxFile;
 import org.spdx.library.model.v2.SpdxPackage;
 import org.spdx.library.model.v2.license.AnyLicenseInfo;
-import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 @Service
@@ -63,34 +65,52 @@ public class PackageHandler {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
+    public void processAllPackages(SpdxImportContext context, Consumer<Integer> progressCallback) throws Exception {
+        SpdxDocument doc = context.getSpdxDocument();
+        List<TypedValue> packageUris = doc.getModelStore().getAllItems(null, "Package").toList();
 
-    public InventoryItem parsePackages(SpdxPackage spdxPackage, Project project,
-                                        SpdxDocumentRoot spdxDocumentRoot,
-                                        Map<String, SpdxPackageEntity> packageLookupMap,
-                                        Map<String, SoftwareComponent> componentCache,
-                                        Map<String, License> licenseCache, Set<Long> mainInvetoryItems,
-                                        Set<String> mainPackageIds,
-                                        Map<String, InventoryItem> fileToInventoryItemMap,
-                                        Set<String> processedFileIds,
-                                       Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc)
+        int count = 0;
+        Set<String> seenPackages = new HashSet<>();
+
+        for (TypedValue uri : packageUris) {
+            SpdxModelFactory.getSpdxObjects(doc.getModelStore(), null, "Package", uri.getObjectUri(), null)
+                    .forEach(obj -> {
+                        if (obj instanceof SpdxPackage pkg && !seenPackages.contains(pkg.getId())) {
+                            try {
+                                InventoryItem item = parseSinglePackage(pkg, context);
+
+                                context.getInventoryItems().add(item);
+                                seenPackages.add(pkg.getId());
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    });
+
+            count++;
+            int percent = (int) ((40.0 * count) / packageUris.size());
+            if (percent % 5 == 0) progressCallback.accept(percent);
+        }
+    }
+
+
+    public InventoryItem parseSinglePackage(SpdxPackage spdxPackage, SpdxImportContext context)
             throws Exception {
 
         log.info("Looking at package: {}", spdxPackage.getId());
-        //Convert to entities
-        spdxConverter.convertPackage(spdxPackage, spdxDocumentRoot, packageLookupMap);
+        spdxConverter.convertPackage(spdxPackage, context.getSpdxDocumentRoot(), context.getPackageLookupMap());
 
         String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
         String version = spdxPackage.getVersionInfo().orElse("");
         List<Copyright> copyrights = new ArrayList<>();
 
         String componentKey = packageName + ":" + version;
-        SoftwareComponent component = componentCache.get(componentKey);
+        SoftwareComponent component = context.getComponentCache().get(componentKey);
 
         if (component == null) {
-            // Cache Miss: Hit the DB
             component = softwareComponentService.getOrCreateSoftwareComponent(packageName, version);
             // Cache Put
-            componentCache.put(componentKey, component);
+            context.getComponentCache().put(componentKey, component);
         }
 
         //get License from package
@@ -99,7 +119,7 @@ public class PackageHandler {
             spdxPkgLicense = spdxPackage.getLicenseDeclared();
         }
 
-        List<License> pkgLicenses = licenseHandler.createLicenses(spdxPkgLicense, licenseCache, licenseInfosExtractedSpdxDoc);
+        List<License> pkgLicenses = licenseHandler.createLicenses(spdxPkgLicense, context.getLicenseCache(), context.getExtractedLicenseInfos());
         if(component.getLicenses() != null) {
             //make double sure there are no doubles
             Set<License> lSet= new HashSet<>( component.getLicenses());
@@ -122,7 +142,7 @@ public class PackageHandler {
         Pattern pattern = Pattern.compile("\\b(?:BUT|AND)\\b");
         boolean isCombined = pattern.matcher(packageLicenseString).find();
 
-        InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, component, project);
+        InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, component, context.getProject());
         inventoryItem.setWasCombined(isCombined);
         inventoryItem.setSpdxId(spdxPackage.getId());
         inventoryItem.setCurated(false);
@@ -131,9 +151,9 @@ public class PackageHandler {
 
         log.info("Converting {} files", spdxPackage.getFiles().size());
         spdxPackage.getFiles().forEach(f -> {
-            spdxConverter.convertFile(f, spdxDocumentRoot);
-            fileToInventoryItemMap.put(f.getId(), inventoryItem);
-            processedFileIds.add(f.getId());
+            spdxConverter.convertFile(f, context.getSpdxDocumentRoot());
+            context.getFileToInventoryItemMap().put(f.getId(), inventoryItem);
+            context.getProcessedFileIds().add(f.getId());
         });
 
         try {
@@ -167,8 +187,8 @@ public class PackageHandler {
         log.info("created inventoryItem: {}", inventoryName);
         log.info("created softwareComponent: {}", component.getName());
 
-        if (mainPackageIds.contains(spdxPackage.getId())) {
-            mainInvetoryItems.add(inventoryItem.getId());
+        if (context.getMainPackageIds().contains(spdxPackage.getId())) {
+            context.getMainInventoryItems().add(inventoryItem.getId());
         }
 
         return inventoryItem;

@@ -20,7 +20,7 @@ package eu.occtet.boc.spdx.service.handler;
 
 import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.entity.*;
-import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
+import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.service.*;
 import org.apache.logging.log4j.LogManager;
@@ -30,11 +30,14 @@ import org.spdx.library.SpdxModelFactory;
 import org.spdx.library.model.v2.SpdxDocument;
 import org.spdx.library.model.v2.SpdxFile;
 import org.spdx.library.model.v2.license.AnyLicenseInfo;
-import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
+@Service
+@Transactional
 public class OrphanHandler {
 
     private static final Logger log = LogManager.getLogger(OrphanHandler.class);
@@ -55,13 +58,9 @@ public class OrphanHandler {
 
 
 
-    public void processOrphanFiles(SpdxDocument spdxDocument, Project project,
-                                    SpdxDocumentRoot spdxDocumentRoot,
-                                    Map<String, License> licenseCache,
-                                    Map<String, InventoryItem> fileToInventoryItemMap,
-                                    Set<String> processedFileIds,
-                                    List<InventoryItem> inventoryItems,
-                                   Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc) throws Exception {
+    public void processOrphanFiles(SpdxImportContext context) throws Exception {
+
+        SpdxDocument spdxDocument = context.getSpdxDocument();
 
         List<TypedValue> allFileUris = spdxDocument.getModelStore().getAllItems(null, "File").toList();
         List<SpdxFile> orphanFiles = new ArrayList<>();
@@ -75,7 +74,7 @@ public class OrphanHandler {
                     null
             ).forEach(obj -> {
                 if (obj instanceof SpdxFile file) {
-                    if (!processedFileIds.contains(file.getId())) {
+                    if (!context.getProcessedFileIds().contains(file.getId())) {
                         orphanFiles.add(file);
                     }
                 }
@@ -96,14 +95,14 @@ public class OrphanHandler {
             SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(filePath, "Standalone");
 
 
-            InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(filePath, component, project);
+            InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(filePath, component, context.getProject());
             inventoryItem.setSpdxId(file.getId());
             inventoryItem.setCurated(false);
             inventoryItem.setSize(1);
 
 
-            spdxConverter.convertFile(file, spdxDocumentRoot);
-            fileToInventoryItemMap.put(file.getId(), inventoryItem);
+            spdxConverter.convertFile(file, context.getSpdxDocumentRoot());
+            context.getFileToInventoryItemMap().put(file.getId(), inventoryItem);
 
             Map<String, File> locationMap = fileService.findOrCreateBatch(Collections.singletonList(filePath), inventoryItem);
             File dbFile = locationMap.get(filePath);
@@ -135,7 +134,7 @@ public class OrphanHandler {
             }
 
             if (fileLicense != null) {
-                List<License> licenses = licenseHandler.createLicenses(fileLicense, licenseCache, licenseInfosExtractedSpdxDoc);
+                List<License> licenses = licenseHandler.createLicenses(fileLicense, context.getLicenseCache(), context.getExtractedLicenseInfos());
 
                 if (component.getLicenses() == null) {
                     component.setLicenses(new ArrayList<>());
@@ -150,7 +149,7 @@ public class OrphanHandler {
 
             softwareComponentService.update(component);
             inventoryItemService.update(inventoryItem);
-            inventoryItems.add(inventoryItem);
+            context.getInventoryItems().add(inventoryItem);
         }
     }
 }
