@@ -128,7 +128,6 @@ public class RelationshipHandler {
 
             if (targetItem == null) continue;
 
-            // lines 64-88
             switch (relationship.getRelationshipType()) {
                 case CONTAINS, DEPENDS_ON, ANCESTOR_OF -> {
                     if (targetElement.getType().equals("Package")) {
