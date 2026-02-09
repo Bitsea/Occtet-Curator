@@ -48,6 +48,11 @@
             <version>${common-version}</version>
         </dependency>
         <dependency>
+            <groupId>eu.occtet.boc</groupId>
+            <artifactId>occtet-common-jpa</artifactId>
+            <version>${common-jpa-version}</version>
+        </dependency>
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback-version}</version>

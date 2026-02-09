@@ -1,19 +1,17 @@
 package eu.occtet.boc.issueCatcher.service;
 
 import com.squareup.okhttp.*;
-import eu.occtet.boc.model.ORTRunWorkData;
+import eu.occtet.boc.model.ORTStartRunWorkData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
-
-import java.awt.*;
 
 @Service
 public class IssueCatcherService {
 
     private static final Logger log = LogManager.getLogger(IssueCatcherService.class);
 
-    public boolean process(ORTRunWorkData workData){
+    public boolean process(ORTStartRunWorkData workData){
         return fetchIssues(workData.getRunId());
     }
 

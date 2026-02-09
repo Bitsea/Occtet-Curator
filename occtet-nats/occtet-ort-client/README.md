@@ -59,8 +59,10 @@ Just use tokenResponse.isValid() to check.
 
 ## IMPORTANT NOTICE
 
-If a HTTP client throws a SSL Exception because PKIX path cannot be built, this means that your Java installation does not trust the certificate of the server.
-Download the *.bitsea.de certificate using your browser (or try the one in the resources directory, but this might be outdated sometime) and import it into your Java cacerts keystore using keytool:
+If a HTTP client throws a SSL Exception because PKIX path cannot be built, this means that your Java installation does not 
+trust the certificate of the server.
+Download the *.bitsea.de certificate using your browser (or try the one in the resources directory, 
+but this might be outdated sometime) and import it into your Java cacerts keystore using keytool:
 
 ```
 keytool -import -alias bitsea -file cert_.bitsea.de -keystore ${JAVA_HOME}/lib/security/cacerts

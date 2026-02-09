@@ -3,7 +3,7 @@ package eu.occtet.boc.ortrunstarter.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.BaseWorkData;
-import eu.occtet.boc.model.ORTRunWorkData;
+import eu.occtet.boc.model.ORTStartRunWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.WorkConsumer;
@@ -37,7 +37,7 @@ public class ORTRunStarterWorkConsumer extends WorkConsumer {
             BaseWorkData workData = workTask.workData();
             boolean result = workData.process(new BaseWorkDataProcessor() {
                 @Override
-                public boolean process(ORTRunWorkData workData) {
+                public boolean process(ORTStartRunWorkData workData) {
                     log.debug("workData: {}", workData.toString());
                     try {
                         return ORTRunStarterService.process(workData);

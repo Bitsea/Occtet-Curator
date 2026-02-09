@@ -16,13 +16,14 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.util.*;
 
 @Service
-public class FlexeraReportImporter extends Importer {
+public class FlexeraReportImporter extends TaskParent {
 
     private static final Logger log = LogManager.getLogger(FlexeraReportImporter.class);
 
@@ -30,8 +31,9 @@ public class FlexeraReportImporter extends Importer {
     @Autowired
     private CuratorTaskService curatorTaskService;
 
-    @Autowired
-    private  NatsService natsService;
+
+    @Value("${nats.send-subject-foss}")
+    private String sendSubjectFoss;
 
 
     protected FlexeraReportImporter() {
@@ -150,7 +152,7 @@ public class FlexeraReportImporter extends Importer {
         fossReportServiceWorkData.setUseLicenseMatcher(useLicenseMatcher);
         fossReportServiceWorkData.setUseCopyrightFilter(useFalseCopyrightFilter);
 
-        return curatorTaskService.saveAndRunTask(task,fossReportServiceWorkData,"converted flexera row to work task");
+        return curatorTaskService.saveAndRunTask(task,fossReportServiceWorkData,"converted flexera row to work task", sendSubjectFoss);
 
     }
 

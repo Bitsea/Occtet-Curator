@@ -56,7 +56,7 @@ dependencies {
     // if Gradle fails because this does not exist, please get and build the occtet-nats project
     // and install the nats-common library into your local maven repository using 'mvn install' as explained
     // in the README of the occtet-nats project
-    implementation 'eu.occtet.boc:occtet-common:0.3.8-SNAPSHOT'
+    implementation 'eu.occtet.boc:occtet-common:0.3.9-SNAPSHOT'
 
     implementation 'io.jmix.core:jmix-core-starter'
     implementation 'io.jmix.data:jmix-eclipselink-starter'

@@ -25,6 +25,7 @@ import eu.occtet.boc.model.BaseSystemMessage;
 import eu.occtet.boc.model.MicroserviceDescriptor;
 import eu.occtet.boc.model.ProgressSystemMessage;
 import eu.occtet.boc.model.StatusDescriptor;
+import eu.occtet.boc.service.NatsStreamSender;
 import io.nats.client.*;
 import io.nats.client.api.*;
 import jakarta.annotation.PostConstruct;
@@ -33,6 +34,7 @@ import org.apache.logging.log4j.Logger;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -60,6 +62,8 @@ public class NatsService {
     private String streamName;
 
     private @NonNull JetStream js;
+
+
 
     private List<IOnStatusDescriptorReceived> statusDescriptorListeners = new ArrayList<>();
 

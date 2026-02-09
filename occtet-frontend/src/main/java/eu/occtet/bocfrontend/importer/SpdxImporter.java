@@ -11,13 +11,14 @@ import io.nats.client.api.ObjectMeta;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
 
 @Service
-public class SpdxImporter extends Importer {
+public class SpdxImporter extends TaskParent {
 
     private static final Logger log = LogManager.getLogger(SpdxImporter.class);
 
@@ -26,6 +27,9 @@ public class SpdxImporter extends Importer {
 
     @Autowired
     private  NatsService natsService;
+
+    @Value("${nats.send-subject-spdx}")
+    private String sendSubjectSpdx;
 
     protected SpdxImporter() {
         super("SPDX_Import");
@@ -92,7 +96,7 @@ public class SpdxImporter extends Importer {
 
         SpdxWorkData spdxWorkData = new SpdxWorkData( objectInfo.getObjectName(), objectInfo.getBucket(), projectId, useCopyright, useLicenseMatch);
 
-        return curatorTaskService.saveAndRunTask(task,spdxWorkData,"uploaded spdx report to be turned into entities by spdx-microservice");
+        return curatorTaskService.saveAndRunTask(task,spdxWorkData,"uploaded spdx report to be turned into entities by spdx-microservice", sendSubjectSpdx);
     }
 
     @Override

@@ -2,7 +2,6 @@ package eu.occtet.bocfrontend.importer;
 
 import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.entity.TaskStatus;
-import eu.occtet.bocfrontend.factory.CuratorTaskFactory;
 import eu.occtet.bocfrontend.service.CuratorTaskService;
 import io.jmix.core.DataManager;
 import jakarta.annotation.Nonnull;
@@ -17,24 +16,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class ImportManager {
+public class TaskManager {
 
 
-    private static final Logger log = LogManager.getLogger(ImportManager.class);
+    private static final Logger log = LogManager.getLogger(TaskManager.class);
     private final CuratorTaskService curatorTaskService;
 
 
     // Connect to all available Importer implementations. Small but effective Spring autowire trick :-)
     @Autowired
-    private List<Importer> importers;
+    private List<TaskParent> importers;
 
     @Autowired
     private DataManager dataManager;
 
-    @Autowired
-    private CuratorTaskFactory curatorTaskFactory;
 
-    public ImportManager(CuratorTaskService curatorTaskService) {
+    public TaskManager(CuratorTaskService curatorTaskService) {
         this.curatorTaskService = curatorTaskService;
     }
 
@@ -42,13 +39,13 @@ public class ImportManager {
     /**
      * @return list of available import names (for dropdown when selecting which importer to create)
      */
-    public List<Importer> getAvailableImports() {
+    public List<TaskParent> getAvailableImports() {
         log.debug("found {} available imports", importers.size());
         return importers.stream().filter(i -> !i.getName().equals("Dumb")).collect(Collectors.toCollection(ArrayList::new));
     }
 
 
-    public void startImport(Importer importer, CuratorTask curatorTask) {
+    public void startImport(TaskParent taskParent, CuratorTask curatorTask) {
 
         // if a initializer available, process it
         if (curatorTask != null) {
@@ -56,8 +53,8 @@ public class ImportManager {
 
             try {
 
-                res = importer.prepareAndStartTask(curatorTask);
-                log.info("started task {}, importer {}. Result: {}", curatorTask.getId(), importer.getName(), res);
+                res = taskParent.prepareAndStartTask(curatorTask);
+                log.info("started task {}, taskParent {}. Result: {}", curatorTask.getId(), taskParent.getName(), res);
                 if(!res) {
                     curatorTask.setStatus(TaskStatus.CANCELLED);
                 }
@@ -77,7 +74,7 @@ public class ImportManager {
      * @param name
      * @return the import with given name or null if not found
      */
-    public Importer findImportByName(@Nonnull String name) {
+    public TaskParent findImportByName(@Nonnull String name) {
         log.debug("looking for import with name {}", name);
         return importers.stream().filter(s -> StringUtils.equals(name, s.getName())).findFirst().orElse(null);
     }

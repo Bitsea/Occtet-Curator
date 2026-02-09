@@ -1,12 +1,36 @@
 package eu.occtet.boc.ortrunstarter.service;
 
+import eu.occtet.boc.dao.ProjectRepository;
+import eu.occtet.boc.entity.Project;
+import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import junit.framework.TestCase;
+import org.junit.Before;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.client.ApiException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 /*
  *
@@ -30,16 +54,43 @@ import java.io.IOException;
  *
  */
 
-@SpringBootTest
-@ContextConfiguration(classes = {ORTRunStarterService.class})
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles("test")
+@ContextConfiguration(classes = {ORTRunStarterService.class, ProjectRepository.class})
+@EnableJpaRepositories(basePackages = {
+        "eu.occtet.boc.dao"})
+@EntityScan(basePackages = {
+        "eu.occtet.boc.entity"
+})
+@ExtendWith(MockitoExtension.class)
 public class ORTRunStarterServiceTest extends TestCase {
 
     private ORTRunStarterService ortRunStarterService = new ORTRunStarterService();
+    @Autowired
+    private ProjectRepository projectRepository;
 
 
-    //@Test // commented out because it requires a running ORT server and Keycloak instance on localhost.
+    @Autowired
+    ApplicationContext ctx;
+
+    @Before
+    public void listBeans() {
+        String[] names = ctx.getBeanDefinitionNames();
+        Arrays.sort(names);
+        for (String n : names) {
+            System.out.println(n + " -> " + ctx.getBean(n).getClass().getName());
+        }
+    }
+
+    @Test // commented out because it requires a running ORT server and Keycloak instance on localhost.
     public void testStartOrtRun() throws IOException, InterruptedException, ApiException/* throws ApiException*/ {
-        ortRunStarterService.startOrtRun(1);
+        Project project= new Project("testProject");
+
+
+        projectRepository.save(project);
+        ortRunStarterService.startOrtRun(12345, "orgaName", "repoName",
+                "https://github.com/Bitsea/Occtet-Curator/tree/main", "GIT_REPO");
 
     }
 }
