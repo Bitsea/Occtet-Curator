@@ -55,7 +55,7 @@ public class RelationshipHandler {
      * Iterates through all packages, parses their relationships, and updates the entities.
      *
      * @param context The shared import context containing the document, root, and caches.
-     * @param progressCallback A callback to report progress (0-40 scale based on your prompt's usage).
+     * @param progressCallback A callback to report progress
      */
     public void processAllRelationships(SpdxImportContext context, Consumer<Integer> progressCallback) {
         try {
@@ -90,7 +90,6 @@ public class RelationshipHandler {
 
     /**
      * Processes relationships for a single package.
-     * Combined logic from the original parseRelationships and the Service's loop.
      */
     private void processSinglePackageRelationships(SpdxPackage spdxPackage, SpdxImportContext context) throws InvalidSPDXAnalysisException {
 
@@ -107,7 +106,6 @@ public class RelationshipHandler {
 
     /**
      * Core logic to interpret relationships and update InventoryItems.
-     * (Renamed from parseRelationships to clarify intent, kept logic mostly same)
      */
     private void parseRelationshipsLogic(SpdxPackage spdxPackage, List<Relationship> relationships,
                                          Map<String, InventoryItem> inventoryCache) throws InvalidSPDXAnalysisException {
