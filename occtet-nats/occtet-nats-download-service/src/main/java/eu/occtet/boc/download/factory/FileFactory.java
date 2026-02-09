@@ -21,13 +21,11 @@
 
 package eu.occtet.boc.download.factory;
 
-import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -35,10 +33,6 @@ import java.util.Objects;
 @Component
 public class FileFactory {
     private static final Logger log = LoggerFactory.getLogger(FileFactory.class);
-
-    @Autowired
-    private FileRepository fileRepository;
-
 
     public File create(Project project,
                        String fileName,
@@ -48,49 +42,55 @@ public class FileFactory {
                        boolean isDirectory,
                        File parentEntity,
                        InventoryItem inventoryItem) {
-
         Objects.requireNonNull(project, "Project cannot be null");
         Objects.requireNonNull(fileName, "File name cannot be null");
         Objects.requireNonNull(physicalPath, "Physical path cannot be null");
 
-        File file = fileRepository.findByArtifactPathAndFileNameAndProject(artifactPath, fileName, project);
-        if(file == null){
-            log.debug("File {} not found in repository, creating new one.", fileName);
-            file = new File();
-            file.setFileName(fileName);
-            file.setArtifactPath(artifactPath);
-            file.setProject(project);
-        }
+        File file = new File();
+        file.setProject(project);
+        file.setFileName(fileName);
 
         file.setPhysicalPath(physicalPath);
         file.setProjectPath(projectPath);
+        file.setArtifactPath(artifactPath);
 
         file.setIsDirectory(isDirectory);
         file.setParent(parentEntity);
         file.setInventoryItem(inventoryItem);
 
-        file.setReviewed(false);
-
         return file;
     }
 
+    public File createWithoutInventoryItem(Project project,
+                                           String fileName,
+                                           String physicalPath,
+                                           String projectPath,
+                                           String artifactPath,
+                                           boolean isDirectory,
+                                           File parentEntity) {
+        return create(project, fileName, physicalPath, projectPath, artifactPath, isDirectory, parentEntity, null);
+    }
 
-    public File updateFileEntity(File file, Project project,
-        String physicalPath,
-        String projectPath,
-        boolean isDirectory,
-        File parentEntity) {
-        log.debug("Updating file entity: {}, for inventoryItem: {}", file.getFileName(),
-                file.getInventoryItem()!=null ? file.getInventoryItem().getInventoryName():null);
-
+    public File updateFileEntity(
+            File file,
+            Project project,
+            String fileName,
+            String physicalPath,
+            String projectPath,
+            boolean isDirectory,
+            File parentEntity) {
+        log.debug("Updating file entity of artifact {} with physical path {} and project path {}",
+                file.getArtifactPath(), physicalPath, projectPath);
         Objects.requireNonNull(project, "Project cannot be null");
         Objects.requireNonNull(physicalPath, "Physical path cannot be null");
+
+        if (file.getFileName() == null || file.getFileName().isBlank())
+            file.setFileName(fileName);
 
         file.setPhysicalPath(physicalPath);
         file.setProjectPath(projectPath);
         file.setIsDirectory(isDirectory);
         file.setParent(parentEntity);
-
         file.setReviewed(false);
 
         return file;

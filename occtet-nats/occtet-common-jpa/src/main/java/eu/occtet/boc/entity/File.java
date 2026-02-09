@@ -71,7 +71,7 @@ public class File {
     @Column(name = "PHYSICAL_PATH", columnDefinition = "TEXT")
     private String physicalPath;
 
-    // Example: dependencies/lib-v1/com/acme/Util.java
+    // Example: project_101/dependencies/lib-v1/com/acme/Util.java
     @Column(name = "PROJECT_PATH", nullable = false, columnDefinition = "TEXT")
     private String projectPath;
 
