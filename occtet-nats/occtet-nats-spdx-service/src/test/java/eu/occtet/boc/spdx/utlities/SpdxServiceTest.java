@@ -63,7 +63,7 @@ import java.util.List;
         CopyrightService.class, InventoryItemService.class, LicenseService.class,FileService.class,
         ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class,FileRepository.class,
         CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class,
-        LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class, LicenseHandler.class
+        LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class, LicenseHandler.class, PackageHandler.class
 })
 @EnableJpaRepositories(basePackages = {
         "eu.occtet.boc.dao"})
