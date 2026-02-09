@@ -78,4 +78,12 @@ public class Range {
     public void setReference(String reference) {
         this.reference = reference;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

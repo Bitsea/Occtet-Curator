@@ -21,8 +21,13 @@ package eu.occtet.boc.entity.spdxV2;
 import jakarta.persistence.*;
 
 
-@Embeddable
+@Entity
+@Table(name = "Range")
 public class Range {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
 
     @Column(name="start")
     private int start;
@@ -71,5 +76,13 @@ public class Range {
 
     public void setReference(String reference) {
         this.reference = reference;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }

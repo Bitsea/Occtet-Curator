@@ -43,8 +43,8 @@ public class Snippet {
     @Column(nullable = false, name= "snippet_from_file", length = 2048)
     private String snippetFromFile;
 
-    @ElementCollection
-    @CollectionTable(name = "snippet_ranges", joinColumns = @JoinColumn(name = "snippet_id"))
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "snippet_id")
     private List<Range> ranges;
 
     @Column(name= "license_concluded", columnDefinition = "TEXT")
