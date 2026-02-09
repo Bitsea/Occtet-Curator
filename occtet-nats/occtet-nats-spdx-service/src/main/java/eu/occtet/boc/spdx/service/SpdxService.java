@@ -31,6 +31,7 @@ import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.service.ProgressReportingService;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
+import eu.occtet.boc.spdx.service.handler.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
@@ -62,17 +63,13 @@ public class SpdxService extends ProgressReportingService  {
     @Autowired
     private SpdxConverter spdxConverter;
     @Autowired
-    private LicenseHandler licenseHandler;
-    @Autowired
     private PackageHandler packageHandler;
     @Autowired
-    private SoftwareComponentService softwareComponentService;
+    private RelationshipHandler relationshipHandler;
     @Autowired
-    private CopyrightService copyrightService;
+    private SnippetHandler snippetHandler;
     @Autowired
-    private InventoryItemService inventoryItemService;
-    @Autowired
-    private FileService fileService;
+    private OrphanHandler orphanHandler;
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
@@ -81,8 +78,6 @@ public class SpdxService extends ProgressReportingService  {
     private AnswerService answerService;
     @Autowired
     private SpdxDocumentRootRepository spdxDocumentRootRepository;
-    @Autowired
-    private CopyrightRepository copyrightRepository;
     @Autowired
     private CleanUpService cleanUpService;
 
@@ -194,15 +189,15 @@ public class SpdxService extends ProgressReportingService  {
                     .collect(Collectors.toMap(InventoryItem::getSpdxId, item -> item, (p1, p2) -> p1));
 
             try {
-                processOrphanFiles(spdxDocument, project, spdxDocumentRoot,
-                        licenseCache, fileToInventoryItemMap, processedFileIds, inventoryItems);
+                orphanHandler.processOrphanFiles(spdxDocument, project, spdxDocumentRoot,
+                        licenseCache, fileToInventoryItemMap, processedFileIds, inventoryItems, licenseInfosExtractedSpdxDoc);
             } catch (Exception e) {
                 log.error("Error processing orphan files", e);
             }
 
             count=0;
             for (SpdxPackage spdxPackage : spdxPackages) {
-                parseRelationships(spdxPackage, spdxPackage.getRelationships().stream().toList(), inventoryCache);
+                relationshipHandler.parseRelationships(spdxPackage, spdxPackage.getRelationships().stream().toList(), inventoryCache);
                 for(Relationship relationship: spdxPackage.getRelationships()) {
                     spdxConverter.convertRelationShip(relationship, spdxDocumentRoot, spdxPackage);
                 }
@@ -230,7 +225,7 @@ public class SpdxService extends ProgressReportingService  {
                 spdxConverter.convertSnippets(snippet, spdxDocumentRoot);
 
                 try {
-                    enrichComponentFromSnippet(snippet, fileToInventoryItemMap, licenseCache);
+                    snippetHandler.enrichComponentFromSnippet(snippet, fileToInventoryItemMap, licenseCache, licenseInfosExtractedSpdxDoc);
                 } catch (Exception e) {
                     log.error("Failed to enrich component from snippet: {}", snippet.getId(), e);
                 }
@@ -270,205 +265,5 @@ public class SpdxService extends ProgressReportingService  {
     }
 
 
-    private void parseRelationships(SpdxPackage spdxPackage, List<Relationship> relationships
-            , Map<String, InventoryItem> inventoryCache) throws InvalidSPDXAnalysisException {
-
-        InventoryItem sourceItem = inventoryCache.get(spdxPackage.getId());
-
-        if (sourceItem == null) {
-            log.error("Relationship source package not found in inventory: {}", spdxPackage.getId());
-            return;
-        }
-
-        for (Relationship relationship : relationships) {
-            Optional<SpdxElement> targetOpt = relationship.getRelatedSpdxElement();
-            if (targetOpt.isEmpty()) continue;
-
-            SpdxElement targetElement = targetOpt.get();
-
-            InventoryItem targetItem = inventoryCache.get(targetElement.getId());
-
-            if (targetItem == null) {
-                continue;
-            }
-
-            switch (relationship.getRelationshipType()) {
-                case CONTAINS, DEPENDS_ON, ANCESTOR_OF -> {
-                    if (targetElement.getType().equals("Package")) {
-                        targetItem.setParent(sourceItem);
-                        inventoryItemService.update(targetItem);
-                        log.info("identified {} as parent of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
-                    }
-                }
-                case CONTAINED_BY, DEPENDENCY_OF, DESCENDANT_OF -> {
-                    if (targetElement.getType().equals("Package")) {
-                        sourceItem.setParent(targetItem);
-                        inventoryItemService.update(sourceItem);
-                        log.info("identified {} as child of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
-                    }
-                }
-                case STATIC_LINK -> {
-                    if (targetElement.getType().equals("Package")) {
-                        targetItem.setLinking("Static");
-                        inventoryItemService.update(targetItem);
-                    }
-                }
-                case DYNAMIC_LINK -> {
-                    if (targetElement.getType().equals("Package")) {
-                        targetItem.setLinking("Dynamic");
-                        inventoryItemService.update(targetItem);
-                    }
-                }
-                case null, default -> {
-                }
-            }
-        }
-
-    }
-
-    private void enrichComponentFromSnippet(SpdxSnippet snippet,
-                                            Map<String, InventoryItem> fileMap,
-                                            Map<String, License> licenseCache) throws InvalidSPDXAnalysisException {
-
-        SpdxFile snippetFile = snippet.getSnippetFromFile();
-        if (snippetFile == null) return;
-
-        InventoryItem item = fileMap.get(snippetFile.getId());
-        if (item == null || item.getSoftwareComponent() == null) {
-            return;
-        }
-
-        SoftwareComponent component = item.getSoftwareComponent();
-        boolean componentUpdated = false;
-
-        String snippetCopyright = snippet.getCopyrightText();
-        if (snippetCopyright != null && !snippetCopyright.isEmpty()
-                && !"NOASSERTION".equals(snippetCopyright) && !"NONE".equals(snippetCopyright)) {
-
-            boolean exists = component.getCopyrights() != null && component.getCopyrights().stream()
-                    .anyMatch(c -> c.getCopyrightText().equals(snippetCopyright));
-
-            if (!exists) {
-                Copyright copyright = copyrightService.findOrCreateBatch(Set.of(snippetCopyright)).get(snippetCopyright);
-                if (copyright != null) {
-                    component.getCopyrights().add(copyright);
-                    componentUpdated = true;
-                }
-            }
-        }
-
-        AnyLicenseInfo concluded = snippet.getLicenseConcluded();
-        if (concluded != null && !concluded.isNoAssertion(concluded) && !concluded.isNoAssertion(concluded)) {
-            List<License> licenses = licenseHandler.createLicenses(concluded, licenseCache, licenseInfosExtractedSpdxDoc);
-            for (License license : licenses) {
-                if (!component.getLicenses().contains(license)) {
-                    component.addLicense(license);
-                    componentUpdated = true;
-                }
-            }
-        }
-
-        if (componentUpdated) {
-            softwareComponentService.update(component);
-        }
-    }
-
-    private void processOrphanFiles(SpdxDocument spdxDocument, Project project,
-                                    SpdxDocumentRoot spdxDocumentRoot,
-                                    Map<String, License> licenseCache,
-                                    Map<String, InventoryItem> fileToInventoryItemMap,
-                                    Set<String> processedFileIds,
-                                    List<InventoryItem> inventoryItems) throws Exception {
-
-        List<TypedValue> allFileUris = spdxDocument.getModelStore().getAllItems(null, "File").toList();
-        List<SpdxFile> orphanFiles = new ArrayList<>();
-
-        for (TypedValue uri : allFileUris) {
-            SpdxModelFactory.getSpdxObjects(
-                    spdxDocument.getModelStore(),
-                    spdxDocument.getCopyManager(),
-                    "File",
-                    uri.getObjectUri(),
-                    null
-            ).forEach(obj -> {
-                if (obj instanceof SpdxFile file) {
-                    if (!processedFileIds.contains(file.getId())) {
-                        orphanFiles.add(file);
-                    }
-                }
-            });
-        }
-
-        if (orphanFiles.isEmpty()) {
-            return;
-        }
-
-        log.info("Found {} orphan files. Creating individual inventory items for each.", orphanFiles.size());
-
-
-        for (SpdxFile file : orphanFiles) {
-
-            String filePath = file.getName().orElse("Unknown File");
-
-            SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(filePath, "Standalone");
-
-
-            InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(filePath, component, project);
-            inventoryItem.setSpdxId(file.getId());
-            inventoryItem.setCurated(false);
-            inventoryItem.setSize(1);
-
-
-            spdxConverter.convertFile(file, spdxDocumentRoot);
-            fileToInventoryItemMap.put(file.getId(), inventoryItem);
-
-            Map<String, File> locationMap = fileService.findOrCreateBatch(Collections.singletonList(filePath), inventoryItem);
-            File dbFile = locationMap.get(filePath);
-
-            String copyrightText = file.getCopyrightText();
-            if (copyrightText != null && !"NONE".equals(copyrightText) && !"NOASSERTION".equals(copyrightText)) {
-
-                Map<String, Copyright> createdCopyrights = copyrightService.findOrCreateBatch(Collections.singleton(copyrightText));
-                Copyright copyright = createdCopyrights.get(copyrightText);
-
-                if (copyright != null) {
-                    if (dbFile != null) {
-                        copyright.getFiles().add(dbFile);
-                        copyrightRepository.save(copyright);
-                    }
-
-                    if (component.getCopyrights() == null) {
-                        component.setCopyrights(new ArrayList<>());
-                    }
-                    if (!component.getCopyrights().contains(copyright)) {
-                        component.getCopyrights().add(copyright);
-                    }
-                }
-            }
-
-            AnyLicenseInfo fileLicense = file.getLicenseConcluded();
-            if (fileLicense.isNoAssertion(fileLicense)) {
-                fileLicense = file.getLicenseInfoFromFiles().stream().findFirst().orElse(null);
-            }
-
-            if (fileLicense != null) {
-                List<License> licenses = licenseHandler.createLicenses(fileLicense, licenseCache, licenseInfosExtractedSpdxDoc);
-
-                if (component.getLicenses() == null) {
-                    component.setLicenses(new ArrayList<>());
-                }
-
-                for (License l : licenses) {
-                    if (!component.getLicenses().contains(l)) {
-                        component.addLicense(l);
-                    }
-                }
-            }
-
-            softwareComponentService.update(component);
-            inventoryItemService.update(inventoryItem);
-            inventoryItems.add(inventoryItem);
-        }
-    }
 
 }

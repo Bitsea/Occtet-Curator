@@ -33,6 +33,7 @@ import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.factory.*;
 import eu.occtet.boc.spdx.service.*;
+import eu.occtet.boc.spdx.service.handler.*;
 import io.nats.client.JetStreamApiException;
 import org.junit.Before;
 import org.junit.jupiter.api.Assertions;
@@ -63,7 +64,8 @@ import java.util.List;
         CopyrightService.class, InventoryItemService.class, LicenseService.class,FileService.class,
         ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class,FileRepository.class,
         CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class,
-        LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class, LicenseHandler.class, PackageHandler.class
+        LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class, LicenseHandler.class, PackageHandler.class, OrphanHandler.class,
+        RelationshipHandler.class, SnippetHandler.class
 })
 @EnableJpaRepositories(basePackages = {
         "eu.occtet.boc.dao"})

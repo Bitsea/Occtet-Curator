@@ -16,13 +16,17 @@
  *  License-Filename: LICENSE
  */
 
-package eu.occtet.boc.spdx.service;
+package eu.occtet.boc.spdx.service.handler;
 
 import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
+import eu.occtet.boc.spdx.service.CopyrightService;
+import eu.occtet.boc.spdx.service.FileService;
+import eu.occtet.boc.spdx.service.InventoryItemService;
+import eu.occtet.boc.spdx.service.SoftwareComponentService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
