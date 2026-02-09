@@ -38,20 +38,18 @@ import java.util.Optional;
 @Component
 public class DownloadStrategyFactory {
 
-    private final Logger log = LogManager.getLogger(this.getClass());
-
     @Autowired
     private List<DownloadStrategy> strategies;
 
-    public Optional<DownloadStrategy> findForUrl(URL durl, String version) {
-        return strategies.stream().filter(s -> s.canHandle(durl, version)).findFirst();
+    public List<DownloadStrategy> findForUrl(URL durl, String version) {
+        return strategies.stream().filter(s -> s.canHandle(durl, version)).toList();
     }
 
-    public Optional<DownloadStrategy> findForPurl(PackageURL purl) {
-        return strategies.stream().filter(s -> s.canHandle(purl)).findFirst();
+    public List<DownloadStrategy> findForPurl(PackageURL purl) {
+        return strategies.stream().filter(s -> s.canHandle(purl)).toList();
     }
 
-    public Optional<DownloadStrategy> findForName(String name, String version) {
-        return strategies.stream().filter(s -> s.canHandle(name, version)).findFirst();
+    public List<DownloadStrategy> findForName(String name, String version) {
+        return strategies.stream().filter(s -> s.canHandle(name, version)).toList();
     }
 }

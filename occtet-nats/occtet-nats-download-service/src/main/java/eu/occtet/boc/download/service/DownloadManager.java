@@ -46,7 +46,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
+import java.util.List;
 
 @Service
 public class DownloadManager extends BaseWorkDataProcessor {
@@ -98,7 +98,8 @@ public class DownloadManager extends BaseWorkDataProcessor {
                 log.debug("Resolving dependencies folder for item {}", data.getInventoryItemId());
                 workingPath = workingPath.resolve(DEPENDENCIES_FOLDER);
             }
-            String safeSoftwareComponentName = sanitizeFilename(softwareComponent.getName(), "unknown_component_" + data.getInventoryItemId());
+            String canonicalName = resolveCanonicalDirectoryName(softwareComponent);
+            String safeSoftwareComponentName = sanitizeFilename(canonicalName, "unknown_component_" + data.getInventoryItemId());
 
             String safeComponentVersion = sanitizeFilename(softwareComponent.getVersion(), "unknown_version");
 
@@ -109,46 +110,68 @@ public class DownloadManager extends BaseWorkDataProcessor {
             if (softwareComponent.getDetailsUrl() != null) {
                 try {
                     URL durl = new URI(softwareComponent.getDetailsUrl()).toURL();
-                    Optional<DownloadStrategy> strategy = downloadStrategyFactory.findForUrl(durl, softwareComponent.getVersion());
-                    if (strategy.isPresent()) {
-                        log.info("Downloading via URL using {}", strategy.get().getClass().getSimpleName());
-                        downloadedPath = strategy.get().download(durl, softwareComponent.getVersion(), finalComponentDir);
+
+                    List<DownloadStrategy> candidates = downloadStrategyFactory.findForUrl(durl, softwareComponent.getVersion());
+
+                    for (DownloadStrategy strategy : candidates) {
+                        try {
+                            log.info("Attempting download via URL using {}", strategy.getClass().getSimpleName());
+                            downloadedPath = strategy.download(durl, softwareComponent.getVersion(), finalComponentDir);
+
+                            if (downloadedPath != null) {
+                                break;
+                            }
+                        } catch (Exception e) {
+                            log.warn("Strategy {} failed to download. Trying next strategy... Error: {}",
+                                    strategy.getClass().getSimpleName(), e.getMessage());
+                        }
                     }
                 } catch (Exception e) {
-                    log.warn("Failed to download via URL, falling back. Error: {}", e.getMessage());
+                    log.warn("Critical error resolving URL strategies: {}", e.getMessage());
                 }
             }
             // Attempt using PURL
             if (softwareComponent.getPurl() != null && downloadedPath == null){
                 try {
                     PackageURL purl = new PackageURL(softwareComponent.getPurl());
-                    Optional<DownloadStrategy> strategy = downloadStrategyFactory.findForPurl(purl);
-                    if (strategy.isPresent()) {
-                        log.info("Downloading via PURL using {}", strategy.get().getClass().getSimpleName());
-                        downloadedPath = strategy.get().download(purl, finalComponentDir);
+                    List<DownloadStrategy> candidates = downloadStrategyFactory.findForPurl(purl);
+
+                    for (DownloadStrategy strategy : candidates) {
+                        try {
+                            log.info("Attempting download via PURL using {}", strategy.getClass().getSimpleName());
+                            downloadedPath = strategy.download(purl, finalComponentDir);
+                            if (downloadedPath != null) break;
+                        } catch (Exception e) {
+                            log.warn("Strategy {} failed. Error: {}", strategy.getClass().getSimpleName(), e.getMessage());
+                        }
                     }
                 } catch (Exception e) {
-                    log.warn("Failed to download via PURL, falling back. Error: {}", e.getMessage());
+                    log.warn("Failed to process PURL: {}", e.getMessage());
                 }
             }
             // Attempt using name/version
             if (softwareComponent.getName() != null && downloadedPath == null){
                 try {
-                    Optional<DownloadStrategy> strategy = downloadStrategyFactory.findForName(softwareComponent.getName(), softwareComponent.getVersion());
-                    if (strategy.isPresent()) {
-                        log.info("Downloading via Name lookup using {}", strategy.get().getClass().getSimpleName());
-                        downloadedPath = strategy.get().download(softwareComponent.getName(),
-                                softwareComponent.getVersion(), finalComponentDir);
+                    List<DownloadStrategy> candidates = downloadStrategyFactory.findForName(softwareComponent.getName(), softwareComponent.getVersion());
+
+                    for (DownloadStrategy strategy : candidates) {
+                        try {
+                            log.info("Attempting download via Name lookup using {}", strategy.getClass().getSimpleName());
+                            downloadedPath = strategy.download(softwareComponent.getName(),
+                                    softwareComponent.getVersion(), finalComponentDir);
+                            if (downloadedPath != null) break;
+                        } catch (Exception e) {
+                            log.warn("Strategy {} failed. Error: {}", strategy.getClass().getSimpleName(), e.getMessage());
+                        }
                     }
                 } catch (Exception e) {
-                    log.warn("Failed to download via Name/Version, falling back. Error: {}", e.getMessage());
+                    log.warn("Failed to process Name lookup: {}", e.getMessage());
                 }
             }
 
             if (downloadedPath == null){
                 log.error("All download strategies failed for item {}", data.getInventoryItemId());
                 String oldNotes = inventoryItem.getExternalNotes();
-                // TODO improve the message
                 oldNotes += "\n\nWARNING: Unable to download resources for this inventory item.";
                 inventoryItem.setExternalNotes(oldNotes);
                 inventoryItemRepository.save(inventoryItem);
@@ -161,7 +184,6 @@ public class DownloadManager extends BaseWorkDataProcessor {
                 archiveService.unpack(downloadedPath, finalComponentDir);
             }
 
-            // TODO get rid of arg `targetDir.toString()` unneeded plus why is it using String instead of path
             fileService.createEntitiesFromPath(
                     project,
                     inventoryItem,
@@ -193,5 +215,34 @@ public class DownloadManager extends BaseWorkDataProcessor {
     private String sanitizeFilename(String input, String fallback) {
         if (input == null || input.isBlank()) return fallback;
         return input.replaceAll(SAFE_FILENAME_REGEX, "_");
+    }
+
+    /**
+     * Resolves a canonical folder name to prevent duplicates.
+     * Priority: PURL Name -> Git Repo Name -> Component Name
+     */
+    private String resolveCanonicalDirectoryName(SoftwareComponent component) {
+        if (component.getPurl() != null && !component.getPurl().isBlank()) {
+            try {
+                PackageURL purl = new PackageURL(component.getPurl());
+                return purl.getName();
+            } catch (Exception e) {
+                log.warn("Invalid PURL for component {}: {}", component.getId(), e.getMessage());
+            }
+        }
+
+        String url = component.getDetailsUrl();
+        if (url != null && !url.isBlank()) {
+            String clean = url.trim();
+            if (clean.endsWith("/")) clean = clean.substring(0, clean.length() - 1);
+            if (clean.endsWith(".git")) clean = clean.substring(0, clean.length() - 4);
+
+            int lastSlash = clean.lastIndexOf('/');
+            if (lastSlash != -1 && lastSlash < clean.length() - 1) {
+                return clean.substring(lastSlash + 1);
+            }
+        }
+
+        return component.getName();
     }
 }
