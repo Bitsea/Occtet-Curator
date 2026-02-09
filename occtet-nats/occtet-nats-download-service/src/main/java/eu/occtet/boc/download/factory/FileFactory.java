@@ -79,7 +79,7 @@ public class FileFactory {
             String projectPath,
             boolean isDirectory,
             File parentEntity) {
-        log.debug("Updating file entity of artifact {} with physical path {} and project path {}",
+        log.trace("Updating file entity of artifact {} with physical path {} and project path {}",
                 file.getArtifactPath(), physicalPath, projectPath);
         Objects.requireNonNull(project, "Project cannot be null");
         Objects.requireNonNull(physicalPath, "Physical path cannot be null");

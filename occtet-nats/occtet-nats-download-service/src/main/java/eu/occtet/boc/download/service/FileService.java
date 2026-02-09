@@ -116,15 +116,14 @@ public class FileService {
             File rootEntity = filesCreatedOrUpdatedInFileService.get(rootPhysicalPath);
             if (rootEntity == null) {
                 log.debug("physical path: {} creating root directory", rootDirectory.getAbsolutePath());
-                rootEntity = fileFactory.create(
+                rootEntity = fileFactory.createWithoutInventoryItem(
                         project,
                         rootDirectory.getName(),
                         rootPhysicalPath,
                         calculatedProjectPath,
                         calculatedArtifactPath,
                         true,
-                        parentForRoot,
-                        inventoryItem
+                        parentForRoot
                 );
                 filesCreatedOrUpdatedInFileService.put(rootPhysicalPath, rootEntity);
                 addToBatch(rootEntity, batchBuffer, BATCHSIZE);
@@ -190,7 +189,7 @@ public class FileService {
 
         for (java.io.File file : files) {
             if (shouldIgnore(file)) {
-                log.trace("Ignoring file {}", file.getAbsolutePath());
+                log.debug("Ignoring file {}", file.getAbsolutePath());
                 continue;
             }
 
@@ -213,7 +212,10 @@ public class FileService {
             // Scenario 2
             fileEntity = filesInSpdxService.get(artifactPath);
             if (fileEntity != null) {
-                log.trace("Found pre-created SPDX entity for artifact path: {} - updating with physical path: {}", artifactPath, physicalPath);
+
+                log.trace("Found pre-created SPDX entity for artifact path: {} - updating with " +
+                                "physical path: {}",
+                        artifactPath, physicalPath);
                 fileEntity = fileFactory.updateFileEntity(
                         fileEntity,
                         project,
@@ -236,7 +238,7 @@ public class FileService {
             }
 
             // Scenario 3
-            log.debug("Creating new File entity: {}", physicalPath);
+            log.trace("Creating new File entity: {}", physicalPath);
             fileEntity = fileFactory.createWithoutInventoryItem(
                     project,
                     file.getName(),
@@ -305,15 +307,14 @@ public class FileService {
 
         log.debug("Creating parent directory entity: {} (artifactPath: {})",
                 directory.getName(), artifactPath);
-        File newEntity = fileFactory.create(
+        File newEntity = fileFactory.createWithoutInventoryItem(
                 project,
                 directory.getName(),
                 currentPhysicalPath,
                 relativeProjectPath,
                 artifactPath,
                 true,
-                parentFile,
-                inventoryItem
+                parentFile
         );
 
         filesInFileService.put(currentPhysicalPath, newEntity);
