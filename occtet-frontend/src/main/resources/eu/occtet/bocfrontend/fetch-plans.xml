@@ -19,16 +19,10 @@
 
 <fetchPlans xmlns="http://jmix.io/schema/core/fetch-plans">
     <fetchPlan entity="Copyright" name="full"  extends="_base">
-        <property name="codeLocations" >
+        <property name="files" >
             <property name="inventoryItem">
                 <property name="project">
                 </property>
-            </property>
-        </property>
-    </fetchPlan>
-    <fetchPlan entity="CodeLocation" name="full" extends="_base">
-        <property name="inventoryItem">
-            <property name="project">
             </property>
         </property>
     </fetchPlan>

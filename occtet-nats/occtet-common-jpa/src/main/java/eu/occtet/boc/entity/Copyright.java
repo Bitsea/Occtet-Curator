@@ -54,20 +54,21 @@ public class Copyright {
     @Column(name= "AI_CONTROLLED")
     private Boolean aiControlled;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(
-            name = "COPYRIGHT_CODE_LOCATION_LINK",
+            name = "COPYRIGHT_FILE_LINK",
             joinColumns = @JoinColumn(name = "COPYRIGHT_ID", referencedColumnName = "ID"),
-            inverseJoinColumns = @JoinColumn(name = "CODE_LOCATION_ID", referencedColumnName = "ID"))
-    private Set<CodeLocation> codeLocations = new HashSet<>();;
+            inverseJoinColumns = @JoinColumn(name = "FILE_ID", referencedColumnName = "ID"))
+    private Set<File> files = new HashSet<>();;
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name= "COPYRIGHT_ID")
     private List<License> licenses;
 
-    public Copyright(String copyrightText, Set<CodeLocation> cl) {
+    public Copyright(String copyrightText, Set<File> cl) {
         this.copyrightText = copyrightText;
-        this.codeLocations = cl;
+        this.files = cl;
         this.curated = false;
         this.garbage = false;
         this.aiControlled=false;
@@ -111,12 +112,12 @@ public class Copyright {
         this.curated = curated;
     }
 
-    public Set<CodeLocation> getCodeLocations() {
-        return codeLocations;
+    public Set<File> getFiles() {
+        return files;
     }
 
-    public void setCodeLocations(Set<CodeLocation> codeLocation) {
-        this.codeLocations = codeLocation;
+    public void setFiles(Set<File> files) {
+        this.files = files;
     }
 
     public boolean isGarbage() {

@@ -67,9 +67,9 @@ public class InventoryItem {
     @JoinColumn(name = "SOFTWARE_COMPONENT_ID", nullable = true)
     private SoftwareComponent softwareComponent;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "INVENTORY_ITEM_ID")
-    private List<CodeLocation> codeLocations;
+
+    @Column(name= "WAS_COMBINED")
+    private Boolean wasCombined;
 
     @Column(name= "CURATED")
     private Boolean curated;
@@ -88,13 +88,14 @@ public class InventoryItem {
 
     public InventoryItem(String inventoryName, Integer size, String linking,
                          String externalNotes, InventoryItem parent,
-                         SoftwareComponent softwareComponent) {
+                         SoftwareComponent softwareComponent, Boolean wasCombined) {
         this.inventoryName = inventoryName;
         this.size = size;
         this.linking = linking;
         this.externalNotes = externalNotes;
         this.parent = parent;
         this.softwareComponent = softwareComponent;
+        this.wasCombined = wasCombined;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -129,11 +130,11 @@ public class InventoryItem {
     }
 
     public String getLinking() {
-        return linking == null ? "None" : linking;
+        return linking;
     }
 
     public void setLinking(String linking) {
-        this.linking = linking == null ? "None" : linking;
+        this.linking = linking;
     }
 
     public String getExternalNotes() {
@@ -158,6 +159,14 @@ public class InventoryItem {
 
     public void setSoftwareComponent(SoftwareComponent softwareComponent) {
         this.softwareComponent = softwareComponent;
+    }
+
+    public Boolean getWasCombined() {
+        return wasCombined;
+    }
+
+    public void setWasCombined(Boolean wasCombined) {
+        this.wasCombined = wasCombined;
     }
 
     public Boolean isCurated() {

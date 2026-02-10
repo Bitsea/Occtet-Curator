@@ -175,6 +175,12 @@
             <version>5.3.1</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.38</version>
+            <scope>provided</scope>
+        </dependency>
 
     </dependencies>
 
@@ -184,6 +190,12 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>../occtet-common-jpa/src/main/resources</directory>
+                <includes>
+                    <include>application-common-jpa.properties</include>
+                </includes>
             </resource>
         </resources>
         <plugins>

@@ -20,6 +20,7 @@ package eu.occtet.boc.spdx.utlities;
 
 import eu.occtet.boc.config.TestEclipseLinkJpaConfiguration;
 import eu.occtet.boc.dao.*;
+import eu.occtet.boc.entity.appconfigurations.AppConfigKey;
 import eu.occtet.boc.entity.spdxV2.*;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
@@ -32,10 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.library.SpdxModelFactory;
-import org.spdx.library.model.v2.Relationship;
-import org.spdx.library.model.v2.SpdxDocument;
-import org.spdx.library.model.v2.SpdxFile;
-import org.spdx.library.model.v2.SpdxPackage;
+import org.spdx.library.model.v2.*;
 import org.spdx.storage.simple.InMemSpdxStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -50,6 +48,8 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -77,7 +77,7 @@ public class SpdxConverterTest {
     private static final Logger log = LogManager.getLogger(SpdxConverterTest.class);
 
     @BeforeEach
-    public void setUp(){
+    public void setUp() {
         try {
             // setup for spdx library need to be called once before any spdx model objects are accessed
             SpdxModelFactory.init();
@@ -88,20 +88,20 @@ public class SpdxConverterTest {
 
             InputStream inputStream = new ByteArrayInputStream(bytes);
             spdxDocument = inputStore.deSerialize(inputStream, false);
-        }catch (Exception e){
+        } catch (Exception e) {
             Assertions.fail("Error occurred during setup");
         }
     }
 
     @Test
-    public void convertDocument(){
+    public void convertDocument() {
 
         SpdxDocumentRoot spdxDocumentRoot = spdxConverter.convertSpdxV2DocumentInformation(spdxDocument);
         //Check correctness of base info
         Assertions.assertEquals("SPDX-2.3", spdxDocumentRoot.getSpdxVersion());
         Assertions.assertEquals("SPDXRef-DOCUMENT", spdxDocumentRoot.getSpdxId());
         Assertions.assertEquals("some document name", spdxDocumentRoot.getName());
-        Assertions.assertEquals("CC0-1.0" ,spdxDocumentRoot.getDataLicense());
+        Assertions.assertEquals("CC0-1.0", spdxDocumentRoot.getDataLicense());
         Assertions.assertEquals("some document comment", spdxDocumentRoot.getComment());
         Assertions.assertEquals("<REPLACE_DOCUMENT_NAMESPACE>", spdxDocumentRoot.getDocumentUri());
 
@@ -129,7 +129,7 @@ public class SpdxConverterTest {
     }
 
     @Test
-    public void convertPackage(){
+    public void convertPackage() {
         try {
 
             SpdxDocumentRoot spdxDocumentRoot = new SpdxDocumentRoot();
@@ -157,7 +157,7 @@ public class SpdxConverterTest {
     }
 
     @Test
-    public void convertFileTest(){
+    public void convertFileTest() {
         try {
             SpdxDocumentRoot spdxDocumentRoot = new SpdxDocumentRoot();
             SpdxPackage spdxPackage = (SpdxPackage) spdxDocument.getDocumentDescribes().toArray()[0];
@@ -169,7 +169,7 @@ public class SpdxConverterTest {
             Assertions.assertEquals("NONE", spdxFileEntity.getCopyrightText());
             Assertions.assertEquals("NOASSERTION", spdxFileEntity.getLicenseConcluded());
             Assertions.assertEquals("GPL-2.0-only WITH NOASSERTION", spdxFileEntity.getLicenseInfoInFiles().getFirst());
-            Assertions.assertEquals(spdxDocumentRoot,spdxFileEntity.getSpdxDocument());
+            Assertions.assertEquals(spdxDocumentRoot, spdxFileEntity.getSpdxDocument());
             Assertions.assertFalse(spdxDocumentRoot.getFiles().isEmpty());
 
             ChecksumEntity checksum = spdxFileEntity.getChecksums().getFirst();
@@ -182,7 +182,7 @@ public class SpdxConverterTest {
     }
 
     @Test
-    public void convertRelationshipTest(){
+    public void convertRelationshipTest() {
         try {
 
             SpdxDocumentRoot spdxDocumentRoot = new SpdxDocumentRoot();
@@ -191,7 +191,7 @@ public class SpdxConverterTest {
             SpdxPackage spdxPackage = new SpdxPackage("SPDXRef-Package-Go-gopkg.in.yaml.v3-3.0.1");
             RelationshipEntity relationshipEntity = spdxConverter.convertRelationShip(relationship, spdxDocumentRoot, spdxPackage);
 
-            Assertions.assertEquals("SPDXRef-Package-Go-gopkg.in.yaml.v3-3.0.1",relationshipEntity.getSpdxElementId());
+            Assertions.assertEquals("SPDXRef-Package-Go-gopkg.in.yaml.v3-3.0.1", relationshipEntity.getSpdxElementId());
             Assertions.assertEquals("DESCRIBES", relationshipEntity.getRelationshipType());
             Assertions.assertEquals("SPDXRef-Project-Maven-proj1-grp-proj1-0.0.1", relationshipEntity.getRelatedSpdxElement());
             Assertions.assertEquals(spdxDocumentRoot, relationshipEntity.getSpdxDocument());
@@ -201,4 +201,41 @@ public class SpdxConverterTest {
             Assertions.fail("An error occurred: " + e);
         }
     }
+
+    @Test
+    public void snippetTest() {
+        try {
+
+            SpdxDocumentRoot spdxDocumentRoot = new SpdxDocumentRoot();
+
+            Stream<?> rawStream = SpdxModelFactory.getSpdxObjects(
+                    spdxDocument.getModelStore(),
+                    spdxDocument.getCopyManager(),
+                    SpdxConstantsCompatV2.CLASS_SPDX_SNIPPET,
+                    spdxDocument.getDocumentUri(),
+                    null
+            );
+
+            Stream<SpdxSnippet> snippetStream = rawStream
+                    .filter(obj -> obj instanceof SpdxSnippet)
+                    .map(obj -> (SpdxSnippet) obj);
+
+            Optional<SpdxSnippet>  spdxSnippet = snippetStream.findFirst();
+            Assertions.assertTrue(spdxSnippet.isPresent());
+            Snippet snippet = spdxConverter.convertSnippets(spdxSnippet.get(), spdxDocumentRoot);
+
+            Assertions.assertEquals(spdxDocumentRoot, snippet.getSpdxDocument());
+            Assertions.assertEquals(spdxDocumentRoot.getSnippets().getFirst(), snippet);
+            Assertions.assertEquals("SPDXRef-Snippet", snippet.getSpdxId());
+            Assertions.assertEquals("from linux kernel", snippet.getName());
+            Assertions.assertEquals("Copyright 2008-2010 John Smith", snippet.getCopyrightText());
+            Assertions.assertEquals("GPL-2.0-only", snippet.getLicenseConcluded());
+            Assertions.assertFalse(snippet.getRanges().isEmpty());
+            Assertions.assertEquals("SPDXRef-File-1", snippet.getRanges().getFirst().getReference());
+
+        } catch (Exception e) {
+            Assertions.fail("An error occurred: " + e);
+        }
+    }
+
 }

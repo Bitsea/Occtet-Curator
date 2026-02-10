@@ -101,14 +101,10 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
 
-    @Autowired
-    private CodeLocationRepository codeLocationRepository;
 
     @Autowired
     private UiComponents uiComponents;
 
-    @Autowired
-    private Notifications notifications;
 
     @Autowired
     private DialogWindows dialogWindows;
@@ -154,7 +150,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
                             from InventoryItem i
                             join i.softwareComponent s
                             join s.copyrights cr
-                            join cr.codeLocations cl
+                            join cr.files cl
                             join i.project p
                             where p.id = :project_id
                             group by cr.id

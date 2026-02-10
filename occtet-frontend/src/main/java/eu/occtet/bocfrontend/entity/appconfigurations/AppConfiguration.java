@@ -47,7 +47,7 @@ public class AppConfiguration {
     @Convert(converter = AppConfigTypeConverter.class)
     private AppConfigType dataType;
 
-    @Column(name = "VALUE", columnDefinition = "TEXT")
+    @Column(name = "CONFIG_VALUE", columnDefinition = "TEXT")
     private String value;
 
     @Column(name = "DESCRIPTION", columnDefinition = "TEXT")

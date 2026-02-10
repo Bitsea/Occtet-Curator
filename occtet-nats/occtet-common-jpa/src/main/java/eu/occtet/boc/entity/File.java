@@ -29,7 +29,9 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 
 @Entity
@@ -46,27 +48,27 @@ public class File {
     @GeneratedValue(strategy= GenerationType.SEQUENCE)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PROJECT_ID", nullable = false)
     private Project project;
 
-    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     @JoinColumn(name = "PARENT_ID")
     private File parent;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "CODE_LOCATION_ID", nullable = true)
-    private CodeLocation codeLocation;
+
+    @ManyToMany(mappedBy = "files", cascade = CascadeType.REMOVE)
+    private Set<Copyright> copyrights = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "INVENTORY_ITEM_ID")
     private InventoryItem inventoryItem;
 
-    @Column(name = "FILENAME", nullable = false)
+    @Column(name = "FILENAME")
     private String fileName;
 
     // Example: C:\Users\Temp\scan\project\dep\lib\com\acme\Util.java
-    @Column(name = "PHYSICAL_PATH", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "PHYSICAL_PATH", columnDefinition = "TEXT")
     private String physicalPath;
 
     // Example: dependencies/lib-v1/com/acme/Util.java
@@ -74,17 +76,17 @@ public class File {
     private String projectPath;
 
     // Example: com/acme/Util.java
-    @Column(name = "ARTIFACT_PATH", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "ARTIFACT_PATH", columnDefinition = "TEXT")
     private String artifactPath;
 
-    @Column(name = "IS_DIRECTORY", nullable = false)
-    private Boolean isDirectory;
+    @Column(name = "IS_DIRECTORY")
+    private Boolean isDirectory = false;
 
-    @Column(name = "REVIEWED", nullable = false)
-    private Boolean reviewed;
+    @Column(name = "REVIEWED")
+    private Boolean reviewed = false;
 
     @CreatedDate
-    @Column(name = "CREATED_DATE", nullable = false, updatable = false)
+    @Column(name = "CREATED_DATE", updatable = false)
     private LocalDateTime createdDate;
 
     @LastModifiedDate
@@ -99,7 +101,33 @@ public class File {
     @Column(name = "LAST_MODIFIED_BY")
     private String lastModifiedBy;
 
+
     public File() {
+    }
+
+    public File( String filePath, Project project){
+        this.projectPath= filePath;
+        this.project= project;
+    }
+
+    public File ( InventoryItem inventoryItem, String filePath, String fileName, Project project){
+        this.inventoryItem= inventoryItem;
+        this.projectPath= filePath;
+        this.fileName= fileName;
+        this.project= project;
+    }
+
+    public File ( InventoryItem inventoryItem, String filePath, Project project) {
+        this.inventoryItem = inventoryItem;
+        this.projectPath = filePath;
+        this.project= project;
+    }
+
+    public File ( String artifactPath, Project project, String fileName, InventoryItem inventoryItem) {
+        this.artifactPath= artifactPath;
+        this.fileName = fileName;
+        this.project= project;
+        this.inventoryItem= inventoryItem;
     }
 
     public InventoryItem getInventoryItem() {
@@ -132,14 +160,6 @@ public class File {
 
     public void setParent(File parent) {
         this.parent = parent;
-    }
-
-    public CodeLocation getCodeLocation() {
-        return codeLocation;
-    }
-
-    public void setCodeLocation(CodeLocation codeLocation) {
-        this.codeLocation = codeLocation;
     }
 
     public String getFileName() {
@@ -247,4 +267,21 @@ public class File {
     public String toString() {
         return "File{" + "id=" + id + ", fileName='" + fileName + '\'' + ", isDirectory=" + isDirectory + '}';
     }
+
+    public Set<Copyright> getCopyrights() {
+        return copyrights;
+    }
+
+    public void setCopyrights(Set<Copyright> copyrights) {
+        this.copyrights = copyrights;
+    }
+
+    @PreRemove
+    private void removeBookAssociations() {
+        for (Copyright copyright: this.copyrights) {
+            copyright.getFiles().remove(this);
+        }
+    }
+
+
 }

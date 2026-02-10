@@ -36,12 +36,12 @@
                 <property name="vulnerabilities" fetchPlan="_base"/>
             </fetchPlan>
         </instance>
-        <collection id="codeLocationDc" class="eu.occtet.bocfrontend.entity.CodeLocation">
+        <collection id="fileDc" class="eu.occtet.bocfrontend.entity.File">
             <fetchPlan extends="_base"/>
-            <loader id="codeLocationDl">
+            <loader id="fileDl">
                 <query>
                 <![CDATA[
-                    select c from CodeLocation c where c.inventoryItem=:inventoryItem
+                    select c from File c where c.inventoryItem=:inventoryItem
                 ]]>
                 </query>
             </loader>
