@@ -27,6 +27,7 @@ import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.download.factory.FileFactory;
 import eu.occtet.boc.download.service.FileService;
 import eu.occtet.boc.entity.File;
+import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -81,9 +82,13 @@ public class FileServiceTest {
         project.setProjectName("TestProject");
         entityManager.persistAndFlush(project);
 
+        InventoryItem item= new InventoryItem();
+        item.setInventoryName("test");
+        entityManager.persistAndFlush(item);
+
         String projectPath = parent1.toAbsolutePath().toString();
 
-        fileService.createEntitiesFromPath(project, null, parent1, projectPath);
+        fileService.createEntitiesFromPath(project, item, parent1, projectPath);
 
         List<File> allFiles = fileRepository.findAll();
         assertEquals(4, allFiles.size(), "Should find: parent1, rootFile1.txt, subFolder1, childFile1.txt");
@@ -135,9 +140,13 @@ public class FileServiceTest {
         project.setProjectName("TestProject");
         entityManager.persistAndFlush(project);
 
+        InventoryItem item= new InventoryItem();
+        item.setInventoryName("test");
+        entityManager.persistAndFlush(item);
+
         String projectPath = parent1.toAbsolutePath().toString();
 
-        fileService.createEntitiesFromPath(project, null, subFolder, projectPath);
+        fileService.createEntitiesFromPath(project, item, subFolder, projectPath);
 
         List<File> allFiles = fileRepository.findAll();
         assertEquals(3, allFiles.size());
