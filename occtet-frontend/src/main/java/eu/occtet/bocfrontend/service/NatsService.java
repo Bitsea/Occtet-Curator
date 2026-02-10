@@ -167,6 +167,7 @@ public class NatsService {
      * @throws IOException
      */
     public void sendWorkMessageToStream(String streamName, byte[] message) throws JetStreamApiException, IOException {
+        log.debug("sending with streamName {}", streamName);
         js.publish(streamName,message);
     }
 

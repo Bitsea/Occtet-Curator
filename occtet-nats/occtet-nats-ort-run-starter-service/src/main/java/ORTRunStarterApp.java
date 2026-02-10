@@ -47,6 +47,9 @@ public class ORTRunStarterApp {
     @Value("${application.version}")
     private String applicationVersion;
 
+    @Value("${app.nats.listener.enabled}")
+    private boolean listenerEnabled;
+
     private SystemHandler systemHandler;
 
     private Executor executor = new SimpleAsyncTaskScheduler();
@@ -67,13 +70,16 @@ public class ORTRunStarterApp {
         log.info("Init Microservice: {} (version {})", microserviceDescriptor.getName(), microserviceDescriptor.getVersion());
         systemHandler = new SystemHandler(natsConnection, microserviceDescriptor, ORTRunStarterWorkConsumer);
         systemHandler.subscribeToSystemSubject();
-        executor.execute(()->{
-            try {
-                ORTRunStarterWorkConsumer.startHandlingMessages(natsConnection,microserviceDescriptor.getName(), streamName, workSubject);
-            } catch (Exception e) {
-                log.error("Could not start handling messages: ", e);
-            }
-        });
+        if(listenerEnabled) {
+            log.debug("Listening on NATS stream {}, start HandlingMessages", streamName);
+            executor.execute(() -> {
+                try {
+                    ORTRunStarterWorkConsumer.startHandlingMessages(natsConnection, microserviceDescriptor.getName(), streamName, workSubject);
+                } catch (Exception e) {
+                    log.error("Could not start handling messages: ", e);
+                }
+            });
+        }
     }
 
     @PostConstruct

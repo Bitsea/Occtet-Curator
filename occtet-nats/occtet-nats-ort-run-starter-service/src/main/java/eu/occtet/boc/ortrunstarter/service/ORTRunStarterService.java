@@ -29,7 +29,7 @@ public class ORTRunStarterService {
     private ProjectRepository projectRepository;
 
     String clientId="ort-server";
-    private String tokenUrl="http://localhost:8081/realms/master/protocol/openid-connect/token";
+    private String tokenUrl="http://192.168.7.18:8081/realms/master/protocol/openid-connect/token";
     private String username = "ort-admin";
     private String password = "password";
 
@@ -40,7 +40,7 @@ public class ORTRunStarterService {
     boolean startOrtRun(long projectId, String orgaName, String repoName, String repoURL, String repoType) throws IOException, InterruptedException, ApiException {
         Project project= projectRepository.getById(projectId);
 
-        OrtClientService ortClientService = new OrtClientService("http://localhost:8080");
+        OrtClientService ortClientService = new OrtClientService("http://192.168.7.18:8080");
         AuthService authService = new AuthService(tokenUrl);
         TokenResponse tokenResponse = authService.requestToken(clientId,username,password,"offline_access");
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);

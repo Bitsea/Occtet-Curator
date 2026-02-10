@@ -43,7 +43,7 @@ public class StartOrtRunTask extends TaskParent {
     public boolean prepareAndStartTask(CuratorTask curatorTask) {
 
         try{
-            log.debug("Processing SPDX Report: {}", curatorTask.getStatus());
+            log.debug("Processing task: {} with status {}",curatorTask.getTaskName(), curatorTask.getStatus());
 
 
             String repoType = "";
@@ -82,7 +82,7 @@ public class StartOrtRunTask extends TaskParent {
 
     private boolean startTask(CuratorTask task, Long projectId, String orgaName, String repoType, String repoURL, String repoVersion)  {
 
-
+        log.debug("starting task with ORTStartRunWorkData {} for project {} with subject {}", task.getTaskName(),projectId, sendSubjectOrt);
         ORTStartRunWorkData ortStartRunWorkData = new ORTStartRunWorkData(repoType, repoURL, repoVersion, orgaName, projectId);
 
         return curatorTaskService.saveAndRunTask(task,ortStartRunWorkData,"starting ORT run for project :" + projectId, sendSubjectOrt);

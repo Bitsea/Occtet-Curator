@@ -52,7 +52,7 @@ public class TaskManager {
             boolean res = false;
 
             try {
-
+                log.debug("prepare the task: {}", taskParent.getName());
                 res = taskParent.prepareAndStartTask(curatorTask);
                 log.info("started task {}, taskParent {}. Result: {}", curatorTask.getId(), taskParent.getName(), res);
                 if(!res) {
