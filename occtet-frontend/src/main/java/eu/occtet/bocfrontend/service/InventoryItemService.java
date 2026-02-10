@@ -38,9 +38,6 @@ public class InventoryItemService {
     private static final Logger log = LogManager.getLogger(InventoryItemService.class);
 
     @Autowired
-    private SoftwareComponentService softwareComponentService;
-
-    @Autowired
     private InventoryItemRepository inventoryItemRepository;
 
     @Autowired
@@ -50,25 +47,7 @@ public class InventoryItemService {
         return inventoryItemRepository.findByProject(project);
     }
 
-    public List<InventoryItem> findInventoryItemsOfSoftwareComponent(SoftwareComponent softwareComponent){
-        return inventoryItemRepository.findBySoftwareComponent(softwareComponent);
-    }
 
-    public List<InventoryItem> findInventoryItemsByCurated(Boolean curated){
-        return inventoryItemRepository.findInventoryItemsByCurated(curated);
-    }
-    
-    public List<InventoryItem> findInventoryItemsByIsVulnerable(Boolean isVulnerable){
-        List<InventoryItem> inventoryItems = new ArrayList<>();
-        softwareComponentService.findSoftwareComponentsByIsVulnerable(isVulnerable)
-                .forEach(sc->inventoryItems.addAll(
-                        inventoryItemRepository.findInventoryItemBySoftwareComponentOrderByCreatedAtDesc(sc)));
-        return inventoryItems;
-    }
-
-    public List<InventoryItem> findInventoryItemsByLicense(License license){
-        return inventoryItemRepository.searchInventoryItemsBySoftwareComponent_Licenses(license);
-    }
 
     public void controlInventoryItem(InventoryItem item){
 
@@ -114,18 +93,5 @@ public class InventoryItemService {
         }
     }
 
-    public List<InventoryItem> filterIventoryItems(List<InventoryItem> items){
 
-        items.sort(Comparator.comparing(InventoryItem::getCreatedAt).reversed());
-        List<InventoryItem> filteredItems = new ArrayList<>();
-        Set<String> findItems = new HashSet<>();
-
-        for(InventoryItem item : items){
-            if(!findItems.contains(item.getInventoryName())){
-                findItems.add(item.getInventoryName());
-                filteredItems.add(item);
-            }
-        }
-        return filteredItems;
-    }
 }
