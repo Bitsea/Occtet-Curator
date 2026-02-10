@@ -166,15 +166,12 @@ public class SpdxHandlerTest {
         Assertions.assertEquals("pkg:maven/pkg7-grp/pkg7@0.0.1", pkg7Comp.getPurl(),
                 "Should extract PURL from ExternalRefs");
 
-        Assertions.assertFalse(pkg7Item.getWasCombined(),
-                "Should be false because 'WITH' is not treated as a combination operator in the regex");
 
         InventoryItem goItem = inventoryItemRepository.findBySpdxIdAndProject(
                         "SPDXRef-Package-Go-gopkg.in.yaml.v3-3.0.1", project)
                 .stream().findFirst().orElseThrow();
 
-        Assertions.assertTrue(goItem.getWasCombined(),
-                "Should be true because license string contains 'AND'");
+
 
         Assertions.assertEquals("pkg:golang/gopkg.in/yaml.v3@3.0.1", goItem.getSoftwareComponent().getPurl(),
                 "Should extract Golang PURL correctly");

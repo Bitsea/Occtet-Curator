@@ -227,7 +227,5 @@ public class InventoryItem {
         return curated;
     }
 
-    public List<CodeLocation> getCodeLocations() {return codeLocations;}
 
-    public void setCodeLocations(List<CodeLocation> codeLocations) {this.codeLocations = codeLocations;}
 }
