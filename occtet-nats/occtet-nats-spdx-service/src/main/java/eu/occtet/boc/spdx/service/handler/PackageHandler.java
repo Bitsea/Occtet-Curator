@@ -143,7 +143,6 @@ public class PackageHandler {
         boolean isCombined = pattern.matcher(packageLicenseString).find();
 
         InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, component, context.getProject());
-        inventoryItem.setWasCombined(isCombined);
         inventoryItem.setSpdxId(spdxPackage.getId());
         inventoryItem.setCurated(false);
 

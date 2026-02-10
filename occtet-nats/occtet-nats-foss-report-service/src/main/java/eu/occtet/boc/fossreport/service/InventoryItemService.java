@@ -66,7 +66,6 @@ public class InventoryItemService {
             String externalNotes,
             InventoryItem parentItem,
             SoftwareComponent sc,
-            Boolean wasCombined,
             List<Copyright> copyrights,
             Integer priority
     ) {
@@ -78,12 +77,12 @@ public class InventoryItemService {
 
         if(inventoryItemList.isEmpty()){
             inventoryItem = inventoryItemFactory.create(
-                    inventoryName, size, linking, externalNotes, parentItem, sc, wasCombined, copyrights,
+                    inventoryName, size, linking, externalNotes, parentItem, sc, copyrights,
                     project, priority);
         } else {
             inventoryItem = inventoryItemList.getFirst();
             updateInventoryItem(inventoryItem,
-                    linking,  externalNotes, parentItem, sc, wasCombined, copyrights
+                    linking,  externalNotes, parentItem, sc,  copyrights
             );
         }
 
@@ -96,7 +95,6 @@ public class InventoryItemService {
             String externalNotes,
             InventoryItem parentItem,
             SoftwareComponent component,
-            Boolean wasCombined,
             List<Copyright> copyrights
     ) {
         if(!inventoryItem.getLinking().equals(linking) && linking != null && !linking.isEmpty()){
@@ -113,8 +111,6 @@ public class InventoryItemService {
             inventoryItem.setParent(parentItem);
         }if(component != null) {
             inventoryItem.setSoftwareComponent(component);
-        }if(wasCombined != null) {
-            inventoryItem.setWasCombined(wasCombined);
         }if(copyrights != null && !copyrights.isEmpty()){
             HashSet<Copyright> updatedCopyrights = new HashSet<>(inventoryItem.getSoftwareComponent().getCopyrights());
             updatedCopyrights.addAll(copyrights);

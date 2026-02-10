@@ -191,10 +191,13 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
     @Subscribe(id = "addCopyrightButton")
     public void addCopyright(ClickEvent<Button> event) {
         InventoryItem item = getEditedEntity();
-        DialogWindow<AddCopyrightDialog> window = dialogWindows.view(this, AddCopyrightDialog.class).build();
-        window.getView().setAvailableContent(inventoryItem);
-        window.open();
-        afterAddContentAction(window, item);
+        if(item.getSoftwareComponent() !=null){
+            SoftwareComponent softwareComponent = item.getSoftwareComponent();
+            DialogWindow<AddCopyrightDialog> window = dialogWindows.view(this, AddCopyrightDialog.class).build();
+            window.getView().setAvailableContent(softwareComponent);
+            window.open();
+            afterAddContentAction(window, item);
+        }
     }
 
     private void afterAddContentAction(DialogWindow<?> window, InventoryItem item) {
