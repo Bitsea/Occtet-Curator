@@ -30,9 +30,9 @@ public class Range {
     private Long id;
 
     @Column(name="start")
-    private int start;
+    private Integer start;
     @Column(name="end")
-    private int end;
+    private Integer end;
     @Column(name="type")
     private String type;
     @Column(name="reference")

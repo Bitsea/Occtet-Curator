@@ -31,9 +31,9 @@ public class Range {
     private Long id;
 
     @Column(name="start")
-    int start;
+    Integer start;
     @Column(name="end")
-    int end;
+    Integer end;
     @Column(name="type")
     String type;
     @Column(name="reference")
@@ -41,25 +41,25 @@ public class Range {
 
     public Range() {}
 
-    public Range(int start, int end, String type, String reference) {
+    public Range(Integer start, Integer end, String type, String reference) {
         this.start = start;
         this.end = end;
         this.type = type;
         this.reference = reference;
     }
 
-    public int getStart() {
+    public Integer getStart() {
         return start;
     }
-    public void setStart(int start) {
+    public void setStart(Integer start) {
         this.start = start;
     }
 
-    public int getEnd() {
+    public Integer getEnd() {
         return end;
     }
 
-    public void setEnd(int end) {
+    public void setEnd(Integer end) {
         this.end = end;
     }
 
