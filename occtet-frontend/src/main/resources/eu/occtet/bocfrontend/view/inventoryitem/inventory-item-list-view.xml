@@ -72,7 +72,6 @@
                 <column property="softwareComponent.licenses" header="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.licenses" key="licenses"/>
                 <column property="size" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.size"/>
                 <column property="linking" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.linking"/>
-                <column property="wasCombined" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.wasCombined"/>
                 <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
             </columns>
         </dataGrid>

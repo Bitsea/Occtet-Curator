@@ -276,7 +276,23 @@
     "fileName" : "some/file",
     "licenseConcluded" : "NOASSERTION",
     "licenseInfoInFiles" : [ "NONE" ]
-  } ],
+  } ,
+    {
+      "SPDXID": "SPDXRef-OrphanedFile1",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "4552f707bdf537911c9943cec56a0bf11bd8468d"
+        }
+      ],
+      "copyrightText": "Copyright 2020 Some copyright holder in source artifact",
+      "fileName": "some/file",
+      "licenseConcluded": "NOASSERTION",
+      "licenseInfoInFiles": [
+        "NONE"
+      ]
+    }
+  ],
   "relationships" : [ {
     "spdxElementId" : "SPDXRef-Package-Go-gopkg.in.yaml.v3-3.0.1",
     "relationshipType" : "GENERATED_FROM",
@@ -321,5 +337,34 @@
     "spdxElementId" : "SPDXRef-Project-Maven-proj1-grp-proj1-0.0.1",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-Package-Maven-pkg4-grp-pkg4-0.0.1"
+  } ],
+  "snippets" : [ {
+    "SPDXID" : "SPDXRef-Snippet",
+    "comment" : "This is an artificial snippet introduced for testing purposes",
+    "copyrightText" : "Copyright 2008-2010 John Smith",
+    "licenseComments" : "The concluded license was taken from package xyz, from which the snippet was copied into the current file. The concluded license information was found in the COPYING.txt file in package xyz.",
+    "licenseConcluded" : "GPL-2.0-only",
+    "licenseInfoInSnippets" : [ "GPL-2.0-only" ],
+    "name" : "from linux kernel",
+    "ranges" : [ {
+      "endPointer" : {
+        "offset" : 420,
+        "reference" : "SPDXRef-File-1"
+      },
+      "startPointer" : {
+        "offset" : 310,
+        "reference" : "SPDXRef-File-1"
+      }
+    }, {
+      "endPointer" : {
+        "lineNumber" : 23,
+        "reference" : "SPDXRef-File-1"
+      },
+      "startPointer" : {
+        "lineNumber" : 5,
+        "reference" : "SPDXRef-File-1"
+      }
+    } ],
+    "snippetFromFile" : "SPDXRef-File-1"
   } ]
 }

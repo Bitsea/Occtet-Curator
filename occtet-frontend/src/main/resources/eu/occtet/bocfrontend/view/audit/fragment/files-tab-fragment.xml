@@ -28,6 +28,8 @@
                 <query>
                     <![CDATA[
                     select c from File c where c.inventoryItem=:inventoryItem
+                    and c.isDirectory = false
+                    order by c.projectPath
                 ]]>
                 </query>
             </loader>

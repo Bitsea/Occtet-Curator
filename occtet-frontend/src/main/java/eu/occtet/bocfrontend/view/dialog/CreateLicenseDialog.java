@@ -39,7 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @ViewController("createLicenseDialog")
 @ViewDescriptor("create-license-dialog.xml")
-@DialogMode(width = "900px", height = "650px")
+@DialogMode(width = "1000px", height = "750px")
 public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareComponent>{
 
     private static final Logger log = LogManager.getLogger(CreateLicenseDialog.class);
@@ -111,7 +111,7 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
             this.softwareComponent.getLicenses().add(license);
             dataManager.save(this.softwareComponent);
             log.debug("Created and added license {} to softwareComponent",license.getLicenseName());
-            close(StandardOutcome.CLOSE);
+            close(StandardOutcome.SAVE);
 
         }else{
             notifications.create("Something went wrong, please check your input, some fields are required")

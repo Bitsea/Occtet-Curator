@@ -33,7 +33,7 @@
     </data>
     <layout>
         <vbox>
-            <hbox>
+            <hbox width="100%">
                 <textField id="searchField" placeholder="Name..."/>
                 <button id="searchButton" text="Search"/>
             </hbox>
@@ -48,7 +48,7 @@
                     <column property="copyrightText" header="Copyright name"/>
                 </columns>
             </dataGrid>
-            <hbox>
+            <hbox alignItems="CENTER" alignSelf="CENTER" justifySelf="CENTER" justifyContent="CENTER" width="100%">
                 <button id="addCopyrightButton" text="Add" themeNames="primary"/>
                 <button id="cancelButton" text="Cancel"/>
             </hbox>

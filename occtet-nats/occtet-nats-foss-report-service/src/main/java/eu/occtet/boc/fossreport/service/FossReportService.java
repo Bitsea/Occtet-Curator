@@ -173,7 +173,7 @@ public class FossReportService extends ProgressReportingService {
             inventoryItem = inventoryItemService.getOrCreateInventoryItemWithAllAttributes(
                     project, inventoryName, rowDto.size() == null ? 0 : rowDto.size(),
                     rowDto.linking(), rowDto.externalNotes(),
-                    parentInventory, softwareComponent, wasCombined, copyrights, priority
+                    parentInventory, softwareComponent, copyrights, priority
             );
             File basePathFile = fileService.findOrCreateFileWithInventory(basePath, inventoryItem, inventoryItem.getProject());
             notifyProgress(30, "preparing files");

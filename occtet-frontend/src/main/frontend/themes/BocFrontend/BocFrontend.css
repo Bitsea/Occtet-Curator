@@ -138,3 +138,9 @@ vaadin-menu-bar-button[theme~="primary"]{
     line-height: 1.0;
     background-color: var(--lumo-primary-color);
 }
+
+.autocompleteInventoryStyle{
+    width: 100%;
+    border: none;
+    padding-left: 0 !important;
+}

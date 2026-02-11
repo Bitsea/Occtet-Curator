@@ -40,7 +40,7 @@ public class InventoryItemFactory {
 
     public InventoryItem create(@Nonnull String inventoryName, int size, @Nonnull String linking, @Nonnull String externalNotes,
                                 @Nonnull InventoryItem parent, @Nonnull SoftwareComponent softwareComponent,
-                                boolean wasCombined, boolean curated, @Nonnull Project project){
+                                 boolean curated, @Nonnull Project project){
         InventoryItem inventoryItem = dataManager.create(InventoryItem.class);
         inventoryItem.setInventoryName(inventoryName);
         inventoryItem.setSize(size);
@@ -48,7 +48,6 @@ public class InventoryItemFactory {
         inventoryItem.setExternalNotes(externalNotes);
         inventoryItem.setParent(parent);
         inventoryItem.setSoftwareComponent(softwareComponent);
-        inventoryItem.setWasCombined(wasCombined);
         inventoryItem.setCurated(curated);
         inventoryItem.setProject(project);
 
@@ -57,7 +56,6 @@ public class InventoryItemFactory {
 
 
     public InventoryItem create(@Nonnull String inventoryName, SoftwareComponent softwareComponent, Project project){
-        return create(inventoryName, 0, "", "", null, softwareComponent,
-                false, false, project);
+        return create(inventoryName, 0, "", "", null, softwareComponent, false, project);
     }
 }
