@@ -15,7 +15,7 @@ public class IssueCatcherService {
         return fetchIssues(workData.getRunId());
     }
 
-    public boolean fetchIssues(int runId){
+    public boolean fetchIssues(long runId){
             String jsonResponse="";
             try {
                 //use ORT API to fetch issues of a ort run

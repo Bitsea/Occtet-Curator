@@ -81,7 +81,6 @@ public class FileService {
 
             List<File> oldExistingProjectFileCache = fileRepository.findAllByProject(project);
             log.debug("Loaded {} existing File entities for project {}", oldExistingProjectFileCache.size(), project.getId());
-            log.debug("Handle inventoryItem {}", inventoryItem.getInventoryName());
 
             List<File> batchBuffer = new ArrayList<>();
             int batchSize = 500;

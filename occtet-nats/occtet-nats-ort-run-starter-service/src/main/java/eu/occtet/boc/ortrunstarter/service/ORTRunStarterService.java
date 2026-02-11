@@ -38,13 +38,14 @@ public class ORTRunStarterService {
     }
 
     boolean startOrtRun(long projectId, String orgaName, String repoName, String repoURL, String repoType) throws IOException, InterruptedException, ApiException {
-        Project project= projectRepository.getById(projectId);
+        Project project= projectRepository.findById(projectId).get();
 
         OrtClientService ortClientService = new OrtClientService("http://192.168.7.18:8080");
         AuthService authService = new AuthService(tokenUrl);
+        log.debug("authservice mit url {}", tokenUrl);
         TokenResponse tokenResponse = authService.requestToken(clientId,username,password,"offline_access");
+        log.debug("got a token {}, if {}, data {} ", tokenResponse.accessToken, tokenResponse.idToken, tokenResponse.expirationDate);
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
-
         //First check if orga is already existing
         // how to access organizations api
         OrganizationsApi organizationsApi = new OrganizationsApi(apiClient);
