@@ -43,7 +43,6 @@ public class AdvisorFactory {
     public List<Advisor> createAdvisors(){
         List<Advisor> advisors = new ArrayList<>();
         log.debug("Creating advisors for copyright filtering");
-        //TODO figure out where we get topK and similarityThreshold from and find suitable values for our usecases
         //advisor for "good copyrights"
         advisors.add(copyrightRetriever.buildQuestionAnswerAdvisor(10, 0.25, "Examples of good copyrights: ", "fileName == 'good-copyrights.txt'"));
         //advisor for "bad copyrights"
