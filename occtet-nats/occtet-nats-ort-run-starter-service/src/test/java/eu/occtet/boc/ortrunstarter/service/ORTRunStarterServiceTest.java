@@ -89,7 +89,7 @@ public class ORTRunStarterServiceTest{
     private ORTRunStarterService ortRunStarterService;
 
 
-    @Test // commented out because it requires a running ORT server and Keycloak instance on localhost.
+    //@Test // commented out because it requires a running ORT server and Keycloak instance on localhost.
     public void testStartOrtRun() throws IOException, InterruptedException, ApiException/* throws ApiException*/ {
 
         Mockito.lenient().when(projectRepository.findById(any()))
@@ -109,7 +109,7 @@ public class ORTRunStarterServiceTest{
     private String password = "password";
 
 
-    @Test // commented out because it requires a running ORT server and Keycloak instance on localhost.
+    //@Test // commented out because it requires a running ORT server and Keycloak instance on localhost.
     public void startOrtRunTest() throws IOException, InterruptedException, ApiException {
         OrtClientService ortClientService = new OrtClientService("http://ort.bitsea.de");
         AuthService authService = new AuthService(tokenUrl);
