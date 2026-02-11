@@ -225,6 +225,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
         if (component.getPurl() != null && !component.getPurl().isBlank()) {
             try {
                 PackageURL purl = new PackageURL(component.getPurl());
+                log.debug("Choosing PURL name as component name: {}", purl.getName());
                 return purl.getName();
             } catch (Exception e) {
                 log.warn("Invalid PURL for component {}: {}", component.getId(), e.getMessage());
@@ -233,12 +234,14 @@ public class DownloadManager extends BaseWorkDataProcessor {
 
         String url = component.getDetailsUrl();
         if (url != null && !url.isBlank()) {
+            // https://github.com/Bitsea/-> Occtet-Curator <-
             String clean = url.trim();
             if (clean.endsWith("/")) clean = clean.substring(0, clean.length() - 1);
             if (clean.endsWith(".git")) clean = clean.substring(0, clean.length() - 4);
 
             int lastSlash = clean.lastIndexOf('/');
             if (lastSlash != -1 && lastSlash < clean.length() - 1) {
+                log.debug("Choosing last segment of URL as component name: {}", clean.substring(lastSlash + 1));
                 return clean.substring(lastSlash + 1);
             }
         }

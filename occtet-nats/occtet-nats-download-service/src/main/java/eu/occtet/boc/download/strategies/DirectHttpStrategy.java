@@ -62,7 +62,7 @@ public class DirectHttpStrategy implements DownloadStrategy {
     public boolean canHandle(URL durl, String version) {
         if (durl == null) return false;
         String protocol = durl.getProtocol().toLowerCase();
-        if (protocol.contains("github.com")) {
+        if (durl.getHost().contains("github.com")) {
             return false;
         }
         boolean canHandle = protocol.equals("http") || protocol.equals("https");

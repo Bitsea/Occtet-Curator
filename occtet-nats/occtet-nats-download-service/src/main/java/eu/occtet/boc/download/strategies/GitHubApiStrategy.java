@@ -96,10 +96,14 @@ public class GitHubApiStrategy implements DownloadStrategy{
 
     @Override
     public Path download(URL durl, String version, Path targetDirectory) throws IOException {
-        log.info("Executing {}.download for URL: {} @ {}", this.getClass().getSimpleName(), durl, version);
-        RepoInfo repoInfo = parseGitHubUrl(durl.toString());
-        String archiveUrl = resolveTagToArchiveUrl(repoInfo.owner, repoInfo.repo, version);
-        return downloadUtils.downloadFile(archiveUrl, ".zip");
+        try {
+            log.info("Executing {}.download for URL: {} @ {}", this.getClass().getSimpleName(), durl, version);
+            RepoInfo repoInfo = parseGitHubUrl(durl.toString());
+            String archiveUrl = resolveTagToArchiveUrl(repoInfo.owner, repoInfo.repo, version);
+            return downloadUtils.downloadFile(archiveUrl, ".zip");
+        } catch (Exception e) {
+            throw new IOException("Error resolving GitHub URL: " + durl, e);
+        }
     }
 
     @Override

@@ -40,6 +40,14 @@ public class DownloadUtils {
     private final Logger log = LogManager.getLogger(this.getClass());
     private final RestClient genericClient;
 
+    static final String DEFAULT_FILE_NAME = "download_artifact";
+    static final String TEMP_PREFIX = "occtet_dl_";
+    static final String GIT_SSH_PREFIX = "git+ssh://";
+    static final String SSH_PREFIX = "ssh://";
+    static final String GIT_HTTPS_PREFIX = "git+https://";
+    static final String GIT_HTTP_PREFIX = "git+http://";
+    static final String HTTPS_PROTOCOL = "https://";
+
     public DownloadUtils(@Qualifier("genericRestClient") RestClient genericClient) {
         this.genericClient = genericClient;
     }
@@ -60,14 +68,14 @@ public class DownloadUtils {
         String fileName = FilenameUtils.getName(safeUrl);
 
         if (fileName == null || !fileName.contains(".")) {
-            fileName = "download_artifact";
+            fileName = DEFAULT_FILE_NAME;
         }
 
         if (forcedExtension != null && !fileName.toLowerCase().endsWith(forcedExtension.toLowerCase())) {
             fileName += forcedExtension;
         }
 
-        Path tempFile = Files.createTempFile("occtet_dl_", "_" + fileName);
+        Path tempFile = Files.createTempFile(TEMP_PREFIX, "_" + fileName);
         log.debug("Streaming download from '{}' to '{}'", safeUrl, tempFile);
 
         try {
@@ -94,10 +102,10 @@ public class DownloadUtils {
     public String normalizeUrl(String rawURL) {
         if (rawURL == null) return null;
         String url = rawURL.trim();
-        if (url.startsWith("git+ssh://")) return url.replace("git+ssh://", "https://");
-        if (url.startsWith("ssh://")) return url.replace("ssh://", "https://");
-        if (url.startsWith("git+https://")) return url.substring(4);
-        if (url.startsWith("git+http://")) return url.substring(4);
+        if (url.startsWith(GIT_SSH_PREFIX)) return url.replace(GIT_SSH_PREFIX, HTTPS_PROTOCOL);
+        if (url.startsWith(SSH_PREFIX)) return url.replace(SSH_PREFIX, HTTPS_PROTOCOL);
+        if (url.startsWith(GIT_HTTPS_PREFIX)) return url.substring(4);
+        if (url.startsWith(GIT_HTTP_PREFIX)) return url.substring(4);
         return url;
     }
 

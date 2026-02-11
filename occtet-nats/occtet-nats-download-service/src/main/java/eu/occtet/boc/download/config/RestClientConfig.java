@@ -21,6 +21,7 @@
 
 package eu.occtet.boc.download.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -29,6 +30,15 @@ import org.springframework.web.client.RestClient;
 @Configuration
 public class RestClientConfig {
 
+    @Value("${eu.occtet.boc.download.config.restclient.generic.timeout.connect}")
+    private int genericConnectTimeout;
+    @Value("${eu.occtet.boc.download.config.restclient.generic.timeout.read}")
+    private int genericReadTimeout;
+    @Value("${eu.occtet.boc.download.config.restclient.gitHub.timeout.connect}")
+    private int gitHubConnectTimeout;
+    @Value("${eu.occtet.boc.download.config.restclient.gitHub.timeout.read}")
+    private int gitHubReadTimeout;
+
     /**
      * Generic Client for direct file downloads (HTTP/HTTPS).
      * Configured with longer read timeouts for large files.
@@ -36,8 +46,8 @@ public class RestClientConfig {
     @Bean(name = "genericRestClient")
     public RestClient genericRestClient(RestClient.Builder builder) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(10000);
-        factory.setReadTimeout(60000);
+        factory.setConnectTimeout(genericConnectTimeout);
+        factory.setReadTimeout(genericReadTimeout);
 
         return builder
                 .requestFactory(factory)
@@ -51,8 +61,8 @@ public class RestClientConfig {
     @Bean(name = "gitHubRestClient")
     public RestClient gitHubRestClient(RestClient.Builder builder) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(10000);
-        factory.setReadTimeout(10000);
+        factory.setConnectTimeout(gitHubConnectTimeout);
+        factory.setReadTimeout(gitHubReadTimeout);
 
         return builder
                 .baseUrl("https://api.github.com")
