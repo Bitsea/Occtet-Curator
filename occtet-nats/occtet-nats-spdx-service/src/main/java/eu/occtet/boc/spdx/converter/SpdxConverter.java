@@ -30,9 +30,11 @@ import org.spdx.library.model.v2.Annotation;
 import org.spdx.library.model.v2.ExternalRef;
 import org.spdx.library.model.v2.Relationship;
 import org.spdx.library.model.v2.SpdxFile;
+import org.spdx.library.model.v2.SpdxSnippet;
 import org.spdx.library.model.v2.enumerations.FileType;
 import org.spdx.library.model.v2.license.AnyLicenseInfo;
 import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
+import org.spdx.library.model.v2.pointer.StartEndPointer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +42,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -273,6 +277,55 @@ public class SpdxConverter {
             log.error("error while converting spdx package to entity: {}", e.toString());
             return new SpdxPackageEntity();
         }
+    }
+
+    public Snippet convertSnippets(SpdxSnippet libSnippet, SpdxDocumentRoot spdxDocumentRoot) {
+        Snippet snippet = new Snippet();
+        try {
+            snippet.setSpdxDocument(spdxDocumentRoot);
+            snippet.setSPDXID(libSnippet.getId());
+            snippet.setName(libSnippet.getName().orElse(null));
+            snippet.setCopyrightText(libSnippet.getCopyrightText());
+
+            snippet.setSnippetFromFile(libSnippet.getSnippetFromFile().getId());
+
+            snippet.setLicenseConcluded(libSnippet.getLicenseConcluded().toString());
+            List<String> licenses = libSnippet.getLicenseInfoFromFiles().stream()
+                    .map(Object::toString)
+                    .collect(Collectors.toList());
+            snippet.setLicenseInfoInSnippets(licenses);
+
+
+            List<Range> entityRanges = getRanges(libSnippet);
+            snippet.setRanges(entityRanges);
+
+            spdxDocumentRoot.addSnippet(snippet);
+
+        } catch (Exception e) {
+            log.error("error while converting snippets: {}", e.toString());
+            return null;
+        }
+
+        return snippet;
+    }
+
+    private static List<Range> getRanges(SpdxSnippet libSnippet) throws InvalidSPDXAnalysisException {
+        List<Range> entityRanges = new ArrayList<>();
+
+        StartEndPointer byteRange = libSnippet.getByteRange();
+        Range range = new Range();
+        range.setType(byteRange.getType());
+        range.setReference(byteRange.getEndPointer().getReference().getId());
+        entityRanges.add(range);
+
+        Optional<StartEndPointer> lineRangeOpt = libSnippet.getLineRange();
+        if (lineRangeOpt.isPresent()) {
+            Range lineRange = new Range();
+            lineRange.setType(lineRangeOpt.get().getType());
+            lineRange.setReference(lineRangeOpt.get().getStartPointer().getDocumentUri());
+            entityRanges.add(lineRange);
+        }
+        return entityRanges;
     }
 
     /**

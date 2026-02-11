@@ -23,37 +23,67 @@ import jakarta.persistence.*;
 
 
 @JmixEntity
-@Embeddable
+@Entity
+@Table(name = "Range")
 public class Range {
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "reference", column = @Column(name = "start_reference", nullable = false)),
-            @AttributeOverride(name = "offset", column = @Column(name = "start_offset")),
-            @AttributeOverride(name = "lineNumber", column = @Column(name = "start_line_number"))
-    })
-    private Pointer startPointer;
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "reference", column = @Column(name = "end_reference", nullable = false)),
-            @AttributeOverride(name = "offset", column = @Column(name = "end_offset")),
-            @AttributeOverride(name = "lineNumber", column = @Column(name = "end_line_number"))
-    })
-    private Pointer endPointer;
+    @Column(name="start")
+    Integer start;
+    @Column(name="end")
+    Integer end;
+    @Column(name="type")
+    String type;
+    @Column(name="reference")
+    String reference;
 
-    public Pointer getEndPointer() {
-        return endPointer;
+    public Range() {}
+
+    public Range(Integer start, Integer end, String type, String reference) {
+        this.start = start;
+        this.end = end;
+        this.type = type;
+        this.reference = reference;
     }
 
-    public Pointer getStartPointer() {
-        return startPointer;
+    public Integer getStart() {
+        return start;
+    }
+    public void setStart(Integer start) {
+        this.start = start;
     }
 
-    public void setEndPointer(Pointer endPointer) {
-        this.endPointer = endPointer;
+    public Integer getEnd() {
+        return end;
     }
 
-    public void setStartPointer(Pointer startPointer) {
-        this.startPointer = startPointer;
+    public void setEnd(Integer end) {
+        this.end = end;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getReference() {
+        return reference;
+    }
+
+    public void setReference(String reference) {
+        this.reference = reference;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }

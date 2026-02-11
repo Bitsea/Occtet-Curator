@@ -46,6 +46,9 @@ public class PackageVerificationCodeEntity {
         return packageVerificationCodeValue;
     }
 
+    @ElementCollection
+    @CollectionTable(name = "pv_excluded_files", joinColumns = @JoinColumn(name = "pv_id"))
+    @Column(name = "file_path")
     public List<String> getPackageVerificationCodeExcludedFiles() {
         return packageVerificationCodeExcludedFiles;
     }

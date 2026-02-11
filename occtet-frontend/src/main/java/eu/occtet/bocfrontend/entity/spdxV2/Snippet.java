@@ -26,34 +26,31 @@ import java.util.List;
 
 @JmixEntity
 @Entity
+@Table(name = "Snippet")
 public class Snippet {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "spdxId")
     private String spdxId;
 
     @ManyToOne
     @JoinColumn(name = "spdx_document_id", nullable = false)
     private SpdxDocumentRoot spdxDocument;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "name")
     private String name;
 
     @Column(nullable = false, name= "snippet_from_file", length = 2048)
     private String snippetFromFile;
 
-    @ElementCollection
-    @CollectionTable(name = "snippet_ranges", joinColumns = @JoinColumn(name = "snippet_id"))
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "snippet_id")
     private List<Range> ranges;
 
     @Column(name= "license_concluded", columnDefinition = "TEXT")
     private String licenseConcluded;
-
-    public String getSpdxId() {
-        return spdxId;
-    }
 
     @ElementCollection
     @CollectionTable(name = "snippet_licenses", joinColumns = @JoinColumn(name = "snippet_id"))
@@ -62,12 +59,12 @@ public class Snippet {
     @Column(name= "copyright_text", columnDefinition = "TEXT")
     private String copyrightText;
 
-    public SpdxDocumentRoot getSpdxDocument() {
-        return spdxDocument;
+    public String getSpdxId() {
+        return spdxId;
     }
 
-    public String getSPDXID() {
-        return spdxId;
+    public SpdxDocumentRoot getSpdxDocument() {
+        return spdxDocument;
     }
 
     public String getLicenseConcluded() {
