@@ -61,7 +61,7 @@ public class License {
     private Boolean curated;
 
     @Column(name= "IS_SPDX")
-    private Boolean isSpdx;
+    private Boolean isSpdx = false;
 
     public License() {
     }

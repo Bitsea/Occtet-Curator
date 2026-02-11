@@ -49,7 +49,7 @@ public class InventoryItemFactory {
     }
 
     public InventoryItem create(String inventoryName, int size, String linking,String externalNotes, InventoryItem parent,
-                                SoftwareComponent component, boolean wasCombined, List<Copyright> copyrights,
+                                SoftwareComponent component,  List<Copyright> copyrights,
                                 Project project, int priority) {
         log.debug("Creating InventoryItem with inventoryName: {}", inventoryName);
 
@@ -60,7 +60,6 @@ public class InventoryItemFactory {
         inventoryItem.setExternalNotes(externalNotes);
         inventoryItem.setParent(parent);
         inventoryItem.setSoftwareComponent(component);
-        inventoryItem.setWasCombined(wasCombined);
         inventoryItem.getSoftwareComponent().setCopyrights(copyrights);
         inventoryItem.setProject(project);
         inventoryItem.setPriority(priority);
@@ -71,7 +70,7 @@ public class InventoryItemFactory {
 
     public InventoryItem create(String inventoryName, Project project, SoftwareComponent sc) {
         return inventoryItemRepository.save(create(inventoryName, 0, "",
-                "", null, sc, false,
+                "", null, sc,
                 new ArrayList<>(), project, 0));
     }
 }

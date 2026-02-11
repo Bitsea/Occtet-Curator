@@ -36,4 +36,5 @@ public interface LicenseRepository extends JpaRepository<License, Long> {
 
     List<License> findByLicenseType(String licenseType);
 
+    List<License> findByLicenseName(String mit);
 }
