@@ -87,7 +87,7 @@ class FileServiceTest {
 
         String projectPathString = projectRoot.toAbsolutePath().toString();
 
-        fileService.createEntitiesFromPath(testProject, null, projectRoot, projectPathString);
+        fileService.createEntitiesFromPath(testProject, projectRoot, projectPathString);
 
         List<File> files = fileRepository.findAll();
         assertEquals(4, files.size());
@@ -113,7 +113,7 @@ class FileServiceTest {
 
         String projectPathString = projectRoot.toAbsolutePath().toString();
 
-        fileService.createEntitiesFromPath(testProject, null, libFolder, projectPathString);
+        fileService.createEntitiesFromPath(testProject, libFolder, projectPathString);
 
         List<File> files = fileRepository.findAll();
 
@@ -147,7 +147,7 @@ class FileServiceTest {
         spdxEntityPlaceholder = fileRepository.saveAndFlush(spdxEntityPlaceholder);
         Long originalId = spdxEntityPlaceholder.getId();
 
-        fileService.createEntitiesFromPath(testProject, null, projectRoot, projectPathString);
+        fileService.createEntitiesFromPath(testProject, projectRoot, projectPathString);
 
         List<File> allFiles = fileRepository.findAll();
 

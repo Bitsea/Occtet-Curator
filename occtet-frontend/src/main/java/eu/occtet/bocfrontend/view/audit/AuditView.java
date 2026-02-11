@@ -562,10 +562,11 @@ public class AuditView extends StandardView{
     private void loadFileCounts(Project project) {
         ValueLoadContext context = new ValueLoadContext()
                 .setQuery(new ValueLoadContext.Query("""
-                            select cl.inventoryItem.id as itemId, count(cl) as fileCount
-                            from File cl
-                            where cl.inventoryItem.project = :project
-                            group by cl.inventoryItem.id
+                            select i.id as itemId, count(f) as fileCount
+                            from File f
+                            join f.inventoryItems i
+                            where f.project = :project
+                            group by i.id
                         """)
                         .setParameter("project", project))
                 .addProperty("itemId")

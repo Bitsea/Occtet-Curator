@@ -186,7 +186,6 @@ public class DownloadManager extends BaseWorkDataProcessor {
 
             fileService.createEntitiesFromPath(
                     project,
-                    inventoryItem,
                     finalComponentDir,
                     projectBaseDir.toString()
             );

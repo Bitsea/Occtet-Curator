@@ -66,17 +66,33 @@ public class FileService {
         Map<String, File> cache= new HashMap<>();
         Set<String> uniquePaths = new HashSet<>(filePaths);
 
-        for (String path : uniquePaths) {
+        List<File> existingFiles = fileRepository.findAllByProject(inventoryItem.getProject());
+        Map<String, File> existingMap = existingFiles.stream()
+                .filter(f -> f.getArtifactPath() != null)
+                .collect(Collectors.toMap(File::getArtifactPath, f -> f, (f1, f2) -> f1));
 
-            int p = path.lastIndexOf("/");
-            if(p == -1){
-                p = path.lastIndexOf("\\");
+        for (String path : uniquePaths) {
+            File fileEntity = existingMap.get(path);
+
+            if (fileEntity != null) {
+                log.debug("Linking existing File entity {} to InventoryItem {}", path, inventoryItem.getInventoryName());
+                fileEntity.addInventoryItem(inventoryItem);
+                toSave.add(fileEntity);
+                cache.put(path, fileEntity);
+            } else {
+                int p = path.lastIndexOf("/");
+                if(p == -1){
+                    p = path.lastIndexOf("\\");
+                }
+                String name = path.substring(p + 1);
+
+                log.debug("Creating new File entity for path {} with name {} for InventoryItem id={}",
+                        path, name, inventoryItem.getInventoryName());
+
+                File newLoc = filefactory.create(path, name, inventoryItem.getProject(), inventoryItem);
+                toSave.add(newLoc);
+                cache.put(path, newLoc);
             }
-            String name = path.substring(p + 1);
-            log.debug("Creating new File entity for path {} with name {} for InventoryItem id={}", path, name, inventoryItem.getInventoryName());
-            File newLoc = filefactory.create(path, name, inventoryItem.getProject(), inventoryItem);
-            toSave.add(newLoc);
-            cache.put(path, newLoc);
         }
 
         if (!toSave.isEmpty()) {

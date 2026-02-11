@@ -34,14 +34,13 @@ import java.util.Objects;
 public class FileFactory {
     private static final Logger log = LoggerFactory.getLogger(FileFactory.class);
 
-    public File create(Project project,
+    public File createWithoutInventoryItem(Project project,
                        String fileName,
                        String physicalPath,
                        String projectPath,
                        String artifactPath,
                        boolean isDirectory,
-                       File parentEntity,
-                       InventoryItem inventoryItem) {
+                       File parentEntity) {
         Objects.requireNonNull(project, "Project cannot be null");
         Objects.requireNonNull(fileName, "File name cannot be null");
         Objects.requireNonNull(physicalPath, "Physical path cannot be null");
@@ -56,19 +55,8 @@ public class FileFactory {
 
         file.setIsDirectory(isDirectory);
         file.setParent(parentEntity);
-        file.setInventoryItem(inventoryItem);
 
         return file;
-    }
-
-    public File createWithoutInventoryItem(Project project,
-                                           String fileName,
-                                           String physicalPath,
-                                           String projectPath,
-                                           String artifactPath,
-                                           boolean isDirectory,
-                                           File parentEntity) {
-        return create(project, fileName, physicalPath, projectPath, artifactPath, isDirectory, parentEntity, null);
     }
 
     public File updateFileEntity(

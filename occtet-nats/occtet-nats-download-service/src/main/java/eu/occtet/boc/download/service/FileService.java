@@ -67,12 +67,11 @@ public class FileService {
      * This reduces the time complexity of checking for existing files from O(N*Query) to O(1).
      *
      * @param project       the Project entity
-     * @param inventoryItem the associated InventoryItem
      * @param rootPath      the physical path on disk
      * @param projectPath   the location of the downloaded project
      */
     @Transactional
-    public void createEntitiesFromPath(Project project, InventoryItem inventoryItem, Path rootPath,
+    public void createEntitiesFromPath(Project project, Path rootPath,
                                        String projectPath) {
         long start = System.currentTimeMillis();
         try {
@@ -105,9 +104,7 @@ public class FileService {
                     rootDirectory.getParentFile(),
                     filesCreatedOrUpdatedInFileService,
                     batchBuffer,
-                    projectPath,
-                    inventoryItem
-            );
+                    projectPath);
 
             String calculatedArtifactPath = getRelativePath(rootPath, rootDirectory); // Relative to scan anchor
             String calculatedProjectPath = getRelativePath(projectParentAnchor, rootDirectory); // Relative to Project root
@@ -137,7 +134,6 @@ public class FileService {
                     filesCreatedOrUpdatedInFileService,
                     filesCreatedInSpdxService,
                     BATCHSIZE,
-                    inventoryItem,
                     rootPath,
                     projectParentAnchor
             );
@@ -166,7 +162,6 @@ public class FileService {
      * @param filesInFileService files that already have physicalPath (created/updated in FileService)
      * @param filesInSpdxService files that only have artifactPath (pre-created by SPDX service)
      * @param batchSize the batch size for flushing
-     * @param inventoryItem the associated InventoryItem
      * @param relativeAnchor anchor for calculating artifactPath
      * @param projectRootAnchor anchor for calculating projectPath
      */
@@ -177,7 +172,6 @@ public class FileService {
                          Map<String, File> filesInFileService,
                          Map<String, File> filesInSpdxService,
                          int batchSize,
-                         InventoryItem inventoryItem,
                          Path relativeAnchor,
                          Path projectRootAnchor) {
 
@@ -204,7 +198,7 @@ public class FileService {
                 log.trace("Reusing existing file entity: {}", physicalPath);
                 if (file.isDirectory()){
                     scanDir(project, file, fileEntity, batchBuffer, filesInFileService, filesInSpdxService,
-                            batchSize, inventoryItem, relativeAnchor, projectRootAnchor);
+                            batchSize, relativeAnchor, projectRootAnchor);
                 }
                 continue;
             }
@@ -232,7 +226,7 @@ public class FileService {
 
                 if (file.isDirectory()){
                     scanDir(project, file, fileEntity, batchBuffer, filesInFileService, filesInSpdxService,
-                            batchSize, inventoryItem, relativeAnchor, projectRootAnchor);
+                            batchSize, relativeAnchor, projectRootAnchor);
                 }
                 continue;
             }
@@ -252,7 +246,7 @@ public class FileService {
             addToBatch(fileEntity, batchBuffer, batchSize);
             if (file.isDirectory()){
                 scanDir(project, file, fileEntity, batchBuffer, filesInFileService, filesInSpdxService,
-                        batchSize, inventoryItem, relativeAnchor, projectRootAnchor);
+                        batchSize, relativeAnchor, projectRootAnchor);
             }
         }
     }
@@ -266,8 +260,7 @@ public class FileService {
                                        java.io.File directory,
                                        Map<String, File> filesInFileService,
                                        List<File> batchBuffer,
-                                       String projectPath,
-                                       InventoryItem inventoryItem) {
+                                       String projectPath) {
         if (directory == null) {
             return null;
         }
@@ -301,9 +294,7 @@ public class FileService {
                 directory.getParentFile(),
                 filesInFileService,
                 batchBuffer,
-                projectPath,
-                inventoryItem
-        );
+                projectPath);
 
         log.debug("Creating parent directory entity: {} (artifactPath: {})",
                 directory.getName(), artifactPath);
