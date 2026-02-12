@@ -65,7 +65,7 @@ public abstract class WorkConsumer implements InformativeService {
 
         log.debug("startHandlingMessages called, listening on stream {} for subject {}", streamName, workSubject);
 
-        while(true) {
+        while(natsConnection.getStatus() != Connection.Status.CLOSED) {
             try (FetchConsumer fetchConsumer = consumerContext.fetchMessages(1)) {
                 Message msg= fetchConsumer.nextMessage();
                 if (msg != null) {
