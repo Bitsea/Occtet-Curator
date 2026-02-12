@@ -40,8 +40,6 @@ import eu.occtet.bocfrontend.importer.TaskManager;
 import eu.occtet.bocfrontend.importer.TaskParent;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfiguration;
-import eu.occtet.bocfrontend.importer.ImportManager;
-import eu.occtet.bocfrontend.importer.Importer;
 import eu.occtet.bocfrontend.service.ConfigurationService;
 import eu.occtet.bocfrontend.service.Utilities;
 import eu.occtet.bocfrontend.view.configuration.ConfigurationDetailView;
@@ -194,7 +192,6 @@ public class ImportTaskDetailView extends StandardDetailView<CuratorTask> {
         log.debug("Validation passed. Entities are prepared and saved");
         log.info("Process import task for import: {}", importer.getName());
 
-        taskManager.startImport(importer, curatorTask);
         AppConfiguration globalBasePath =
                 appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH).orElse(null);
 
@@ -214,7 +211,7 @@ public class ImportTaskDetailView extends StandardDetailView<CuratorTask> {
             event.preventSave();
             return;
         }
-        importManager.startImport(importer, curatorTask);
+        taskManager.startImport(importer, curatorTask);
     }
 
 
