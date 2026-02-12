@@ -63,7 +63,7 @@ public class OrphanHandler {
         SpdxDocument spdxDocument = context.getSpdxDocument();
 
         List<TypedValue> allFileUris = spdxDocument.getModelStore().getAllItems(null, "File").toList();
-        List<SpdxFile> orphanFiles = new ArrayList<>();
+        Map<String, SpdxFile> uniqueOrphans = new HashMap<>();
 
         for (TypedValue uri : allFileUris) {
             SpdxModelFactory.getSpdxObjects(
@@ -74,21 +74,21 @@ public class OrphanHandler {
                     null
             ).forEach(obj -> {
                 if (obj instanceof SpdxFile file) {
-                    if (!context.getProcessedFileIds().contains(file.getId())) {
-                        orphanFiles.add(file);
+                    if (!context.getProcessedFileIds().contains(file.getId()) && !uniqueOrphans.containsKey(file.getId())) {
+                        uniqueOrphans.put(file.getId(), file);
                     }
                 }
             });
         }
 
-        if (orphanFiles.isEmpty()) {
+        if (uniqueOrphans.isEmpty()) {
             return;
         }
 
-        log.info("Found {} orphan files. Creating individual inventory items for each.", orphanFiles.size());
+        log.info("Found {} orphan files. Creating individual inventory items for each.", uniqueOrphans.size());
 
 
-        for (SpdxFile file : orphanFiles) {
+        for (SpdxFile file : uniqueOrphans.values()) {
 
             String filePath = file.getName().orElse("Unknown File");
 
