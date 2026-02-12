@@ -25,7 +25,7 @@ import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-@Converter(autoApply = true)
+@Converter
 public class AppConfigKeyConverter extends AbstractEnumClassConverter<AppConfigKey>
         implements AttributeConverter<AppConfigKey, String> {
     public AppConfigKeyConverter() {

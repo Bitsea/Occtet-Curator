@@ -137,18 +137,22 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
         });
     }
     private void viewFile(File file) {
-        if(file!= null){
-            if (hostView instanceof AuditView auditView) {
-                auditView.getTabManager().openFileTab(file, true);
+        if (file != null){
+            if (file.getPhysicalPath() != null){
+                if (!file.getPhysicalPath().isBlank()) {
+                    if (hostView instanceof AuditView auditView) {
+                        auditView.getTabManager().openFileTab(file, true);
+                    } else {
+                        log.error("Host view is not AuditView, cannot open tab.");
+                    }
+                }
             } else {
-                log.error("Host view is not AuditView, cannot open tab.");
+                notifications.create(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.message.error"))
+                        .withPosition(Notification.Position.BOTTOM_END)
+                        .withThemeVariant(NotificationVariant.LUMO_ERROR)
+                        .withDuration(3000)
+                        .show();
             }
-        } else {
-            notifications.create(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.message.error"))
-                    .withPosition(Notification.Position.BOTTOM_END)
-                    .withThemeVariant(NotificationVariant.LUMO_ERROR)
-                    .withDuration(3000)
-                    .show();
         }
     }
 

@@ -56,13 +56,14 @@ public class File {
     @JoinColumn(name = "PARENT_ID")
     private File parent;
 
-
     @ManyToMany(mappedBy = "files", cascade = CascadeType.REMOVE)
     private Set<Copyright> copyrights = new HashSet<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "INVENTORY_ITEM_ID")
-    private InventoryItem inventoryItem;
+    @JoinTable(name = "FILE_INVENTORY_ITEM_LINK",
+            joinColumns = @JoinColumn(name = "FILE_ID"),
+            inverseJoinColumns = @JoinColumn(name = "INVENTORY_ITEM_ID"))
+    @ManyToMany(fetch = FetchType.LAZY)
+    private Set<InventoryItem> inventoryItems = new HashSet<>();
 
     @Column(name = "FILENAME")
     private String fileName;
@@ -71,7 +72,7 @@ public class File {
     @Column(name = "PHYSICAL_PATH", columnDefinition = "TEXT")
     private String physicalPath;
 
-    // Example: dependencies/lib-v1/com/acme/Util.java
+    // Example: project_101/dependencies/lib-v1/com/acme/Util.java
     @Column(name = "PROJECT_PATH", nullable = false, columnDefinition = "TEXT")
     private String projectPath;
 
@@ -105,21 +106,25 @@ public class File {
     public File() {
     }
 
-    public File( String filePath, Project project){
-        this.projectPath= filePath;
-        this.project= project;
+    public File(InventoryItem inventoryItem, String filePath) {
+        this.projectPath = filePath;
+        if (inventoryItem != null) {
+            this.inventoryItems.add(inventoryItem);
+        }
     }
 
     public File ( InventoryItem inventoryItem, String filePath, String fileName, Project project){
-        this.inventoryItem= inventoryItem;
-        this.projectPath= filePath;
+        if (inventoryItem != null) {
+            this.inventoryItems.add(inventoryItem);
+        }        this.projectPath= filePath;
         this.fileName= fileName;
         this.project= project;
     }
 
     public File ( InventoryItem inventoryItem, String filePath, Project project) {
-        this.inventoryItem = inventoryItem;
-        this.projectPath = filePath;
+        if (inventoryItem != null) {
+            this.inventoryItems.add(inventoryItem);
+        }        this.projectPath = filePath;
         this.project= project;
     }
 
@@ -127,15 +132,17 @@ public class File {
         this.artifactPath= artifactPath;
         this.fileName = fileName;
         this.project= project;
-        this.inventoryItem= inventoryItem;
+        if (inventoryItem != null) {
+            this.inventoryItems.add(inventoryItem);
+        }
     }
 
-    public InventoryItem getInventoryItem() {
-        return inventoryItem;
+    public Set<InventoryItem> getInventoryItems() {
+        return inventoryItems;
     }
 
-    public void setInventoryItem(InventoryItem inventoryItem) {
-        this.inventoryItem = inventoryItem;
+    public void setInventoryItems(Set<InventoryItem> inventoryItems) {
+        this.inventoryItems = inventoryItems;
     }
 
     public Long getId() {
@@ -283,5 +290,10 @@ public class File {
         }
     }
 
-
+    public void addInventoryItem(InventoryItem item) {
+        if (this.inventoryItems == null) {
+            this.inventoryItems = new HashSet<>();
+        }
+        this.inventoryItems.add(item);
+    }
 }
