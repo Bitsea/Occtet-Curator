@@ -26,7 +26,7 @@ import eu.occtet.bocfrontend.factory.InventoryItemFactory;
 import eu.occtet.bocfrontend.factory.ProjectFactory;
 import eu.occtet.bocfrontend.factory.CuratorTaskFactory;
 import eu.occtet.bocfrontend.factory.SoftwareComponentFactory;
-import eu.occtet.bocfrontend.importer.ImportManager;
+import eu.occtet.bocfrontend.importer.TaskManager;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlans;
 import io.jmix.core.security.Authenticated;
@@ -42,10 +42,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @AutoConfigureDataJpa
-public class ImportManagerTest {
+public class TaskManagerTest {
 
     @Autowired
-    private ImportManager importManager;
+    private TaskManager taskManager;
 
 
     @Autowired
@@ -72,13 +72,13 @@ public class ImportManagerTest {
     @Autowired
     private SystemAuthenticator systemAuthenticator;
 
-    private static final Logger log = LogManager.getLogger(ImportManagerTest.class);
+    private static final Logger log = LogManager.getLogger(TaskManagerTest.class);
 
 
     @Authenticated
     private Project prepare() {
 
-        Project project = projectFactory.create("project1", "test");
+        Project project = projectFactory.create("project1");
         dataManager.save(project);
         return project;
     }

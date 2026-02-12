@@ -62,7 +62,7 @@ public class InventoryItemServiceTest {
     void setUp() {
         project1 = projectFactory.create("InventoryItemServiceTestProject");
         softwareComponent1 = softwareComponentFactory.create("InventoryItemServiceTestSc1", "1.0",
-                "","InventoryItemServiceTestScCve","","",true,null);
+                "purl-123",true,null);
         item1 = inventoryItemFactory.create("InventoryItemServiceTestItem1", softwareComponent1, project1);
         item2 = inventoryItemFactory.create("InventoryItemServiceTestItem2", softwareComponent1, project1);
     }
