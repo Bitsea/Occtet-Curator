@@ -39,10 +39,9 @@ import eu.occtet.bocfrontend.view.audit.TabManager;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.factory.UiComponentFactory;
+import eu.occtet.bocfrontend.factory.AuditViewUiComponentFactory;
 import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
 import eu.occtet.bocfrontend.view.audit.FileHierarchyProvider;
-import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.UiComponentUtils;
@@ -73,7 +72,7 @@ public class TreeGridHelper {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
-    private UiComponentFactory uiComponentFactory;
+    private AuditViewUiComponentFactory uiComponentFactory;
     @Autowired
     private Messages messages;
 

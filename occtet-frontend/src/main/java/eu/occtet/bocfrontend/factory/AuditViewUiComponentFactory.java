@@ -20,7 +20,6 @@
 package eu.occtet.bocfrontend.factory;
 
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBoxVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.NativeLabel;
@@ -33,6 +32,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.textfield.TextFieldVariant;
+import eu.occtet.bocfrontend.component.CustomParameterFilter;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
@@ -41,8 +41,11 @@ import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.model.DataLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 
 /**
@@ -50,7 +53,7 @@ import org.springframework.stereotype.Component;
  * and other elements for utilization in user interface construction and customization.
  */
 @Component
-public class UiComponentFactory {
+public class AuditViewUiComponentFactory {
 
     @Autowired
     private UiComponents uiComponents;
@@ -66,8 +69,7 @@ public class UiComponentFactory {
     public static final String SEARCH_BUTTON = "search-button";
     public static final String SEARCH_LAYOUT_ID = "search-layout";
     public static final String COUNT_LABEL_ID = "count-label";
-
-    private final String vulnerabilityFilterId = "vulnerability-filter";
+    public static final String CUSTOM_FILTER_ID_FOR_INVENTORY_GRID = "custom-filter-for-inventory-grid";
 
     /**
      * Creates an information button with a tooltip and attaches it to the header of the specified column in the inventory grid.
@@ -105,42 +107,26 @@ public class UiComponentFactory {
         return layout;
     }
 
-    /**
-     * Creates a toolbox for a given and entity class.
-     * The created toolbox may include specific components or functionalities
-     * based on the type of the entity class provided.
-     *
-     * @param <T> The type of the items in the TreeDataGrid.
-     * @param grid The TreeDataGrid instance for which the toolbox is created.
-     * @param entityClass The class type of the entity corresponding to the grid's items.
-     * @return A HorizontalLayout representing the created toolbox, or null
-     *         if the entity class is not supported.
-     */
-    public <T> HorizontalLayout createToolBox(TreeDataGrid<T> grid, Class<T> entityClass, Runnable onExpand, Runnable onCollapse) {
-        if (entityClass.equals(InventoryItem.class)) {
-            return createToolBoxForInventoryItemGrid(grid, onExpand, onCollapse);
-        }
-        return null;
-    }
-
-    private <T> HorizontalLayout createToolBoxForInventoryItemGrid(TreeDataGrid<T> grid,Runnable onExpand, Runnable onCollapse) {
+    public <T> HorizontalLayout createToolBoxForInventoryItemGrid(TreeDataGrid<T> grid,
+                                                                  DataLoader dataLoader,
+                                                                  Map<String, String> filterConfig,
+                                                                  Runnable onExpand,
+                                                                  Runnable onCollapse) {
         HorizontalLayout toolbox = uiComponents.create(HorizontalLayout.class);
 
         toolbox.setSpacing(true);
-        toolbox.setPadding(true);
-        toolbox.setAlignItems(FlexComponent.Alignment.CENTER);
-        toolbox.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
-
-        Checkbox vulnerabilityFilter = uiComponents.create(Checkbox.class);
-        vulnerabilityFilter.setId(vulnerabilityFilterId); // important
-        vulnerabilityFilter.setLabel("vulnerable");
-        vulnerabilityFilter.setValue(false);
-
+        toolbox.setPadding(false);
+        toolbox.setMargin(false);
+        toolbox.setAlignItems(FlexComponent.Alignment.END);
+        toolbox.setJustifyContentMode(FlexComponent.JustifyContentMode.START);
         toolbox.setClassName("toolbox-audit-view");
-        toolbox.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
-        toolbox.setAlignItems(FlexComponent.Alignment.START);
         toolbox.setWidthFull();
-        toolbox.add(vulnerabilityFilter, createExpandAndCollapseToolBar(grid, onExpand, onCollapse));
+
+        CustomParameterFilter customFilter = new CustomParameterFilter(uiComponents, filterConfig);
+        customFilter.setId(CUSTOM_FILTER_ID_FOR_INVENTORY_GRID);
+        customFilter.setDataLoader(dataLoader);
+
+        toolbox.add(customFilter, createExpandAndCollapseToolBar(grid, onExpand, onCollapse));
 
         return toolbox;
     }
@@ -235,13 +221,15 @@ public class UiComponentFactory {
 
         JmixButton expandAll = uiComponents.create(JmixButton.class);
         expandAll.setTooltipText("Expand all");
+        expandAll.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY,
+                ButtonVariant.LUMO_ICON);
         expandAll.setIcon(expandIcon);
-        expandAll.setThemeName("icon");
 
         JmixButton collapseAll = uiComponents.create(JmixButton.class);
         collapseAll.setTooltipText("Collapse all");
+        collapseAll.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY,
+                ButtonVariant.LUMO_ICON);
         collapseAll.setIcon(compressIcon);
-        collapseAll.setThemeName("icon");
 
         expandAll.addClickListener(event -> onExpand.run());
         collapseAll.addClickListener(event -> onCollapse.run());
@@ -256,10 +244,6 @@ public class UiComponentFactory {
         mergeLayout.add(expandAll, collapseAll);
 
         return mergeLayout;
-    }
-
-    public String getVulnerabilityFilterId() {
-        return vulnerabilityFilterId;
     }
 
     /**

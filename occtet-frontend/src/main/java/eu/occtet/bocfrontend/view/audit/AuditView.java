@@ -21,7 +21,6 @@ package eu.occtet.bocfrontend.view.audit;
 
 
 import com.vaadin.flow.component.*;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
@@ -31,11 +30,12 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.*;
+import eu.occtet.bocfrontend.component.CustomParameterFilter;
 import eu.occtet.bocfrontend.dao.FileRepository;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.entity.*;
-import eu.occtet.bocfrontend.factory.UiComponentFactory;
+import eu.occtet.bocfrontend.factory.AuditViewUiComponentFactory;
 import eu.occtet.bocfrontend.factory.RendererFactory;
 import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
 import eu.occtet.bocfrontend.service.*;
@@ -103,7 +103,7 @@ public class AuditView extends StandardView{
 
     @Autowired private TreeGridHelper treeGridHelper;
 
-    @Autowired private UiComponentFactory componentFactory;
+    @Autowired private AuditViewUiComponentFactory componentFactory;
     @Autowired private RendererFactory rendererFactory;
 
     @ViewComponent private DataContext dataContext;
@@ -155,6 +155,10 @@ public class AuditView extends StandardView{
      */
     @Subscribe
     protected void onInit(InitEvent event) {
+        inventoryItemDl.setParameter("project", projectComboBox.getValue());
+        inventoryItemDl.setParameter("vulnerableOnly", false);
+        inventoryItemDl.setParameter("hasTodos", false);
+
         initializeTabManager();
         initializeProjectComboBox();
         initializeInventoryDataGrid();
@@ -186,12 +190,12 @@ public class AuditView extends StandardView{
         fileTreeGridLayout.addComponentAsFirst(toolboxWrapper);
 
         JmixComboBox<FileReviewedFilterMode> filterBox = (JmixComboBox<FileReviewedFilterMode>)
-                findComponentById(toolboxWrapper, UiComponentFactory.REVIEWED_FILTER_ID);
-        TextField searchField = (TextField) findComponentById(toolboxWrapper, UiComponentFactory.SEARCH_FIELD_ID);
-        JmixButton nextBtn = (JmixButton) findComponentById(toolboxWrapper, UiComponentFactory.FIND_NEXT_ID);
-        JmixButton prevBtn = (JmixButton) findComponentById(toolboxWrapper, UiComponentFactory.FIND_PREVIOUS_ID);
-        NativeLabel countLabel = (NativeLabel) findComponentById(toolboxWrapper, UiComponentFactory.COUNT_LABEL_ID);
-        JmixButton searchBtn = (JmixButton) findComponentById(toolboxWrapper, UiComponentFactory.SEARCH_BUTTON);
+                findComponentById(toolboxWrapper, AuditViewUiComponentFactory.REVIEWED_FILTER_ID);
+        TextField searchField = (TextField) findComponentById(toolboxWrapper, AuditViewUiComponentFactory.SEARCH_FIELD_ID);
+        JmixButton nextBtn = (JmixButton) findComponentById(toolboxWrapper, AuditViewUiComponentFactory.FIND_NEXT_ID);
+        JmixButton prevBtn = (JmixButton) findComponentById(toolboxWrapper, AuditViewUiComponentFactory.FIND_PREVIOUS_ID);
+        NativeLabel countLabel = (NativeLabel) findComponentById(toolboxWrapper, AuditViewUiComponentFactory.COUNT_LABEL_ID);
+        JmixButton searchBtn = (JmixButton) findComponentById(toolboxWrapper, AuditViewUiComponentFactory.SEARCH_BUTTON);
 
         // Filter Logic
         if (filterBox != null) {
@@ -381,17 +385,30 @@ public class AuditView extends StandardView{
      * Initializes the inventory data grid for displaying and managing inventory items.
      */
     private void initializeInventoryDataGrid() {
-        HorizontalLayout inventoryToolbox = componentFactory.createToolBox(
-                inventoryItemDataGrid, InventoryItem.class,
-                () -> treeGridHelper.expandChildrenOfRoots(inventoryItemDataGrid),
-                () -> treeGridHelper.collapseChildrenOfRoots(inventoryItemDataGrid));
+        Map<String, String> filterConfig = new HashMap<>();
+        filterConfig.put(messages.getMessage("eu.occtet.bocfrontend.view.audit/auditView.filter" +
+                ".vulnerable"), "vulnerableOnly");
+        filterConfig.put(messages.getMessage("eu.occtet.bocfrontend.view.audit/auditView.filter" +
+                ".hasTodos"), "hasTodos");
 
-        findCheckBoxById(inventoryToolbox, componentFactory.getVulnerabilityFilterId())
-                .ifPresentOrElse(checkbox -> {
-                    checkbox.addValueChangeListener(event ->
-                                    onVulnerabilityFilterToggled(Boolean.TRUE.equals(event.getValue())));
-                }, () -> log.warn("Unable to find vulnerability filter checkbox in inventory toolbox")
-                );
+        HorizontalLayout inventoryToolbox = componentFactory.createToolBoxForInventoryItemGrid(
+                inventoryItemDataGrid,
+                inventoryItemDl,
+                filterConfig,
+                () -> treeGridHelper.expandChildrenOfRoots(inventoryItemDataGrid),
+                () -> treeGridHelper.collapseChildrenOfRoots(inventoryItemDataGrid)
+        );
+
+        CustomParameterFilter filter = (CustomParameterFilter) findComponentById(
+                inventoryToolbox, AuditViewUiComponentFactory.CUSTOM_FILTER_ID_FOR_INVENTORY_GRID);
+        if(filter != null) {
+            filter.setOnFilterApplied((f) -> {
+                // reload file count
+                Project project = projectComboBox.getValue();
+                if (project != null) loadFileCounts(project);
+            });
+        }
+        // queries regarding the filters are added in the descriptor
 
         // TODO is not listening due the default jmix listener
         inventoryItemDataGrid.addItemClickListener(event -> {
@@ -402,32 +419,7 @@ public class AuditView extends StandardView{
         toolbarBox.removeAll();
         toolbarBox.add(inventoryToolbox);
         componentFactory.createInfoButtonHeaderForInventoryGrid(inventoryItemDataGrid, "status");
-
         inventoryItemDataGrid.setTooltipGenerator(InventoryItem::getInventoryName);
-    }
-
-    private Optional<Checkbox> findCheckBoxById(Component container, String id){
-        return container.getChildren()
-                .filter(child -> id.equals(child.getId().orElse(null)))
-                .filter(child -> child instanceof Checkbox)
-                .map(child -> (Checkbox) child)
-                .findFirst();
-    }
-
-    /**
-     * Toggles the vulnerability filter for inventory items. Updates the data loader parameter to
-     * filter items based on their vulnerability status and reloads the data.
-     *
-     * @param vulnerableOnly a boolean indicating whether to display only vulnerable inventory items (true)
-     *                        or all items (false)
-     */
-    private void onVulnerabilityFilterToggled(boolean vulnerableOnly) {
-        Project project = projectComboBox.getValue();
-        if (project == null) return;
-
-        inventoryItemDl.setParameter("vulnerableOnly", vulnerableOnly);
-        inventoryItemDl.load();
-        loadFileCounts(project);
     }
 
     private void initializeTabManager() {
@@ -546,6 +538,7 @@ public class AuditView extends StandardView{
     public void refreshInventoryItemDc(Project project) {
         inventoryItemDl.setParameter("project", project);
         inventoryItemDl.setParameter("vulnerableOnly", false);
+        inventoryItemDl.setParameter("hasTodos", false);
         inventoryItemDl.load();
         loadFileCounts(project);
     }

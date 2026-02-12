@@ -35,6 +35,10 @@
                                 e.softwareComponent is not null
                                 and e.softwareComponent.vulnerabilities is not empty
                             )
+                        ) and (
+                            :hasTodos = false
+                            or e.hasTodos = true
+
                         )
                         order by e.inventoryName
                     ]]>
@@ -92,12 +96,12 @@
                         </tab>
                     </tabSheet>
                 </split>
-                <vbox classNames="toolbox-audit-view" width="16%" margin="false" padding="false"
+                <vbox width="16%" margin="false" padding="false"
                       spacing="false">
                     <button id="createBtn"
                             action="inventoryItemDataGrid.create"
                             icon="PLUS"
-                            themeNames="small"
+                            themeNames="small com"
                             title="msg://createInventoryItem"
                             alignSelf="END"/>
                     <hbox id="toolbarBox"
