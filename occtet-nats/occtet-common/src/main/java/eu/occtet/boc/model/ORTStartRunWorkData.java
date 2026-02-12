@@ -18,14 +18,12 @@ public class ORTStartRunWorkData extends BaseWorkData{
                               @JsonProperty("repositoryUrl") String repositoryUrl,
                               @JsonProperty("repositoryVersion") String repositoryVersion,
                               @JsonProperty("organizationName") String organizationName,
-                              @JsonProperty("projectId") long projectId,
-                               @JsonProperty("runId") long runId) {
+                              @JsonProperty("projectId") long projectId) {
         this.repositoryType = repositoryType;
         this.repositoryUrl = repositoryUrl;
         this.repositoryVersion = repositoryVersion;
         this.organizationName = organizationName;
         this.projectId = projectId;
-        this.runId= runId;
     }
 
     public String getRepositoryType() {
