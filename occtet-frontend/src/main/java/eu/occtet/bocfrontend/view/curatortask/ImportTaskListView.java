@@ -32,8 +32,8 @@ import eu.occtet.bocfrontend.dao.CuratorTaskRepository;
 import eu.occtet.bocfrontend.entity.Configuration;
 import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.entity.TaskStatus;
-import eu.occtet.bocfrontend.importer.ImportManager;
-import eu.occtet.bocfrontend.importer.Importer;
+import eu.occtet.bocfrontend.importer.TaskManager;
+import eu.occtet.bocfrontend.importer.TaskParent;
 import eu.occtet.bocfrontend.service.CuratorTaskService;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
@@ -94,7 +94,7 @@ public class ImportTaskListView extends StandardListView<CuratorTask> {
     private DataManager dataManager;
 
     @Autowired
-    private ImportManager importManager;
+    private TaskManager taskManager;
 ;
     @Autowired
     private CuratorTaskRepository curatorTaskRepository;
@@ -122,7 +122,7 @@ public class ImportTaskListView extends StandardListView<CuratorTask> {
 
 
     private void updateAvailableImportsBox() {
-        List<Importer> importers = importManager.getAvailableImports();
+        List<TaskParent> importers = taskManager.getAvailableImports();
         availableImportBox.removeAll();
         importers.forEach(importer -> {
             if(!importer.getName().contains("Dumb") && !importer.getName().contains("Flexera_Report_Import"))
@@ -133,7 +133,7 @@ public class ImportTaskListView extends StandardListView<CuratorTask> {
 
 
 
-    private VerticalLayout createImportIcon(String buttonId, Importer importer) {
+    private VerticalLayout createImportIcon(String buttonId, TaskParent importer) {
         VerticalLayout verticalLayout = uiComponents.create(VerticalLayout.class);
         verticalLayout.setPadding(false);
         verticalLayout.setWidth("AUTO");

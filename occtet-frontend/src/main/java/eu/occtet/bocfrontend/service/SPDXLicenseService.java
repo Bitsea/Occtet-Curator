@@ -29,6 +29,7 @@ import eu.occtet.bocfrontend.model.SPDXLicenseInfos;
 import io.jmix.core.DataManager;
 import io.jmix.core.security.Authenticated;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -46,16 +47,9 @@ import static org.reflections.Reflections.log;
 @Service
 public class SPDXLicenseService {
 
+    @Autowired
+    private LicenseFactory licenseFactory;
 
-    private final LicenseFactory licenseFactory;
-    private final LicenseRepository licenseRepository;
-    private final DataManager dataManager;
-
-    public SPDXLicenseService(LicenseFactory licenseFactory, LicenseRepository licenseRepository, DataManager dataManager) {
-        this.licenseFactory = licenseFactory;
-        this.licenseRepository = licenseRepository;
-        this.dataManager = dataManager;
-    }
 
     @Authenticated
     public void readDefaultLicenseInfos() {

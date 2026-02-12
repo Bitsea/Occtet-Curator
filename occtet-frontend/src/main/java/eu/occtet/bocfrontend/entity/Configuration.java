@@ -34,7 +34,7 @@ import jakarta.persistence.Table;
 @Entity
 public class Configuration {
 
-    public enum Type {STRING, NUMERIC, FILE_UPLOAD, BASE_PATH, BOOLEAN}
+    public enum Type {STRING, NUMERIC, FILE_UPLOAD, BASE_PATH, BOOLEAN, REPOSITORY_TYPE}
 
     @JmixGeneratedValue()
     @Id

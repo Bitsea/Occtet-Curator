@@ -79,6 +79,7 @@ public class InventoryItem {
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
 
+
     public InventoryItem() {
         this.createdAt = LocalDateTime.now();
     }
