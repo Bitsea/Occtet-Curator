@@ -34,6 +34,8 @@ import eu.occtet.boc.entity.appconfigurations.AppConfigKey;
 import eu.occtet.boc.entity.appconfigurations.AppConfiguration;
 import eu.occtet.boc.model.DownloadServiceWorkData;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
+import eu.occtet.boc.util.ExternalNotesConstants;
+import eu.occtet.boc.util.FileConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +64,6 @@ public class DownloadManager extends BaseWorkDataProcessor {
     @Autowired private FileService fileService;
 
     private static final String SAFE_FILENAME_REGEX = "[^a-zA-Z0-9.\\-_]";
-    private final String DEPENDENCIES_FOLDER = "dependencies";
 
     @Override
     @Transactional
@@ -96,7 +97,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
 
             if (!isMainPkg) {
                 log.debug("Resolving dependencies folder for item {}", data.getInventoryItemId());
-                workingPath = workingPath.resolve(DEPENDENCIES_FOLDER);
+                workingPath = workingPath.resolve(FileConstants.DEPENDENCIES_FOLDER_NAME);
             }
             String canonicalName = resolveCanonicalDirectoryName(softwareComponent);
             String safeSoftwareComponentName = sanitizeFilename(canonicalName, "unknown_component_" + data.getInventoryItemId());
@@ -171,12 +172,15 @@ public class DownloadManager extends BaseWorkDataProcessor {
 
             if (downloadedPath == null){
                 log.error("All download strategies failed for item {}", data.getInventoryItemId());
-                String oldNotes = inventoryItem.getExternalNotes();
-                oldNotes += "\n\nWARNING: Unable to download resources for this inventory item.";
-                inventoryItem.setExternalNotes(oldNotes);
+                String updatedNotes = inventoryItem.getExternalNotes();
+                updatedNotes += ExternalNotesConstants.SECTION_SEPARATOR +
+                        ExternalNotesConstants.WARNING_AUDITOR_ATTENTION_REQ + 
+                        ExternalNotesConstants.DOWNLOAD_SERVICE_FAILURE_MSG;
+                inventoryItem.setExternalNotes(updatedNotes);
+                inventoryItem.setHasTodos(true);
                 inventoryItemRepository.save(inventoryItem);
                 log.debug("InventoryItem '{}' audit notes updated with WARNING message: {}", inventoryItem.getId(),
-                        oldNotes);
+                        updatedNotes);
                 return false;
             }
 
