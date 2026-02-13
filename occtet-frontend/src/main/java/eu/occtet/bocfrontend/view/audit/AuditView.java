@@ -127,6 +127,7 @@ public class AuditView extends StandardView{
     private Map<Long, Long> fileCounts = new HashMap<>();
     private boolean suppressNavigation = false;
     private final Set<Long> expandedItemIds = new HashSet<>();
+    private CustomParameterFilter inventorItemGridFilter;
 
     private FileTreeSearchHelper fileTreeSearchHelper;
     @Autowired
@@ -156,8 +157,6 @@ public class AuditView extends StandardView{
     @Subscribe
     protected void onInit(InitEvent event) {
         inventoryItemDl.setParameter("project", projectComboBox.getValue());
-        inventoryItemDl.setParameter("vulnerableOnly", false);
-        inventoryItemDl.setParameter("hasTodos", false);
 
         initializeTabManager();
         initializeProjectComboBox();
@@ -385,11 +384,19 @@ public class AuditView extends StandardView{
      * Initializes the inventory data grid for displaying and managing inventory items.
      */
     private void initializeInventoryDataGrid() {
-        Map<String, String> filterConfig = new HashMap<>();
+        Map<String, String> filterConfig = new LinkedHashMap<>();
         filterConfig.put(messages.getMessage("eu.occtet.bocfrontend.view.audit/auditView.filter" +
                 ".vulnerable"), "vulnerableOnly");
+        filterConfig.put(messages.getMessage("eu.occtet.bocfrontend.view.audit/auditView.filter.invulnerable"),
+                "invulnerableOnly");
+        filterConfig.put(messages.getMessage("eu.occtet.bocfrontend.view.audit/auditView.filter.curated"),
+                "curatedOnly");
+        filterConfig.put(messages.getMessage("eu.occtet.bocfrontend.view.audit/auditView.filter.uncurated"),
+                "uncuratedOnly");
         filterConfig.put(messages.getMessage("eu.occtet.bocfrontend.view.audit/auditView.filter" +
                 ".hasTodos"), "hasTodos");
+        filterConfig.put(messages.getMessage("eu.occtet.bocfrontend.view.audit/auditView.filter" +
+                ".noTodos"), "noTodos");
 
         HorizontalLayout inventoryToolbox = componentFactory.createToolBoxForInventoryItemGrid(
                 inventoryItemDataGrid,
@@ -399,10 +406,10 @@ public class AuditView extends StandardView{
                 () -> treeGridHelper.collapseChildrenOfRoots(inventoryItemDataGrid)
         );
 
-        CustomParameterFilter filter = (CustomParameterFilter) findComponentById(
+        this.inventorItemGridFilter = (CustomParameterFilter) findComponentById(
                 inventoryToolbox, AuditViewUiComponentFactory.CUSTOM_FILTER_ID_FOR_INVENTORY_GRID);
-        if(filter != null) {
-            filter.setOnFilterApplied((f) -> {
+        if(inventorItemGridFilter != null) {
+            inventorItemGridFilter.setOnFilterApplied((f) -> {
                 // reload file count
                 Project project = projectComboBox.getValue();
                 if (project != null) loadFileCounts(project);
@@ -530,6 +537,9 @@ public class AuditView extends StandardView{
             clearView();
             return;
         }
+        if (this.inventorItemGridFilter != null) {
+            this.inventorItemGridFilter.reset();
+        }
         refreshInventoryItemDc(project);
         log.debug("Setting new FileHierarchyProvider for project {}", project.getProjectName());
         fileTreeGrid.setDataProvider(new FileHierarchyProvider(fileRepository, project));
@@ -537,8 +547,7 @@ public class AuditView extends StandardView{
 
     public void refreshInventoryItemDc(Project project) {
         inventoryItemDl.setParameter("project", project);
-        inventoryItemDl.setParameter("vulnerableOnly", false);
-        inventoryItemDl.setParameter("hasTodos", false);
+
         inventoryItemDl.load();
         loadFileCounts(project);
     }
@@ -600,6 +609,10 @@ public class AuditView extends StandardView{
         }
 
         if (event.getValue() == event.getOldValue()) return;
+        if (event.getValue() == null) {
+            clearView();
+            return;
+        }
 
         if (event.isFromClient() && tabManager.hasOpenTabs()) {
             dialogs.createOptionDialog()

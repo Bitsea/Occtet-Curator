@@ -21,6 +21,10 @@
 
 package eu.occtet.boc.util;
 
+/**
+ * The ExternalNotesConstants class defines constant string values used for external notes aka audit notes of an
+ * inventory item
+ */
 public class ExternalNotesConstants {
 
     public static final String SECTION_SEPARATOR = "\n---\n";

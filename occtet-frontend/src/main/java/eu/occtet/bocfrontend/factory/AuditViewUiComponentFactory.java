@@ -42,6 +42,8 @@ import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.DataLoader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -54,6 +56,8 @@ import java.util.Map;
  */
 @Component
 public class AuditViewUiComponentFactory {
+
+    private final Logger log = LogManager.getLogger(this.getClass());
 
     @Autowired
     private UiComponents uiComponents;
@@ -86,8 +90,9 @@ public class AuditViewUiComponentFactory {
         }
 
         VerticalLayout legend = new VerticalLayout(
-                createLegendItem(VaadinIcon.CIRCLE, "curated-icon", "Curated"),
-                createLegendItem(VaadinIcon.CIRCLE, "not-curated-icon", "Not Curated")
+                createLegendItem(VaadinIcon.CIRCLE, "curated-icon", messages.getMessage("eu.occtet.bocfrontend.factory/AuditViewUiComponentFactory.legend.curated")),
+                createLegendItem(VaadinIcon.CIRCLE, "not-curated-icon", messages.getMessage("eu.occtet.bocfrontend.factory/AuditViewUiComponentFactory.legend.uncurated")),
+                createLegendItem(VaadinIcon.WARNING, "warning-icon", messages.getMessage("eu.occtet.bocfrontend.factory/AuditViewUiComponentFactory.legend.todos"))
         );
 
         statusColumn.setHeader(infoButtonFactory.createInfoButtonFromComponent(legend, null, null));
@@ -122,9 +127,14 @@ public class AuditViewUiComponentFactory {
         toolbox.setClassName("toolbox-audit-view");
         toolbox.setWidthFull();
 
-        CustomParameterFilter customFilter = new CustomParameterFilter(uiComponents, filterConfig);
-        customFilter.setId(CUSTOM_FILTER_ID_FOR_INVENTORY_GRID);
-        customFilter.setDataLoader(dataLoader);
+        CustomParameterFilter customFilter = null;
+        try{
+            customFilter = new CustomParameterFilter(uiComponents, filterConfig);
+            customFilter.setId(CUSTOM_FILTER_ID_FOR_INVENTORY_GRID);
+            customFilter.setDataLoader(dataLoader);
+        } catch (Exception e) {
+            log.error("Error creating custom filter for inventory grid", e);
+        }
 
         toolbox.add(customFilter, createExpandAndCollapseToolBar(grid, onExpand, onCollapse));
 
@@ -238,10 +248,10 @@ public class AuditViewUiComponentFactory {
         mergeLayout.setMargin(false);
         mergeLayout.setPadding(false);
         mergeLayout.setSpacing(false);
-        mergeLayout.setWidthFull();
         mergeLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         mergeLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         mergeLayout.add(expandAll, collapseAll);
+        mergeLayout.setSpacing("2px");
 
         return mergeLayout;
     }

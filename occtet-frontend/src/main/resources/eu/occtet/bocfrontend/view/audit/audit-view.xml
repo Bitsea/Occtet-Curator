@@ -31,14 +31,27 @@
                         where e.project = :project
                         and (
                             :vulnerableOnly = false
-                            or (
-                                e.softwareComponent is not null
-                                and e.softwareComponent.vulnerabilities is not empty
-                            )
-                        ) and (
+                            or (e.softwareComponent is not null and e.softwareComponent.vulnerabilities is not empty)
+                        )
+                        and (
+                            :invulnerableOnly = false
+                            or (e.softwareComponent is null or e.softwareComponent.vulnerabilities is empty)
+                        )
+                        and (
+                            :curatedOnly = false
+                            or e.curated = true
+                        )
+                        and (
+                            :uncuratedOnly = false
+                            or (e.curated = false or e.curated is null)
+                        )
+                        and (
                             :hasTodos = false
                             or e.hasTodos = true
-
+                        )
+                        and (
+                            :noTodos = false
+                            or (e.hasTodos = false or e.hasTodos is null)
                         )
                         order by e.inventoryName
                     ]]>
