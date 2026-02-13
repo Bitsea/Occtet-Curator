@@ -70,6 +70,8 @@ public class DownloadWorkConsumer extends WorkConsumer {
 
             if (!result) {
                 log.error("Could not process workData of type {}", workData.getClass().getName());
+            } else {
+                log.info("Successfully processed workData of type {}", workData.getClass().getName());
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

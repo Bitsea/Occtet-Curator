@@ -2,6 +2,7 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -30,6 +31,7 @@
       <module name="occtet-nats-ai-service" target="21" />
       <module name="occtet-nats-copyrightFilter-service" target="21" />
       <module name="occtet-nats-licenseMatcher-service" target="21" />
+      <module name="occtet-nats-ort-run-service" target="21" />
       <module name="occtet-nats-spdx-export" target="21" />
       <module name="occtet-nats-vulnerablity-microservice" target="21" />
     </bytecodeTargetLevel>

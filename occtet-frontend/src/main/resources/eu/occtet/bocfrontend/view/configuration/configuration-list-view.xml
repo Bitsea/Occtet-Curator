@@ -70,8 +70,8 @@
                 <action id="remove" type="list_remove"/>
             </actions>
             <columns resizable="true">
-                <column property="name"/>
-                <column property="value"/>
+                <column property="name" header="msg://eu.occtet.bocfrontend.entity/Configuration.name"/>
+                <column property="value" header="msg://eu.occtet.bocfrontend.entity/Configuration.value"/>
             </columns>
         </dataGrid>
         <hbox id="lookupActions" visible="false">

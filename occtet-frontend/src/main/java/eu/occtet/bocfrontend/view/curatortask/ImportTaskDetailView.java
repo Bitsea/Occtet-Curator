@@ -36,10 +36,10 @@ import eu.occtet.bocfrontend.entity.Configuration;
 import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.TaskStatus;
+import eu.occtet.bocfrontend.importer.TaskManager;
+import eu.occtet.bocfrontend.importer.TaskParent;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfiguration;
-import eu.occtet.bocfrontend.importer.ImportManager;
-import eu.occtet.bocfrontend.importer.Importer;
 import eu.occtet.bocfrontend.service.ConfigurationService;
 import eu.occtet.bocfrontend.service.Utilities;
 import eu.occtet.bocfrontend.view.configuration.ConfigurationDetailView;
@@ -63,7 +63,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -113,7 +112,7 @@ public class ImportTaskDetailView extends StandardDetailView<CuratorTask> {
     @Autowired
     private Utilities utilities;
     @Autowired
-    private ImportManager importManager;
+    private TaskManager taskManager;
     @Autowired
     private SessionData sessionData;
     @Autowired
@@ -122,7 +121,7 @@ public class ImportTaskDetailView extends StandardDetailView<CuratorTask> {
 
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
-        Importer importer= (Importer) sessionData.getAttribute("selectedImporter");
+        TaskParent importer= (TaskParent) sessionData.getAttribute("selectedImporter");
         if (importer!= null) {
             // Set information about the selected import
             curatorTaskField.setText(importer.getName().replaceAll("_"," "));
@@ -149,7 +148,7 @@ public class ImportTaskDetailView extends StandardDetailView<CuratorTask> {
 
     @Subscribe("projectComboBox")
     public void onProjectValueChange(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event) {
-        Importer importer= (Importer) sessionData.getAttribute("selectedImporter");
+        TaskParent importer= (TaskParent) sessionData.getAttribute("selectedImporter");
         log.debug("importer selected:{}", importer.getName());
         if (event.getValue() != null) {
             setConfigurations(importer);
@@ -164,7 +163,7 @@ public class ImportTaskDetailView extends StandardDetailView<CuratorTask> {
         log.debug("onBeforeSave action triggered");
         getEditedEntity().setTaskName(importName.getValue());
         CuratorTask curatorTask = getEditedEntity();
-        Importer importer= (Importer) sessionData.getAttribute("selectedImporter");
+        TaskParent importer= (TaskParent) sessionData.getAttribute("selectedImporter");
         if (importer == null) {
             dialogs.createMessageDialog().withHeader("Error")
                     .withText(messages.getMessage(getClass(), "error_unknown_import") + ": " + importer.getName()).open();
@@ -212,7 +211,7 @@ public class ImportTaskDetailView extends StandardDetailView<CuratorTask> {
             event.preventSave();
             return;
         }
-        importManager.startImport(importer, curatorTask);
+        taskManager.startImport(importer, curatorTask);
     }
 
 
@@ -221,7 +220,7 @@ public class ImportTaskDetailView extends StandardDetailView<CuratorTask> {
     public void onConfigurationsDataGridItemClick(final ItemClickEvent<Configuration> event) {
         if (event.getItem() != null) {
             editBtn.setEnabled(true);
-            Importer importer= (Importer) sessionData.getAttribute("selectedImporter");
+            TaskParent importer= (TaskParent) sessionData.getAttribute("selectedImporter");
             // Enable the remove button if the import does not require the configuration
             removeBtn.setEnabled(!importer.isConfigurationRequired(event.getItem().getName()));
         }
@@ -244,7 +243,7 @@ public class ImportTaskDetailView extends StandardDetailView<CuratorTask> {
 
         window.getView().setup(this.getEditedEntity());
 
-        Importer importer= (Importer) sessionData.getAttribute("selectedImporter");
+        TaskParent importer= (TaskParent) sessionData.getAttribute("selectedImporter");
         log.info("Opening configuration detail view for: {}", configToEdit.getName());
         log.debug("Import task: {}", importer.getName());
 
@@ -273,11 +272,11 @@ public class ImportTaskDetailView extends StandardDetailView<CuratorTask> {
     }
 
 
-    private void setConfigurations(Importer importer) {
+    private void setConfigurations(TaskParent taskParent) {
         ArrayList<Configuration> configurations = new ArrayList<>();
 
-        importer.getSupportedConfigurationKeys().forEach(k -> {
-            String defaultConfigurationValue = importer.getDefaultConfigurationValue(k);
+        taskParent.getSupportedConfigurationKeys().forEach(k -> {
+            String defaultConfigurationValue = taskParent.getDefaultConfigurationValue(k);
             configurations.add(configurationService.create(k, defaultConfigurationValue));
         });
 
