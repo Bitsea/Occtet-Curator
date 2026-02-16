@@ -191,11 +191,13 @@ public class SpdxServiceTest {
         workData.setProjectId(999999L); // Non-existent ID
         workData.setJsonBytes(jsonBytes);
 
+        try {
+
         boolean result = spdxService.process(workData);
 
         Assertions.assertFalse(result, "Should return false if project does not exist");
 
-        try {
+
             Mockito.verify(packageHandler, Mockito.never()).processAllPackages(any(), any());
         } catch (Exception e) {
             Assertions.fail("Mock verification failed");
