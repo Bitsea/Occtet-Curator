@@ -175,7 +175,8 @@ public class DownloadManager extends BaseWorkDataProcessor {
                 String updatedNotes = inventoryItem.getExternalNotes();
                 updatedNotes += ExternalNotesConstants.SECTION_SEPARATOR +
                         ExternalNotesConstants.WARNING_AUDITOR_ATTENTION_REQ + 
-                        ExternalNotesConstants.DOWNLOAD_SERVICE_FAILURE_MSG;
+                        ExternalNotesConstants.DOWNLOAD_SERVICE_FAILURE_MSG +
+                        ExternalNotesConstants.SECTION_SEPARATOR;
                 inventoryItem.setExternalNotes(updatedNotes);
                 inventoryItem.setHasTodos(true);
                 inventoryItemRepository.save(inventoryItem);

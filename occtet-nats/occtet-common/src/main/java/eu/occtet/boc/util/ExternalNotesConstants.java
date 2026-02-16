@@ -31,8 +31,18 @@ public class ExternalNotesConstants {
 
     // general
     public static final String WARNING_AUDITOR_ATTENTION_REQ = "WARNING - Auditor's Attention Required:\n";
+    public static final String INFO = "INFO:\n";
 
-    // Download Service
-    public static final String DOWNLOAD_SERVICE_FAILURE_MSG = "Failed to download resources. Please try downloading " +
-            "the files for this software component manually.";
+    public static final String COPYRIGHT_FILTER_INFO_AI_RESPONSE_MESSAGE = "INFO - AI Copyright Filter response:\n";
+    public static final String LICENSE_MATCHER_INFO_AI_RESPONSE_MESSAGE = "INFO - AI License Matcher response:\n";
+    // Download service
+    public static final String DOWNLOAD_SERVICE_FAILURE_MSG =
+            "* Failed to download resources. Please try downloading the files for this software component manually.";
+
+    // License matcher messages
+    public static final String LICENSE_URL_NOT_SUCCESSFUL =
+            "url not successfully for license: %s / no spdx match possible";
+
+    public static final String LICENSE_TEXT_MATCHED =
+            "License %s matches license text";
 }

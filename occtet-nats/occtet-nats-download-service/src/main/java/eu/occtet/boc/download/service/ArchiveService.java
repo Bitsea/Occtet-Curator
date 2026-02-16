@@ -82,7 +82,7 @@ public class ArchiveService {
         List<Path> contents;
 
         // Filter hidden files
-        try (Stream<Path> stream = Files.list(sandbox)) { // TODO remove if hidden files are needed
+        try (Stream<Path> stream = Files.list(sandbox)) {
             contents = stream.filter(p -> !p.getFileName().toString().startsWith(".")).toList();
         }
         if (contents.size() == 1 && Files.isDirectory(contents.getFirst())) {
