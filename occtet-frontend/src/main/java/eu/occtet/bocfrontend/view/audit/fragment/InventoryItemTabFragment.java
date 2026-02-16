@@ -19,15 +19,12 @@
 
 package eu.occtet.bocfrontend.view.audit.fragment;
 
-import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.Renderer;
@@ -273,7 +270,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     public void onSaveAction(ActionPerformedEvent event) {
         this.inventoryItem.setExternalNotes(autocompleteAuditNotes.getValue());
         this.inventoryItem.setInventoryName(autocompleteInventoryName.getValue());
-        this.inventoryItem.setLinking(linkingComboBox.getValue().getId());
+        Linking selectedLinking = linkingComboBox.getValue();
+        this.inventoryItem.setLinking(Objects.requireNonNullElse(selectedLinking, Linking.NONE).getId());
         if (dataContext.hasChanges()) {
             log.debug("Inventory Item {} has changes.", inventoryItem.getInventoryName());
 
