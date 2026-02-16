@@ -69,11 +69,7 @@ public class RelationshipHandler {
                 SpdxModelFactory.getSpdxObjects(context.getSpdxDocument().getModelStore(), null, "Package", uri.getObjectUri(), null)
                         .forEach(obj -> {
                             if (obj instanceof SpdxPackage spdxPackage) {
-                                try {
-                                    processSinglePackageRelationships(spdxPackage, context);
-                                } catch (InvalidSPDXAnalysisException e) {
-                                    log.error("Failed to process relationships for package: {}", spdxPackage.getId(), e);
-                                }
+                                processSinglePackageRelationships(spdxPackage, context);
                             }
                         });
 
@@ -91,69 +87,77 @@ public class RelationshipHandler {
     /**
      * Processes relationships for a single package.
      */
-    private void processSinglePackageRelationships(SpdxPackage spdxPackage, SpdxImportContext context) throws InvalidSPDXAnalysisException {
+    private void processSinglePackageRelationships(SpdxPackage spdxPackage, SpdxImportContext context)  {
+        try {
+            List<Relationship> relationships = spdxPackage.getRelationships().stream().toList();
+            parseRelationshipsLogic(spdxPackage, relationships, context.getInventoryCache());
 
-        List<Relationship> relationships = spdxPackage.getRelationships().stream().toList();
-        parseRelationshipsLogic(spdxPackage, relationships, context.getInventoryCache());
 
+            for (Relationship relationship : relationships) {
+                spdxConverter.convertRelationShip(relationship, context.getSpdxDocumentRoot(), spdxPackage);
+            }
 
-        for (Relationship relationship : relationships) {
-            spdxConverter.convertRelationShip(relationship, context.getSpdxDocumentRoot(), spdxPackage);
+            log.debug("Converted {} relationships for package {}", relationships.size(), spdxPackage.getId());
+        }catch (InvalidSPDXAnalysisException e) {
+            log.debug("Failed to process relationships from package {}", spdxPackage.getId(), e);
         }
-
-        log.debug("Converted {} relationships for package {}", relationships.size(), spdxPackage.getId());
     }
 
     /**
      * Core logic to interpret relationships and update InventoryItems.
      */
     private void parseRelationshipsLogic(SpdxPackage spdxPackage, List<Relationship> relationships,
-                                         Map<String, InventoryItem> inventoryCache) throws InvalidSPDXAnalysisException {
+                                         Map<String, InventoryItem> inventoryCache) {
 
         InventoryItem sourceItem = inventoryCache.get(spdxPackage.getId());
 
         if (sourceItem == null) {
-            log.debug("Relationship source package not found in inventory: {}", spdxPackage.getId());
+            log.debug("Relationship source package not found in inventory: {}. Skipping...", spdxPackage.getId());
             return;
         }
 
         for (Relationship relationship : relationships) {
-            Optional<SpdxElement> targetOpt = relationship.getRelatedSpdxElement();
-            if (targetOpt.isEmpty()) continue;
+            try {
+                Optional<SpdxElement> targetOpt = relationship.getRelatedSpdxElement();
+                if (targetOpt.isEmpty()) continue;
 
-            SpdxElement targetElement = targetOpt.get();
-            InventoryItem targetItem = inventoryCache.get(targetElement.getId());
+                SpdxElement targetElement = targetOpt.get();
+                InventoryItem targetItem = inventoryCache.get(targetElement.getId());
 
-            if (targetItem == null) continue;
+                if (targetItem == null) continue;
 
-            switch (relationship.getRelationshipType()) {
-                case CONTAINS, DEPENDS_ON, ANCESTOR_OF -> {
-                    if (targetElement.getType().equals("Package")) {
-                        targetItem.setParent(sourceItem);
-                        inventoryItemService.update(targetItem);
-                        log.info("identified {} as parent of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
+                switch (relationship.getRelationshipType()) {
+                    case CONTAINS, DEPENDS_ON, ANCESTOR_OF -> {
+                        if (targetElement.getType().equals("Package")) {
+                            targetItem.setParent(sourceItem);
+                            inventoryItemService.update(targetItem);
+                            log.info("identified {} as parent of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
+                        }
+                    }
+                    case CONTAINED_BY, DEPENDENCY_OF, DESCENDANT_OF -> {
+                        if (targetElement.getType().equals("Package")) {
+                            sourceItem.setParent(targetItem);
+                            inventoryItemService.update(sourceItem);
+                            log.info("identified {} as child of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
+                        }
+                    }
+                    case STATIC_LINK -> {
+                        if (targetElement.getType().equals("Package")) {
+                            targetItem.setLinking("Static");
+                            inventoryItemService.update(targetItem);
+                        }
+                    }
+                    case DYNAMIC_LINK -> {
+                        if (targetElement.getType().equals("Package")) {
+                            targetItem.setLinking("Dynamic");
+                            inventoryItemService.update(targetItem);
+                        }
+                    }
+                    case null, default -> {
                     }
                 }
-                case CONTAINED_BY, DEPENDENCY_OF, DESCENDANT_OF -> {
-                    if (targetElement.getType().equals("Package")) {
-                        sourceItem.setParent(targetItem);
-                        inventoryItemService.update(sourceItem);
-                        log.info("identified {} as child of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
-                    }
-                }
-                case STATIC_LINK -> {
-                    if (targetElement.getType().equals("Package")) {
-                        targetItem.setLinking("Static");
-                        inventoryItemService.update(targetItem);
-                    }
-                }
-                case DYNAMIC_LINK -> {
-                    if (targetElement.getType().equals("Package")) {
-                        targetItem.setLinking("Dynamic");
-                        inventoryItemService.update(targetItem);
-                    }
-                }
-                case null, default -> { }
+            }catch (InvalidSPDXAnalysisException e) {
+                log.warn("Malformed relationship in package {}. Skipping.", spdxPackage.getId());
             }
         }
     }

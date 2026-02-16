@@ -59,98 +59,101 @@ public class OrphanHandler {
 
 
 
-    public void processOrphanFiles(SpdxImportContext context) throws InvalidSPDXAnalysisException {
+    public void processOrphanFiles(SpdxImportContext context) {
 
         SpdxDocument spdxDocument = context.getSpdxDocument();
+        try {
+            List<TypedValue> allFileUris = spdxDocument.getModelStore().getAllItems(null, "File").toList();
+            Map<String, SpdxFile> uniqueOrphans = new HashMap<>();
 
-        List<TypedValue> allFileUris = spdxDocument.getModelStore().getAllItems(null, "File").toList();
-        Map<String, SpdxFile> uniqueOrphans = new HashMap<>();
-
-        for (TypedValue uri : allFileUris) {
-            SpdxModelFactory.getSpdxObjects(
-                    spdxDocument.getModelStore(),
-                    spdxDocument.getCopyManager(),
-                    "File",
-                    uri.getObjectUri(),
-                    null
-            ).forEach(obj -> {
-                if (obj instanceof SpdxFile file) {
-                    if (!context.getProcessedFileIds().contains(file.getId()) && !uniqueOrphans.containsKey(file.getId())) {
-                        uniqueOrphans.put(file.getId(), file);
+            for (TypedValue uri : allFileUris) {
+                SpdxModelFactory.getSpdxObjects(
+                        spdxDocument.getModelStore(),
+                        spdxDocument.getCopyManager(),
+                        "File",
+                        uri.getObjectUri(),
+                        null
+                ).forEach(obj -> {
+                    if (obj instanceof SpdxFile file) {
+                        if (!context.getProcessedFileIds().contains(file.getId()) && !uniqueOrphans.containsKey(file.getId())) {
+                            uniqueOrphans.put(file.getId(), file);
+                        }
                     }
-                }
-            });
-        }
-
-        if (uniqueOrphans.isEmpty()) {
-            return;
-        }
-
-        log.info("Found {} orphan files. Creating individual inventory items for each.", uniqueOrphans.size());
-
-
-        for (SpdxFile file : uniqueOrphans.values()) {
-
-            String filePath = file.getName().orElse("Unknown File");
-
-            SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(filePath, "Standalone");
-
-
-            InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(filePath, component, context.getProject());
-            inventoryItem.setSpdxId(file.getId());
-            inventoryItem.setCurated(false);
-            inventoryItem.setSize(1);
-
-
-            spdxConverter.convertFile(file, context.getSpdxDocumentRoot());
-            context.getFileToInventoryItemMap().put(file.getId(), inventoryItem);
-
-            Map<String, File> locationMap = fileService.findOrCreateBatch(Collections.singletonList(filePath), inventoryItem);
-            File dbFile = locationMap.get(filePath);
-
-            String copyrightText = file.getCopyrightText();
-            if (copyrightText != null && !"NONE".equals(copyrightText) && !"NOASSERTION".equals(copyrightText)) {
-
-                Map<String, Copyright> createdCopyrights = copyrightService.findOrCreateBatch(Collections.singleton(copyrightText));
-                Copyright copyright = createdCopyrights.get(copyrightText);
-
-                if (copyright != null) {
-                    if (dbFile != null) {
-                        copyright.getFiles().add(dbFile);
-                        copyrightRepository.save(copyright);
-                    }
-
-                    if (component.getCopyrights() == null) {
-                        component.setCopyrights(new ArrayList<>());
-                    }
-                    if (!component.getCopyrights().contains(copyright)) {
-                        component.getCopyrights().add(copyright);
-                    }
-                }
+                });
             }
 
-            AnyLicenseInfo fileLicense = file.getLicenseConcluded();
-            if (fileLicense.isNoAssertion(fileLicense)) {
-                fileLicense = file.getLicenseInfoFromFiles().stream().findFirst().orElse(null);
+            if (uniqueOrphans.isEmpty()) {
+                return;
             }
 
-            if (fileLicense != null) {
-                List<License> licenses = licenseHandler.createLicenses(fileLicense, context.getLicenseCache(), context.getExtractedLicenseInfos());
+            log.info("Found {} orphan files. Creating individual inventory items for each.", uniqueOrphans.size());
 
-                if (component.getLicenses() == null) {
-                    component.setLicenses(new ArrayList<>());
-                }
 
-                for (License l : licenses) {
-                    if (!component.getLicenses().contains(l)) {
-                        component.addLicense(l);
+            for (SpdxFile file : uniqueOrphans.values()) {
+
+                String filePath = file.getName().orElse("Unknown File");
+
+                SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(filePath, "Standalone");
+
+
+                InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(filePath, component, context.getProject());
+                inventoryItem.setSpdxId(file.getId());
+                inventoryItem.setCurated(false);
+                inventoryItem.setSize(1);
+
+
+                spdxConverter.convertFile(file, context.getSpdxDocumentRoot());
+                context.getFileToInventoryItemMap().put(file.getId(), inventoryItem);
+
+                Map<String, File> locationMap = fileService.findOrCreateBatch(Collections.singletonList(filePath), inventoryItem);
+                File dbFile = locationMap.get(filePath);
+
+                String copyrightText = file.getCopyrightText();
+                if (copyrightText != null && !"NONE".equals(copyrightText) && !"NOASSERTION".equals(copyrightText)) {
+
+                    Map<String, Copyright> createdCopyrights = copyrightService.findOrCreateBatch(Collections.singleton(copyrightText));
+                    Copyright copyright = createdCopyrights.get(copyrightText);
+
+                    if (copyright != null) {
+                        if (dbFile != null) {
+                            copyright.getFiles().add(dbFile);
+                            copyrightRepository.save(copyright);
+                        }
+
+                        if (component.getCopyrights() == null) {
+                            component.setCopyrights(new ArrayList<>());
+                        }
+                        if (!component.getCopyrights().contains(copyright)) {
+                            component.getCopyrights().add(copyright);
+                        }
                     }
                 }
-            }
 
-            softwareComponentService.update(component);
-            inventoryItemService.update(inventoryItem);
-            context.getInventoryItems().add(inventoryItem);
+                AnyLicenseInfo fileLicense = file.getLicenseConcluded();
+                if (fileLicense.isNoAssertion(fileLicense)) {
+                    fileLicense = file.getLicenseInfoFromFiles().stream().findFirst().orElse(null);
+                }
+
+                if (fileLicense != null) {
+                    List<License> licenses = licenseHandler.createLicenses(fileLicense, context.getLicenseCache(), context.getExtractedLicenseInfos());
+
+                    if (component.getLicenses() == null) {
+                        component.setLicenses(new ArrayList<>());
+                    }
+
+                    for (License l : licenses) {
+                        if (!component.getLicenses().contains(l)) {
+                            component.addLicense(l);
+                        }
+                    }
+                }
+
+                softwareComponentService.update(component);
+                inventoryItemService.update(inventoryItem);
+                context.getInventoryItems().add(inventoryItem);
+            }
+        }catch (InvalidSPDXAnalysisException e){
+            log.error("Error when trying to handle orphaned files. Skipping...", e);
         }
     }
 }

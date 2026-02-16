@@ -61,37 +61,41 @@ public class SnippetHandler {
      * Orchestrates the processing of all snippets found in the SPDX document.
      * Iterates through the model store, converts to entities, and enriches components.
      */
-    public void processAllSnippets(SpdxImportContext context) throws InvalidSPDXAnalysisException {
+    public void processAllSnippets(SpdxImportContext context) {
         log.info("Starting snippet processing...");
 
-        Stream<?> rawStream = SpdxModelFactory.getSpdxObjects(
-                context.getSpdxDocument().getModelStore(),
-                context.getSpdxDocument().getCopyManager(),
-                SpdxConstantsCompatV2.CLASS_SPDX_SNIPPET,
-                context.getSpdxDocument().getDocumentUri(),
-                null
-        );
+        try {
+            Stream<?> rawStream = SpdxModelFactory.getSpdxObjects(
+                    context.getSpdxDocument().getModelStore(),
+                    context.getSpdxDocument().getCopyManager(),
+                    SpdxConstantsCompatV2.CLASS_SPDX_SNIPPET,
+                    context.getSpdxDocument().getDocumentUri(),
+                    null
+            );
 
-        Stream<SpdxSnippet> snippetStream = rawStream
-                .filter(obj -> obj instanceof SpdxSnippet)
-                .map(obj -> (SpdxSnippet) obj);
+            Stream<SpdxSnippet> snippetStream = rawStream
+                    .filter(obj -> obj instanceof SpdxSnippet)
+                    .map(obj -> (SpdxSnippet) obj);
 
-        snippetStream.forEach(snippet -> {
-            try {
-                spdxConverter.convertSnippets(snippet, context.getSpdxDocumentRoot());
+            snippetStream.forEach(snippet -> {
+                try {
+                    spdxConverter.convertSnippets(snippet, context.getSpdxDocumentRoot());
 
-                enrichComponentFromSnippet(
-                        snippet,
-                        context.getFileToInventoryItemMap(),
-                        context.getLicenseCache(),
-                        context.getExtractedLicenseInfos()
-                );
-            } catch (Exception e) {
-                log.error("Failed to process snippet: {}", snippet.getId(), e);
-            }
-        });
+                    enrichComponentFromSnippet(
+                            snippet,
+                            context.getFileToInventoryItemMap(),
+                            context.getLicenseCache(),
+                            context.getExtractedLicenseInfos()
+                    );
+                } catch (Exception e) {
+                    log.error("Failed to process snippet: {}", snippet.getId(), e);
+                }
+            });
 
-        log.info("Snippet processing completed.");
+            log.info("Snippet processing completed.");
+        }catch (InvalidSPDXAnalysisException e) {
+            log.error("Failed to process snippets. Skipping...", e);
+        }
     }
 
     /**
@@ -102,56 +106,59 @@ public class SnippetHandler {
                                             Map<String, InventoryItem> fileMap,
                                             Map<String, License> licenseCache,
                                             Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc
-    ) throws InvalidSPDXAnalysisException {
+    ) {
+        try {
+            SpdxFile snippetFile = snippet.getSnippetFromFile();
+            if (snippetFile == null) return;
 
-        SpdxFile snippetFile = snippet.getSnippetFromFile();
-        if (snippetFile == null) return;
+            InventoryItem item = fileMap.get(snippetFile.getId());
+            if (item == null || item.getSoftwareComponent() == null) {
+                return;
+            }
 
-        InventoryItem item = fileMap.get(snippetFile.getId());
-        if (item == null || item.getSoftwareComponent() == null) {
-            return;
-        }
+            SoftwareComponent component = item.getSoftwareComponent();
+            boolean componentUpdated = false;
 
-        SoftwareComponent component = item.getSoftwareComponent();
-        boolean componentUpdated = false;
+            String snippetCopyright = snippet.getCopyrightText();
+            if (snippetCopyright != null && !snippetCopyright.isEmpty()
+                    && !"NOASSERTION".equals(snippetCopyright) && !"NONE".equals(snippetCopyright)) {
 
-        String snippetCopyright = snippet.getCopyrightText();
-        if (snippetCopyright != null && !snippetCopyright.isEmpty()
-                && !"NOASSERTION".equals(snippetCopyright) && !"NONE".equals(snippetCopyright)) {
+                boolean exists = component.getCopyrights() != null && component.getCopyrights().stream()
+                        .anyMatch(c -> c.getCopyrightText().equals(snippetCopyright));
 
-            boolean exists = component.getCopyrights() != null && component.getCopyrights().stream()
-                    .anyMatch(c -> c.getCopyrightText().equals(snippetCopyright));
-
-            if (!exists) {
-                Copyright copyright = copyrightService.findOrCreateBatch(Set.of(snippetCopyright)).get(snippetCopyright);
-                if (copyright != null) {
-                    if (component.getCopyrights() == null) {
-                        component.setCopyrights(new java.util.ArrayList<>());
+                if (!exists) {
+                    Copyright copyright = copyrightService.findOrCreateBatch(Set.of(snippetCopyright)).get(snippetCopyright);
+                    if (copyright != null) {
+                        if (component.getCopyrights() == null) {
+                            component.setCopyrights(new java.util.ArrayList<>());
+                        }
+                        component.getCopyrights().add(copyright);
+                        componentUpdated = true;
                     }
-                    component.getCopyrights().add(copyright);
-                    componentUpdated = true;
                 }
             }
-        }
 
-        AnyLicenseInfo concluded = snippet.getLicenseConcluded();
-        if (concluded != null && !concluded.isNoAssertion(concluded) && !concluded.isNoAssertion(concluded)) {
-            List<License> licenses = licenseHandler.createLicenses(concluded, licenseCache, licenseInfosExtractedSpdxDoc);
+            AnyLicenseInfo concluded = snippet.getLicenseConcluded();
+            if (concluded != null && !concluded.isNoAssertion(concluded) && !concluded.isNoAssertion(concluded)) {
+                List<License> licenses = licenseHandler.createLicenses(concluded, licenseCache, licenseInfosExtractedSpdxDoc);
 
-            if (component.getLicenses() == null) {
-                component.setLicenses(new java.util.ArrayList<>());
-            }
+                if (component.getLicenses() == null) {
+                    component.setLicenses(new java.util.ArrayList<>());
+                }
 
-            for (License license : licenses) {
-                if (!component.getLicenses().contains(license)) {
-                    component.addLicense(license);
-                    componentUpdated = true;
+                for (License license : licenses) {
+                    if (!component.getLicenses().contains(license)) {
+                        component.addLicense(license);
+                        componentUpdated = true;
+                    }
                 }
             }
-        }
 
-        if (componentUpdated) {
-            softwareComponentService.update(component);
+            if (componentUpdated) {
+                softwareComponentService.update(component);
+            }
+        } catch (InvalidSPDXAnalysisException e) {
+            log.error("Failed to process snippet: {}. Skipping...", snippet.getId(), e);
         }
     }
 }
