@@ -62,7 +62,7 @@ public class PackageHandler {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public void processAllPackages(SpdxImportContext context, Consumer<Integer> progressCallback) throws Exception {
+    public void processAllPackages(SpdxImportContext context, Consumer<Integer> progressCallback) throws InvalidSPDXAnalysisException {
         SpdxDocument doc = context.getSpdxDocument();
         List<TypedValue> packageUris = doc.getModelStore().getAllItems(null, "Package").toList();
 

@@ -25,6 +25,7 @@ import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.service.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.spdx.core.InvalidSPDXAnalysisException;
 import org.spdx.core.TypedValue;
 import org.spdx.library.SpdxModelFactory;
 import org.spdx.library.model.v2.SpdxDocument;
@@ -58,7 +59,7 @@ public class OrphanHandler {
 
 
 
-    public void processOrphanFiles(SpdxImportContext context) throws Exception {
+    public void processOrphanFiles(SpdxImportContext context) throws InvalidSPDXAnalysisException {
 
         SpdxDocument spdxDocument = context.getSpdxDocument();
 
