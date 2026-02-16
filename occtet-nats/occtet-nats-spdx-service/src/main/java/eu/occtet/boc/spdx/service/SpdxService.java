@@ -30,6 +30,7 @@ import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.service.ProgressReportingService;
 import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
+import eu.occtet.boc.spdx.exception.SpdxImportException;
 import eu.occtet.boc.spdx.service.handler.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -77,8 +78,8 @@ public class SpdxService extends ProgressReportingService  {
     @Autowired
     private CleanUpService cleanUpService;
 
-    public boolean process(SpdxWorkData workData) {
-        log.debug("SpdxService: reads spdx and creates entities to curate {}", workData.toString());
+    public boolean process(SpdxWorkData workData) throws SpdxImportException{
+        log.debug("SpdxService: reads SPDX and creates entities to curate {}", workData.toString());
         return parseDocument(workData);
     }
 
@@ -89,7 +90,7 @@ public class SpdxService extends ProgressReportingService  {
      * @param spdxWorkData
      * @return true if the entities where created successfully, false is any error occurred
      */
-    public boolean parseDocument(SpdxWorkData spdxWorkData) {
+    public boolean parseDocument(SpdxWorkData spdxWorkData) throws SpdxImportException{
         try {
             log.info("now processing spdx for project id: {}", spdxWorkData.getProjectId());
             notifyProgress(1, "init");
@@ -126,16 +127,33 @@ public class SpdxService extends ProgressReportingService  {
             notifyProgress(100, "completed");
             return true;
 
-        } catch (Exception e) {
-            log.error("Error in SPDX orchestration", e);
-            return false;
+        } catch (InvalidSPDXAnalysisException e){
+            log.error("Handler caused SPDX Analysis to fail: {}", e.getMessage());
+            throw new SpdxImportException("The SPDX file could not be analyzed by a handler. It may contain invalid fields or unsupported versions.", e);
         }
     }
 
-    private SpdxDocument loadSpdxDocument(byte[] jsonBytes) throws InvalidSPDXAnalysisException, IOException {
+    private SpdxDocument loadSpdxDocument(byte[] jsonBytes) throws SpdxImportException{
+        try {
+            new com.fasterxml.jackson.databind.ObjectMapper().readTree(new ByteArrayInputStream(jsonBytes));
+        } catch (IOException e) {
+            throw new SpdxImportException("The provided file is not valid JSON. Please check the file format.", e);
+        }
+
         SpdxModelFactory.init();
-        MultiFormatStore inputStore = new MultiFormatStore(new InMemSpdxStore(), MultiFormatStore.Format.JSON);
-        return inputStore.deSerialize(new ByteArrayInputStream(jsonBytes), false);
+        try {
+            MultiFormatStore inputStore = new MultiFormatStore(new InMemSpdxStore(), MultiFormatStore.Format.JSON);
+            return inputStore.deSerialize(new ByteArrayInputStream(jsonBytes), false);
+        } catch (InvalidSPDXAnalysisException e) {
+            log.error("SPDX Analysis failed: {}", e.getMessage());
+            throw new SpdxImportException("The SPDX file could not be deserialized. It may contain invalid fields or unsupported versions. Error detail: " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new SpdxImportException("I/O Error processing SPDX stream.", e);
+        } catch (Exception e) {
+            log.error("Unexpected error in SPDX library", e);
+            throw new SpdxImportException("The SPDX file caused an unexpected error in the parser.", e);
+        }
+
     }
 
     private Project loadProject(long projectId, SpdxDocument spdxDocument){
