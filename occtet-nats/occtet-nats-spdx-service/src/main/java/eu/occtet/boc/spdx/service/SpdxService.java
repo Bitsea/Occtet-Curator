@@ -92,7 +92,7 @@ public class SpdxService extends ProgressReportingService  {
      */
     public boolean parseDocument(SpdxWorkData spdxWorkData) throws SpdxImportException{
         try {
-            log.info("now processing spdx for project id: {}", spdxWorkData.getProjectId());
+            log.info("now processing SPDX for project id: {}", spdxWorkData.getProjectId());
             notifyProgress(1, "init");
             // setup for spdx library need to be called once before any spdx model objects are accessed
 
@@ -110,7 +110,7 @@ public class SpdxService extends ProgressReportingService  {
             context.setExtractedLicenseInfos(spdxDocument.getExtractedLicenseInfos());
             initDocumentDescribes(context);
 
-            notifyProgress(10, "converting spdx");
+            notifyProgress(10, "converting SPDX");
 
             packageHandler.processAllPackages(context, (percent) -> notifyProgress(20 + percent, "processing packages"));
 

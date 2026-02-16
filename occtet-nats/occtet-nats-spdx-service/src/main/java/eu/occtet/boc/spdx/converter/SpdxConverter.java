@@ -149,7 +149,7 @@ public class SpdxConverter {
             return spdxDocumentRoot;
 
         } catch (InvalidSPDXAnalysisException e) {
-            log.error("error while converting spdx document to entity: {}", e.toString());
+            log.error("error while converting SPDX document to entity: {}", e.toString());
             return new SpdxDocumentRoot(); // Fail-safe return
         }
     }
@@ -274,7 +274,7 @@ public class SpdxConverter {
             return spdxPackageEntity;
 
         } catch (Exception e) {
-            log.error("error while converting spdx package to entity: {}", e.toString());
+            log.error("error while converting SPDX package to entity: {}", e.toString());
             return new SpdxPackageEntity();
         }
     }
@@ -376,7 +376,7 @@ public class SpdxConverter {
                 spdxDocumentRoot.setFiles(new ArrayList<>());
             }
 
-            log.info("now converting spdxFile {}", spdxFile.getId());
+            log.info("now converting SPDX-File {}", spdxFile.getId());
 
             SpdxFileEntity spdxFileEntity = spdxDocumentRoot.getFiles().stream()
                     .filter(f -> f.getSpdxId() != null && f.getSpdxId().equals(spdxFile.getId()))
@@ -429,7 +429,7 @@ public class SpdxConverter {
             return spdxFileEntity;
 
         } catch (InvalidSPDXAnalysisException e) {
-            log.error("error while converting spdx file to entity: {}", e.toString());
+            log.error("error while converting SPDX file to entity: {}", e.toString());
             return new SpdxFileEntity();
         }
     }
@@ -483,7 +483,7 @@ public class SpdxConverter {
             spdxDocumentRoot.getRelationships().add(relationshipEntity);
             return relationshipEntity;
         } catch (InvalidSPDXAnalysisException e) {
-            log.error("error while converting spdx relationship to entity: {}", e.toString());
+            log.error("error while converting SPDX relationship to entity: {}", e.toString());
             return new RelationshipEntity();
         }
     }
