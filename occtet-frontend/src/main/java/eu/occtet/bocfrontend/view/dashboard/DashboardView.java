@@ -275,7 +275,7 @@ public class DashboardView extends StandardView {
             case noRisk -> {
                 return new ValueLoadContext()
                         .setQuery(new ValueLoadContext.Query("""
-                        select count(s) as sumRiskScore
+                        select count(distinct s) as sumRiskScore
                         from InventoryItem i
                         join i.softwareComponent s
                         join i.project p
@@ -300,7 +300,7 @@ public class DashboardView extends StandardView {
             case softwareRisk -> {
                 return new ValueLoadContext()
                         .setQuery(new ValueLoadContext.Query("""
-                        select count(s) as sumRiskScore
+                        select count(distinct s) as sumRiskScore
                         from InventoryItem i
                         join i.softwareComponent s
                         join s.vulnerabilities v
