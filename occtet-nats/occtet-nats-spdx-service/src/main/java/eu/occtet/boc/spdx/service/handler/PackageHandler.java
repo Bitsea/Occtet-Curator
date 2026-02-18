@@ -31,10 +31,8 @@ import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
 import org.spdx.core.TypedValue;
 import org.spdx.library.SpdxModelFactory;
-import org.spdx.library.model.v2.ExternalRef;
-import org.spdx.library.model.v2.SpdxDocument;
-import org.spdx.library.model.v2.SpdxFile;
-import org.spdx.library.model.v2.SpdxPackage;
+import org.spdx.library.model.v2.*;
+import org.spdx.library.model.v2.enumerations.RelationshipType;
 import org.spdx.library.model.v2.license.AnyLicenseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,7 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 
 @Service
 @Transactional
@@ -138,25 +135,35 @@ public class PackageHandler {
         if (!inventoryName.contains(component.getVersion())) inventoryName += component.getVersion();
         inventoryName += " (" + packageLicenseString + ")";
 
-        //Check if license of component is combined
-        Pattern pattern = Pattern.compile("\\b(?:BUT|AND)\\b");
-        boolean isCombined = pattern.matcher(packageLicenseString).find();
-
         InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, component, context.getProject());
         inventoryItem.setSpdxId(spdxPackage.getId());
         inventoryItem.setCurated(false);
 
-        inventoryItem.setSize(spdxPackage.getFiles().size());
+        Set<SpdxFile> packageFiles = new HashSet<>(spdxPackage.getFiles());
 
-        log.info("Converting {} files", spdxPackage.getFiles().size());
-        spdxPackage.getFiles().forEach(f -> {
+        try {
+            spdxPackage.getRelationships().stream()
+                    .filter(this::isContainsRelationship)
+                    .map(this::getRelatedElementOrNull)
+                    .filter(element -> element instanceof SpdxFile)
+                    .map(SpdxFile.class::cast)
+                    .forEach(packageFiles::add);
+        } catch (Exception e) {
+            log.warn("Error resolving relationships for package {}", spdxPackage.getId(), e);
+        }
+
+        inventoryItem.setSize(packageFiles.size());
+        log.info("Converting {} files ({} explicit, {} total)",
+                spdxPackage.getFiles().size(), spdxPackage.getFiles().size(), packageFiles.size());
+
+        packageFiles.forEach(f -> {
             spdxConverter.convertFile(f, context.getSpdxDocumentRoot());
             context.getFileToInventoryItemMap().put(f.getId(), inventoryItem);
             context.getProcessedFileIds().add(f.getId());
         });
 
         try {
-            copyrights = parseFiles(spdxPackage, inventoryItem);
+            copyrights = parseFiles(packageFiles, inventoryItem, context);
         } catch (InvalidSPDXAnalysisException e) {
             log.error("Error batch processing files", e);
         }
@@ -193,11 +200,13 @@ public class PackageHandler {
         return inventoryItem;
     }
 
-    private List<Copyright> parseFiles(SpdxPackage spdxPackage, InventoryItem inventoryItem) throws InvalidSPDXAnalysisException {
+    private List<Copyright> parseFiles(Set<SpdxFile> packageFiles, InventoryItem inventoryItem, SpdxImportContext context) throws InvalidSPDXAnalysisException {
         List<String> allFileNames = new ArrayList<>();
         Set<String> allCopyrightsTexts = new HashSet<>();
         Map<String, String> fileToCopyrightMap = new HashMap<>();
-        for (SpdxFile f : spdxPackage.getFiles()) {
+
+        for (SpdxFile f : packageFiles) {
+            context.getProcessedFileIds().add(f.getId());
             if (f.getName().isPresent()){
                 String path = f.getName().get();
                 allFileNames.add(path);
@@ -228,5 +237,21 @@ public class PackageHandler {
         copyrightRepository.saveAll(copyrightsToUpdate);
 
         return new ArrayList<>(copyrightMap.values());
+    }
+
+    private boolean isContainsRelationship(Relationship r) {
+        try {
+            return r.getRelationshipType() == RelationshipType.CONTAINS;
+        } catch (InvalidSPDXAnalysisException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private SpdxElement getRelatedElementOrNull(Relationship r) {
+        try {
+            return r.getRelatedSpdxElement().orElse(null);
+        } catch (InvalidSPDXAnalysisException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

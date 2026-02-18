@@ -21,7 +21,7 @@
 
 package eu.occtet.bocfrontend.converter;
 
-import io.jmix.core.metamodel.datatype.EnumClass;
+import eu.occtet.bocfrontend.entity.appconfigurations.EnumClass;
 import jakarta.persistence.AttributeConverter;
 
 public abstract class AbstractEnumClassConverter<E extends Enum<E> & EnumClass<String>>

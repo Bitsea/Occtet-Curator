@@ -63,7 +63,7 @@ public class FileService {
     }
 
     public void deleteOldFilesOfInventoryItem(InventoryItem inventoryItem, File basePathFile){
-        List<File> toBeDeletedCls = fileRepository.findByInventoryItem(inventoryItem);
+        List<File> toBeDeletedCls = fileRepository.findByInventoryItemsContaining(inventoryItem);
         if (toBeDeletedCls.isEmpty()) return;
 
         toBeDeletedCls.remove(basePathFile);

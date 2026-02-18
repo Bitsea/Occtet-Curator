@@ -56,6 +56,9 @@ public class FileContentService {
      */
     public FileResult getFileContent(String physicalPath) {
         try {
+            if (physicalPath == null) {
+                return new FileResult.Failure("File path is null");
+            }
             log.debug("Reading file at path '{}'", physicalPath);
             Path path = Paths.get(physicalPath);
 

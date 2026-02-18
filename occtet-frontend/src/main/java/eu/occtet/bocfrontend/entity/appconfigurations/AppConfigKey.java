@@ -21,10 +21,9 @@
 
 package eu.occtet.bocfrontend.entity.appconfigurations;
 
-import io.jmix.core.metamodel.datatype.EnumClass;
 import jakarta.annotation.Nullable;
 
-public enum AppConfigKey implements EnumClass<String> {
+public enum AppConfigKey implements EnumClass<String>{
 
     GENERAL_BASE_PATH(
             AppConfigGroup.GENERAL + ".base_path",
@@ -47,7 +46,6 @@ public enum AppConfigKey implements EnumClass<String> {
         this.description = description;
     }
 
-    @Override
     public String getId() {
         return id;
     }

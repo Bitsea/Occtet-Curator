@@ -27,10 +27,11 @@
             <loader id="fileDl">
                 <query>
                     <![CDATA[
-                    select c from File c where c.inventoryItem=:inventoryItem
-                    and c.isDirectory = false
-                    order by c.projectPath
-                ]]>
+                        select c from File c
+                        where :inventoryItem MEMBER OF c.inventoryItems
+                        and c.isDirectory = false
+                        order by c.projectPath
+                    ]]>
                 </query>
             </loader>
         </collection>
@@ -41,7 +42,8 @@
                   visible="true" margin="false" padding="false">
                 <dataGrid classNames="occtet-grid" dataContainer="fileDc" id="fileDataGrid">
                     <columns>
-                        <column property="projectPath" sortable="false" editable="true" flexGrow="1" filterable="true"/>
+                            <column property="artifactPath" header="msg://eu.occtet.bocfrontend.view/filesTabFragment.column.artifactPath.header" sortable="false" editable="true" flexGrow="1"
+                                filterable="true"/>
                         <column key="options" header="" sortable="false" autoWidth="true" flexGrow="0"/>
                     </columns>
                 </dataGrid>

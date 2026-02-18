@@ -29,17 +29,14 @@ import eu.occtet.boc.service.IWorkDataProcessor;
 
 public class DownloadServiceWorkData extends BaseWorkData{
 
-    private String downloadURL;
     private Long projectId;
     private Long inventoryItemId;
     private Boolean isMainPackage;
 
     @JsonCreator
-    public DownloadServiceWorkData(@JsonProperty("downloadURL") String downloadURL,
-                                   @JsonProperty("projectId") Long projectId,
+    public DownloadServiceWorkData(@JsonProperty("projectId") Long projectId,
                                    @JsonProperty("inventoryItemId") Long inventoryItemId,
                                    @JsonProperty("isMainPackage") Boolean isMainPackage) {
-        this.downloadURL = downloadURL;
         this.projectId = projectId;
         this.inventoryItemId = inventoryItemId;
         this.isMainPackage = isMainPackage;
@@ -51,8 +48,6 @@ public class DownloadServiceWorkData extends BaseWorkData{
     public Boolean getIsMainPackage(){return this.isMainPackage;}
     public Long getInventoryItemId() {return inventoryItemId;}
     public void setInventoryItemId(Long inventoryItemId) {this.inventoryItemId = inventoryItemId;}
-    public String getDownloadURL() {return downloadURL;}
-    public void setDownloadURL(String downloadURL) {this.downloadURL = downloadURL;}
 
     @Override
     public boolean process(IWorkDataProcessor processor) {return processor.process(this);}
