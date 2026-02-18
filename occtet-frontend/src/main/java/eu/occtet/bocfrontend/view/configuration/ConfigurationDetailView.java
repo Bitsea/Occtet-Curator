@@ -24,7 +24,8 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.Configuration;
 import eu.occtet.bocfrontend.entity.CuratorTask;
-import eu.occtet.bocfrontend.importer.ImportManager;
+import eu.occtet.bocfrontend.importer.TaskManager;
+import eu.occtet.bocfrontend.ortTask.RepositoryType;
 import eu.occtet.bocfrontend.service.ConfigurationService;
 import eu.occtet.bocfrontend.validator.NumericValidator;
 import eu.occtet.bocfrontend.validator.PathValidator;
@@ -62,13 +63,14 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
     private FileUploadField uploadField;
     @ViewComponent
     private JmixCheckbox booleanField;
-
+    @ViewComponent
+    private JmixComboBox<RepositoryType> repoType;
     @Autowired
     protected DataManager dataManager;
     @Autowired
     private Dialogs dialogs;
     @Autowired
-    private ImportManager importManager;
+    private TaskManager taskManager;
     @Autowired
     private ConfigurationService configurationService;
     @Autowired
@@ -121,6 +123,7 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
         Configuration.Type typeOfConfiguration = configurationService.getTypeOfConfiguration(key, curatorTask);
         switch (typeOfConfiguration) {
             case FILE_UPLOAD:
+                nameField.setVisible(true);
                 setupForFileUpload();
                 break;
             case BASE_PATH:
@@ -130,14 +133,21 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
                 setupForNumeric();
                 break;
             case STRING:
+                nameField.setVisible(false);
                 uploadField.setVisible(false);
                 valueField.setVisible(true);
                 booleanField.setVisible(false);
+                repoType.setVisible(false);
                 break;
             case BOOLEAN:
+                nameField.setVisible(false);
                 uploadField.setVisible(false);
                 valueField.setVisible(false);
                 booleanField.setVisible(true);
+                repoType.setVisible(false);
+                break;
+            case REPOSITORY_TYPE:
+                setUpForComboBox();
                 break;
         }
     }
@@ -165,6 +175,7 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
                     uploadField.getValue(),
                     uploadField.getUploadedFileName(),
                     booleanField.getValue(),
+                    repoType.getValue(),
                     curatorTask
             );
 
@@ -238,5 +249,14 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
         valueField.setVisible(true);
         booleanField.setVisible(false);
         valueField.addValidator(numericValidator);
+    }
+
+    private void setUpForComboBox(){
+        nameField.setVisible(false);
+        uploadField.setVisible(false);
+        valueField.setVisible(false);
+        booleanField.setVisible(false);
+        repoType.setVisible(true);
+        repoType.setItems(RepositoryType.values());
     }
 }

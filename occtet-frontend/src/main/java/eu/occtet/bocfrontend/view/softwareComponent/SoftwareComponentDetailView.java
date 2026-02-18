@@ -47,6 +47,7 @@ import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 @Route(value = "software-components/:id", layout = MainView.class)
 @ViewController(id = "SoftwareComponent.detail")
@@ -70,6 +71,9 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
 
     @Autowired
     private NatsService natsService;
+
+    @Value("${nats.send-subject-vulnerabilities}")
+    private String sendSubjectVulnerabilities;
 
     @Autowired
     private Messages messages;
@@ -127,12 +131,13 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
     @Subscribe("updateData")
     public void updateDataButtonAction(ClickEvent<JmixButton> event) {
         // FIXME where to take the project and other params from?
+
         CuratorTask task = curatorTaskFactory.create(null, null, null);
 
         VulnerabilityServiceWorkData vulnerabilityServiceWorkData =
                 new VulnerabilityServiceWorkData(getEditedEntity().getId());
 
-        boolean res = curatorTaskService.saveAndRunTask(task,vulnerabilityServiceWorkData,"sending software component to vulnerability microservice");
+        boolean res = curatorTaskService.saveAndRunTask(task,vulnerabilityServiceWorkData,"sending software component to vulnerability microservice",sendSubjectVulnerabilities );
 
         // TODO show message if failed?
 

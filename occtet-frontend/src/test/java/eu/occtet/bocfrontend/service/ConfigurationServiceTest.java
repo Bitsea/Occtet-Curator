@@ -21,6 +21,7 @@ package eu.occtet.bocfrontend.service;
 
 import eu.occtet.bocfrontend.entity.Configuration;
 import eu.occtet.bocfrontend.entity.CuratorTask;
+import eu.occtet.bocfrontend.importer.TaskManager;
 import eu.occtet.bocfrontend.test_support.AuthenticatedAsAdmin;
 import io.jmix.core.DataManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +49,8 @@ public class ConfigurationServiceTest {
     private ConfigurationService configurationService;
 
     private Configuration configuration;
-    private CuratorTask curatorTask;
+    private CuratorTask curatorTaskFlexera;
+    private CuratorTask curatorTaskSpdx;
 
     private static final String FLEXERA_FILE_NAME = "src/test/resources/foss_report_sample.xlsx";
     private static final String KEY_FOR_UPLOAD_CONFIG = "fileName";
@@ -61,9 +63,11 @@ public class ConfigurationServiceTest {
         this.configuration = dataManager.create(Configuration.class);
 
         // Flexera
-        this.curatorTask = dataManager.create(CuratorTask.class);
-        curatorTask.setTaskName("Flexera_Report_Import");
+        this.curatorTaskFlexera = dataManager.create(CuratorTask.class);
+        curatorTaskFlexera.setTaskName("Flexera_Report_Import");
         // SPDX
+        this.curatorTaskSpdx= dataManager.create(CuratorTask.class);
+        curatorTaskSpdx.setTaskName("SPDX_Import");
     }
 
     @Test
@@ -72,17 +76,17 @@ public class ConfigurationServiceTest {
         assertEquals(
                 Configuration.Type.FILE_UPLOAD,
                 configurationService.getTypeOfConfiguration(
-                        "fileName", curatorTask)
+                        "fileName", curatorTaskFlexera)
         );
         assertEquals(
                 Configuration.Type.BOOLEAN,
                 configurationService.getTypeOfConfiguration(
-                        "UseLicenseMatcher", curatorTask)
+                        "UseLicenseMatcher", curatorTaskFlexera)
         );
         assertEquals(
                 Configuration.Type.BOOLEAN,
                 configurationService.getTypeOfConfiguration(
-                        "UseFalseCopyrightFilter", curatorTask)
+                        "UseFalseCopyrightFilter", curatorTaskFlexera)
         );
         // Tests for SPDX
     }
@@ -102,7 +106,8 @@ public class ConfigurationServiceTest {
                             uploadFileValue,
                             uploadFile.getName(),
                             false,
-                            curatorTask
+                            null,
+                            curatorTaskFlexera
                     );
 
             assertTrue(result);
@@ -125,7 +130,8 @@ public class ConfigurationServiceTest {
                             new byte[0],
                             "",
                             false,
-                            curatorTask
+                            null,
+                            curatorTaskSpdx
                     );
 
             assertFalse(resultForValid);
@@ -144,7 +150,8 @@ public class ConfigurationServiceTest {
                 null,
                 null,
                 true,
-                curatorTask
+                null,
+                curatorTaskFlexera
         );
         assertTrue(result);
         assertEquals("true", configuration.getValue());
@@ -154,7 +161,8 @@ public class ConfigurationServiceTest {
                 null,
                 null,
                 false,
-                curatorTask
+                null,
+                curatorTaskFlexera
         );
         assertTrue(result);
         assertEquals("false", configuration.getValue());

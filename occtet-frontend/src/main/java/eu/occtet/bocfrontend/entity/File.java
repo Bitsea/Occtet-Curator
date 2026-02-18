@@ -67,11 +67,11 @@ public class File {
     @OnDelete(DeletePolicy.CASCADE)
     private File parent;
 
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "INVENTORY_ITEM_ID")
-    @OnDelete(DeletePolicy.UNLINK)
-    private InventoryItem inventoryItem;
+    @JoinTable(name = "FILE_INVENTORY_ITEM_LINK",
+            joinColumns = @JoinColumn(name = "FILE_ID"),
+            inverseJoinColumns = @JoinColumn(name = "INVENTORY_ITEM_ID"))
+    @ManyToMany(fetch = FetchType.LAZY)
+    private Set<InventoryItem> inventoryItems = new HashSet<>();
 
     // Example: C:\Users\Temp\scan\project\dep\lib\com\acme\Util.java
     @SystemLevel
@@ -115,9 +115,11 @@ public class File {
     public File() {
     }
 
-    public File( InventoryItem inventoryItem, String filePath){
-        this.inventoryItem= inventoryItem;
-        this.projectPath= filePath;
+    public File(InventoryItem inventoryItem, String filePath) {
+        this.projectPath = filePath;
+        if (inventoryItem != null) {
+            this.inventoryItems.add(inventoryItem);
+        }
     }
 
     public Long getId() {
@@ -200,12 +202,12 @@ public class File {
         this.lastModifiedBy = lastModifiedBy;
     }
 
-    public InventoryItem getInventoryItem() {
-        return inventoryItem;
+    public Set<InventoryItem> getInventoryItems() {
+        return inventoryItems;
     }
 
-    public void setInventoryItem(InventoryItem inventoryItem) {
-        this.inventoryItem = inventoryItem;
+    public void setInventoryItems(Set<InventoryItem> inventoryItems) {
+        this.inventoryItems = inventoryItems;
     }
 
     public Boolean getDirectory() {
@@ -267,6 +269,13 @@ public class File {
                 "id=" + id +
                 ", fileName='" + fileName + '\'' +
                 '}';
+    }
+
+    public void addInventoryItem(InventoryItem item) {
+        if (this.inventoryItems == null) {
+            this.inventoryItems = new HashSet<>();
+        }
+        this.inventoryItems.add(item);
     }
 
 }

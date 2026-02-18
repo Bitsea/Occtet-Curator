@@ -24,14 +24,11 @@ package eu.occtet.boc.spdx.factory;
 
 
 
-import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
-import eu.occtet.boc.spdx.service.CleanUpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -41,7 +38,11 @@ public class FileFactory {
     public File create(String artifactPath, String fileName, Project project, InventoryItem inventoryItem) {
         log.debug("Creating file with name {} for project {} for inventory item {}", fileName,
                 project.getProjectName(), inventoryItem.getInventoryName());
-        return new File(artifactPath, project, fileName, inventoryItem);
+        return new File(
+                artifactPath,
+                project,
+                fileName,
+                inventoryItem);
     }
 
 

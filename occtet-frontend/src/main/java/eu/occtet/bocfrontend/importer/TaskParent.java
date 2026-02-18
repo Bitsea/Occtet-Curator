@@ -7,12 +7,12 @@ import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class Importer {
+public abstract class TaskParent {
 
     private final String name;
 
 
-    protected Importer(String name) {
+    protected TaskParent(String name) {
         this.name = name;
     }
 

@@ -1,7 +1,7 @@
 {
   "type": "descriptor",
-  "name": "occtet-nats-issueCatcher-service",
-  "description": "A microservice for catching issues from ort run",
+  "name": "occtet-nats-ort-run-starter-service",
+  "description": "A microservice for starting ort run",
   "usageType": "RUNNABLE_BY_SERVICE",
-  "acceptableWorkData": "ORTRunWorkData"
+  "acceptableWorkData": "ORTStartRunWorkData"
 }

@@ -18,14 +18,14 @@
   -->
 
 <fetchPlans xmlns="http://jmix.io/schema/core/fetch-plans">
-    <fetchPlan entity="Copyright" name="full"  extends="_base">
-        <property name="files" >
-            <property name="inventoryItem">
-                <property name="project">
-                </property>
+    <fetchPlan entity="Copyright" name="full" extends="_base">
+        <property name="files">
+            <property name="inventoryItems">
+                <property name="project"/>
             </property>
         </property>
     </fetchPlan>
+
     <fetchPlan entity="VexData" name="full" extends="_base">
         <property name="softwareComponent">
             <property name="id"/>

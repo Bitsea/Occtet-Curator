@@ -24,11 +24,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import eu.occtet.boc.model.BaseWorkData;
 import eu.occtet.boc.model.WorkTask;
+import eu.occtet.boc.service.NatsStreamSender;
 import eu.occtet.bocfrontend.dao.CuratorTaskRepository;
 import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.entity.TaskStatus;
+import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
 import io.jmix.core.DataManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.Charset;
@@ -43,6 +49,8 @@ import static org.reflections.Reflections.log;
 @Service
 public class CuratorTaskService {
 
+    private static final Logger log = LogManager.getLogger(CuratorTaskService.class);
+
     @Autowired
     private CuratorTaskRepository curatorTaskRepository;
 
@@ -52,6 +60,13 @@ public class CuratorTaskService {
     @Autowired
     private NatsService natsService;
 
+
+
+    private static final String sendSubjectOrtRun= "work.ortRunStarter";
+    private static final String sendSubjectExportSpdx= "work.export";
+    private static final String sendSubjectVulnerabilities="work.vulnerabilities";
+    private static final  String sendSubjectSpdx = "work.spdx";
+
     /**
      * Save the task and send it to the NATS work queue for processing.
      * @param curatorTask
@@ -59,7 +74,8 @@ public class CuratorTaskService {
      * @param optDetails optional details about the task for information/metadata purposes
      * @return true on success
      */
-    public boolean saveAndRunTask(CuratorTask curatorTask, BaseWorkData workData, String optDetails)  {
+    public boolean saveAndRunTask(CuratorTask curatorTask, BaseWorkData workData, String optDetails, String streamName)  {
+        log.debug("save and run task");
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
         curatorTask.notifyStarted();
@@ -76,9 +92,24 @@ public class CuratorTaskService {
             curatorTask.setStatus(TaskStatus.CANCELLED);
             return false;
         }
-        log.debug("sending message to spdx service: {}", message);
+        log.debug("sending message to service: {}", message);
         try {
-            natsService.sendWorkMessageToStream("work.spdx", message.getBytes(Charset.defaultCharset()));
+            log.debug("sending to stream {}", streamName);
+            switch(streamName) {
+                case sendSubjectSpdx:
+                    natsService.sendWorkMessageToStream(sendSubjectSpdx, message.getBytes(Charset.defaultCharset()));
+                    break;
+                case sendSubjectOrtRun:
+                    natsService.sendWorkMessageToStream(sendSubjectOrtRun, message.getBytes(Charset.defaultCharset()));
+                    break;
+                case sendSubjectExportSpdx:
+                    natsService.sendWorkMessageToStream(sendSubjectExportSpdx, message.getBytes(Charset.defaultCharset()));
+                    break;
+                case sendSubjectVulnerabilities:
+                    natsService.sendWorkMessageToStream(sendSubjectVulnerabilities, message.getBytes(Charset.defaultCharset()));
+                    break;
+
+            }
         } catch (Exception e) {
             log.error("Could not send work message", e);
             curatorTask.setStatus(TaskStatus.CANCELLED);

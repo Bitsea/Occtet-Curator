@@ -21,10 +21,9 @@
 
 package eu.occtet.bocfrontend.entity.appconfigurations;
 
-import io.jmix.core.metamodel.datatype.EnumClass;
 import jakarta.annotation.Nullable;
 
-public enum AppConfigType implements EnumClass<String> {
+public enum AppConfigType implements EnumClass<String>{
     STRING("string"),
     INTEGER("integer"),
     BOOLEAN("boolean"),
@@ -36,7 +35,6 @@ public enum AppConfigType implements EnumClass<String> {
         this.id = id;
     }
 
-    @Override
     public String getId() {
         return id;
     }

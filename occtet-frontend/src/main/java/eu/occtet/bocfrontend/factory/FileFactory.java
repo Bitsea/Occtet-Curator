@@ -18,7 +18,7 @@ public class FileFactory {
 
     public File create(@Nonnull InventoryItem inventoryItem, @Nonnull String filePath, @Nonnull Project project) {
         File file = dataManager.create(File.class);
-        file.setInventoryItem(inventoryItem);
+        file.addInventoryItem(inventoryItem);
         file.setProjectPath(filePath);
         file.setProject(project);
         return dataManager.save(file);

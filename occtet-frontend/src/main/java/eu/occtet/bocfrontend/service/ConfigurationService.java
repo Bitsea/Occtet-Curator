@@ -22,7 +22,8 @@ package eu.occtet.bocfrontend.service;
 import eu.occtet.bocfrontend.entity.Configuration;
 import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.factory.ConfigurationFactory;
-import eu.occtet.bocfrontend.importer.ImportManager;
+import eu.occtet.bocfrontend.importer.TaskManager;
+import eu.occtet.bocfrontend.ortTask.RepositoryType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,14 +37,14 @@ public class ConfigurationService {
     @Autowired
     private ConfigurationFactory configurationFactory;
     @Autowired
-    private ImportManager importManager;
+    private TaskManager taskManager;
 
     public Configuration create(String name, String value){
         return configurationFactory.create(name, value);
     }
 
     public Configuration.Type getTypeOfConfiguration(String key, CuratorTask curatorTask) {
-        return importManager.findImportByName(curatorTask.getTaskType()).getTypeOfConfiguration(key);
+        return taskManager.findImportByName(curatorTask.getTaskType()).getTypeOfConfiguration(key);
     }
 
     /**
@@ -58,13 +59,16 @@ public class ConfigurationService {
             byte[] uploadFieldValue,
             String uploadFileName,
             Boolean booleanField,
+            RepositoryType repositoryType,
             CuratorTask curatorTask
     ) {
         if (getTypeOfConfiguration(nameField, curatorTask) == Configuration.Type.FILE_UPLOAD) {
             return handleFileUploadConfig(config, nameField, uploadFieldValue, uploadFileName);
         } else if (getTypeOfConfiguration(nameField, curatorTask) == Configuration.Type.BOOLEAN) {
             return handleValueOnly(config, nameField, booleanField.toString());
-        } else {
+        }else if(getTypeOfConfiguration(nameField, curatorTask)== Configuration.Type.REPOSITORY_TYPE){
+            return handleValueOnly(config, nameField, repositoryType.toString());
+        }else {
             return handleValueOnly(config, nameField, config.getValue());
         }
     }

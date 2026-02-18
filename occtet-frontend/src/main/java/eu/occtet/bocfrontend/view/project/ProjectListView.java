@@ -42,6 +42,7 @@ import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 
 @Route(value = "projects", layout = MainView.class)
@@ -67,6 +68,9 @@ public class ProjectListView extends StandardListView<Project> {
 
     @Autowired
     private Messages messages;
+
+    @Value("${nats.send-subject-export}")
+    private String sendSubjectExport;
 
     @Autowired
     private CuratorTaskService curatorTaskService;
@@ -99,7 +103,7 @@ public class ProjectListView extends StandardListView<Project> {
 
         SpdxExportWorkData spdxExportWorkData = new SpdxExportWorkData(project.getDocumentID(), String.valueOf(project.getId()));
 
-        boolean res = curatorTaskService.saveAndRunTask(curatorTask, spdxExportWorkData, "send project data to microservice to create new spdx");
+        boolean res = curatorTaskService.saveAndRunTask(curatorTask, spdxExportWorkData, "export data to microservice to create new spdx",sendSubjectExport );
 
         // FIXME we cannot wait here for the file to become available
 //        UI ui = UI.getCurrent();

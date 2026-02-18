@@ -40,6 +40,7 @@ public interface FileRepository extends JmixDataRepository<File, Long> {
     @Query("select f from File f " +
             "where f.project = :project and f.parent is null " +
             "and (:targetStatus is null or f.reviewed = :targetStatus) " +
+            "and f.physicalPath is not null and f.physicalPath <> '' " +
             "order by " +
             "   CASE WHEN lower(f.fileName) = '" + DEPENDENCY_FOLDER_NAME + "' THEN 1 ELSE 0 END ASC, " +
             "   f.isDirectory desc, " +
@@ -50,7 +51,9 @@ public interface FileRepository extends JmixDataRepository<File, Long> {
 
     @Query("select count(f) from File f " +
             "where f.project = :project and f.parent is null " +
-            "and (:targetStatus is null or f.reviewed = :targetStatus)")
+            "and (:targetStatus is null or f.reviewed = :targetStatus)"+
+            "and f.physicalPath is not null and f.physicalPath <> '' "
+    )
     long countRoots(@Param("project") Project project,
                     @Param("targetStatus") Boolean targetStatus);
 
@@ -58,6 +61,7 @@ public interface FileRepository extends JmixDataRepository<File, Long> {
     @Query("select f from File f " +
             "where f.parent = :parent " +
             "and (:targetStatus is null or f.reviewed = :targetStatus) " +
+            "and f.physicalPath is not null and f.physicalPath <> '' " +
             "order by " +
             "   CASE WHEN lower(f.fileName) = '" + DEPENDENCY_FOLDER_NAME + "' THEN 1 ELSE 0 END ASC, " +
             "   f.isDirectory desc, " +
@@ -68,7 +72,8 @@ public interface FileRepository extends JmixDataRepository<File, Long> {
 
     @Query("select count(f) from File f " +
             "where f.parent = :parent " +
-            "and (:targetStatus is null or f.reviewed = :targetStatus)")
+            "and (:targetStatus is null or f.reviewed = :targetStatus)"+
+            "and f.physicalPath is not null and f.physicalPath <> '' ")
     long countChildren(@Param("parent") File parent,
                        @Param("targetStatus") Boolean targetStatus);
 
@@ -80,6 +85,7 @@ public interface FileRepository extends JmixDataRepository<File, Long> {
             "left join fetch f.parent " +
             "where f.project = :project " +
             "and lower(f.fileName) like lower(concat('%', :searchText, '%')) " +
+            "and f.physicalPath is not null and f.physicalPath <> '' " +
             "and (:targetStatus is null or f.reviewed = :targetStatus)")
     List<File> findCandidates(@Param("project") Project project,
                               @Param("searchText") String searchText,
@@ -88,6 +94,7 @@ public interface FileRepository extends JmixDataRepository<File, Long> {
     @Query("select count(f) from File f " +
             "where f.project = :project " +
             "and lower(f.fileName) like lower(concat('%', :searchText, '%')) " +
+            "and f.physicalPath is not null and f.physicalPath <> '' " +
             "and (:targetStatus is null or f.reviewed = :targetStatus)")
     long countCandidates(@Param("project") Project project,
                          @Param("searchText") String searchText,

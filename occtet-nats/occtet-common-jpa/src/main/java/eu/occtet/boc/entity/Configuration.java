@@ -31,7 +31,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 public class Configuration {
 
-    public enum Type {STRING, NUMERIC, FILE_UPLOAD, BASE_PATH, COMMA_SEPARATED_STRINGS, BOOLEAN}
+    public enum Type {STRING, NUMERIC, FILE_UPLOAD, BASE_PATH, COMMA_SEPARATED_STRINGS, BOOLEAN, REPOSITORY_TYPE}
 
     @Id
     @Column(name = "ID", nullable = false)

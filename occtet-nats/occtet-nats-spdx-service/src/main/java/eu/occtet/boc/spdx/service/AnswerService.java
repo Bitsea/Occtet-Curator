@@ -131,7 +131,6 @@ public class AnswerService {
             log.debug("sending message to vulnerability service: {}", message);
             natsStreamSenderVulnerabilities().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
             sendToDownload(
-                    inventoryItem.getSoftwareComponent().getDetailsUrl(),
                     inventoryItem.getProject().getId(),
                     inventoryItem.getId(),
                     mainInventoryItemIds.contains(inventoryItem.getId())
@@ -149,10 +148,10 @@ public class AnswerService {
      *                      differentiating between them and dependencies
      * @return true if sending was successful otherwise false
      */
-    public boolean sendToDownload(String downloadURL, Long projectId, Long inventoryItemId, Boolean isMainPackage){
+    public boolean sendToDownload(Long projectId, Long inventoryItemId, Boolean isMainPackage){
         try {
 
-            DownloadServiceWorkData payload = new DownloadServiceWorkData(downloadURL, projectId, inventoryItemId,
+            DownloadServiceWorkData payload = new DownloadServiceWorkData(projectId, inventoryItemId,
                     isMainPackage);
             LocalDateTime now = LocalDateTime.now();
             long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
