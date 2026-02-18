@@ -118,7 +118,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     @ViewComponent
     private DataGrid<InventoryItem> inventoryDataGridReuse;
     @ViewComponent
-    private CollectionContainer<InventoryItem> inventoryItemDcReuse;
+    private CollectionLoader<InventoryItem> inventoryItemDlReuse;
     @ViewComponent
     private JmixComboBox<InventoryItem> parentField;
     @ViewComponent
@@ -595,16 +595,17 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
     private void setReuseOfInventory(InventoryItem inventoryItem) {
 
-        List<InventoryItem> ReuseItems;
+        List<InventoryItem> reuseItems;
         SoftwareComponent softwareComponent = inventoryItem.getSoftwareComponent();
 
         if (softwareComponent != null) {
-            ReuseItems = inventoryItemRepository.findBySoftwareComponent(softwareComponent);
-            ReuseItems.remove(inventoryItem);
+            reuseItems = inventoryItemRepository.findBySoftwareComponentAndCurated(softwareComponent,true);
+            reuseItems.remove(inventoryItem);
         } else {
-            ReuseItems = new ArrayList<>();
+            reuseItems = new ArrayList<>();
         }
-        inventoryItemDcReuse.setItems(ReuseItems);
+        inventoryItemDlReuse.setParameter("reuseItems",reuseItems);
+        inventoryItemDlReuse.load();
     }
 
     private String getTimeStampSeperator() {

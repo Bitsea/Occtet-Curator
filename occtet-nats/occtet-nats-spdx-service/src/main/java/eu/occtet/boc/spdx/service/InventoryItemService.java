@@ -49,18 +49,30 @@ public class InventoryItemService {
 
     public InventoryItem getOrCreateInventoryItem(String inventoryName, SoftwareComponent sc,
                                                   Project project) {
-        List<InventoryItem> inventoryItemList = inventoryItemRepository.findByProjectAndInventoryName(
-                project, inventoryName
-        );
+        List<InventoryItem> inventoryItemList = inventoryItemRepository.findByProjectAndInventoryNameAndOld(
+                project, inventoryName, false);
         if (inventoryItemList.isEmpty()) {
-            return inventoryItemFactory.create(inventoryName, project, sc);
+            return inventoryItemFactory.create(inventoryName, project, sc,false,false);
         }
-        return inventoryItemList.getFirst(); // Return the first inventory of the inventories found
+        InventoryItem item = inventoryItemList.getFirst();
+        item.setOld(true);
+        return item;
     }
-
-
 
     public void update(InventoryItem inventoryItem){
         inventoryItemRepository.save(inventoryItem);
     }
+
+    public void delete(InventoryItem item){
+        inventoryItemRepository.delete(item);
+    }
+
+    public void controlParentRelation(InventoryItem item){
+        List<InventoryItem> childItems = inventoryItemRepository.findByParent(item);
+        for(InventoryItem child : childItems){
+            child.setParent(null);
+        }
+        inventoryItemRepository.saveAll(childItems);
+    }
+
 }

@@ -101,4 +101,12 @@ public class FileService {
         }
         return cache;
     }
+
+    public void deleteInventory(InventoryItem item){
+        List<File> files = fileRepository.findByInventoryItemsContaining(item);
+        for(File file : files){
+            file.getInventoryItems().remove(item);
+        }
+        fileRepository.saveAll(files);
+    }
 }

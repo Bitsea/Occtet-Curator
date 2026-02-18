@@ -71,7 +71,7 @@
             </fetchPlan>
             <loader id="inventoryItemDlReuse" readOnly="true">
                 <query>
-                    <![CDATA[select i from InventoryItem i]]>
+                    <![CDATA[select i from InventoryItem i where i in :reuseItems]]>
                 </query>
             </loader>
         </collection>
@@ -133,6 +133,9 @@
                                         <hbox width="100%">
                                             <textField id="inventoryNameReuseField" property="inventoryName" dataContainer="inventoryItemDcReuse"
                                                        label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.inventoryName" width="70%"/>
+                                            <textField id="projectReuseField" property="project.projectName"
+                                                       dataContainer="inventoryItemDcReuse"
+                                                       label="Project" width="30%" readOnly="true"/>
                                         </hbox>
                                         <hbox width="100%">
                                             <textField id="parentReuseID" property="parent.inventoryName" dataContainer="inventoryItemDcReuse"

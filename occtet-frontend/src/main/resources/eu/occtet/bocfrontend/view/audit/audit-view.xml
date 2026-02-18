@@ -36,6 +36,7 @@
                                 and e.softwareComponent.vulnerabilities is not empty
                             )
                         )
+                        and e.old = false
                         order by e.inventoryName
                     ]]>
                 </query>

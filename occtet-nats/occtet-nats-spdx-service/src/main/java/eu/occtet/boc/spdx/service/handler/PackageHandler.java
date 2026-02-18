@@ -76,8 +76,14 @@ public class PackageHandler {
                             try {
                                 InventoryItem item = parseSinglePackage(pkg, context);
 
-                                context.getInventoryItems().add(item);
-                                seenPackages.add(pkg.getId());
+                                if(item.getOld() && !item.getCurated()){
+                                    inventoryItemService.controlParentRelation(item);
+                                    fileService.deleteInventory(item);
+                                    inventoryItemService.delete(item);
+                                }else{
+                                    context.getInventoryItems().add(item);
+                                    seenPackages.add(pkg.getId());
+                                }
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
@@ -137,7 +143,6 @@ public class PackageHandler {
 
         InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, component, context.getProject());
         inventoryItem.setSpdxId(spdxPackage.getId());
-        inventoryItem.setCurated(false);
 
         Set<SpdxFile> packageFiles = new HashSet<>(spdxPackage.getFiles());
 

@@ -54,4 +54,9 @@ public class InventoryItemFactory {
         InventoryItem inventoryItem = new InventoryItem(inventoryName, project, sc);
         return inventoryItemRepository.save(inventoryItem);
     }
+
+    public InventoryItem create(String inventoryName, Project project, SoftwareComponent sc, boolean old, boolean curated) {
+        InventoryItem inventoryItem = new InventoryItem(inventoryName, project, sc, old, curated);
+        return inventoryItemRepository.save(inventoryItem);
+    }
 }

@@ -74,6 +74,9 @@ public class InventoryItem {
     @Column(name= "CURATED")
     private Boolean curated;
 
+    @Column(name= "OLD")
+    private Boolean old;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PROJECT_ID", nullable = false)
     private Project project;
@@ -88,7 +91,7 @@ public class InventoryItem {
 
     public InventoryItem(String inventoryName, Integer size, String linking,
                          String externalNotes, InventoryItem parent,
-                         SoftwareComponent softwareComponent, Boolean wasCombined) {
+                         SoftwareComponent softwareComponent, Boolean wasCombined, Boolean old) {
         this.inventoryName = inventoryName;
         this.size = size;
         this.linking = linking;
@@ -96,6 +99,7 @@ public class InventoryItem {
         this.parent = parent;
         this.softwareComponent = softwareComponent;
         this.wasCombined = wasCombined;
+        this.old = old;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -209,7 +213,6 @@ public class InventoryItem {
         this.conspicuous = conspicuous;
     }
 
-
     @Nonnull
     public LocalDateTime getCreatedAt() {
         return createdAt;
@@ -227,5 +230,8 @@ public class InventoryItem {
         return curated;
     }
 
+    public Boolean getOld() {return old;}
+
+    public void setOld(Boolean old) {this.old = old;}
 
 }

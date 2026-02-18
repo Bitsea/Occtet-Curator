@@ -72,6 +72,9 @@ public class InventoryItem {
     @Column(name= "CURATED")
     private Boolean curated;
 
+    @Column(name= "OLD")
+    private Boolean old;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PROJECT_ID", nullable = false)
     private Project project;
@@ -112,6 +115,16 @@ public class InventoryItem {
         this.inventoryName = inventoryName;
         this.project = project;
         this.softwareComponent = softwareComponent;
+    }
+
+    public InventoryItem(String inventoryName, Project project, SoftwareComponent softwareComponent,
+                         boolean old , boolean curated) {
+        this.createdAt = LocalDateTime.now();
+        this.inventoryName = inventoryName;
+        this.project = project;
+        this.softwareComponent = softwareComponent;
+        this.old = old;
+        this.curated = curated;
     }
 
     public Long getId() {
@@ -232,4 +245,8 @@ public class InventoryItem {
     public void setCreatedAt(@Nonnull LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    public void setOld(Boolean old) {this.old = old;}
+
+    public Boolean getOld() {return old;}
 }

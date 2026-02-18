@@ -37,4 +37,8 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
     List<InventoryItem> findBySpdxIdAndProject(String spdxID, Project project);
 
     List<InventoryItem> findAllByProject(Project project);
+
+    List<InventoryItem> findByProjectAndInventoryNameAndOld(Project project, String inventoryName, boolean old);
+
+    List<InventoryItem> findByParent(InventoryItem item);
 }
