@@ -140,32 +140,12 @@ public class CuratorTaskService {
         dataManager.save(curatorTask);
     }
 
-    public void updateTaskProgress(CuratorTask curatorTask, int progress){
-        curatorTask.setCurrentProgress(progress);
-        dataManager.save(curatorTask);
-    }
 
     public List<CuratorTask> getCancelledTasks(){
         return curatorTaskRepository.findByStatus(TaskStatus.CANCELLED);
     }
 
-    public void removeOutdatedCompletedTasks(int updatedBeforeHours){
-        LocalDateTime before = LocalDateTime.now().minusHours(updatedBeforeHours);
-        List<CuratorTask> tasks = curatorTaskRepository.findAllByStatusAndLastUpdateAfter(TaskStatus.COMPLETED, before);
-        dataManager.remove(tasks);
-    }
 
-    public List<CuratorTask> getCurrentTasks(int updatedBeforeMinutes) {
-        LocalDateTime before = LocalDateTime.now().minusMinutes(updatedBeforeMinutes);
-        List<CuratorTask> inProgress = curatorTaskRepository.findByStatus(TaskStatus.IN_PROGRESS);
-        List<CuratorTask> cancelled = curatorTaskRepository.findAllByStatusAndLastUpdateAfter(TaskStatus.CANCELLED, before);
-        List<CuratorTask> completed = curatorTaskRepository.findAllByStatusAndLastUpdateAfter(TaskStatus.COMPLETED, before);
-        List<CuratorTask> result = new ArrayList<>();
-        result.addAll(inProgress);
-        result.addAll(cancelled);
-        result.addAll(completed);
-        return result;
-    }
 
     public CuratorTask saveWithFeedBack(CuratorTask curatorTask, List<String> feedback, TaskStatus status){
         List<String> newFeedbacks= new ArrayList<>();

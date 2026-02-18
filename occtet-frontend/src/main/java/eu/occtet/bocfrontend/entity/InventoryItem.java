@@ -177,7 +177,8 @@ public class InventoryItem {
         this.curated = curated;
     }
 
-    public Project getProject() {
+    public Project getProject()
+    {
         return project;
     }
 

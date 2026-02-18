@@ -39,8 +39,8 @@
         <module>occtet-nats-ai-copyrightfilter-service</module>
         <module>occtet-nats-copyrightfilter-service</module>
         <module>occtet-nats-vulnerability-service</module>
-        <module>occtet-nats-issue-catcher-service</module>
-        <module>occtet-nats-ort-run-starter-service</module>
+        <module>occtet-nats-process-run-service</module>
+        <module>occtet-nats-ort-run-start-service</module>
         <module>occtet-nats-download-service</module>
     </modules>
 
@@ -62,7 +62,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springboot.version>3.5.5</springboot.version>
         <eclipselink.version>4.0.9</eclipselink.version>
-        <common-version>0.3.9-SNAPSHOT</common-version>
+        <common-version>0.3.10-SNAPSHOT</common-version>
         <common-jpa-version>0.3.9-SNAPSHOT</common-jpa-version>
         <ort-client-version>0.3.2-SNAPSHOT</ort-client-version>
         <logback-version>1.5.19</logback-version>

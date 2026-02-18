@@ -38,5 +38,6 @@ public interface IWorkDataProcessor {
     boolean process(ORTStartRunWorkData workData);
     boolean process(DownloadServiceWorkData workData);
     boolean process(SpdxExportWorkData workData);
+    boolean process(ORTProcessWorkData workData);
 
 }

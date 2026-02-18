@@ -11,7 +11,7 @@ public class ORTStartRunWorkData extends BaseWorkData{
     private String repositoryVersion;
     private String organizationName;
     private long projectId;
-    private long runId;
+
 
     @JsonCreator
     public ORTStartRunWorkData(@JsonProperty("repositoryType") String repositoryType,
@@ -66,13 +66,6 @@ public class ORTStartRunWorkData extends BaseWorkData{
         this.repositoryVersion = repositoryVersion;
     }
 
-    public long getRunId() {
-        return runId;
-    }
-
-    public void setRunId(long runId) {
-        this.runId = runId;
-    }
 
     @Override
     public boolean process(IWorkDataProcessor processor) {

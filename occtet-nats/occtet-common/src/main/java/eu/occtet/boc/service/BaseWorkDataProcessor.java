@@ -80,4 +80,7 @@ public abstract class BaseWorkDataProcessor implements IWorkDataProcessor {
 
     @Override
     public boolean process(SpdxExportWorkData workData){return false;}
+
+    @Override
+    public abstract boolean process(ORTProcessWorkData workData);
 }

@@ -47,7 +47,7 @@
                     <textField id="projectNameField" property="projectName" required="true"
                                width="50%" label="msg://Project.name" requiredMessage="msg://eu.occtet.bocfrontend.view.project/Project.name.required.message" colspan="2"/>
                     <textField id="projectContactField" property="projectContact" width="50%"
-                               label="msg://eu.occtet.bocfrontend.view.project/Project.projectContact"/>
+                               label="msg://eu.occtet.bocfrontend.view.project/Project.projectContact" required="true"/>
                     <textField id="contactEmailField" label="msg://eu.occtet.bocfrontend.view.project/Project.contactEmail"
                                property="contactEmail" width="50%"/>
                 </vbox>
