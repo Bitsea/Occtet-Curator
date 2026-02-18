@@ -427,7 +427,6 @@ public class AuditView extends StandardView{
         }
         // queries regarding the filters are added in the descriptor
 
-        // TODO is not listening due the default jmix listener
         inventoryItemDataGrid.addItemClickListener(event -> {
             if (event.getClickCount() == 2) {
                 tabManager.openInventoryItemTab(event.getItem(), true);
