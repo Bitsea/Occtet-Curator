@@ -41,7 +41,7 @@
             <loader id="fileDl">
                 <query>
                 <![CDATA[
-                    select c from File c where c.inventoryItem=:inventoryItem
+                    SELECT f FROM File f WHERE :inventoryItem MEMBER OF f.inventoryItems
                 ]]>
                 </query>
             </loader>
@@ -121,8 +121,12 @@
                           id="filesTabFragment"/>
             </tab>
             <tab id="auditNotesTab" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.auditNotes">
-                    <vbox id="auditNotesText" width="100%" height="100%"/>
-
+                <vbox width="100%" height="100%" padding="false" margin="false" spacing="false">
+                    <checkbox id="todoCheckbox" dataContainer="inventoryItemDc" property="hasTodos"
+                              label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.auditNotes.checkbox.todos"/>
+                    <vbox id="auditNotesText" width="100%" height="95%" margin="false"
+                          padding="false"/>
+                </vbox>
             </tab>
             <tab id="reuseTab" label="msg://eu.occtet.bocfrontend.view.audit/auditView.reuse">
                     <split width="100%" height="100%" themeNames="small" orientation="VERTICAL">
