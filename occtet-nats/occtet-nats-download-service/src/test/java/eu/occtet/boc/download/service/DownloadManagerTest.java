@@ -33,6 +33,8 @@ import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.entity.appconfigurations.AppConfigKey;
 import eu.occtet.boc.entity.appconfigurations.AppConfiguration;
 import eu.occtet.boc.model.DownloadServiceWorkData;
+import eu.occtet.boc.util.ExternalNotesConstants;
+import eu.occtet.boc.util.FileConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -184,7 +186,7 @@ class DownloadManagerTest {
 
         InventoryItem savedItem = itemCaptor.getValue();
         assertNotNull(savedItem.getExternalNotes());
-        assertTrue(savedItem.getExternalNotes().contains("WARNING: Unable to download"));
+        assertTrue(savedItem.getExternalNotes().contains(ExternalNotesConstants.DOWNLOAD_SERVICE_FAILURE_MSG));
     }
 
     @Test

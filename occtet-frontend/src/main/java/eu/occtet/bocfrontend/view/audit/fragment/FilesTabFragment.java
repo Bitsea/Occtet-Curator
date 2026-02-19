@@ -187,12 +187,14 @@ public class FilesTabFragment extends Fragment<VerticalLayout>{
 
     private void deleteFile(File file){
         List<Copyright> associatedCopyrights = copyrightRepository.findCopyrightsByFilesIn(List.of(file));
-        String message = messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.delete.message")+"\n"+file.getProjectPath();
+        String confirmationMessage = messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation" +
+                ".delete.message") + "\nFile: " + file.getProjectPath() + "\nInventory item: " + inventoryItem.getInventoryName();
         if (!associatedCopyrights.isEmpty()) {
-            message += "\n\n" + associatedCopyrights.size() + messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.delete.message.empty");
+            confirmationMessage += "\n\n " + associatedCopyrights.size() + messages.getMessage("eu.occtet.bocfrontend" +
+                    ".view/filesTabFragment.codeLocation.delete.message.empty");
         }
         dialogs.createOptionDialog().withHeader(messages.getMessage("eu.occtet.bocfrontend.view/filesTabFragment.codeLocation.delete.header"))
-                .withText(message)
+                .withText(confirmationMessage)
                 .withActions(
                         new DialogAction(DialogAction.Type.YES).withHandler(event -> {
                             //TODO fix this!

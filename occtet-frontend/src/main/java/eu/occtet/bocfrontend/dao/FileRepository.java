@@ -21,6 +21,7 @@
 
 package eu.occtet.bocfrontend.dao;
 
+import eu.occtet.boc.util.FileConstants;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.Project;
 import io.jmix.core.repository.JmixDataRepository;
@@ -33,7 +34,7 @@ import java.util.List;
 
 
 public interface FileRepository extends JmixDataRepository<File, Long> {
-    final static String DEPENDENCY_FOLDER_NAME = "dependencies";
+    final static String DEPENDENCY_FOLDER_NAME = FileConstants.DEPENDENCIES_FOLDER_NAME;
     List<File> findByProject(Project project);
 
     // Root Nodes (Reviewed Filter)

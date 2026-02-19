@@ -57,7 +57,7 @@ public class InventoryItem {
     private Boolean conspicuous;
 
     @Column(name= "EXTERNAL_NOTES", columnDefinition = "TEXT")
-    private String externalNotes;
+    private String externalNotes = "";
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PARENT_INVENTORY_ITEM_ID")
@@ -66,7 +66,6 @@ public class InventoryItem {
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "SOFTWARE_COMPONENT_ID", nullable = true)
     private SoftwareComponent softwareComponent;
-
 
     @Column(name= "WAS_COMBINED")
     private Boolean wasCombined;
@@ -77,6 +76,9 @@ public class InventoryItem {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PROJECT_ID", nullable = false)
     private Project project;
+
+    @Column(name = "HAS_TODOS")
+    private Boolean hasTodos = false;
 
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
@@ -209,6 +211,13 @@ public class InventoryItem {
         this.conspicuous = conspicuous;
     }
 
+    public Boolean getHasTodos() {
+        return hasTodos;
+    }
+
+    public void setHasTodos(Boolean hasTodos) {
+        this.hasTodos = hasTodos;
+    }
 
     @Nonnull
     public LocalDateTime getCreatedAt() {
