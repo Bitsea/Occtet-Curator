@@ -32,7 +32,6 @@ import org.spdx.library.model.v2.SpdxElement;
 import org.spdx.library.model.v2.SpdxPackage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -40,7 +39,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 @Service
-@Transactional
 public class RelationshipHandler {
 
     private static final Logger log = LogManager.getLogger(RelationshipHandler.class);
@@ -128,27 +126,27 @@ public class RelationshipHandler {
 
                 switch (relationship.getRelationshipType()) {
                     case CONTAINS, DEPENDS_ON, ANCESTOR_OF -> {
-                        if (targetElement.getType().equals("Package")) {
+                        if (targetElement instanceof SpdxPackage) {
                             targetItem.setParent(sourceItem);
                             inventoryItemService.update(targetItem);
                             log.info("identified {} as parent of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
                         }
                     }
                     case CONTAINED_BY, DEPENDENCY_OF, DESCENDANT_OF -> {
-                        if (targetElement.getType().equals("Package")) {
+                        if (targetElement instanceof SpdxPackage) {
                             sourceItem.setParent(targetItem);
                             inventoryItemService.update(sourceItem);
                             log.info("identified {} as child of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
                         }
                     }
                     case STATIC_LINK -> {
-                        if (targetElement.getType().equals("Package")) {
+                        if (targetElement instanceof SpdxPackage) {
                             targetItem.setLinking("Static");
                             inventoryItemService.update(targetItem);
                         }
                     }
                     case DYNAMIC_LINK -> {
-                        if (targetElement.getType().equals("Package")) {
+                        if (targetElement instanceof SpdxPackage) {
                             targetItem.setLinking("Dynamic");
                             inventoryItemService.update(targetItem);
                         }

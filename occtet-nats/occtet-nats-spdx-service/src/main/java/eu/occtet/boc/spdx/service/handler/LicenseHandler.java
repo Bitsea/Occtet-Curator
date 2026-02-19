@@ -29,12 +29,10 @@ import org.spdx.library.model.v2.license.*;
 import org.spdx.library.model.v3_0_1.expandedlicensing.ListedLicense;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
 @Service
-@Transactional
 public class LicenseHandler {
 
     @Autowired

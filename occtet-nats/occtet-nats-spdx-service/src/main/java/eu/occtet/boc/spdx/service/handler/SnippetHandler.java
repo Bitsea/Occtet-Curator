@@ -79,16 +79,14 @@ public class SnippetHandler {
 
             snippetStream.forEach(snippet -> {
                 try {
-                    spdxConverter.convertSnippets(snippet, context.getSpdxDocumentRoot());
-
-                    enrichComponentFromSnippet(
-                            snippet,
-                            context.getFileToInventoryItemMap(),
-                            context.getLicenseCache(),
-                            context.getExtractedLicenseInfos()
-                    );
+                    processSingleSnippet(snippet, context);
                 } catch (Exception e) {
-                    log.error("Failed to process snippet: {}", snippet.getId(), e);
+                    log.error("Failed to process snippet: {}. Skipping...", snippet.getId(), e);
+
+                    if (context.getSpdxDocumentRoot().getSnippets() != null) {
+                        context.getSpdxDocumentRoot().getSnippets()
+                                .removeIf(s -> s.getSpdxId() != null && s.getSpdxId().equals(snippet.getId()));
+                    }
                 }
             });
 
@@ -96,6 +94,21 @@ public class SnippetHandler {
         }catch (InvalidSPDXAnalysisException e) {
             log.error("Failed to process snippets. Skipping...", e);
         }
+    }
+
+    /**
+     * Creates an isolated transaction for a single snippet.
+     * If this fails, only this specific snippet is rolled back.
+     */
+    private void processSingleSnippet(SpdxSnippet snippet, SpdxImportContext context) {
+        spdxConverter.convertSnippets(snippet, context.getSpdxDocumentRoot());
+
+        enrichComponentFromSnippet(
+                snippet,
+                context.getFileToInventoryItemMap(),
+                context.getLicenseCache(),
+                context.getExtractedLicenseInfos()
+        );
     }
 
     /**
@@ -159,6 +172,7 @@ public class SnippetHandler {
             }
         } catch (InvalidSPDXAnalysisException e) {
             log.error("Failed to process snippet: {}. Skipping...", snippet.getId(), e);
+            throw new RuntimeException("Failed to enrich component from snippet", e);
         }
     }
 }

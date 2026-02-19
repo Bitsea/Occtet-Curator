@@ -33,12 +33,10 @@ import org.spdx.library.model.v2.SpdxFile;
 import org.spdx.library.model.v2.license.AnyLicenseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
 @Service
-@Transactional
 public class OrphanHandler {
 
     private static final Logger log = LogManager.getLogger(OrphanHandler.class);

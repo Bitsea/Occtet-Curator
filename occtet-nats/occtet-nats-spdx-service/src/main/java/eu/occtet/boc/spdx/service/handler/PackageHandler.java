@@ -36,13 +36,11 @@ import org.spdx.library.model.v2.enumerations.RelationshipType;
 import org.spdx.library.model.v2.license.AnyLicenseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Consumer;
 
 @Service
-@Transactional
 public class PackageHandler {
 
     private static final Logger log = LogManager.getLogger(PackageHandler.class);
@@ -101,7 +99,6 @@ public class PackageHandler {
         }
     }
 
-
     public InventoryItem parseSinglePackage(SpdxPackage spdxPackage, SpdxImportContext context)
             throws Exception {
 
@@ -117,7 +114,6 @@ public class PackageHandler {
 
         if (component == null) {
             component = softwareComponentService.getOrCreateSoftwareComponent(packageName, version);
-            // Cache Put
             context.getComponentCache().put(componentKey, component);
         }
 
@@ -228,7 +224,6 @@ public class PackageHandler {
                 }
             }
         }
-
 
         Map<String, File> locationMap = fileService.findOrCreateBatch(allFileNames, inventoryItem);
         Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts);

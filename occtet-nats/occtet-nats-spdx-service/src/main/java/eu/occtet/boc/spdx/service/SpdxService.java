@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class SpdxService extends ProgressReportingService  {
+public class SpdxService extends ProgressReportingService {
 
     private static final Logger log = LogManager.getLogger(SpdxService.class);
 
@@ -78,7 +78,7 @@ public class SpdxService extends ProgressReportingService  {
     @Autowired
     private CleanUpService cleanUpService;
 
-    public boolean process(SpdxWorkData workData) throws SpdxImportException{
+    public boolean process(SpdxWorkData workData) throws SpdxImportException {
         log.debug("SpdxService: reads SPDX and creates entities to curate {}", workData.toString());
         return parseDocument(workData);
     }
@@ -90,7 +90,7 @@ public class SpdxService extends ProgressReportingService  {
      * @param spdxWorkData
      * @return true if the entities where created successfully, false is any error occurred
      */
-    public boolean parseDocument(SpdxWorkData spdxWorkData) throws SpdxImportException{
+    public boolean parseDocument(SpdxWorkData spdxWorkData) throws SpdxImportException {
         try {
             log.info("now processing SPDX for project id: {}", spdxWorkData.getProjectId());
             notifyProgress(1, "init");
@@ -127,13 +127,13 @@ public class SpdxService extends ProgressReportingService  {
             notifyProgress(100, "completed");
             return true;
 
-        } catch (InvalidSPDXAnalysisException e){
+        } catch (InvalidSPDXAnalysisException e) {
             log.error("Handler caused SPDX Analysis to fail: {}", e.getMessage());
             throw new SpdxImportException("The SPDX file could not be analyzed by a handler. It may contain invalid fields or unsupported versions.", e);
         }
     }
 
-    private SpdxDocument loadSpdxDocument(byte[] jsonBytes) throws SpdxImportException{
+    private SpdxDocument loadSpdxDocument(byte[] jsonBytes) throws SpdxImportException {
         try {
             new com.fasterxml.jackson.databind.ObjectMapper().readTree(new ByteArrayInputStream(jsonBytes));
         } catch (IOException e) {
@@ -156,9 +156,9 @@ public class SpdxService extends ProgressReportingService  {
 
     }
 
-    private Project loadProject(long projectId, SpdxDocument spdxDocument){
+    private Project loadProject(long projectId, SpdxDocument spdxDocument) {
         Optional<Project> projectOptional = projectRepository.findById(projectId);
-        if(projectOptional.isEmpty()) {
+        if (projectOptional.isEmpty()) {
             log.error("failed to find the project");
             return null;
         }
@@ -211,6 +211,5 @@ public class SpdxService extends ProgressReportingService  {
                 }
             }
         });
-}
-
+    }
 }
