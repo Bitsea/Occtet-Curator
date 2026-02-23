@@ -33,9 +33,7 @@ import org.spdx.library.model.v2.SpdxPackage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
 @Service
@@ -63,11 +61,14 @@ public class RelationshipHandler {
             int total = packageUris.size();
             int count = 0;
 
+            Set<String> seenPackages = new HashSet<>();
+
             for (TypedValue uri : packageUris) {
                 SpdxModelFactory.getSpdxObjects(context.getSpdxDocument().getModelStore(), null, "Package", uri.getObjectUri(), null)
                         .forEach(obj -> {
-                            if (obj instanceof SpdxPackage spdxPackage) {
+                            if (obj instanceof SpdxPackage spdxPackage && !seenPackages.contains(spdxPackage.getId())) {
                                 processSinglePackageRelationships(spdxPackage, context);
+                                seenPackages.add(spdxPackage.getId()); // Mark as processed
                             }
                         });
 
