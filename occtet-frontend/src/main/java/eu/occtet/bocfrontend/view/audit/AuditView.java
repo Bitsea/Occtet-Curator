@@ -128,6 +128,7 @@ public class AuditView extends StandardView{
     private boolean suppressNavigation = false;
     private final Set<Long> expandedItemIds = new HashSet<>();
     private CustomParameterFilter inventorItemGridFilter;
+    private List<File> currentDraggedFiles = new ArrayList<>(); // for dragging files across grids contained in fragments
 
     private FileTreeSearchHelper fileTreeSearchHelper;
     @Autowired
@@ -253,6 +254,15 @@ public class AuditView extends StandardView{
         fileTreeGrid.addCollapseListener(event -> {
             event.getItems().forEach(file -> expandedItemIds.remove(file.getId()));
             saveStateToSession();
+        });
+
+        fileTreeGrid.setRowsDraggable(true);
+
+        fileTreeGrid.addDragStartListener(event -> {
+            this.currentDraggedFiles = event.getDraggedItems();
+        });
+
+        fileTreeGrid.addDragEndListener(event -> {
         });
     }
 
@@ -417,7 +427,6 @@ public class AuditView extends StandardView{
         }
         // queries regarding the filters are added in the descriptor
 
-        // TODO is not listening due the default jmix listener
         inventoryItemDataGrid.addItemClickListener(event -> {
             if (event.getClickCount() == 2) {
                 tabManager.openInventoryItemTab(event.getItem(), true);
@@ -663,6 +672,10 @@ public class AuditView extends StandardView{
 
     public TabManager getTabManager() {
         return tabManager;
+    }
+
+    public List<File> getCurrentDraggedFiles() {
+        return currentDraggedFiles != null ? currentDraggedFiles : Collections.emptyList();
     }
 
 }

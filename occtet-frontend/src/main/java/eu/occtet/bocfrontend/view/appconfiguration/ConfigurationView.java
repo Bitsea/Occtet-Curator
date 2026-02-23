@@ -41,12 +41,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Route(value = "configuration-view", layout = MainView.class)
 @ViewController(id = "ConfigurationView")
 @ViewDescriptor(path = "configuration-view.xml")
 public class ConfigurationView extends StandardView {
-
 
     @Autowired
     private AppConfigurationRepository repository;
@@ -67,8 +67,7 @@ public class ConfigurationView extends StandardView {
     private JmixTabSheet mainTabSheet;
 
     private Map<AppConfigKey, AppConfiguration> configMap = new HashMap<>();
-
-    // TODO turn button visible if there were changes done
+    private String EDITOR_TAB_ID = "editor";
 
     @Subscribe
     public void onInit(InitEvent event) {
@@ -112,7 +111,7 @@ public class ConfigurationView extends StandardView {
     }
 
     private void updateSaveButtonState() {
-        if ("editor".equals(mainTabSheet.getSelectedTab().getId().orElse(""))) {
+        if (EDITOR_TAB_ID.equals(Objects.requireNonNull(mainTabSheet.getSelectedTab()).getId().orElse(""))) {
             saveBtn.setVisible(false);
         } else {
             saveBtn.setVisible(true);
@@ -133,6 +132,7 @@ public class ConfigurationView extends StandardView {
             notifications.create(messages.getMessage("eu.occtet.bocfrontend.view.appconfiguration/configurationView.noChanges"))
                     .withType(Notifications.Type.DEFAULT)
                     .show();
+            updateSaveButtonState();
         }
     }
 }

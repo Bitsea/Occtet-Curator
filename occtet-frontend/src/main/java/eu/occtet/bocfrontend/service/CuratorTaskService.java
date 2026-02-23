@@ -24,27 +24,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import eu.occtet.boc.model.BaseWorkData;
 import eu.occtet.boc.model.WorkTask;
-import eu.occtet.boc.service.NatsStreamSender;
 import eu.occtet.bocfrontend.dao.CuratorTaskRepository;
 import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.entity.TaskStatus;
-import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
 import io.jmix.core.DataManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.reflections.Reflections.log;
 
 @Service
 public class CuratorTaskService {
@@ -61,11 +56,17 @@ public class CuratorTaskService {
     private NatsService natsService;
 
 
+    @Value("${nats.send-subject-ort-run}")
+    private String sendSubjectOrtRun;
 
-    private static final String sendSubjectOrtRun= "work.ortRunStarter";
-    private static final String sendSubjectExportSpdx= "work.export";
-    private static final String sendSubjectVulnerabilities="work.vulnerabilities";
-    private static final  String sendSubjectSpdx = "work.spdx";
+    @Value("${nats.send-subject-export}")
+    private String sendSubjectExportSpdx;
+
+    @Value("${nats.send-subject-vulnerabilities}")
+    private String sendSubjectVulnerabilities;
+
+    @Value("${nats.send-subject-spdx}")
+    private String sendSubjectSpdx;
 
     /**
      * Save the task and send it to the NATS work queue for processing.
@@ -95,20 +96,15 @@ public class CuratorTaskService {
         log.debug("sending message to service: {}", message);
         try {
             log.debug("sending to stream {}", streamName);
-            switch(streamName) {
-                case sendSubjectSpdx:
-                    natsService.sendWorkMessageToStream(sendSubjectSpdx, message.getBytes(Charset.defaultCharset()));
-                    break;
-                case sendSubjectOrtRun:
-                    natsService.sendWorkMessageToStream(sendSubjectOrtRun, message.getBytes(Charset.defaultCharset()));
-                    break;
-                case sendSubjectExportSpdx:
-                    natsService.sendWorkMessageToStream(sendSubjectExportSpdx, message.getBytes(Charset.defaultCharset()));
-                    break;
-                case sendSubjectVulnerabilities:
-                    natsService.sendWorkMessageToStream(sendSubjectVulnerabilities, message.getBytes(Charset.defaultCharset()));
-                    break;
-
+            // switch doesn't work with @Value-injected values, using if/else
+            if (sendSubjectSpdx.equals(streamName)) {
+                natsService.sendWorkMessageToStream(sendSubjectSpdx, message.getBytes());
+            } else if (sendSubjectOrtRun.equals(streamName)) {
+                natsService.sendWorkMessageToStream(sendSubjectOrtRun, message.getBytes());
+            } else if (sendSubjectExportSpdx.equals(streamName)) {
+                natsService.sendWorkMessageToStream(sendSubjectExportSpdx, message.getBytes());
+            } else if (sendSubjectVulnerabilities.equals(streamName)) {
+                natsService.sendWorkMessageToStream(sendSubjectVulnerabilities, message.getBytes());
             }
         } catch (Exception e) {
             log.error("Could not send work message", e);

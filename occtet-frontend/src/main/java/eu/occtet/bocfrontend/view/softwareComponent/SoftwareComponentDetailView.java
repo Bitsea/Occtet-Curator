@@ -23,14 +23,13 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.boc.model.VulnerabilityServiceWorkData;
-import eu.occtet.bocfrontend.entity.CuratorTask;
-import eu.occtet.bocfrontend.entity.License;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
-import eu.occtet.bocfrontend.entity.Vulnerability;
+import eu.occtet.bocfrontend.dao.ProjectRepository;
+import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.factory.CuratorTaskFactory;
 import eu.occtet.bocfrontend.service.CuratorTaskService;
 import eu.occtet.bocfrontend.service.NatsService;
@@ -69,9 +68,6 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
     @Autowired
     private UiComponents uiComponents;
 
-    @Autowired
-    private NatsService natsService;
-
     @Value("${nats.send-subject-vulnerabilities}")
     private String sendSubjectVulnerabilities;
 
@@ -84,6 +80,11 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
     @Autowired
     private CuratorTaskFactory curatorTaskFactory;
 
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    private static final String UPDATE_VULNERS_CURATOR_TASK_TYPE = "updating_vulnerabilities";
+    private static final String UPDATE_VULNERS_CURATOR_TASK_NAME = "updating_vulnerabilities_for_";
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
         SoftwareComponent softwareComponent = getEditedEntity();
@@ -130,16 +131,21 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
 
     @Subscribe("updateData")
     public void updateDataButtonAction(ClickEvent<JmixButton> event) {
-        // FIXME where to take the project and other params from?
+        String importName = UPDATE_VULNERS_CURATOR_TASK_NAME + getEditedEntity().getName();
+        Project project = projectRepository.findAll().getFirst();
 
-        CuratorTask task = curatorTaskFactory.create(null, null, null);
+        CuratorTask task = curatorTaskFactory.create(project, importName, UPDATE_VULNERS_CURATOR_TASK_TYPE);
 
         VulnerabilityServiceWorkData vulnerabilityServiceWorkData =
                 new VulnerabilityServiceWorkData(getEditedEntity().getId());
 
         boolean res = curatorTaskService.saveAndRunTask(task,vulnerabilityServiceWorkData,"sending software component to vulnerability microservice",sendSubjectVulnerabilities );
+        notifications.create(messages.getMessage("eu.occtet.bocfrontend.view.softwareComponent/notification.updateData"))
+                .withThemeVariant(NotificationVariant.LUMO_SUCCESS).show();
 
-        // TODO show message if failed?
-
+        if(!res) {
+            log.debug("Failed to run task for updating vulnerabilites of software component {}",
+                    getEditedEntity().getName());
+        }
     }
 }

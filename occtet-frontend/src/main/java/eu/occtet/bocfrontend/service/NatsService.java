@@ -25,7 +25,6 @@ import eu.occtet.boc.model.BaseSystemMessage;
 import eu.occtet.boc.model.MicroserviceDescriptor;
 import eu.occtet.boc.model.ProgressSystemMessage;
 import eu.occtet.boc.model.StatusDescriptor;
-import eu.occtet.boc.service.NatsStreamSender;
 import io.nats.client.*;
 import io.nats.client.api.*;
 import jakarta.annotation.PostConstruct;
@@ -34,7 +33,6 @@ import org.apache.logging.log4j.Logger;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -60,6 +58,8 @@ public class NatsService {
 
     @Value("${nats.stream-name}")
     private String streamName;
+    @Value("${nats.stream-subjects-config}")
+    private String streamSubjectsConfig;
 
     private @NonNull JetStream js;
 
@@ -87,7 +87,7 @@ public class NatsService {
         JetStreamManagement jsm = natsConnection.jetStreamManagement();
         StreamConfiguration config = StreamConfiguration.builder()
                 .name(streamName)
-                .subjects("work.>") // FIXME this propably needs to be configurable later
+                .subjects(streamSubjectsConfig)
                 .retentionPolicy(RetentionPolicy.WorkQueue)
                 .build();
         stream = jsm.addStream(config);
