@@ -249,7 +249,7 @@ public class PackageHandler {
         try {
             return r.getRelationshipType() == RelationshipType.CONTAINS;
         } catch (InvalidSPDXAnalysisException e) {
-            throw new RuntimeException(e);
+            return false;
         }
     }
 
@@ -257,7 +257,7 @@ public class PackageHandler {
         try {
             return r.getRelatedSpdxElement().orElse(null);
         } catch (InvalidSPDXAnalysisException e) {
-            throw new RuntimeException(e);
+            return null;
         }
     }
 }
