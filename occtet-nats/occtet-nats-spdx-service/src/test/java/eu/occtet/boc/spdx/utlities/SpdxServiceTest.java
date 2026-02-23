@@ -63,7 +63,7 @@ import static org.mockito.ArgumentMatchers.any;
         ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class, FileRepository.class,
         CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class,
         LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class, LicenseHandler.class, PackageHandler.class, OrphanHandler.class,
-        RelationshipHandler.class, SnippetHandler.class
+        RelationshipHandler.class, SnippetHandler.class, JsonSanitizer.class
 })
 @EnableJpaRepositories(basePackages = {
         "eu.occtet.boc.dao"})
@@ -102,6 +102,8 @@ public class SpdxServiceTest {
     private SpdxDocumentRootRepository spdxDocumentRootRepository;
     @MockitoBean
     private CleanUpService cleanUpService;
+    @MockitoBean
+    private JsonSanitizer  jsonSanitizer;
 
     private Project project;
     private byte[] jsonBytes;
@@ -119,6 +121,8 @@ public class SpdxServiceTest {
                 .thenReturn(new SpdxDocumentRoot());
         Mockito.lenient().when(spdxDocumentRootRepository.save(any()))
                 .thenReturn(new SpdxDocumentRoot());
+        Mockito.lenient().when(jsonSanitizer.sanitizeSpdxJson(any(), any(), any()))
+                .thenReturn(jsonBytes);
     }
 
     @Test
