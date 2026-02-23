@@ -58,6 +58,7 @@ public class OrphanHandler {
 
 
     public void processOrphanFiles(SpdxImportContext context) {
+        log.info("Processing orphan files");
         SpdxDocument spdxDocument = context.getSpdxDocument();
         try {
             List<TypedValue> allFileUris = spdxDocument.getModelStore().getAllItems(null, "File").toList();
