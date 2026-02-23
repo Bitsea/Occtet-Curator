@@ -74,6 +74,9 @@ public class SpdxPackageEntity {
     @Column(columnDefinition = "TEXT")
     private String supplier;
 
+    @Column(name = "comment", columnDefinition = "TEXT")
+    private String comment;
+
     @ElementCollection
     @CollectionTable(name = "package_license_info_from_files", joinColumns = @JoinColumn(name = "package_id"))
     private List<String> licenseInfoFromFiles;
@@ -258,6 +261,50 @@ public class SpdxPackageEntity {
 
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+
+    public Boolean getFilesAnalyzed() {
+        return filesAnalyzed;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public PackageVerificationCodeEntity getPackageVerificationCodeEntity() {
+        return packageVerificationCodeEntity;
+    }
+
+    public void setPackageVerificationCodeEntity(PackageVerificationCodeEntity packageVerificationCodeEntity) {
+        this.packageVerificationCodeEntity = packageVerificationCodeEntity;
+    }
+
+    public List<AnnotationEntity> getAnnotationEntities() {
+        return annotationEntities;
+    }
+
+    public void setAnnotationEntities(List<AnnotationEntity> annotationEntities) {
+        this.annotationEntities = annotationEntities;
+    }
+
+    public List<ExternalRefEntity> getExternalRefEntities() {
+        return externalRefEntities;
+    }
+
+    public void setExternalRefEntities(List<ExternalRefEntity> externalRefEntities) {
+        this.externalRefEntities = externalRefEntities;
+    }
+
+    public List<ChecksumEntity> getChecksumEntities() {
+        return checksumEntities;
+    }
+
+    public void setChecksumEntities(List<ChecksumEntity> checksumEntities) {
+        this.checksumEntities = checksumEntities;
     }
 }
 

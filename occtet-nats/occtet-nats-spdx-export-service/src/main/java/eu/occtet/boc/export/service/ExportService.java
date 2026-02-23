@@ -41,6 +41,7 @@ import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
 import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,9 +63,12 @@ public class ExportService  extends ProgressReportingService  {
     @Autowired
     SpdxDocumentRootRepository spdxDocumentRootRepository;
     @Autowired
-    InventoryItemRepository inventoryItemRepository;
-    @Autowired
     AnswerService answerService;
+    @Autowired
+    private MergeService mergeService;
+
+    @Value("${sbom.spdx.creators.tool.name}")
+    private String toolName;
 
     public boolean process(SpdxExportWorkData spdxExportWorkData) {
         log.info("exporting spdx!");
@@ -78,14 +82,21 @@ public class ExportService  extends ProgressReportingService  {
             MultiFormatStore jsonStore = new MultiFormatStore(modelStore, MultiFormatStore.Format.JSON_PRETTY);
 
             log.info("fetching project with id: {}", spdxExportWorkData.getProjectId());
-            Optional<Project> project = projectRepository.findById(Long.parseLong(spdxExportWorkData.getProjectId()));
-            if (project.isEmpty()) return false;
+            Optional<Project> projectOpt = projectRepository.findById(spdxExportWorkData.getProjectId());
+            if (projectOpt.isEmpty()) {
+                log.error("Project with id {} not found", spdxExportWorkData.getProjectId());
+                return false;
+            }
             notifyProgress(10,"Project fetched");
 
             log.info("fetching document with id: {}", spdxExportWorkData.getSpdxDocumentId());
             Optional<SpdxDocumentRoot> spdxDocumentRootOpt = spdxDocumentRootRepository.findByDocumentUri(spdxExportWorkData.getSpdxDocumentId());
-            if (spdxDocumentRootOpt.isEmpty()) return false;
+            if (spdxDocumentRootOpt.isEmpty()){
+                log.error("Document with id {} not found", spdxExportWorkData.getSpdxDocumentId());
+                return false;
+            }
 
+            Project project = projectOpt.get();
             SpdxDocumentRoot spdxDocumentRoot = spdxDocumentRootOpt.get();
             String documentUri = spdxDocumentRoot.getDocumentUri();
             SpdxDocument spdxDocument = new SpdxDocument(modelStore, documentUri, null, true);
@@ -95,11 +106,11 @@ public class ExportService  extends ProgressReportingService  {
             elementMap.put("SPDXRef-DOCUMENT", spdxDocument);
 
             log.info("create creationInfo");
-            // TODO get user and other creators?
+            String userName = project.getProjectContact();
             CreationInfoEntity creationInfoEntity = spdxDocumentRoot.getCreationInfo();
             spdxDocument.setCreationInfo(
                     spdxDocument.createCreationInfo(
-                            Arrays.asList("Tool: Occtet-Curator", "<Insert User>"),
+                            Arrays.asList(toolName, userName),
                             Instant.now().truncatedTo(ChronoUnit.SECONDS).toString())
             );
             spdxDocument.getCreationInfo().setLicenseListVersion(creationInfoEntity.getLicenseListVersion());
@@ -111,6 +122,9 @@ public class ExportService  extends ProgressReportingService  {
                     spdxDocumentRoot.getDataLicense(), modelStore, documentUri, null));
 
             notifyProgress(20,"created creationInfo");
+
+            mergeService.mergeChangesToDocumentEntities(spdxDocumentRoot, project);
+            notifyProgress(30,"merged changes to document entities");
 
             log.info("create extractedLicense info");
             spdxDocumentRoot.getHasExtractedLicensingInfos().forEach(extractedLicense -> {
@@ -143,7 +157,7 @@ public class ExportService  extends ProgressReportingService  {
             log.info("start converting packages");
             List<SpdxPackage> packages = new ArrayList<>();
             for (SpdxPackageEntity pkgEntity : spdxDocumentRoot.getPackages()) {
-                SpdxPackage pkg = createSpdxPackage(pkgEntity, fileEntityMap, spdxDocument, modelStore, documentUri, project.get(), elementMap);
+                SpdxPackage pkg = createSpdxPackage(pkgEntity, fileEntityMap, spdxDocument, modelStore, documentUri, project, elementMap);
                 if (pkg != null) {
                     packages.add(pkg);
                     elementMap.put(pkg.getId(), pkg);
@@ -249,13 +263,8 @@ public class ExportService  extends ProgressReportingService  {
                 spdxPackage.addExternalRef(externalRef);
             }
 
-            //TODO more auditing
-            List<InventoryItem> inventoryItems = inventoryItemRepository.findBySpdxIdAndProject(pkgEntity.getSpdxId(), project);
-            if (!inventoryItems.isEmpty() && inventoryItems.getFirst() != null) {
-                spdxPackage.setComment(inventoryItems.getFirst().getExternalNotes());
-            }
-
             if (pkgEntity.getFileNames() != null) {
+                log.debug("Start adding files to package: {},...", pkgEntity.getName());
                 for (String fileSpdxId : pkgEntity.getFileNames()) {
                     SpdxFileEntity fileEntity = fileEntityMap.get(fileSpdxId);
                     if (fileEntity != null) {
@@ -266,6 +275,8 @@ public class ExportService  extends ProgressReportingService  {
                         }
                     }
                 }
+                log.debug("finished adding files to package: {}, number of files added: {}", pkgEntity.getName(),
+                        pkgEntity.getFileNames().size());
             }
 
             return spdxPackage;
@@ -276,7 +287,7 @@ public class ExportService  extends ProgressReportingService  {
     }
 
     private SpdxFile createSpdxFile(SpdxFileEntity fileEntity, SpdxDocument spdxDocument) {
-        log.info("creating file: {}", fileEntity.getSpdxId());
+        log.trace("creating file: {}", fileEntity.getSpdxId());
         IModelStore modelStore = spdxDocument.getModelStore();
         String documentUri = spdxDocument.getDocumentUri();
         try {
