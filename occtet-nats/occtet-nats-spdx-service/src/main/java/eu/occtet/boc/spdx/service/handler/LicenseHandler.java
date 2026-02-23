@@ -111,6 +111,8 @@ public class LicenseHandler {
             //No action needed if there is no license
             case SpdxNoneLicense ignored -> {
             }
+            case SpdxNoAssertionLicense ignored -> {
+            }
             case null, default -> log.info("Encountered unknown license type: {}", licenseInfo);
         }
     }
