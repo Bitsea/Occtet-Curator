@@ -58,13 +58,17 @@ public class OrphanHandler {
 
 
     public void processOrphanFiles(SpdxImportContext context) {
-
         SpdxDocument spdxDocument = context.getSpdxDocument();
         try {
             List<TypedValue> allFileUris = spdxDocument.getModelStore().getAllItems(null, "File").toList();
             Map<String, SpdxFile> uniqueOrphans = new HashMap<>();
 
+            Set<String> seenFileUris = new HashSet<>();
+
             for (TypedValue uri : allFileUris) {
+                if (seenFileUris.contains(uri.getObjectUri())) continue;
+                seenFileUris.add(uri.getObjectUri());
+
                 SpdxModelFactory.getSpdxObjects(
                         spdxDocument.getModelStore(),
                         spdxDocument.getCopyManager(),
@@ -86,19 +90,14 @@ public class OrphanHandler {
 
             log.info("Found {} orphan files. Creating individual inventory items for each.", uniqueOrphans.size());
 
-
             for (SpdxFile file : uniqueOrphans.values()) {
-
                 String filePath = file.getName().orElse("Unknown File");
-
                 SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(filePath, "Standalone");
-
 
                 InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(filePath, component, context.getProject());
                 inventoryItem.setSpdxId(file.getId());
                 inventoryItem.setCurated(false);
                 inventoryItem.setSize(1);
-
 
                 spdxConverter.convertFile(file, context.getSpdxDocumentRoot());
                 context.getFileToInventoryItemMap().put(file.getId(), inventoryItem);
@@ -106,9 +105,10 @@ public class OrphanHandler {
                 Map<String, File> locationMap = fileService.findOrCreateBatch(Collections.singletonList(filePath), inventoryItem);
                 File dbFile = locationMap.get(filePath);
 
+                boolean componentUpdated = false;
+
                 String copyrightText = file.getCopyrightText();
                 if (copyrightText != null && !"NONE".equals(copyrightText) && !"NOASSERTION".equals(copyrightText)) {
-
                     Map<String, Copyright> createdCopyrights = copyrightService.findOrCreateBatch(Collections.singleton(copyrightText));
                     Copyright copyright = createdCopyrights.get(copyrightText);
 
@@ -123,6 +123,7 @@ public class OrphanHandler {
                         }
                         if (!component.getCopyrights().contains(copyright)) {
                             component.getCopyrights().add(copyright);
+                            componentUpdated = true;
                         }
                     }
                 }
@@ -142,15 +143,19 @@ public class OrphanHandler {
                     for (License l : licenses) {
                         if (!component.getLicenses().contains(l)) {
                             component.addLicense(l);
+                            componentUpdated = true;
                         }
                     }
                 }
 
-                softwareComponentService.update(component);
+                if (componentUpdated) {
+                    softwareComponentService.update(component);
+                }
+
                 inventoryItemService.update(inventoryItem);
                 context.getInventoryItems().add(inventoryItem);
             }
-        }catch (InvalidSPDXAnalysisException e){
+        } catch (InvalidSPDXAnalysisException e){
             log.error("Error when trying to handle orphaned files. Skipping...", e);
         }
     }
