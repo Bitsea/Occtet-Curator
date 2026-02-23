@@ -223,5 +223,13 @@ public class NatsService {
         }
     }
 
+    public void deleteFileFromBucket(String fileId){
+        try {
+            objectStore.delete(fileId);
+        } catch (Exception e) {
+            log.error("Error while trying to delete file from bucket: {}", e.toString());
+        }
+    }
+
 
 }

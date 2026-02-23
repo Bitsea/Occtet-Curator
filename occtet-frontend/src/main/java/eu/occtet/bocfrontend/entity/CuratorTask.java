@@ -46,7 +46,7 @@ public class CuratorTask {
     private List<Configuration> taskConfiguration;
 
     @Column(name = "LAST_UPDATE")
-    private @Nullable LocalDateTime lastUpdate;
+    private @Nullable LocalDateTime lastUpdate=LocalDateTime.now();
 
     @Column(name = "START_DATE")
     private @Nullable LocalDateTime startDate;

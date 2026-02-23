@@ -38,7 +38,7 @@
         <action id="closeAction" type="detail_close" icon="lumo:cross"/>
     </actions>
     <layout>
-        <image id="iconPlaceholder" width="80px" height="80px"/>
+        <image id="iconPlaceholder" classNames="image-no-border" width="100px"/>
         <h3 id="curatorTaskField"/>
         <h6 id="description"/>
         <formLayout id="form" dataContainer="curatorTaskDc" width="100%" labelsPosition="ASIDE">

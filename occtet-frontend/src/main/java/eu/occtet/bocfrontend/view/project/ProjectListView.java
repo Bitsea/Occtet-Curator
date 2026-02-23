@@ -44,6 +44,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.concurrent.CompletableFuture;
+
 
 @Route(value = "projects", layout = MainView.class)
 @ViewController(id = "Project.list")
@@ -101,53 +103,54 @@ public class ProjectListView extends StandardListView<Project> {
 
         CuratorTask curatorTask = curatorTaskFactory.create(project, "SPDX_Export_Task", "processing_spdx");
 
-        SpdxExportWorkData spdxExportWorkData = new SpdxExportWorkData(project.getDocumentID(), String.valueOf(project.getId()));
+        SpdxExportWorkData spdxExportWorkData = new SpdxExportWorkData(project.getDocumentID(), project.getId());
 
         boolean res = curatorTaskService.saveAndRunTask(curatorTask, spdxExportWorkData, "export data to microservice to create new spdx",sendSubjectExport );
 
         // FIXME we cannot wait here for the file to become available
-//        UI ui = UI.getCurrent();
-//        String fileId = project.getDocumentID(); // Assuming this is the key in the bucket
-//
-//        CompletableFuture.runAsync(() -> {
-//            waitForFileAndDownload(ui, fileId, project.getProjectName()+".json");
-//        });
+        UI ui = UI.getCurrent();
+        String fileId = project.getDocumentID();
 
-
+        CompletableFuture.runAsync(() -> {
+            waitForFileAndDownload(ui, fileId, project.getProjectName()+".json");
+        });
     }
 
     private void waitForFileAndDownload(UI ui, String fileId, String fileName) {
-        int timeoutSeconds = 300000;
-        int pollIntervalMillis = 1000;
-        long endTime = System.currentTimeMillis() + (timeoutSeconds * 1000);
+        try {
+            int timeoutSeconds = 300000;
+            int pollIntervalMillis = 1000;
+            long endTime = System.currentTimeMillis() + (timeoutSeconds * 1000);
 
-        byte[] fileData = null;
+            byte[] fileData = null;
 
-        while (System.currentTimeMillis() < endTime) {
-            fileData = natsService.getFileFromBucket(fileId);
+            while (System.currentTimeMillis() < endTime) {
+                fileData = natsService.getFileFromBucket(fileId);
 
-            if (fileData != null) {
-                break;
+                if (fileData != null) {
+                    break;
+                }
+
+                try {
+                    Thread.sleep(pollIntervalMillis);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
             }
 
-            try {
-                Thread.sleep(pollIntervalMillis);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
-            }
-        }
+            byte[] finalFileData = fileData;
 
-        byte[] finalFileData = fileData;
-
-        byte[] finalFileData1 = fileData;
-        ui.access(() -> {
-            if (finalFileData != null) {
-                downloader.download(finalFileData1
-                        , fileName
-                );
+            byte[] finalFileData1 = fileData;
+            ui.access(() -> {
+                if (finalFileData != null) {
+                    downloader.download(finalFileData1, fileName
+                    );
+                }
+            });
+        } finally {
+            natsService.deleteFileFromBucket(fileId);
         }
-    });
     }
 
     @Subscribe("projectsDataGrid")
@@ -161,5 +164,4 @@ public class ProjectListView extends StandardListView<Project> {
         window.setHeight("100%");
         window.open();
     }
-
 }

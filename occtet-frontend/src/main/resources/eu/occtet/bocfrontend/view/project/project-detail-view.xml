@@ -44,8 +44,10 @@
             <h3 text="msg://eu.occtet.bocfrontend.view.project/Project.h3.details" colspan="2" classNames="occtet-dialog-title"/>
             <vbox id="projectDetailContainer" colspan="2" margin="false" padding="false">
                 <vbox colspan="2" margin="false" padding="false">
-                    <textField id="projectNameField" property="projectName" required="true"
-                               width="50%" label="msg://Project.name" requiredMessage="msg://eu.occtet.bocfrontend.view.project/Project.name.required.message" colspan="2"/>
+                    <hbox alignItems="BASELINE" spacing="true" width="50%">
+                        <textField id="projectNameField" property="projectName" label="Project Name" width="100%"/>
+                        <span id="idSpan" property="id" themeNames="badge pill" />
+                    </hbox>
                     <textField id="projectContactField" property="projectContact" width="50%"
                                label="msg://eu.occtet.bocfrontend.view.project/Project.projectContact"/>
                     <textField id="contactEmailField" label="msg://eu.occtet.bocfrontend.view.project/Project.contactEmail"
