@@ -23,6 +23,8 @@
 package eu.occtet.boc.spdx.service;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.dao.*;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
@@ -77,6 +79,8 @@ public class SpdxService extends ProgressReportingService {
     private SpdxDocumentRootRepository spdxDocumentRootRepository;
     @Autowired
     private CleanUpService cleanUpService;
+    @Autowired
+    private JsonSanitizer sanitizer;
 
     public boolean process(SpdxWorkData workData) throws SpdxImportException {
         log.debug("SpdxService: reads SPDX and creates entities to curate {}", workData.toString());
@@ -134,16 +138,21 @@ public class SpdxService extends ProgressReportingService {
     }
 
     private SpdxDocument loadSpdxDocument(byte[] jsonBytes) throws SpdxImportException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode rootNode;
         try {
-            new com.fasterxml.jackson.databind.ObjectMapper().readTree(new ByteArrayInputStream(jsonBytes));
+            rootNode = mapper.readTree(new ByteArrayInputStream(jsonBytes));
         } catch (IOException e) {
             throw new SpdxImportException("The provided file is not valid JSON. Please check the file format.", e);
         }
 
+        log.info("cleaning json");
+        byte[] cleanedJsonBytes = sanitizer.sanitizeSpdxJson(rootNode, mapper, jsonBytes);
+
         SpdxModelFactory.init();
         try {
             MultiFormatStore inputStore = new MultiFormatStore(new InMemSpdxStore(), MultiFormatStore.Format.JSON);
-            return inputStore.deSerialize(new ByteArrayInputStream(jsonBytes), false);
+            return inputStore.deSerialize(new ByteArrayInputStream(cleanedJsonBytes), false);
         } catch (InvalidSPDXAnalysisException e) {
             log.error("SPDX Analysis failed: {}", e.getMessage());
             throw new SpdxImportException("The SPDX file could not be deserialized. It may contain invalid fields or unsupported versions. Error detail: " + e.getMessage(), e);
