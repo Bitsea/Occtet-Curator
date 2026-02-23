@@ -68,12 +68,12 @@ public class RelationshipHandler {
                         .forEach(obj -> {
                             if (obj instanceof SpdxPackage spdxPackage && !seenPackages.contains(spdxPackage.getId())) {
                                 processSinglePackageRelationships(spdxPackage, context);
-                                seenPackages.add(spdxPackage.getId()); // Mark as processed
+                                seenPackages.add(spdxPackage.getId());
                             }
                         });
 
                 count++;
-                int currentProgress = (int) (((double) count / total) * 40);
+                int currentProgress = (int) (((double) count / total) * 39);
                 if (count % 5 == 0 || count == total) {
                     progressCallback.accept(currentProgress);
                 }
