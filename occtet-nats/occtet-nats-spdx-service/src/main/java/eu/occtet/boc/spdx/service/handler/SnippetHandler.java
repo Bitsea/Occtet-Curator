@@ -119,10 +119,15 @@ public class SnippetHandler {
                                             Map<String, InventoryItem> fileMap,
                                             Map<String, License> licenseCache,
                                             Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc
-    ) {
+    ) {SpdxFile snippetFile;
         try {
-            SpdxFile snippetFile = snippet.getSnippetFromFile();
+            snippetFile = snippet.getSnippetFromFile();
             if (snippetFile == null) return;
+        } catch (InvalidSPDXAnalysisException e) {
+            log.warn("Snippet {} references an invalid or missing file. Skipping enrichment.", snippet.getId());
+            return;
+        }
+        try {
 
             InventoryItem item = fileMap.get(snippetFile.getId());
             if (item == null || item.getSoftwareComponent() == null) {
@@ -172,7 +177,6 @@ public class SnippetHandler {
             }
         } catch (InvalidSPDXAnalysisException e) {
             log.error("Failed to process snippet: {}. Skipping...", snippet.getId(), e);
-            throw new RuntimeException("Failed to enrich component from snippet", e);
         }
     }
 }
