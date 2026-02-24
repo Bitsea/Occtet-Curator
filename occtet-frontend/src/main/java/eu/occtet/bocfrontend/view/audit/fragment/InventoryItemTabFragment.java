@@ -117,6 +117,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     @ViewComponent
     private CollectionContainer<InventoryItem> inventoryItemDcReuse;
     @ViewComponent
+    private CollectionLoader<InventoryItem> inventoryItemDlReuse;
+    @ViewComponent
     private JmixComboBox<InventoryItem> parentField;
     @ViewComponent
     private CollectionLoader<License> licensesDl;
@@ -129,7 +131,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private FilesTabFragment filesTabFragment;
     @ViewComponent
     private Vulnerabilitytabfragment vulnerabilitytabfragment;
-
+    @ViewComponent
+    private TextField inventoryProjectReuseField;
     @ViewComponent
     private FilesTabFragment filesReuseTabFragment;
 
@@ -159,6 +162,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private LicenseRepository licenseRepository;
     @Autowired
     private DataManager dataManager;
+    @Autowired
+    private ProjectRepository projectRepository;
 
 
     public void activateAutocomplete() {
@@ -568,6 +573,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             }
             filesReuseTabFragment.setInventoryItemId(item);
             filesReuseTabFragment.setHostView(hostView);
+            inventoryProjectReuseField.setValue(item.getProject().getProjectName()+" - "+item.getProject().getVersion());
+
         }
     }
 
@@ -593,16 +600,20 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
     private void setReuseOfInventory(InventoryItem inventoryItem) {
 
-        List<InventoryItem> ReuseItems;
-        SoftwareComponent softwareComponent = inventoryItem.getSoftwareComponent();
-
-        if (softwareComponent != null) {
-            ReuseItems = inventoryItemRepository.findBySoftwareComponent(softwareComponent);
-            ReuseItems.remove(inventoryItem);
-        } else {
-            ReuseItems = new ArrayList<>();
+        List<InventoryItem> reuseItems = new ArrayList<>();
+        List<Project> projects = projectRepository.findByProjectName(inventoryItem.getProject().getProjectName());
+        if(projects.size()>1){
+            LocalDateTime time = projects.stream().min(Comparator.comparing(Project::getCreatedAt)).get().getCreatedAt();
+            if(!time.equals(inventoryItem.getProject().getCreatedAt())){
+                Project beforeProject = projects.stream().filter(p ->
+                                p.getCreatedAt().isBefore(inventoryItem.getProject().getCreatedAt()))
+                        .max(Comparator.comparing(Project::getCreatedAt)).get();
+                reuseItems = inventoryItemRepository.findByBeforeProjectAndInventoryNameAndCurated(beforeProject,
+                        inventoryItem.getInventoryName(),true);
+            }
         }
-        inventoryItemDcReuse.setItems(ReuseItems);
+        inventoryItemDlReuse.setParameter("reuseItems",reuseItems);
+        inventoryItemDlReuse.load();
     }
 
     private String getTimeStampSeperator() {

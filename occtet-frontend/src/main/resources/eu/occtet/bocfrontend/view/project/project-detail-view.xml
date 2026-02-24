@@ -46,6 +46,8 @@
                 <vbox colspan="2" margin="false" padding="false">
                     <textField id="projectNameField" property="projectName" required="true"
                                width="50%" label="msg://Project.name" requiredMessage="msg://eu.occtet.bocfrontend.view.project/Project.name.required.message" colspan="2"/>
+                    <textField id="projectVersion" property="version" required="true" width="20%" label="Version"
+                               requiredMessage="Project version is required"/>
                     <textField id="projectContactField" property="projectContact" width="50%"
                                label="msg://eu.occtet.bocfrontend.view.project/Project.projectContact"/>
                     <textField id="contactEmailField" label="msg://eu.occtet.bocfrontend.view.project/Project.contactEmail"

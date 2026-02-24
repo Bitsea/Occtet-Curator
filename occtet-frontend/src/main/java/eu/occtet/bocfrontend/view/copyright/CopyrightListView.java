@@ -96,7 +96,7 @@ public class CopyrightListView extends StandardListView<Copyright> {
     @Subscribe
     public void onInit(InitEvent event){
         projectComboBox.setItems(projectRepository.findAll());
-        projectComboBox.setItemLabelGenerator(Project::getProjectName);
+        projectComboBox.setItemLabelGenerator(project -> project.getProjectName()+" - "+project.getVersion());
         project = null;
     }
 
@@ -152,7 +152,7 @@ public class CopyrightListView extends StandardListView<Copyright> {
     }
 
     private void updateDatagridForProject(Project project){
-        log.debug("Loading copyrights for project: " + project.getProjectName());
+        log.debug("Loading copyrights for project: " +project.getProjectName()+" - "+project.getVersion());
         copyrightsDl.setParameter("project",project);
         copyrightsDl.load();
     }

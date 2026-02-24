@@ -71,7 +71,7 @@
             </fetchPlan>
             <loader id="inventoryItemDlReuse" readOnly="true">
                 <query>
-                    <![CDATA[select i from InventoryItem i]]>
+                    <![CDATA[select i from InventoryItem i where i in :reuseItems]]>
                 </query>
             </loader>
         </collection>
@@ -135,11 +135,15 @@
                                 <tab id="generalInformationReuse" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.vulnerability.generalInformation">
                                     <vbox width="100%" height="100%">
                                         <hbox width="100%">
-                                            <textField id="inventoryNameReuseField" property="inventoryName" dataContainer="inventoryItemDcReuse"
-                                                       label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.inventoryName" width="70%"/>
+                                            <textField id="inventoryNameReuseField" property="inventoryName"
+                                                       dataContainer="inventoryItemDcReuse" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.inventoryName"
+                                                       width="70%"/>
+                                            <textField id="inventoryProjectReuseField" width="30%" label="Project"
+                                                       readOnly="true"/>
                                         </hbox>
                                         <hbox width="100%">
-                                            <textField id="parentReuseID" property="parent.inventoryName" dataContainer="inventoryItemDcReuse"
+                                            <textField id="parentReuseID" property="parent.inventoryName"
+                                                       dataContainer="inventoryItemDcReuse"
                                                        label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.parent" width="45%"/>
                                             <button id="parentReuseButton" title="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.parent.button"
                                                     width="5%" alignSelf="END" icon="INFO_CIRCLE_O"/>
