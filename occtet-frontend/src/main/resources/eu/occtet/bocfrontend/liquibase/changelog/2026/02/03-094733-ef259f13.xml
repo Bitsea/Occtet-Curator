@@ -37,7 +37,7 @@
         <dropTable tableName="CODE_LOCATION"/>
         <dropTable tableName="COPYRIGHT_CODE_LOCATION_LINK"/>
     </changeSet>
--->
+
 
   <changeSet id="rename-app-config-value" author="leoni">
     <renameColumn
@@ -46,6 +46,6 @@
             newColumnName="CONFIG_VALUE"
             columnDataType="TEXT"/>
   </changeSet>
-
+  -->
 
 </databaseChangeLog>

@@ -26,7 +26,7 @@
                     class="eu.occtet.bocfrontend.entity.CuratorTask">
             <loader id="curatorTaskDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from CuratorTask e]]>
+                    <![CDATA[select e from CuratorTask]]>
                 </query>
             </loader>
         </collection>
