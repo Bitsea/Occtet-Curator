@@ -66,6 +66,7 @@ public class CuratorTaskService {
     private static final String sendSubjectExportSpdx= "work.export";
     private static final String sendSubjectVulnerabilities="work.vulnerabilities";
     private static final  String sendSubjectSpdx = "work.spdx";
+    private static final String sendSubjectProcessRun="work.ortProcessRun";
 
     /**
      * Save the task and send it to the NATS work queue for processing.
@@ -107,6 +108,9 @@ public class CuratorTaskService {
                     break;
                 case sendSubjectVulnerabilities:
                     natsService.sendWorkMessageToStream(sendSubjectVulnerabilities, message.getBytes(Charset.defaultCharset()));
+                    break;
+                case sendSubjectProcessRun:
+                    natsService.sendWorkMessageToStream(sendSubjectProcessRun, message.getBytes(Charset.defaultCharset()));
                     break;
 
             }

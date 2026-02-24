@@ -39,7 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WorkTaskProgressMonitor {
 
     @Autowired
-    NatsService natsService;
+    private NatsService natsService;
 
     private static final Logger log = LogManager.getLogger(WorkTaskProgressMonitor.class);
 

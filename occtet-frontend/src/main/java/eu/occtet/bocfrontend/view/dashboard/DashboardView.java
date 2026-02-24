@@ -121,7 +121,7 @@ public class DashboardView extends StandardView {
     private UiComponents uiComponents;
 
     @Autowired
-    WorkTaskProgressMonitor workTaskProgressMonitor;
+    private WorkTaskProgressMonitor workTaskProgressMonitor;
 
     @Subscribe
     public void onInit(InitEvent event) {

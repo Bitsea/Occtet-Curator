@@ -24,7 +24,7 @@ public class CuratorTask {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PROJECT_ID", nullable = false)
+    @JoinColumn(name = "PROJECT_ID")
     private Project project;
 
     @Column(name = "TASK_NAME", nullable = false)

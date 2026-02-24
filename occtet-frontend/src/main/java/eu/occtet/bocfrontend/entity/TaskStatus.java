@@ -20,10 +20,11 @@
 
 package eu.occtet.bocfrontend.entity;
 
+import io.jmix.core.metamodel.datatype.EnumClass;
 import org.springframework.lang.Nullable;
 
 
-public enum TaskStatus {
+public enum TaskStatus implements EnumClass<String> {
     CREATING("CREATING"),APPROVE("APPROVE"),IN_PROGRESS("IN_PROGRESS"),
     WAITING("WAITING"), CANCELLED("CANCELLED"), COMPLETED("COMPLETED");
 

@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2025 Bitsea GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https:www.apache.orglicensesLICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *  License-Filename: LICENSE
+ */
+
 package eu.occtet.boc.ortrunstart.service;
 
 import eu.occtet.boc.dao.ProjectRepository;
@@ -16,7 +35,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import eu.occtet.boc.entity.Project;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -33,12 +54,12 @@ public class ORTRunStarterService {
     private String password = "password";
 
     public boolean process(ORTStartRunWorkData workData) throws Exception {
-        return startOrtRun(workData.getProjectId(), workData.getOrganizationName(), workData.getRepositoryType(), workData.getRepositoryUrl(),workData.getRepositoryType(), workData.getRepositoryVersion());
+        return startOrtRun(workData.getProjectId(), workData.getRepositoryType(), workData.getRepositoryUrl(),workData.getRepositoryType(), workData.getRepositoryVersion());
     }
 
-    boolean startOrtRun(long projectId, String orgaName, String repoName, String repoURL, String repoType, String repoVersion) throws IOException, InterruptedException, ApiException {
+    boolean startOrtRun(long projectId, String repoName, String repoURL, String repoType, String repoVersion) throws IOException, InterruptedException, ApiException {
         Project project= projectRepository.findById(projectId).get();
-
+        String orgaName= project.getProjectContact();
         OrtClientService ortClientService = new OrtClientService("http://localhost:8080");
         AuthService authService = new AuthService(tokenUrl);
 
@@ -48,6 +69,7 @@ public class ORTRunStarterService {
         // how to access organizations api
         OrganizationsApi organizationsApi = new OrganizationsApi(apiClient);
         Organization orga= createOrganization(orgaName, organizationsApi);
+
 
         //check if product /project is existing
         ProductsApi productsApi = new ProductsApi(apiClient);
@@ -154,6 +176,13 @@ public class ORTRunStarterService {
 
         ReporterJobConfiguration reporterJobConfiguration = new ReporterJobConfiguration();
         reporterJobConfiguration.setFormats(List.of("SpdxDocument", "CycloneDx"));
+        Map<String, String> options= new HashMap<>();
+        options.put("options", "JSON");
+        Map<String, PluginConfig> pluginConfigMap= new HashMap<>();
+        PluginConfig conf = new PluginConfig();
+        conf.setOptions(options);
+        pluginConfigMap.put("SpdxDocument", conf);
+        reporterJobConfiguration.config(pluginConfigMap);
         jobConfigurations.setReporter(reporterJobConfiguration);
 
         return jobConfigurations;

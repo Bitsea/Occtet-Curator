@@ -29,7 +29,7 @@ import java.util.List;
 
 
 @JmixEntity
-@Table(name = "PROJECT")
+@Table(name = "PROJECT", uniqueConstraints = { @UniqueConstraint(columnNames = { "PROJECT_NAME"})})
 @Entity
 public class Project {
 
