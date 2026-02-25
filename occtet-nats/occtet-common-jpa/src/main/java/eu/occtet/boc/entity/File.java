@@ -48,6 +48,7 @@ public class File {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PROJECT_ID", nullable = false)
+    @JoinColumn(name = "PROJECT_ID", nullable = false)
     private Project project;
 
     @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)

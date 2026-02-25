@@ -24,14 +24,17 @@ import eu.occtet.boc.model.ORTStartRunWorkData;
 import eu.occtet.boc.ortclient.AuthService;
 import eu.occtet.boc.ortclient.OrtClientService;
 import eu.occtet.boc.ortclient.TokenResponse;
+import eu.occtet.boc.ortrunstart.config.ConfigOrtProperties;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openapitools.client.ApiClient;
 import org.openapitools.client.ApiException;
 import org.openapitools.client.api.OrganizationsApi;
 import org.openapitools.client.api.ProductsApi;
+import org.openapitools.client.api.RepositoriesApi;
 import org.openapitools.client.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import eu.occtet.boc.entity.Project;
 import java.io.IOException;
@@ -48,10 +51,11 @@ public class ORTRunStarterService {
     @Autowired
     private ProjectRepository projectRepository;
 
-    private String clientId="ort-server";
-    private String tokenUrl="http://localhost:8081/realms/master/protocol/openid-connect/token";
-    private String username = "ort-admin";
-    private String password = "password";
+    private final ConfigOrtProperties ortProperties;
+
+    public ORTRunStarterService(ConfigOrtProperties ortProperties) {
+        this.ortProperties = ortProperties;
+    }
 
     public boolean process(ORTStartRunWorkData workData) throws Exception {
         return startOrtRun(workData.getProjectId(), workData.getRepositoryType(), workData.getRepositoryUrl(),workData.getRepositoryType(), workData.getRepositoryVersion());
@@ -60,10 +64,10 @@ public class ORTRunStarterService {
     boolean startOrtRun(long projectId, String repoName, String repoURL, String repoType, String repoVersion) throws IOException, InterruptedException, ApiException {
         Project project= projectRepository.findById(projectId).get();
         String orgaName= project.getProjectContact();
-        OrtClientService ortClientService = new OrtClientService("http://localhost:8080");
-        AuthService authService = new AuthService(tokenUrl);
+        OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
+        AuthService authService = new AuthService(ortProperties.tokenUrl());
 
-        TokenResponse tokenResponse = authService.requestToken(clientId,username,password,"offline_access");
+        TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
 
         // how to access organizations api
@@ -77,7 +81,6 @@ public class ORTRunStarterService {
 
         Repository repository= createRepository(productsApi, product, repoURL, repoType, repoName);
 
-        log.debug("creating postRun for repositoryType {} with url {}", repository.getType(), repository.getUrl());
         PostRepositoryRun postRepositoryRun= new PostRepositoryRun();
         postRepositoryRun.setRevision(repoVersion);
         JobConfigurations jobConfigurations= createJobConfig();
@@ -94,7 +97,6 @@ public class ORTRunStarterService {
     private Organization createOrganization(String orgaName, OrganizationsApi organizationsApi) throws ApiException {
         try {
             //First check if orga is already existing
-
             PagedResponseOrganization organisation = organizationsApi.getOrganizations(null, null, null, orgaName);
             List<Organization> data = organisation.getData();
             Optional<Organization> organization = data.stream().filter(o -> o.getName().equals(orgaName)).findFirst();
@@ -157,12 +159,13 @@ public class ORTRunStarterService {
             log.debug("Repository {} found", repoURL);
             repository = repo.get();
         }
+
         return repository;
     }
 
     private JobConfigurations createJobConfig(){
         JobConfigurations jobConfigurations= new JobConfigurations();
-
+        log.debug("creating JobConfig");
         AnalyzerJobConfiguration analyzerJobConfiguration= new AnalyzerJobConfiguration();
         jobConfigurations.setAnalyzer(analyzerJobConfiguration);
 
@@ -176,8 +179,10 @@ public class ORTRunStarterService {
 
         ReporterJobConfiguration reporterJobConfiguration = new ReporterJobConfiguration();
         reporterJobConfiguration.setFormats(List.of("SpdxDocument", "CycloneDx"));
+        //set the config options, so you get json as output
         Map<String, String> options= new HashMap<>();
-        options.put("options", "JSON");
+        options.put("outputFileFormats", "JSON");
+        options.put("spdxVersion", "SPDX-2.3");
         Map<String, PluginConfig> pluginConfigMap= new HashMap<>();
         PluginConfig conf = new PluginConfig();
         conf.setOptions(options);

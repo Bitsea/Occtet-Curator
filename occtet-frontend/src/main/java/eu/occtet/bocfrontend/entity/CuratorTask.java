@@ -1,7 +1,9 @@
 package eu.occtet.bocfrontend.entity;
 
 import eu.occtet.boc.converter.ListStringConverter;
+import io.jmix.core.DeletePolicy;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
+import io.jmix.core.entity.annotation.OnDelete;
 import io.jmix.core.metamodel.annotation.InstanceName;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.annotation.Nullable;
@@ -25,6 +27,7 @@ public class CuratorTask {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PROJECT_ID")
+    @OnDelete(DeletePolicy.CASCADE)
     private Project project;
 
     @Column(name = "TASK_NAME", nullable = false)

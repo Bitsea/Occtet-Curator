@@ -6,6 +6,7 @@ import eu.occtet.boc.model.WorkTaskProgress;
 import eu.occtet.boc.ortclient.AuthService;
 import eu.occtet.boc.ortclient.OrtClientService;
 import eu.occtet.boc.ortclient.TokenResponse;
+import eu.occtet.bocfrontend.config.ConfigOrtProperties;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.entity.Project;
@@ -16,6 +17,7 @@ import eu.occtet.bocfrontend.service.WorkTaskProgressMonitor;
 import io.jmix.core.security.SystemAuthenticator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.ApiClient;
 import org.openapitools.client.ApiException;
 import org.openapitools.client.api.RunsApi;
@@ -25,6 +27,7 @@ import org.openapitools.client.model.PagedSearchResponseOrtRunSummaryOrtRunFilte
 import org.openapitools.client.model.ReporterJob;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -38,10 +41,11 @@ public class ProcessOrtRunTask  {
 
     private static final Logger log = LogManager.getLogger(ProcessOrtRunTask.class);
 
-    private String clientId="ort-server";
-    private String tokenUrl="http://localhost:8081/realms/master/protocol/openid-connect/token";
-    private String username = "ort-admin";
-    private String password = "password";
+    private final ConfigOrtProperties ortProperties;
+
+    public ProcessOrtRunTask(ConfigOrtProperties ortProperties) {
+        this.ortProperties = ortProperties;
+    }
 
     @Value("${nats.send-subject-ort-result}")
     private String sendSubjectOrtResult;
@@ -62,59 +66,25 @@ public class ProcessOrtRunTask  {
 
 
     @Scheduled(cron = "${processRun.cron}")
+    @Async
     public void fetchRun() throws IOException, InterruptedException, ApiException {
 
         systemAuthenticator.withSystem(() -> {
             try {
-            OrtClientService ortClientService = new OrtClientService("http://localhost:8080");
-            AuthService authService = new AuthService(tokenUrl);
+                RunsApi runsApi = getRunsApi();
+                PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch = runsApi.getRuns("FINISHED", 1, null, "-createdAt");
 
-            TokenResponse tokenResponse = null;
-
-                tokenResponse = authService.requestToken(clientId, username, password, "offline_access");
-
-            ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
-
-
-            RunsApi runsApi = new RunsApi(apiClient);
-            PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch = runsApi.getRuns("FINISHED", 1, null, "-createdAt");
-
-            PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch1 = runsApi.getRuns("FINISHED_WITH_ISSUES", 1, null, "-createdAt");
+            PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearchWithIssues = runsApi.getRuns("FINISHED_WITH_ISSUES", 1, null, "-createdAt");
 
             if (!pagedSearch.getData().isEmpty()) {
-                OrtRunSummary ortRunSummary = pagedSearch.getData().getFirst();
                 log.debug("Got {} finished runs", pagedSearch.getData().size());
-                if (ortRunSummary != null && !processedRuns.contains(ortRunSummary.getId())) {
-                    Long summaryId = ortRunSummary.getId();
-                    processedRuns.add(summaryId);
-                    log.debug("Found new finished ORT run with id {}", summaryId);
-                    CuratorTask task = curatorTaskFactory.create(null, "OrtResultTask", "processing_ort_run");
 
-                    ORTProcessWorkData ortProcessWorkData = new ORTProcessWorkData(summaryId);
-
-                    boolean res = curatorTaskService.saveAndRunTask(task, ortProcessWorkData, "sending software component to process run microservice", sendSubjectOrtResult);
-
-                    if (res) processedRuns.add(summaryId);
-                    else log.debug("Failed to start task for ORT run {}", summaryId);
-                }
+                sendRuns(pagedSearch);
             } else log.debug("No finished runs found");
 
-            if (!pagedSearch1.getData().isEmpty()) {
-                OrtRunSummary ortRunSummary = pagedSearch1.getData().getFirst();
-                log.debug("Got {} finished with issues runs", pagedSearch1.getData().size());
-                if (ortRunSummary != null && !processedRuns.contains(ortRunSummary.getId())) {
-                    Long summaryId = ortRunSummary.getId();
-                    processedRuns.add(summaryId);
-                    log.debug("Found new finished_with_issues ORT run with id {}", summaryId);
-                    CuratorTask task = curatorTaskFactory.create(null, "OrtResultTask", "processing_ort_run");
-
-                    ORTProcessWorkData ortProcessWorkData = new ORTProcessWorkData(summaryId);
-
-                    boolean res = curatorTaskService.saveAndRunTask(task, ortProcessWorkData, "sending software component to process run microservice", sendSubjectOrtResult);
-
-                    if (res) processedRuns.add(summaryId);
-                    else log.debug("Failed to start task for ORT run {}", summaryId);
-                }
+            if (!pagedSearchWithIssues.getData().isEmpty()) {
+                log.debug("Got {} finished_with_issues runs", pagedSearch.getData().size());
+                sendRuns(pagedSearchWithIssues);
             } else log.debug("No finished_with_issues runs found");
         } catch (Exception e){
                 throw new RuntimeException(e);
@@ -124,18 +94,49 @@ public class ProcessOrtRunTask  {
 
     }
 
+    private void sendRuns(PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch){
+        OrtRunSummary ortRunSummary = pagedSearch.getData().getFirst();
+        if (ortRunSummary != null && !processedRuns.contains(ortRunSummary.getId())) {
+            Long summaryId = ortRunSummary.getId();
+            processedRuns.add(summaryId);
+            log.debug("Found new finished ORT run with id {}", summaryId);
+            CuratorTask task = curatorTaskFactory.create(null, "OrtResultTask", "processing_ort_run");
+
+            ORTProcessWorkData ortProcessWorkData = new ORTProcessWorkData(summaryId);
+
+            boolean res = curatorTaskService.saveAndRunTask(task, ortProcessWorkData, "sending message and ort-runId to process-run-microservice", sendSubjectOrtResult);
+
+            if (res) processedRuns.add(summaryId);
+            else log.debug("Failed to start task for ORT run {}", summaryId);
+        }
+    }
+
+
+
+    private RunsApi getRunsApi() throws IOException, InterruptedException {
+        OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
+        AuthService authService = new AuthService(ortProperties.tokenUrl());
+
+        TokenResponse tokenResponse = null;
+
+        tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
+
+        ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
+
+
+        return new RunsApi(apiClient);
+    }
+
 
     @Scheduled(cron = "${processRun.cron}")
+    @Async
     public void updateProcessedRuns(){
-        List<WorkTaskProgress> list= workTaskProgressMonitor.getAllProgress();
-        log.debug("Found {} tasks in progress", list.size());
-        for(WorkTaskProgress progress:list){
-            progress.getName();
-            log.debug("checking progress for task {} with status {}", progress.getName(), progress.getStatus());
-        }
-        //FIXME this is only now for testing
-        processedRuns= new ArrayList<>();
 
+        if(!processedRuns.isEmpty()) {
+            //delete alle runs from list, just not the recent one, so it will not processed over and over again
+            processedRuns.subList(0, processedRuns.size() - 1).clear();
+            log.debug("controll run {}, cleared processedRuns list, now size is {}", processedRuns.getFirst(), processedRuns.size());
+        }
     }
 
 }

@@ -97,7 +97,7 @@ public class ORTRunStarterServiceTest{
 
 
 
-        ortRunStarterService.startOrtRun(project.getId(), "orgaName1", "repoName",
+        ortRunStarterService.startOrtRun(project.getId(),  "repoName",
                 "https://github.com/Bitsea/Occtet-Curator/", "GIT_REPO", "0.3.8-alpha");
 
     }

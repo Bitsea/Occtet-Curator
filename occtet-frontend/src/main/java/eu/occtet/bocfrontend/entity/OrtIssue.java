@@ -22,7 +22,9 @@ package eu.occtet.bocfrontend.entity;
 
 
 
+import io.jmix.core.DeletePolicy;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
+import io.jmix.core.entity.annotation.OnDelete;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
@@ -40,6 +42,7 @@ public class OrtIssue {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PROJECT_ID", nullable = false)
+    @OnDelete(DeletePolicy.CASCADE)
     private Project project;
 
     @Column(name= "MESSAGE",columnDefinition = "TEXT")

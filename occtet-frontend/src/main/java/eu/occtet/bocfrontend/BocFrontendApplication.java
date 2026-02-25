@@ -34,6 +34,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.EventListener;
@@ -49,6 +51,7 @@ import java.util.Properties;
 @Theme(value = "BocFrontend")
 @PWA(name = "BocFrontend", shortName = "BocFrontend")
 @EnableScheduling
+@ConfigurationPropertiesScan("eu.occtet.bocfrontend.config")
 @SpringBootApplication
 public class BocFrontendApplication implements AppShellConfigurator {
 

@@ -20,7 +20,9 @@
 package eu.occtet.bocfrontend.entity;
 
 
+import io.jmix.core.DeletePolicy;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
+import io.jmix.core.entity.annotation.OnDelete;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
@@ -57,6 +59,12 @@ public class OrtViolation {
 
     @Column(name="RESOLVED")
     private Boolean resolved;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PROJECT_ID", nullable = false)
+    @OnDelete(DeletePolicy.CASCADE)
+    private Project project;
+
 
     public OrtViolation() {
     }
@@ -132,5 +140,13 @@ public class OrtViolation {
 
     public void setResolved(Boolean resolved) {
         this.resolved = resolved;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
     }
 }

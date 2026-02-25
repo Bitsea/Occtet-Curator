@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://eu.occtet.bocfrontend.view.ortViolation/caption">
+    focusComponent="ortViolationDataGrid">
+    <data>
+        <collection id="ortViolationDc"
+                    class="eu.occtet.bocfrontend.entity.OrtViolation">
+            <loader id="ortViolationDl" readOnly="true">
+                <query>
+                    <![CDATA[select e from OrtViolation e
+                      where p = :project]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+        <urlQueryParameters>
+            <pagination component="pagination"/>
+        </urlQueryParameters>
+    </facets>
+    <actions>
+        <action id="selectAction" type="lookup_select"/>
+        <action id="discardAction" type="lookup_discard"/>
+    </actions>
+    <layout>
+        <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
+        <hbox width="100%" visible="false" id="filterBox">
+            <genericFilter id="genericFilter" dataLoader="ortViolationDl" themeNames="small" alignSelf="START" opened="false">
+                <properties include=".*"/>
+            </genericFilter>
+            <simplePagination id="pagination" dataLoader="ortViolationDl" itemsPerPageItems="100"  alignSelf="END"/>
+        </hbox>
+        <dataGrid classNames="occtet-grid" id="ortviolationDataGrid"
+                  width="100%"
+                  minHeight="20em"
+                  dataContainer="ortViolationDc"
+                  columnReorderingAllowed="true">
+            <actions>
+                <action id="createAction" type="list_create"/>
+                <action id="editAction" type="list_edit"/>
+                <action id="removeAction" type="list_remove"/>
+                <action id="refreshAction" type="list_refresh"/>
+            </actions>
+            <columns resizable="true">
+                <column property="inventoryName" header="msg://inventoryName"/>
+                <column property="softwareComponent" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.softwareComponent"/>
+                <column property="softwareComponent.licenses" header="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.licenses" key="licenses"/>
+                <column property="size" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.size"/>
+                <column property="linking" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.linking"/>
+                <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
+            </columns>
+        </dataGrid>
+        <hbox id="buttonsPanel" classNames="buttons-panel">
+            <button id="createButton" action="inventoryItemsDataGrid.createAction"/>
+            <button id="editButton" action="inventoryItemsDataGrid.editAction"/>
+            <button id="removeButton" action="inventoryItemsDataGrid.removeAction"/>
+        </hbox>
+        <hbox id="lookupActions" visible="false">
+            <button id="selectButton" action="selectAction"/>
+            <button id="discardButton" action="discardAction"/>
+        </hbox>
+    </layout>
+</view>

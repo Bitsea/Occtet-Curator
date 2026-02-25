@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -43,10 +44,11 @@ import java.util.concurrent.Executor;
 
 @SpringBootApplication(scanBasePackages = {"eu.occtet.boc"})
 @EnableAsync
+@ConfigurationPropertiesScan("eu.occtet.boc.processRun.config")
 @EntityScan(basePackages = "eu.occtet.boc.entity")
 @EnableJpaRepositories(basePackages = "eu.occtet.boc.dao")
 @Profile({"!test"})
-public class IssueCatcherServiceApp {
+public class ProcessRunServiceApp {
 
     @Autowired
     private Connection natsConnection;
@@ -69,10 +71,10 @@ public class IssueCatcherServiceApp {
 
     private Executor executor = new SimpleAsyncTaskScheduler();
 
-    private static final Logger log = LoggerFactory.getLogger(IssueCatcherServiceApp.class);
+    private static final Logger log = LoggerFactory.getLogger(ProcessRunServiceApp.class);
 
     public static void main(String[] args) {
-        SpringApplication.run(IssueCatcherServiceApp.class, args);
+        SpringApplication.run(ProcessRunServiceApp.class, args);
     }
 
     @Async

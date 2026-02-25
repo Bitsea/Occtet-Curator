@@ -34,6 +34,7 @@ import eu.occtet.boc.model.ORTProcessWorkData;
 import eu.occtet.boc.ortclient.AuthService;
 import eu.occtet.boc.ortclient.OrtClientService;
 import eu.occtet.boc.ortclient.TokenResponse;
+import eu.occtet.boc.processRun.config.ConfigOrtProperties;
 import eu.occtet.boc.processRun.factory.OrtIssueFactory;
 import eu.occtet.boc.processRun.factory.OrtViolationFactory;
 import org.apache.commons.codec.Charsets;
@@ -43,9 +44,11 @@ import org.openapitools.client.ApiClient;
 import org.openapitools.client.ApiException;
 import org.openapitools.client.ApiResponse;
 import org.openapitools.client.api.ProductsApi;
+import org.openapitools.client.api.RepositoriesApi;
 import org.openapitools.client.api.RunsApi;
 import org.openapitools.client.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -73,10 +76,14 @@ public class ProcessRunService {
     @Autowired
     private OrtViolationRepository ortViolationRepository;
 
-    private String clientId="ort-server";
-    private String tokenUrl="http://localhost:8081/realms/master/protocol/openid-connect/token";
-    private String username = "ort-admin";
-    private String password = "password";
+    @Autowired
+    private AnswerService answerService;
+
+    private final ConfigOrtProperties ortProperties;
+
+    public ProcessRunService(ConfigOrtProperties ortProperties) {
+        this.ortProperties = ortProperties;
+    }
 
 
     public boolean process(ORTProcessWorkData workData) throws Exception {
@@ -86,20 +93,17 @@ public class ProcessRunService {
     public boolean fetchRun(long runId) throws IOException, InterruptedException, ApiException {
         log.debug("Start processing run with id {}", runId);
 
-        OrtClientService ortClientService = new OrtClientService("http://localhost:8080");
-        AuthService authService = new AuthService(tokenUrl);
+        OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
+        AuthService authService = new AuthService(ortProperties.tokenUrl());
 
-        TokenResponse tokenResponse = authService.requestToken(clientId,username,password,"offline_access");
+        TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
 
         RunsApi runsApi = new RunsApi(apiClient);
 
-        ApiResponse<java.io.File> response = runsApi.getRunReportWithHttpInfo(runId, "bom.spdx.yml");
+        ApiResponse<java.io.File> response = runsApi.getRunReportWithHttpInfo(runId, "bom.spdx.json");
         log.debug("Requested report for run {} from ort server", runId);
-        java.io.File object= response.getData();
-        ObjectMapper objectMapper = new ObjectMapper();
-        String fileString = Files.toString(object, Charsets.UTF_8);
-        log.debug("Report for run {}: {}", runId, fileString);
+        java.io.File spdxSbom= response.getData();
 
 
         OrtRun run= runsApi.getRun(runId);
@@ -109,13 +113,15 @@ public class ProcessRunService {
         Project project = projectRepository.findByProjectName(product.getName()).getFirst();
         log.debug("Processing run {} for project {}", runId, project.getProjectName());
 
+        //handle violations and issues for display in UI and further processing
         handleViolations(runsApi, runId, project);
-
         handleIssues(runsApi, runId, project);
 
+        //send sbom to spdx service for further processing, AI is for now not triggered -> false, false
+        answerService.sendToSpdxService(spdxSbom,project.getId(), false, false);
 
-        //TODO delete Run at the end
-        //runsApi.deleteRun(runId);
+        //delete Run at the end
+        runsApi.deleteRun(runId);
         return true;
 
     }
