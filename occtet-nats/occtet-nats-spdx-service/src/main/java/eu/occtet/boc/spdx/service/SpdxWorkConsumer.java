@@ -23,7 +23,7 @@
 package eu.occtet.boc.spdx.service;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import eu.occtet.boc.spdx.exception.SpdxImportException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.BaseWorkData;
 import eu.occtet.boc.model.SpdxWorkData;
@@ -69,7 +69,7 @@ public class SpdxWorkConsumer extends WorkConsumer {
             boolean result = workData.process(new BaseWorkDataProcessor() {
                 @Override
                 public boolean process(SpdxWorkData spdxWorkData) {
-                    log.debug("extract from spdx json");
+                    log.debug("extract from SPDX json");
                     try{
                         ObjectStore objectStore = natsConnection.objectStore(spdxWorkData.getBucketName());
                         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -87,9 +87,14 @@ public class SpdxWorkConsumer extends WorkConsumer {
                         else notifyCompleted(workTask.taskId(),workTask.name());
                         return res;
 
+                    } catch (SpdxImportException e) {
+                        log.error("Validation failed for SPDX import: {}", e.getMessage());
+                        notifyError(workTask.taskId(), workTask.name(), "Import Failed: " + e.getMessage());
+                        return false;
+
                     } catch (Exception e) {
-                       log.error("failed to process spdx: {}", e.toString());
-                        notifyError(workTask.taskId(),workTask.name(), "error when getting spdx json from object store");
+                        log.error("System error processing SPDX", e);
+                        notifyError(workTask.taskId(), workTask.name(), "Internal System Error");
                         return false;
                     }
                 }
