@@ -40,9 +40,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.time.Duration;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Service for handling NATS messaging.
@@ -60,6 +60,8 @@ public class NatsService {
     private String streamName;
     @Value("${nats.stream-subjects-config}")
     private String streamSubjectsConfig;
+    @Value("${nats.object-store-ttl}")
+    private String objectStoreTtl;
 
     private @NonNull JetStream js;
 
@@ -96,11 +98,13 @@ public class NatsService {
         //prepare objectStore
         ObjectStoreManagement objectStoreManagement = natsConnection.objectStoreManagement();
 
+        // TODO delete old object store if exist
         ObjectStoreConfiguration objectStoreConfiguration = ObjectStoreConfiguration.builder()
                 .name("file-bucket")
                 .description("bucket containing large files for other microservices")
                 .storageType(StorageType.Memory)
                 .compression(true)
+                .ttl(Duration.ofHours(Long.parseLong(objectStoreTtl)))
                 .build();
 
         ObjectStoreStatus objectStoreStatus = objectStoreManagement.create(objectStoreConfiguration);
@@ -171,6 +175,23 @@ public class NatsService {
         js.publish(streamName,message);
     }
 
+    public long getNumbOfMsgQueued(String streamSubjectName) {
+        try {
+            JetStreamManagement jsm = natsConnection.jetStreamManagement();
+
+            StreamInfoOptions options = StreamInfoOptions.builder().filterSubjects(streamSubjectName).build();
+            StreamInfo liveStreamInfo = jsm.getStreamInfo(streamName, options);
+
+            Map<String, Long> subjectMap = liveStreamInfo.getStreamState().getSubjectMap();
+            if (subjectMap.containsKey(streamSubjectName)) {
+                return subjectMap.get(streamSubjectName);
+            }
+            return 0L;
+        } catch (JetStreamApiException | IOException e) {
+            log.error("Failed to fetch queue size for subject: {}", streamSubjectName, e);
+            return 0L;
+        }
+    }
 
     /**
      * Sends a simple message to the specified subject to the NATS queue. Mostly used for system messages.
@@ -216,20 +237,24 @@ public class NatsService {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             objectStore.get(fileId, out);
-            objectStore.delete(fileId);
+//            objectStore.delete(fileId);
             return out.toByteArray();
         } catch (Exception e) {
             return null;
         }
     }
 
-    public void deleteFileFromBucket(String fileId){
+    public List<String> getPreviousExportOfSameProject(String objectStoreKeyTimeStampExcluded){
         try {
-            objectStore.delete(fileId);
+            log.debug("Getting previous export of same project with key: {}", objectStoreKeyTimeStampExcluded);
+            return objectStore.getList().stream()
+                    .map(ObjectInfo::getObjectName)
+                    .filter(Objects::nonNull)
+                    .filter(name -> name.contains(objectStoreKeyTimeStampExcluded))
+                    .collect(Collectors.toList());
         } catch (Exception e) {
-            log.error("Error while trying to delete file from bucket: {}", e.toString());
+            log.error("Error while trying to get previous export of same project: {}", e.toString());
+            return Collections.emptyList();
         }
     }
-
-
 }
