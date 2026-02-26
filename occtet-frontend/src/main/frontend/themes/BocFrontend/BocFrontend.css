@@ -118,10 +118,46 @@ vaadin-text-field[readonly].read-only::part(input-field) {
     color: #a1ff0a;
 }
 
+.warning-icon {
+    color: orangered;
+}
+
 .toolbox-audit-view {
+    background-color: var(--lumo-contrast-5pct);
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    padding: var(--lumo-space-s);
+}
+
+.filter-labels-container{
     background-color: var(--lumo-contrast-5pct);
     border-radius: 6px;
     padding: var(--lumo-space-s);
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    min-width: 0;
+    gap: 2px;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.25) transparent;
+}
+
+.filter-badge{
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+.filter-badge vaadin-icon {
+    cursor: pointer;
+    color: var(--lumo-contrast-60pct);
+}
+.filter-badge vaadin-icon:hover {
+    color: var(--lumo-error-text-color);
+}
+
+.clear-all-filters-button{
+    font-size: var(--lumo-font-size-xs);
+    align-self: flex-end;
 }
 
 /* dim-row style for filtered out items */

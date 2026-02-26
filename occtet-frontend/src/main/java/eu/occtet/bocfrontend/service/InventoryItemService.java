@@ -47,8 +47,6 @@ public class InventoryItemService {
         return inventoryItemRepository.findByProject(project);
     }
 
-
-
     public void controlInventoryItem(InventoryItem item){
 
         if(item != null){
@@ -92,6 +90,5 @@ public class InventoryItemService {
             }
         }
     }
-
 
 }

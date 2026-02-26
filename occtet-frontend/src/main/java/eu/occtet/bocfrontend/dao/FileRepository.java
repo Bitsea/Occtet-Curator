@@ -21,6 +21,7 @@
 
 package eu.occtet.bocfrontend.dao;
 
+import eu.occtet.boc.util.FileConstants;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.Project;
 import io.jmix.core.repository.JmixDataRepository;
@@ -29,11 +30,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-
+import java.util.Set;
 
 
 public interface FileRepository extends JmixDataRepository<File, Long> {
-    final static String DEPENDENCY_FOLDER_NAME = "dependencies";
+    final static String DEPENDENCY_FOLDER_NAME = FileConstants.DEPENDENCIES_FOLDER_NAME;
     List<File> findByProject(Project project);
 
     // Root Nodes (Reviewed Filter)
@@ -69,6 +70,8 @@ public interface FileRepository extends JmixDataRepository<File, Long> {
     List<File> findChildrenSorted(@Param("parent") File parent,
                                   @Param("targetStatus") Boolean targetStatus,
                                   Pageable pageable);
+
+    Set<File> findFilesByParent(File parent);
 
     @Query("select count(f) from File f " +
             "where f.parent = :parent " +
