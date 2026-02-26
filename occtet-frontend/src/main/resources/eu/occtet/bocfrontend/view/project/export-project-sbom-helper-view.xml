@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://exportProjectSbomHelperView.title">
+    <data>
+        <keyValueCollection id="prevExportsDc">
+            <properties>
+                <property datatype="string" name="objectStoreKey"/>
+                <property datatype="string" name="fileName"/>
+            </properties>
+        </keyValueCollection>
+    </data>
+    <facets>
+        <timer id="progressTimer" delay="1000" repeating="true" autostart="false"/>
+    </facets>
+    <layout>
+        <hbox alignItems="BASELINE">
+            <comboBox id="sbomFormatComboBox" helperText="msg://selectFormat"
+                      title="msg://eu.occtet.bocfrontend.view.project/exportProjectSbomHelperView.generate.sbom.combobox.format"/>
+            <button id="generateSbomButton"
+                    text="msg://eu.occtet.bocfrontend.view.project/exportProjectSbomHelperView.generate.sbom.button"
+                    icon="vaadin:plus-circle" themeNames="primary"/>
+        </hbox>
+
+        <vbox id="activeTasksBox" width="100%" spacing="false" padding="false"/>
+        <span id="currentlyInQueue" themeNames="badge contrast"/>
+
+        <htmlObject colspan="2" width="100%"><hr/></htmlObject>
+
+        <h4 text="msg://exportProjectSbomHelperView.availableDownloads"/>
+
+        <dataGrid id="prevExportsDataGrid" dataContainer="prevExportsDc" width="100%" minHeight="200px">
+            <columns>
+                <column property="fileName" header="msg://exportProjectSbomHelperView.column.fileName" autoWidth="true"/>
+                <column key="downloadButton" width="140px" flexGrow="0"/>
+            </columns>
+        </dataGrid>
+
+        <hbox alignItems="CENTER" classNames="text-secondary text-s" width="100%">
+            <icon icon="vaadin:info-circle-o" />
+            <span id="infoSpan"/>
+        </hbox>
+    </layout>
+</view>
