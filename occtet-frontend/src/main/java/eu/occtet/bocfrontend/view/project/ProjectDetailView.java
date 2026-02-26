@@ -25,8 +25,10 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.AppConfigurationRepository;
+import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfiguration;
@@ -40,10 +42,14 @@ import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.kit.action.ActionPerformedEvent;
 import io.jmix.flowui.view.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
+import java.util.List;
 
 @Route(value = "projects/:id", layout = MainView.class)
 @ViewController(id = "Project.detail")
@@ -53,6 +59,10 @@ public class ProjectDetailView extends StandardDetailView<Project> {
 
     @ViewComponent
     private DataGrid<SearchTermsProfile> searchTermsProfilesDataGrid;
+    @ViewComponent
+    private TextField projectNameField;
+    @ViewComponent
+    private TextField projectVersion;
     @Autowired
     private Messages messages;
     @Autowired
@@ -65,9 +75,16 @@ public class ProjectDetailView extends StandardDetailView<Project> {
     private AppConfigurationRepository appConfigurationRepository;
     @Autowired
     private Notifications notifications;
+    @Autowired
+    private ProjectRepository projectRepository;
+
+
+    private static final Logger log = LogManager.getLogger(ProjectDetailView.class);
+    List<Project> projects = new ArrayList<>();
 
     @Subscribe
     protected void onInit(InitEvent event) {
+        projects = projectRepository.findAll();
         initHeaderForDataGrid(searchTermsProfilesDataGrid, messages.getMessage("eu.occtet.bocfrontend.view.project/Project.h2.searchTermsProfile"));
     }
 
@@ -116,17 +133,32 @@ public class ProjectDetailView extends StandardDetailView<Project> {
                 globalBasePath.getValue() == null ||
                 globalBasePath.getValue().isBlank()) {
 
-            notifications.create(
-                            messages.getMessage(
-                                    "eu.occtet.bocfrontend.view.project/Project.globalPathNotSet.WarningMsg"
-                            )
-                    )
-                    .withPosition(Notification.Position.TOP_CENTER)
-                    .withThemeVariant(NotificationVariant.LUMO_WARNING)
-                    .show();
-
+            userMessage("eu.occtet.bocfrontend.view.project/Project.globalPathNotSet.WarningMsg"
+                    ,NotificationVariant.LUMO_WARNING);
+            event.preventSave();
+            return;
+        }else if(checkProjectDataInput(projectNameField.getValue(),projectVersion.getValue())){
+            userMessage("eu.occtet.bocfrontend.view.project/Project.projectAlreadyExists"
+                    ,NotificationVariant.LUMO_ERROR);
             event.preventSave();
             return;
         }
+    }
+
+    private boolean checkProjectDataInput(String projectName, String projectVersion){
+        for(Project p : projects){
+            if(p.getProjectName().equals(projectName) && p.getVersion().equals(projectVersion)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void userMessage(String message, NotificationVariant variant){
+        notifications.create(messages.getMessage(message))
+                .withDuration(3000)
+                .withPosition(Notification.Position.TOP_CENTER)
+                .withThemeVariant(variant)
+                .show();
     }
 }

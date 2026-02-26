@@ -387,7 +387,7 @@ public class AuditView extends StandardView{
 
     private void initializeProjectComboBox() {
         projectComboBox.setItems(projectRepository.findAll());
-        projectComboBox.setItemLabelGenerator(Project::getProjectName);
+        projectComboBox.setItemLabelGenerator(project -> project.getProjectName()+" - "+project.getVersion());
     }
 
     /**

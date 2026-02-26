@@ -28,11 +28,7 @@
             <fetchPlan extends="_base"/>
             <loader id="copyrightsDl">
                 <query>
-                    <![CDATA[select distinct c from Copyright c
-                    join c.files cl
-                    join cl.inventoryItem i
-                    join i.project p
-                    where p = :project and c.aiControlled = True]]>
+                    <![CDATA[select c from Copyright c where c in :copyrights]]>
                 </query>
             </loader>
         </collection>
@@ -61,6 +57,8 @@
                 <columns resizable="true">
                     <column property="copyrightText" header="msg://copyrightDetailView.title" width="50%"/>
                     <column property="garbage" header="msg://eu.occtet.bocfrontend.entity/Copyright.garbage" editable="true"/>
+                    <column property="aiControlled" header="msg://eu.occtet.bocfrontend.view.copyright/aiControlled"
+                            editable="false" sortable="true"/>
                 </columns>
             </dataGrid>
             <hbox >
