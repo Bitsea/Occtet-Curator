@@ -20,6 +20,7 @@
 package eu.occtet.bocfrontend.dao;
 
 import eu.occtet.bocfrontend.entity.CuratorTask;
+import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.TaskStatus;
 import io.jmix.core.repository.JmixDataRepository;
 
@@ -34,4 +35,5 @@ public interface CuratorTaskRepository extends JmixDataRepository<CuratorTask, L
     List<CuratorTask> findByTaskType(String type);
     List<CuratorTask> findAllByStatusAndLastUpdateAfter(TaskStatus status, LocalDateTime threshold);
     List<CuratorTask> findAllByLastUpdateAfter(LocalDateTime threshold);
+    List<CuratorTask> findAllByProjectAndTaskType(Project project, String taskType);
 }

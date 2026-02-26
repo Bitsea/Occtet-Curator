@@ -81,7 +81,8 @@ public class CuratorTaskService {
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
         curatorTask.notifyStarted();
         dataManager.save(curatorTask);
-        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), curatorTask.getTaskName(), optDetails, actualTimestamp, workData);
+        // Use the curator task id as the work task id, so we don't lose connection to whom the work task belongs to
+        WorkTask workTask = new WorkTask(curatorTask.getId().toString(), curatorTask.getTaskName(), optDetails, actualTimestamp, workData);
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);

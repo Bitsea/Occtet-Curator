@@ -85,10 +85,10 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
 
     private static final String UPDATE_VULNERS_CURATOR_TASK_TYPE = "updating_vulnerabilities";
     private static final String UPDATE_VULNERS_CURATOR_TASK_NAME = "updating_vulnerabilities_for_";
+
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
         SoftwareComponent softwareComponent = getEditedEntity();
-        softwareComponent.setCurated(false); // set default value to false
         licenseDc.setItems(softwareComponent.getLicenses());
     }
 

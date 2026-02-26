@@ -46,7 +46,6 @@
                 <vbox colspan="2" margin="false" padding="false">
                     <hbox alignItems="BASELINE" spacing="true" width="50%">
                         <textField id="projectNameField" property="projectName" label="Project Name" width="100%"/>
-                        <span id="idSpan" property="id" themeNames="badge pill" />
                     </hbox>
                     <textField id="projectContactField" property="projectContact" width="50%"
                                label="msg://eu.occtet.bocfrontend.view.project/Project.projectContact"/>
