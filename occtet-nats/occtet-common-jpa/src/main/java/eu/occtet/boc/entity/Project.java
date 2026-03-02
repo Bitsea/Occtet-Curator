@@ -21,9 +21,11 @@ package eu.occtet.boc.entity;
 
 
 import eu.occtet.boc.entity.appconfigurations.SearchTermsProfile;
+import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -40,6 +42,9 @@ public class Project {
     @Column(name="PROJECT_NAME")
     private String projectName;
 
+    @Column(name = "VERSION", nullable = false)
+    private String version;
+
     @Column(name = "SPDX_DOCUMENT_ID", columnDefinition = "TEXT")
     private String documentID;
 
@@ -55,10 +60,13 @@ public class Project {
     @Column(name = "CONTACT_EMAIL", columnDefinition = "VARCHAR(255)")
     private String contactEmail;
 
-    public Project() {
-    }
+    @Column(name = "CREATED_AT", updatable = false)
+    private @Nonnull LocalDateTime createdAt;
+
+    public Project() {this.createdAt = LocalDateTime.now();}
 
     public Project(String projectName ) {
+        this.createdAt = LocalDateTime.now();
         this.projectName = projectName;
     }
 
@@ -105,4 +113,13 @@ public class Project {
     public void setContactEmail(String contactEmail) {
         this.contactEmail = contactEmail;
     }
+
+    public String getVersion() {return version;}
+
+    public void setVersion(String version) {this.version = version;}
+
+    @Nonnull
+    public LocalDateTime getCreatedAt() {return createdAt;}
+
+    public void setCreatedAt(@Nonnull LocalDateTime createdAt) {this.createdAt = createdAt;}
 }

@@ -69,7 +69,7 @@ import java.util.Optional;
         ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class, FileRepository.class,
         CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class,
         LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class,
-        LicenseHandler.class, PackageHandler.class, OrphanHandler.class, RelationshipHandler.class, SnippetHandler.class
+        LicenseHandler.class, PackageHandler.class, OrphanHandler.class, RelationshipHandler.class, SnippetHandler.class, JsonSanitizer.class
 })
 @EnableJpaRepositories(basePackages = {"eu.occtet.boc.dao"})
 @EntityScan(basePackages = {"eu.occtet.boc.entity"})
@@ -137,7 +137,7 @@ public class SpdxHandlerTest {
     }
 
     @Test
-    public void testPackageHandler_ShouldProcessSpecificPackage() throws Exception {
+    public void testPackageHandler_ShouldProcessSpecificPackage() {
         packageHandler.processAllPackages(context, (p) -> {});
 
         String targetSpdxId = "SPDXRef-Package-Maven-pkg7-grp-pkg7-0.0.1-source-artifact";
@@ -180,7 +180,7 @@ public class SpdxHandlerTest {
 
 
     @Test
-    public void testOrphanHandler_ShouldFindSpecificOrphanFile() throws Exception {
+    public void testOrphanHandler_ShouldFindSpecificOrphanFile() {
         packageHandler.processAllPackages(context, (p) -> {});
 
 
@@ -206,7 +206,7 @@ public class SpdxHandlerTest {
 
 
     @Test
-    public void testSnippetHandler_ShouldEnrichFileWithSnippetData() throws Exception {
+    public void testSnippetHandler_ShouldEnrichFileWithSnippetData() {
         packageHandler.processAllPackages(context, (p) -> {});
 
         snippetHandler.processAllSnippets(context);
@@ -227,7 +227,7 @@ public class SpdxHandlerTest {
 
 
     @Test
-    public void testRelationshipHandler_ShouldEstablishDependency() throws Exception {
+    public void testRelationshipHandler_ShouldEstablishDependency() {
 
         packageHandler.processAllPackages(context, (p) -> {});
 

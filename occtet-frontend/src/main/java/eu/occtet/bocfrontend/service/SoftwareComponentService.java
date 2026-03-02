@@ -64,10 +64,6 @@ public class SoftwareComponentService {
         return listingSoftwareComponent;
     }
 
-    public List<SoftwareComponent> findSoftwareComponentsByCurated(Boolean isCurated){
-        return softwareComponentRepository.findSoftwareComponentsByCurated(isCurated);
-    }
-
     public Set<String> getCVEDescriptionsList(String cve){
         if (cve == null || cve.isBlank()) return new HashSet<>();
 
@@ -77,15 +73,5 @@ public class SoftwareComponentService {
             if (s.startsWith("CVE-")) result.add(s);
         }
         return result;
-    }
-
-    public Set<String> getAllCVEFoundInSoftwareComponents(List<SoftwareComponent> softwareComponents){
-        //TODO check ticket 978
-        return new HashSet<>();
-    }
-
-    public List<SoftwareComponent> findSoftwareComponentsByIsVulnerable(Boolean IsVulnerable){
-        //TODO check ticket 978
-        return new ArrayList<>();
     }
 }

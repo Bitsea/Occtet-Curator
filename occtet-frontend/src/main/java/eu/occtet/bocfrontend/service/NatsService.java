@@ -35,7 +35,6 @@ import org.apache.logging.log4j.Logger;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -61,6 +60,8 @@ public class NatsService extends NatsHelperService {
 
     @Value("${nats.stream-name}")
     private String streamName;
+    @Value("${nats.stream-subjects-config}")
+    private String streamSubjectsConfig;
 
     private @NonNull JetStream js;
 
@@ -87,7 +88,7 @@ public class NatsService extends NatsHelperService {
         JetStreamManagement jsm = natsConnection.jetStreamManagement();
         StreamConfiguration config = StreamConfiguration.builder()
                 .name(streamName)
-                .subjects("work.>") // FIXME this propably needs to be configurable later
+                .subjects(streamSubjectsConfig)
                 .retentionPolicy(RetentionPolicy.WorkQueue)
                 .build();
         stream = jsm.addStream(config);

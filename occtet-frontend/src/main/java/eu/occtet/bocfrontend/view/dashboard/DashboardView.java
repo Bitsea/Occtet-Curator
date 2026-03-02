@@ -127,7 +127,7 @@ public class DashboardView extends StandardView {
     public void onInit(InitEvent event) {
         projectsDl.load();
 
-        projectSelector.setItemLabelGenerator(Project::getProjectName);
+        projectSelector.setItemLabelGenerator(project -> project.getProjectName()+" - "+project.getVersion());
 
         vulnerabilitiesGrid.getColumnByKey("riskScore")
                 .setTooltipGenerator(v -> v.getRiskScore() != null ?

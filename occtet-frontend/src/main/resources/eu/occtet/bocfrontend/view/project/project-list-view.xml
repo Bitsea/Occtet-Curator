@@ -64,6 +64,7 @@
                 </actions>
                 <columns resizable="true">
                     <column property="projectName" header="msg://eu.occtet.bocfrontend.view.project/projectDetailView.projectName" filterable="true" autoWidth="true"/>
+                    <column property="version" header="Version" filterable="true" autoWidth="true"/>
                     <column key="exportBtn" header="" sortable="false" autoWidth="true" flexGrow="0"/>
                 </columns>
             </dataGrid>

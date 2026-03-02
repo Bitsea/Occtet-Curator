@@ -46,7 +46,8 @@ public class CuratorTaskFactory {
         curatorTask.setTaskName(name);
         curatorTask.setTaskType(type);
 
-        return dataManager.save(curatorTask);
+        // Return unsaved to avoid a Detached entity state, which triggers Jmix's strict Enum change-tracking on the subsequent save.
+        return curatorTask;
     }
 
 

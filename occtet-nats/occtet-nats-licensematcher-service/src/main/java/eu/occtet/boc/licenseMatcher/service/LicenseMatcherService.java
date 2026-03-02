@@ -30,6 +30,7 @@ import eu.occtet.boc.model.ScannerSendWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
+import eu.occtet.boc.util.ExternalNotesConstants;
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import org.slf4j.Logger;
@@ -125,17 +126,27 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
                     } else if (result == null) {
                         log.debug("result is null");
                         log.error("url not successfully for license: {}", licenseId);
+                        String message = ExternalNotesConstants.SECTION_SEPARATOR +
+                                ExternalNotesConstants.WARNING_AUDITOR_ATTENTION_REQ +
+                                String.format(ExternalNotesConstants.LICENSE_URL_NOT_SUCCESSFUL, licenseId) +
+                                ExternalNotesConstants.SECTION_SEPARATOR;
                         if (item.getExternalNotes() == null) {
-                            item.setExternalNotes("url not successfully for license: " + licenseId + "/ no spdx match possible");
+                            item.setExternalNotes(message);
                         } else {
-                            item.setExternalNotes(item.getExternalNotes() + " \n url not successfully for license: " + licenseId + "/ no spdx match possible");
+                            item.setExternalNotes(item.getExternalNotes() + "\n" + message);
                         }
                     } else {
                         log.debug("license text matched");
-                        if (item.getExternalNotes() == null)
-                            item.setExternalNotes("License " + licenseId + " matches license text");
-                        else {
-                            item.setExternalNotes(item.getExternalNotes() + "\n License " + licenseId + " matches license text");
+
+                        String message = ExternalNotesConstants.SECTION_SEPARATOR +
+                                ExternalNotesConstants.INFO +
+                                String.format(ExternalNotesConstants.LICENSE_TEXT_MATCHED, licenseId) +
+                                ExternalNotesConstants.SECTION_SEPARATOR;
+
+                        if (item.getExternalNotes() == null) {
+                            item.setExternalNotes(message);
+                        } else {
+                            item.setExternalNotes(item.getExternalNotes() + "\n" + message);
                         }
                     }
                     inventoryItemFactory.update(item);

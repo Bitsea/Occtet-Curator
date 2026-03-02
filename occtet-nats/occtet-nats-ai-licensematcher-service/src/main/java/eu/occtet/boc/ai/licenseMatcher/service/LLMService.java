@@ -32,6 +32,7 @@ import eu.occtet.boc.model.AIStatusQueryWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
+import eu.occtet.boc.util.ExternalNotesConstants;
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import org.slf4j.Logger;
@@ -159,12 +160,18 @@ public class LLMService extends BaseWorkDataProcessor {
      * @param response
      */
     public void handleAIResult(InventoryItem item, String response){
-
-        if(item.getExternalNotes()== null &&  !response.isEmpty()){
-            item.setExternalNotes(response);
-        }else{
-            item.setExternalNotes(item.getExternalNotes()+"\n"+response);
+        String oldExternalNotes = item.getExternalNotes();
+        if(oldExternalNotes == null &&  !response.isEmpty()){
+            item.setExternalNotes(ExternalNotesConstants.SECTION_SEPARATOR +
+                    ExternalNotesConstants.LICENSE_MATCHER_INFO_AI_RESPONSE_MESSAGE +
+                    response + ExternalNotesConstants.SECTION_SEPARATOR);
+        }else {
+            item.setExternalNotes(oldExternalNotes +
+                    ExternalNotesConstants.SECTION_SEPARATOR +
+                    ExternalNotesConstants.LICENSE_MATCHER_INFO_AI_RESPONSE_MESSAGE +
+                    response + ExternalNotesConstants.SECTION_SEPARATOR);
         }
+
         item.getSoftwareComponent().setLicenseAiControlled(true);
         softwareComponentRepository.save(item.getSoftwareComponent());
         inventoryItemRepository.save(item);

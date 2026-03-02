@@ -37,13 +37,11 @@ import org.spdx.library.model.v2.enumerations.RelationshipType;
 import org.spdx.library.model.v2.license.AnyLicenseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Consumer;
 
 @Service
-@Transactional
 public class PackageHandler {
 
     private static final Logger log = LogManager.getLogger(PackageHandler.class);
@@ -63,34 +61,44 @@ public class PackageHandler {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public void processAllPackages(SpdxImportContext context, Consumer<Integer> progressCallback) throws Exception {
+    public void processAllPackages(SpdxImportContext context, Consumer<Integer> progressCallback) {
         SpdxDocument doc = context.getSpdxDocument();
-        List<TypedValue> packageUris = doc.getModelStore().getAllItems(null, "Package").toList();
+        if (doc == null || doc.getModelStore() == null) {
+            log.warn("Model store is empty, skipping package processing.");
+            return;
+        }
+        try {
+            List<TypedValue> packageUris = doc.getModelStore().getAllItems(null, "Package").toList();
 
-        int count = 0;
-        Set<String> seenPackages = new HashSet<>();
+            int count = 0;
+            Set<String> seenPackages = new HashSet<>();
 
-        for (TypedValue uri : packageUris) {
-            SpdxModelFactory.getSpdxObjects(doc.getModelStore(), null, "Package", uri.getObjectUri(), null)
-                    .forEach(obj -> {
-                        if (obj instanceof SpdxPackage pkg && !seenPackages.contains(pkg.getId())) {
-                            try {
-                                InventoryItem item = parseSinglePackage(pkg, context);
+            for (TypedValue uri : packageUris) {
+                try {
+                    SpdxModelFactory.getSpdxObjects(doc.getModelStore(), null, "Package", uri.getObjectUri(), null)
+                            .forEach(obj -> {
+                                if (obj instanceof SpdxPackage pkg && !seenPackages.contains(pkg.getId())) {
+                                    try {
+                                        InventoryItem item = parseSinglePackage(pkg, context);
+                                        context.getInventoryItems().add(item);
+                                        seenPackages.add(pkg.getId());
+                                    } catch (Exception e) {
+                                        log.error("Failed to import package {}: {}. Skipping...", pkg.getId(), e.getMessage());
+                                    }
+                                }
+                            });
+                } catch (Exception e) {
+                    log.error("Error retrieving SPDX object for URI: {}", uri.getObjectUri(), e);
+                }
 
-                                context.getInventoryItems().add(item);
-                                seenPackages.add(pkg.getId());
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                    });
-
-            count++;
-            int percent = (int) ((40.0 * count) / packageUris.size());
-            if (percent % 5 == 0) progressCallback.accept(percent);
+                count++;
+                int percent = (int) ((40.0 * count) / packageUris.size());
+                if (percent % 5 == 0) progressCallback.accept(percent);
+            }
+        } catch (InvalidSPDXAnalysisException e) {
+            log.error("Error retrieving SPDX object for URI: {}", e.getMessage(), e);
         }
     }
-
 
     public InventoryItem parseSinglePackage(SpdxPackage spdxPackage, SpdxImportContext context)
             throws Exception {
@@ -107,7 +115,6 @@ public class PackageHandler {
 
         if (component == null) {
             component = softwareComponentService.getOrCreateSoftwareComponent(packageName, version);
-            // Cache Put
             context.getComponentCache().put(componentKey, component);
         }
 
@@ -219,7 +226,6 @@ public class PackageHandler {
             }
         }
 
-
         Map<String, File> locationMap = fileService.findOrCreateBatch(allFileNames, inventoryItem);
         Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts);
 
@@ -244,7 +250,7 @@ public class PackageHandler {
         try {
             return r.getRelationshipType() == RelationshipType.CONTAINS;
         } catch (InvalidSPDXAnalysisException e) {
-            throw new RuntimeException(e);
+            return false;
         }
     }
 
@@ -252,7 +258,7 @@ public class PackageHandler {
         try {
             return r.getRelatedSpdxElement().orElse(null);
         } catch (InvalidSPDXAnalysisException e) {
-            throw new RuntimeException(e);
+            return null;
         }
     }
 }

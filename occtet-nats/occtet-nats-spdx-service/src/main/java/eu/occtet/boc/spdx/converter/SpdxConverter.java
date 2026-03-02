@@ -150,8 +150,8 @@ public class SpdxConverter {
             return spdxDocumentRoot;
 
         } catch (InvalidSPDXAnalysisException e) {
-            log.error("error while converting spdx document to entity: {}", e.toString());
-            return new SpdxDocumentRoot(); // Fail-safe return
+            log.error("error while converting SPDX document to entity: {}", e.toString());
+            return new SpdxDocumentRoot();
         }
     }
 
@@ -176,7 +176,7 @@ public class SpdxConverter {
      */
     public SpdxPackageEntity convertPackage(SpdxPackage spdxPackage,
                                             SpdxDocumentRoot spdxDocumentRoot,
-                                            Map<String, SpdxPackageEntity> packageLookupMap) { // Added Map param
+                                            Map<String, SpdxPackageEntity> packageLookupMap) {
         log.info("converting package: {}", spdxPackage.getId());
         try {
             if (spdxDocumentRoot.getPackages() == null) {
@@ -274,8 +274,8 @@ public class SpdxConverter {
 
             return spdxPackageEntity;
 
-        } catch (Exception e) {
-            log.error("error while converting spdx package to entity: {}", e.toString());
+        } catch (InvalidSPDXAnalysisException e) {
+            log.error("Failed to convert package {}: {}. Skipping...", spdxPackage.getId(), e.getMessage());
             return new SpdxPackageEntity();
         }
     }
@@ -302,31 +302,39 @@ public class SpdxConverter {
 
             spdxDocumentRoot.addSnippet(snippet);
 
-        } catch (Exception e) {
-            log.error("error while converting snippets: {}", e.toString());
-            return null;
+        } catch (InvalidSPDXAnalysisException e) {
+            log.error("Failed to convert snippet {}: {}. Skipping...", libSnippet.getId(), e.getMessage());
+            return new Snippet();
         }
 
         return snippet;
     }
 
-    private static List<Range> getRanges(SpdxSnippet libSnippet) throws InvalidSPDXAnalysisException {
+    private static List<Range> getRanges(SpdxSnippet libSnippet) {
         List<Range> entityRanges = new ArrayList<>();
+        try {
+            StartEndPointer byteRange = libSnippet.getByteRange();
+            Range range = new Range();
+            range.setType(byteRange.getType());
+            range.setReference(byteRange.getEndPointer().getReference().getId());
+            entityRanges.add(range);
 
-        StartEndPointer byteRange = libSnippet.getByteRange();
-        Range range = new Range();
-        range.setType(byteRange.getType());
-        range.setReference(byteRange.getEndPointer().getReference().getId());
-        entityRanges.add(range);
-
-        Optional<StartEndPointer> lineRangeOpt = libSnippet.getLineRange();
-        if (lineRangeOpt.isPresent()) {
-            Range lineRange = new Range();
-            lineRange.setType(lineRangeOpt.get().getType());
-            lineRange.setReference(lineRangeOpt.get().getStartPointer().getDocumentUri());
-            entityRanges.add(lineRange);
+            Optional<StartEndPointer> lineRangeOpt = libSnippet.getLineRange();
+            if (lineRangeOpt.isPresent()) {
+                Range lineRange = new Range();
+                lineRange.setType(lineRangeOpt.get().getType());
+                lineRange.setReference(lineRangeOpt.get().getStartPointer().getDocumentUri());
+                entityRanges.add(lineRange);
+            }
+            return entityRanges;
+        }catch (InvalidSPDXAnalysisException e) {
+            log.error("Failed to acquire ranges for snippet {}: {}. Skipping...", libSnippet.getId(), e.getMessage());
+            return new ArrayList<>();
         }
-        return entityRanges;
+        catch (NullPointerException e) {
+            log.error("Missing excepted range info for snippet {}: {}. Skipping...", libSnippet.getId(), e.getMessage());
+            return new ArrayList<>();
+        }
     }
 
     /**
@@ -338,22 +346,26 @@ public class SpdxConverter {
      *
      * @param spdxPackage The source SPDX package model.
      * @return A {@link PackageVerificationCodeEntity} containing the code and excluded files (or empty defaults).
-     * @throws InvalidSPDXAnalysisException If an error occurs while accessing SPDX model properties.
      */
-    private PackageVerificationCodeEntity getPackageVerificationCodeEntity(SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException {
+    private PackageVerificationCodeEntity getPackageVerificationCodeEntity(SpdxPackage spdxPackage){
         PackageVerificationCodeEntity packageVerificationCodeEntity;
-        if (spdxPackage.getPackageVerificationCode().isPresent()) {
-            packageVerificationCodeEntity = new PackageVerificationCodeEntity();
-            packageVerificationCodeEntity.setPackageVerificationCodeValue(spdxPackage.getPackageVerificationCode().get().getValue());
-            List<String> excludedFiles = new ArrayList<>(spdxPackage.getPackageVerificationCode().get()
-                    .getExcludedFileNames());
-            packageVerificationCodeEntity.setPackageVerificationCodeExcludedFiles(excludedFiles);
-        } else {
-            packageVerificationCodeEntity = new PackageVerificationCodeEntity();
-            packageVerificationCodeEntity.setPackageVerificationCodeValue("");
-            packageVerificationCodeEntity.setPackageVerificationCodeExcludedFiles(new ArrayList<>());
+        try {
+            if (spdxPackage.getPackageVerificationCode().isPresent()) {
+                packageVerificationCodeEntity = new PackageVerificationCodeEntity();
+                packageVerificationCodeEntity.setPackageVerificationCodeValue(spdxPackage.getPackageVerificationCode().get().getValue());
+                List<String> excludedFiles = new ArrayList<>(spdxPackage.getPackageVerificationCode().get()
+                        .getExcludedFileNames());
+                packageVerificationCodeEntity.setPackageVerificationCodeExcludedFiles(excludedFiles);
+            } else {
+                packageVerificationCodeEntity = new PackageVerificationCodeEntity();
+                packageVerificationCodeEntity.setPackageVerificationCodeValue("");
+                packageVerificationCodeEntity.setPackageVerificationCodeExcludedFiles(new ArrayList<>());
+            }
+            return packageVerificationCodeEntity;
+        }catch (InvalidSPDXAnalysisException e) {
+            log.error("Failed to acquire packageVerificationCode for package {}: {}. Skipping...", spdxPackage.getId(), e.getMessage());
+            return new  PackageVerificationCodeEntity();
         }
-        return packageVerificationCodeEntity;
     }
 
     /**
@@ -377,7 +389,7 @@ public class SpdxConverter {
                 spdxDocumentRoot.setFiles(new ArrayList<>());
             }
 
-            log.info("now converting spdxFile {}", spdxFile.getId());
+            log.info("now converting SPDX-File {}", spdxFile.getId());
 
             SpdxFileEntity spdxFileEntity = spdxDocumentRoot.getFiles().stream()
                     .filter(f -> f.getSpdxId() != null && f.getSpdxId().equals(spdxFile.getId()))
@@ -430,7 +442,7 @@ public class SpdxConverter {
             return spdxFileEntity;
 
         } catch (InvalidSPDXAnalysisException e) {
-            log.error("error while converting spdx file to entity: {}", e.toString());
+            log.error("error while converting SPDX file to entity: {}", e.toString());
             return new SpdxFileEntity();
         }
     }
@@ -453,7 +465,6 @@ public class SpdxConverter {
      * @return The persisted {@link RelationshipEntity} (either newly created or the existing match).
      */
     public RelationshipEntity convertRelationShip(Relationship relationship, SpdxDocumentRoot spdxDocumentRoot, SpdxPackage spdxPackage) {
-        // log.info("converting relationship");
         try {
             if (spdxDocumentRoot.getRelationships() == null) {
                 spdxDocumentRoot.setRelationships(new ArrayList<>());
@@ -484,7 +495,7 @@ public class SpdxConverter {
             spdxDocumentRoot.getRelationships().add(relationshipEntity);
             return relationshipEntity;
         } catch (InvalidSPDXAnalysisException e) {
-            log.error("error while converting spdx relationship to entity: {}", e.toString());
+            log.error("error while converting SPDX relationship to entity: {}", e.toString());
             return new RelationshipEntity();
         }
     }

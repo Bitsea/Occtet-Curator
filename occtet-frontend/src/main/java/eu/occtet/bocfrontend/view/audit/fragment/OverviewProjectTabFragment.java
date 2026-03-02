@@ -257,14 +257,14 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
                 JmixButton showButton = createShowButton();
                 showButton.addClickListener(click -> openOverviewContentDialog(auditLicenseDTO,project));
                 return showButton;
-            }).setKey("infoButton");
+            }).setKey("infoButton").setFlexGrow(0);
         }
         if(auditVulnerabilityDataGrid.getColumnByKey("infoButton") == null){
             auditVulnerabilityDataGrid.addComponentColumn(auditVulnerabilityDTO -> {
                 JmixButton showButton = createShowButton();
                 showButton.addClickListener(click -> openOverviewContentDialog(auditVulnerabilityDTO,project));
                 return showButton;
-            }).setKey("infoButton");
+            }).setKey("infoButton").setFlexGrow(0);
         }
     }
 
