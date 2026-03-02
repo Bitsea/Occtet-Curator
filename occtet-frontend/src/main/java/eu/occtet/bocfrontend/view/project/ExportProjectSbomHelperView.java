@@ -60,23 +60,29 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * Manages the user interface for exporting a project's Software Bill of Materials (SBOM).
+ * <p>
+ * This view delegates the heavy lifting of SBOM generation to a microservice via NATS messaging.
+ * Because the generation process is asynchronous, it utilizes a UI timer to continuously poll
+ * the task status and update the progress state for the user. Once the task completes,
+ * the resulting artifacts are retrieved from the object store and made available for download.
+ *
+ * @see NatsService
+ * @see WorkTaskProgressMonitor
+ */
 @ViewController(id = "ExportProjectSbomHelperView")
 @ViewDescriptor(path = "export-project-sbom-helper-view.xml")
 @DialogMode(width = "90%", height = "90%")
 public class ExportProjectSbomHelperView extends StandardView {
 
-    // TODO refresh bahaviour
-    // TODO notify user
+    private static final Logger log = LogManager.getLogger(ExportProjectSbomHelperView.class);
 
-    private final Logger log = LogManager.getLogger(this.getClass());
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+    private static final String KV_ENTITY_OBJECT_STORE_KEY = "objectStoreKey";
 
-    private final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
-    private final String KV_ENTITY_OBJECT_STORE_KEY = "objectStoreKey";
-
-    private Project project;
-    private String projectTaskPrefix;
-
-    private Map<String, String> activeTasks = new ConcurrentHashMap<>();
+    private static final ObjectMapper MAPPER = new ObjectMapper()
+            .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
     @Value("${nats.send-subject-export}")
     private String sendSubjectExport;
@@ -85,8 +91,8 @@ public class ExportProjectSbomHelperView extends StandardView {
     private String natsObjectStoreTtl;
 
     @Autowired protected UiComponents uiComponents;
-    @Autowired private NatsService natsService;
     @Autowired protected DataManager dataManager;
+    @Autowired private NatsService natsService;
     @Autowired private Downloader downloader;
     @Autowired private Messages messages;
     @Autowired private Notifications notifications;
@@ -101,6 +107,16 @@ public class ExportProjectSbomHelperView extends StandardView {
     @ViewComponent private Span infoSpan;
     @ViewComponent private Span currentlyInQueue;
 
+    private Project project;
+    private String projectTaskPrefix;
+    private final Map<String, String> activeTasks = new ConcurrentHashMap<>();
+
+    /**
+     * Injects the project context required for initiating the SBOM export.
+     * Must be called by the parent view before this dialog is opened.
+     *
+     * @param project the currently selected project instance
+     */
     public void setProject(Project project) {
         this.project = project;
     }
@@ -110,9 +126,8 @@ public class ExportProjectSbomHelperView extends StandardView {
         sbomFormatComboBox.setItems("SPDX 2.3");
         generateSbomButton.addClickListener(e -> handleExport(project, sbomFormatComboBox.getValue()));
 
-        // TODO message
-        String template = "Note: Generated SBOMs are automatically deleted from the server after %s hours.";
-        infoSpan.setText(String.format(template, natsObjectStoreTtl));
+        infoSpan.setText(String.format(messages.getMessage("eu.occtet.bocfrontend.view" +
+                ".project/exportProjectSbomHelperView.deletion.fino"), natsObjectStoreTtl));
     }
 
     @Subscribe
@@ -126,7 +141,9 @@ public class ExportProjectSbomHelperView extends StandardView {
 
             if (progress.getName() != null && progress.getName().startsWith(projectTaskPrefix)) {
                 if (progress.getStatus() == WorkTaskStatus.IN_PROGRESS) {
-                    activeTasks.put(taskId, progress.getName() + " - Resuming: " + progress.getPercent() + "%");
+                    String resumingMsg = String.format(messages.getMessage("eu.occtet.bocfrontend.view" +
+                            ".project/exportProjectSbomHelperView.task.resuming"), progress.getPercent());
+                    activeTasks.put(taskId, progress.getName() + resumingMsg);
                 }
             }
         }
@@ -136,27 +153,33 @@ public class ExportProjectSbomHelperView extends StandardView {
             updateActiveTasksUI();
         }
 
-        // Load available downloads
         refreshDownloadsList();
         updateQueueSpan();
     }
 
+    /**
+     * Constructs and dispatches a new export task payload to the configured NATS subject.
+     *
+     * @param project    the project target for the SBOM generation
+     * @param sbomFormat the desired output format selected by the user
+     */
     private void handleExport(Project project, String sbomFormat) {
         if (sbomFormat == null) {
-            log.warn("No SBOM format selected");
-            notifications.create(messages.getMessage("eu.occtet.bocfrontend.view.project/exportProjectSbomHelperView" +
-                    ".generate.sbom.combobox.format.notSelected.message")).withThemeVariant(NotificationVariant.LUMO_WARNING).show();
+            log.warn("Attempted to start export without an active format selection.");
+            notifications.create(messages.getMessage("eu.occtet.bocfrontend.view" +
+                            ".project/exportProjectSbomHelperView.generate.sbom.combobox.format.notSelected.message"))
+                    .withThemeVariant(NotificationVariant.LUMO_WARNING)
+                    .show();
             return;
         }
 
-        LocalDateTime now = LocalDateTime.now();
-        String timeStamp = now.format(TIME_FORMATTER);
+        String timeStamp = LocalDateTime.now().format(TIME_FORMATTER);
         String dynamicTaskName = projectTaskPrefix + timeStamp;
-
         String formatSuffix = sbomFormat.replace(" ", "").toLowerCase();
 
-        // "MyProject_1_2026-02-26_10-25-00_spdx2.3"
-        String expectedObjectStoreKey = project.getProjectName() + "_" + project.getId() + "_" + timeStamp + "_" + formatSuffix;
+        // Example: "MyProject_1_2026-02-26_10-25-00_spdx2.3"
+        String expectedObjectStoreKey = String.format("%s_%s_%s_%s",
+                project.getProjectName(), project.getId(), timeStamp, formatSuffix);
 
         String taskId = UUID.randomUUID().toString();
         long actualTimestamp = Instant.now().getEpochSecond();
@@ -168,30 +191,26 @@ public class ExportProjectSbomHelperView extends StandardView {
         );
 
         WorkTask workTask = new WorkTask(taskId, dynamicTaskName, "Export data to microservice to create new SPDX", actualTimestamp, spdxExportWorkData);
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
         try {
-            String message = mapper.writeValueAsString(workTask);
-            natsService.sendWorkMessageToStream(sendSubjectExport, message.getBytes());
+            byte[] messagePayload = MAPPER.writeValueAsBytes(workTask);
+            natsService.sendWorkMessageToStream(sendSubjectExport, messagePayload);
 
-            // Add to local tracking and update UI
-            // TODO message
-            activeTasks.put(taskId, dynamicTaskName + " - Queued...");
+            activeTasks.put(taskId, dynamicTaskName + messages.getMessage("eu.occtet.bocfrontend.view" +
+                    ".project/exportProjectSbomHelperView.task.queued"));
             updateActiveTasksUI();
-
             updateQueueSpan();
-
             progressTimer.start();
 
-            // TODO message
-            notifications.create("Export task added to queue.")
+            notifications.create(messages.getMessage("eu.occtet.bocfrontend.view" +
+                            ".project/exportProjectSbomHelperView.notification.taskAdded"))
                     .withThemeVariant(NotificationVariant.LUMO_PRIMARY).show();
 
         } catch (Exception e) {
-            log.error("Could not send work message", e);
-            // TODO message
-            notifications.create("Failed to send export task.").withThemeVariant(NotificationVariant.LUMO_ERROR).show();
+            log.error("Failed to serialize or dispatch work task payload to NATS.", e);
+            notifications.create(messages.getMessage("eu.occtet.bocfrontend.view" +
+                            ".project/exportProjectSbomHelperView.notification.taskFailed"))
+                    .withThemeVariant(NotificationVariant.LUMO_ERROR).show();
         }
     }
 
@@ -204,8 +223,8 @@ public class ExportProjectSbomHelperView extends StandardView {
             return;
         }
 
-        boolean changed = false;
-        boolean refreshFiles = false;
+        boolean uiNeedsUpdate = false;
+        boolean downloadsNeedRefresh = false;
 
         Iterator<Map.Entry<String, String>> iterator = activeTasks.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -217,101 +236,115 @@ public class ExportProjectSbomHelperView extends StandardView {
             if (progress != null) {
                 if (progress.getStatus() == WorkTaskStatus.COMPLETED) {
                     iterator.remove();
-                    changed = true;
-                    refreshFiles = true;
-                    // TODO message
-                    notifications.create(progress.getName() + " Completed!")
+                    uiNeedsUpdate = true;
+                    downloadsNeedRefresh = true;
+
+                    String completedMsg = String.format(messages.getMessage("eu.occtet.bocfrontend.view" +
+                            ".project/exportProjectSbomHelperView.task.completed"), progress.getName());
+                    notifications.create(completedMsg)
                             .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
                             .withPosition(Notification.Position.TOP_START).show();
+
                 } else if (progress.getStatus() == WorkTaskStatus.ERROR) {
-                    // TODO message
-                    entry.setValue(progress.getName() + " - Failed: " + progress.getDetails());
-                    changed = true;
+                    String failedMsg = String.format(messages.getMessage("eu.occtet.bocfrontend.view" +
+                            ".project/exportProjectSbomHelperView.task.failed"), progress.getDetails());
+                    entry.setValue(progress.getName() + failedMsg);
+                    uiNeedsUpdate = true;
+
                 } else {
-                    // TODO message
-                    String newStatus = progress.getName() + " - Generating: " + progress.getPercent() + "%";
+                    String generatingMsg = String.format(messages.getMessage("eu.occtet.bocfrontend.view" +
+                            ".project/exportProjectSbomHelperView.task.generating"), progress.getPercent());
+                    String newStatus = progress.getName() + generatingMsg;
                     if (!newStatus.equals(entry.getValue())) {
                         entry.setValue(newStatus);
-                        changed = true;
+                        uiNeedsUpdate = true;
                     }
                 }
             }
         }
 
-        if (changed) updateActiveTasksUI();
-        if (refreshFiles) refreshDownloadsList();
+        if (uiNeedsUpdate) updateActiveTasksUI();
+        if (downloadsNeedRefresh) refreshDownloadsList();
         updateQueueSpan();
     }
 
     /**
-     * Rebuilds the visual list of active tasks dynamically.
+     * Refreshes the visual elements representing active, queued, or failed tasks.
+     * Uses theme variants to clearly distinguish status states.
      */
     private void updateActiveTasksUI() {
         activeTasksBox.removeAll();
+
+        String failedIndicator = messages.getMessage("eu.occtet.bocfrontend.view" +
+                ".project/exportProjectSbomHelperView.task.failed").split(":")[0].trim();
+        String queuedIndicator = messages.getMessage("eu.occtet.bocfrontend.view" +
+                ".project/exportProjectSbomHelperView.task.queued").trim();
+
         for (String statusText : activeTasks.values()) {
             Span label = uiComponents.create(Span.class);
             label.setText(statusText);
 
-            if (statusText.contains("Failed")) {
+            if (statusText.contains(failedIndicator)) {
                 label.getElement().getThemeList().addAll(Arrays.asList("badge", "error"));
-            } else if (statusText.contains("Queued")) {
+            } else if (statusText.contains(queuedIndicator)) {
                 label.getElement().getThemeList().addAll(Arrays.asList("badge", "warning"));
             } else {
-                label.getElement().getThemeList().addAll(Arrays.asList("badge"));
+                label.getElement().getThemeList().addAll(List.of("badge"));
             }
             activeTasksBox.add(label);
         }
     }
 
-    private void updateQueueSpan(){
+    private void updateQueueSpan() {
         long numOfQ = natsService.getNumbOfMsgQueued(sendSubjectExport);
         if (numOfQ == 0) {
-            // TODO message
-            currentlyInQueue.setText("Currently no tasks in queue.");
+            currentlyInQueue.setText(messages.getMessage("eu.occtet.bocfrontend.view" +
+                    ".project/exportProjectSbomHelperView.queue.empty"));
         } else {
-            // TODO message
-            currentlyInQueue.setText("Currently " + numOfQ + " tasks in queue.");
+            currentlyInQueue.setText(String.format(messages.getMessage("eu.occtet.bocfrontend.view" +
+                    ".project/exportProjectSbomHelperView.queue.active"), numOfQ));
         }
     }
 
+    /**
+     * Fetches previously generated SBOM exports from the backend storage
+     * and binds them to the data grid for user retrieval.
+     */
     private void refreshDownloadsList() {
         String projectKeyPrefix = project.getProjectName() + "_" + project.getId();
         List<String> exportedKeys = natsService.getPreviousExportOfSameProject(projectKeyPrefix);
 
-        List<KeyValueEntity> entities = exportedKeys.stream().map(key -> {
+        List<KeyValueEntity> entities = exportedKeys.stream()
+                .map(key -> {
                     KeyValueEntity kvEntity = dataManager.create(KeyValueEntity.class);
                     kvEntity.setValue(KV_ENTITY_OBJECT_STORE_KEY, key);
-
                     kvEntity.setValue("fileName", key + ".json");
-
                     return kvEntity;
-                }).sorted((e1, e2) -> e2
-                        .getValue("fileName")
-                        .toString()
-                        .compareTo(e1.getValue("fileName").toString()))
+                })
+                .sorted(Comparator.comparing(e -> e.getValue("fileName").toString(), Comparator.reverseOrder()))
                 .collect(Collectors.toList());
 
         prevExportsDc.setItems(entities);
     }
 
     @Supply(to = "prevExportsDataGrid.downloadButton", subject = "renderer")
-    protected Renderer<KeyValueEntity> downloadButtonRenderer(){
+    protected Renderer<KeyValueEntity> downloadButtonRenderer() {
         return new ComponentRenderer<>(kv -> {
             String key = kv.getValue(KV_ENTITY_OBJECT_STORE_KEY);
             JmixButton downloadButton = uiComponents.create(JmixButton.class);
-            // TODO message
-            downloadButton.setText("Download");
+
+            downloadButton.setText(messages.getMessage("eu.occtet.bocfrontend.view" +
+                    ".project/exportProjectSbomHelperView.button.download"));
             downloadButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
             downloadButton.setIcon(VaadinIcon.DOWNLOAD.create());
 
             downloadButton.addClickListener(e -> {
                 byte[] fileData = natsService.getFileFromBucket(key);
                 if (fileData != null) {
-                    // Match the filename we defined above
                     downloader.download(fileData, key + ".json");
                 } else {
-                    // TODO message
-                    notifications.create("This file was deleted or is no longer available.")
+                    notifications.create(messages.getMessage("eu.occtet.bocfrontend.view" +
+                                    ".project/exportProjectSbomHelperView.notification.fileDeleted"))
                             .withThemeVariant(NotificationVariant.LUMO_WARNING).show();
                     refreshDownloadsList();
                 }

@@ -98,7 +98,6 @@ public class NatsService {
         //prepare objectStore
         ObjectStoreManagement objectStoreManagement = natsConnection.objectStoreManagement();
 
-        // TODO delete old object store if exist
         ObjectStoreConfiguration objectStoreConfiguration = ObjectStoreConfiguration.builder()
                 .name("file-bucket")
                 .description("bucket containing large files for other microservices")
