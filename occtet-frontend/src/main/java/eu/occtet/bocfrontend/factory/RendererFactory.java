@@ -86,13 +86,19 @@ public class RendererFactory {
             Icon vulnerableIcon = uiComponents.create(Icon.class);
             vulnerableIcon.setIcon(VaadinIcon.BAN);
             vulnerableIcon.setSize("12px");
-            if (item.getSoftwareComponent().getVulnerabilityLinks().stream().anyMatch(ComponentVulnerabilityLink::getResolved)){
+            boolean hasUnresolvedVulnerabilities = item.getSoftwareComponent()
+                    .getVulnerabilityLinks()
+                    .stream()
+                    .anyMatch(link -> FALSE.equals(link.getResolved()));
+
+            if (hasUnresolvedVulnerabilities) {
                 vulnerableIcon.setVisible(true);
                 vulnerableIcon.setClassName("vulnerable-icon");
                 vulnerableIcon.setColor("RED");
             } else {
                 vulnerableIcon.setVisible(false);
             }
+
             mainLayout.add(circleIcon, warningIcon, vulnerableIcon);
             return mainLayout;
         });
