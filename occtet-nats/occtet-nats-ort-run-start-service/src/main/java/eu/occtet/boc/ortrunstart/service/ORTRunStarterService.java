@@ -177,6 +177,9 @@ public class ORTRunStarterService {
         ScannerJobConfiguration scannerJobConfiguration= new ScannerJobConfiguration();
         jobConfigurations.setScanner(scannerJobConfiguration);
 
+        EvaluatorJobConfiguration evaluatorJobConfiguration= new EvaluatorJobConfiguration();
+        jobConfigurations.setEvaluator(evaluatorJobConfiguration);
+
         ReporterJobConfiguration reporterJobConfiguration = new ReporterJobConfiguration();
         reporterJobConfiguration.setFormats(List.of("SpdxDocument", "CycloneDx"));
         //set the config options, so you get json as output

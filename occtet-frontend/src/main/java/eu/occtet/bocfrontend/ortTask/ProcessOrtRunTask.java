@@ -59,15 +59,13 @@ public class ProcessOrtRunTask  {
     @Autowired
     private CuratorTaskFactory curatorTaskFactory;
 
-    @Autowired
-    private WorkTaskProgressMonitor workTaskProgressMonitor;
 
     private List<Long> processedRuns= new ArrayList<>();
 
 
     @Scheduled(cron = "${processRun.cron}")
     @Async
-    public void fetchRun() throws IOException, InterruptedException, ApiException {
+    public void fetchRun()  {
 
         systemAuthenticator.withSystem(() -> {
             try {
@@ -87,7 +85,7 @@ public class ProcessOrtRunTask  {
                 sendRuns(pagedSearchWithIssues);
             } else log.debug("No finished_with_issues runs found");
         } catch (Exception e){
-                throw new RuntimeException(e);
+                log.error("ORT API not reachable, could not fetch runs", e);
             }
             return null;
         });
@@ -113,18 +111,23 @@ public class ProcessOrtRunTask  {
 
 
 
-    private RunsApi getRunsApi() throws IOException, InterruptedException {
-        OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
-        AuthService authService = new AuthService(ortProperties.tokenUrl());
+    private RunsApi getRunsApi() {
+        try {
+            OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
+            AuthService authService = new AuthService(ortProperties.tokenUrl());
 
-        TokenResponse tokenResponse = null;
+            TokenResponse tokenResponse = null;
 
-        tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
+            tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
 
-        ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
+            ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
 
 
-        return new RunsApi(apiClient);
+            return new RunsApi(apiClient);
+        }catch(Exception e){
+            log.error("Error creating RunsApi client, ORT possibly not reachable/activated {}", e.getMessage());
+            return null;
+        }
     }
 
 

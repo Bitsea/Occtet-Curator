@@ -25,6 +25,7 @@ import eu.occtet.boc.model.BaseSystemMessage;
 import eu.occtet.boc.model.MicroserviceDescriptor;
 import eu.occtet.boc.model.ProgressSystemMessage;
 import eu.occtet.boc.model.StatusDescriptor;
+import eu.occtet.boc.service.NatsHelperService;
 import eu.occtet.boc.service.NatsStreamSender;
 import io.nats.client.*;
 import io.nats.client.api.*;
@@ -50,7 +51,7 @@ import java.util.List;
  * Service for handling NATS messaging.
  */
 @Service
-public class NatsService {
+public class NatsService extends NatsHelperService {
 
     private static final Logger log = LogManager.getLogger(NatsService.class);
     private static final String[] MESSAGES_TO_IGNORE = {"hello","status","exit"};
@@ -73,7 +74,6 @@ public class NatsService {
 
     private StreamInfo stream;
     private ObjectStore objectStore;
-
 
 
     /**
@@ -106,7 +106,8 @@ public class NatsService {
         ObjectStoreStatus objectStoreStatus = objectStoreManagement.create(objectStoreConfiguration);
 
         objectStore = natsConnection.objectStore("file-bucket");
-
+        //setting connection for the helper methods in NatsHelperService
+        setNatsConnection(natsConnection);
         log.info("initialized objectsStore: {}", objectStore.getBucketName());
     }
 
@@ -201,16 +202,6 @@ public class NatsService {
         progressListeners.add(listener);
     }
 
-    public ObjectInfo putDataIntoObjectStore(InputStream data, ObjectMeta metaInformation) {
-        try {
-            ObjectInfo oInfo = objectStore.put(metaInformation, data);
-            log.info("Successfully put {} into objectStore:{}", metaInformation.getObjectName(), objectStore.getBucketName());
-            return oInfo;
-        }catch (JetStreamApiException | IOException | NoSuchAlgorithmException e){
-            log.error("Error while trying to put {} into objectStore:{}",metaInformation.getObjectName(), e.toString());
-            return null;
-        }
-    }
 
     public byte[] getFileFromBucket(String fileId){
         try {
