@@ -104,7 +104,8 @@ public class OrphanHandler {
             spdxConverter.convertFile(file, context.getSpdxDocumentRoot());
             context.getFileToInventoryItemMap().put(file.getId(), inventoryItem);
 
-            Map<String, File> locationMap = fileService.findOrCreateBatch(Collections.singletonList(filePath), inventoryItem);
+            Map<String, File> locationMap = fileService.findOrCreateBatch(Collections.singletonMap(filePath, file.getId()),
+                    inventoryItem);
             File dbFile = locationMap.get(filePath);
 
             String copyrightText = file.getCopyrightText();

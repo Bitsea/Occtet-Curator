@@ -201,15 +201,16 @@ public class PackageHandler {
     }
 
     private List<Copyright> parseFiles(Set<SpdxFile> packageFiles, InventoryItem inventoryItem, SpdxImportContext context) throws InvalidSPDXAnalysisException {
-        List<String> allFileNames = new ArrayList<>();
         Set<String> allCopyrightsTexts = new HashSet<>();
         Map<String, String> fileToCopyrightMap = new HashMap<>();
+        Map<String, String> fileToSpdxIdMap = new HashMap<>();
 
         for (SpdxFile f : packageFiles) {
             context.getProcessedFileIds().add(f.getId());
             if (f.getName().isPresent()){
                 String path = f.getName().get();
-                allFileNames.add(path);
+                fileToSpdxIdMap.put(path, f.getId());
+
                 String copyright = f.getCopyrightText();
                 if (!"NONE".equals(copyright) && !"NOASSERTION".equals(copyright)){
                     allCopyrightsTexts.add(copyright);
@@ -219,7 +220,7 @@ public class PackageHandler {
         }
 
 
-        Map<String, File> locationMap = fileService.findOrCreateBatch(allFileNames, inventoryItem);
+        Map<String, File> locationMap = fileService.findOrCreateBatch(fileToSpdxIdMap, inventoryItem);
         Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts);
 
         List<Copyright> copyrightsToUpdate = new ArrayList<>();

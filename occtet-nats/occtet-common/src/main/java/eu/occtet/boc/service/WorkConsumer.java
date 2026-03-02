@@ -70,10 +70,11 @@ public abstract class WorkConsumer implements InformativeService {
                 Message msg= fetchConsumer.nextMessage();
                 if (msg != null) {
                     log.debug("received message on subject... {}", msg.getSubject());
-                    msg.ack();
 
                     workerStatus=WorkerStatus.WORKING;
                     handleMessage(msg);
+
+                    msg.ack();
                 }
             } catch (Exception e) {
                 log.warn("error handling message: {}", e.getMessage());

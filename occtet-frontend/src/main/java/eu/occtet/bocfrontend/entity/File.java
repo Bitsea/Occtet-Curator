@@ -62,6 +62,10 @@ public class File {
     @OnDelete(DeletePolicy.CASCADE)
     private Project project;
 
+    // The id used in the imported document, important for the export
+    @Column(name = "DOCUMENT_ID", columnDefinition = "TEXT")
+    private String documentId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PARENT_ID")
     @OnDelete(DeletePolicy.CASCADE)
@@ -248,6 +252,14 @@ public class File {
 
     public void setCopyrights(Set<Copyright> copyrights) {
         this.copyrights = copyrights;
+    }
+
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
     }
 
     @Override

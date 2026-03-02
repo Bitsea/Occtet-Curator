@@ -1,6 +1,24 @@
+/*
+ * Copyright (C) 2025 Bitsea GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https:www.apache.orglicensesLICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
 package eu.occtet.boc.export.service;
 
-import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.SpdxDocumentRootRepository;
 import eu.occtet.boc.entity.*;
@@ -25,18 +43,18 @@ public class MergeService {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
-    private FileRepository fileRepository;
-    @Autowired
     private SpdxDocumentRootRepository spdxDocumentRootRepository;
-
+    @Autowired
+    private SpdxFileSyncService spdxFileSyncService;
 
     /**
      * Traverses the components within an SPDX document and applies the corresponding audited data.
-     * <p>It synchronized changes applied but the auditor<p/>
+     * <p>It synchronizes changes applied but the auditor<p/>
      * Note: compatible with spdx version 2 entities
      */
     @Transactional
     public void mergeChangesToDocumentEntities(SpdxDocumentRoot spdxDocumentRoot, Project project) {
+        log.info("Starting to merge curated changes for project: {}", project.getProjectName());
         Set<License> customLicensesToExtract = new HashSet<>();
 
         spdxDocumentRoot.setName(project.getProjectName());
@@ -74,8 +92,12 @@ public class MergeService {
     private void handleSpdxDocumentRoot(SpdxDocumentRoot spdxDocumentRoot, Project project){
         if (project.getContactEmail() != null && !project.getContactEmail().isBlank()) {
             String contactInfo = "Project Contact: " + project.getContactEmail();
-            if (spdxDocumentRoot.getComment() == null || !spdxDocumentRoot.getComment().contains(contactInfo)) {
-                spdxDocumentRoot.setComment(contactInfo + "\n" + (spdxDocumentRoot.getComment() != null ? spdxDocumentRoot.getComment() : ""));
+            String existingComment = spdxDocumentRoot.getComment();
+
+            if (existingComment == null || existingComment.isBlank()) {
+                spdxDocumentRoot.setComment(contactInfo);
+            } else if (!existingComment.contains(contactInfo)) {
+                spdxDocumentRoot.setComment(existingComment + "\n" + contactInfo);
             }
         }
     }
@@ -102,9 +124,9 @@ public class MergeService {
         spdxPackageEntity.setName(softwareComponent.getName());
         spdxPackageEntity.setVersionInfo(softwareComponent.getVersion());
 
-        // TODO add this spot to change once service is done and so on, for now set both to detailsUrl
         if (softwareComponent.getDetailsUrl() != null && !softwareComponent.getDetailsUrl().isBlank()) {
-            spdxPackageEntity.setHomepage(softwareComponent.getDetailsUrl());
+            // fix once decided
+//            spdxPackageEntity.setHomepage(softwareComponent.getDetailsUrl());
             spdxPackageEntity.setDownloadLocation(softwareComponent.getDetailsUrl());
         }
 
@@ -125,6 +147,9 @@ public class MergeService {
         }
 
         rebuildExternalReferences(spdxPackageEntity, softwareComponent);
+
+        SpdxDocumentRoot spdxDocumentRoot = spdxPackageEntity.getSpdxDocument();
+        spdxFileSyncService.synchronizeFiles(spdxPackageEntity, inventoryItem, spdxDocumentRoot);
     }
 
     /**
@@ -138,7 +163,8 @@ public class MergeService {
 
         if (softwareComponent.getPurl() != null && !softwareComponent.getPurl().isBlank()) {
             ExternalRefEntity purlRef = new ExternalRefEntity();
-            purlRef.setReferenceCategory("PACKAGE-MANAGER");
+            // FIX: Use underscore for the Java enum representation
+            purlRef.setReferenceCategory("PACKAGE_MANAGER");
             purlRef.setReferenceType("purl");
             purlRef.setReferenceLocator(softwareComponent.getPurl());
             purlRef.setPkg(spdxPackageEntity);
@@ -149,12 +175,10 @@ public class MergeService {
         spdxPackageEntity.getExternalRefs().addAll(externalRefs);
     }
 
-    /**
-     * Reconstructs the structural relationships based on the current inventory item hierarchy.
-     */
-    private void rebuildRelationships(SpdxDocumentRoot spdxDocumentRoot, Project project) {
-        // Discuss how relations between packages should be rebuilt
-    }
+     // Reconstructs the structural relationships based on the current inventory item hierarchy.
+//    private void rebuildRelationships(SpdxDocumentRoot spdxDocumentRoot, Project project) {
+//        // Discuss how relations between packages should be rebuilt
+//    }
 
     /**
      * Converts non-standard or modified licenses into extracted licensing info for the SPDX document.
@@ -166,6 +190,10 @@ public class MergeService {
         List<ExtractedLicensingInfoEntity> newExtractedLicenses = new ArrayList<>();
 
         for (License license : collectedLicenses) {
+            if (license.getLicenseName() != null && license.getLicenseName().trim().equalsIgnoreCase("UNKNOWN")) {
+                continue;
+            }
+
             if (Boolean.FALSE.equals(license.isSpdx()) || Boolean.TRUE.equals(license.isModified())) {
                 ExtractedLicensingInfoEntity extractedInfo = new ExtractedLicensingInfoEntity();
                 extractedInfo.setSpdxDocument(spdxDocumentRoot);
@@ -207,10 +235,15 @@ public class MergeService {
     private String formatLicenseExpression(Collection<License> licenses) {
         return licenses.stream()
                 .map(license -> {
+                    String name = license.getLicenseName();
+                    // Intercept UNKNOWN and replace with SPDX standard NOASSERTION
+                    if (name != null && name.trim().equalsIgnoreCase("UNKNOWN")) {
+                        return "NOASSERTION";
+                    }
                     if (Boolean.FALSE.equals(license.isSpdx()) || Boolean.TRUE.equals(license.isModified())) {
                         return generateLicenseRefId(license);
                     }
-                    return license.getLicenseName();
+                    return name;
                 })
                 .collect(Collectors.joining(" AND "));
     }
@@ -223,4 +256,5 @@ public class MergeService {
         }
         return "LicenseRef-custom-" + license.getId();
     }
+
 }

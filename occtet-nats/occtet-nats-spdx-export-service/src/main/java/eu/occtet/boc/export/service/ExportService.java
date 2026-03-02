@@ -18,10 +18,8 @@
 
 package eu.occtet.boc.export.service;
 
-import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.dao.SpdxDocumentRootRepository;
-import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.spdxV2.*;
 import eu.occtet.boc.model.SpdxExportWorkData;
@@ -38,6 +36,7 @@ import org.spdx.library.model.v2.enumerations.ReferenceCategory;
 import org.spdx.library.model.v2.enumerations.RelationshipType;
 import org.spdx.library.model.v2.license.AnyLicenseInfo;
 import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
+import org.spdx.library.referencetype.ListedReferenceTypes;
 import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,8 +48,6 @@ import java.io.ByteArrayOutputStream;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Transactional
 @Service
@@ -77,6 +74,7 @@ public class ExportService  extends ProgressReportingService  {
 
     private boolean createDocument(SpdxExportWorkData spdxExportWorkData) {
         try {
+            log.debug("creating spdx document:");
             SpdxModelFactory.init();
             InMemSpdxStore modelStore = new InMemSpdxStore();
             MultiFormatStore jsonStore = new MultiFormatStore(modelStore, MultiFormatStore.Format.JSON_PRETTY);
@@ -98,6 +96,11 @@ public class ExportService  extends ProgressReportingService  {
 
             Project project = projectOpt.get();
             SpdxDocumentRoot spdxDocumentRoot = spdxDocumentRootOpt.get();
+
+            log.info("Merging changes to document entities of project: {}", project.getProjectName());
+            mergeService.mergeChangesToDocumentEntities(spdxDocumentRoot, project);
+            notifyProgress(20,"merged changes to document entities");
+
             String documentUri = spdxDocumentRoot.getDocumentUri();
             SpdxDocument spdxDocument = new SpdxDocument(modelStore, documentUri, null, true);
 
@@ -113,18 +116,15 @@ public class ExportService  extends ProgressReportingService  {
                             Arrays.asList(toolName, userName),
                             Instant.now().truncatedTo(ChronoUnit.SECONDS).toString())
             );
-            spdxDocument.getCreationInfo().setLicenseListVersion(creationInfoEntity.getLicenseListVersion());
+            Objects.requireNonNull(spdxDocument.getCreationInfo()).setLicenseListVersion(creationInfoEntity.getLicenseListVersion());
             spdxDocument.getCreationInfo().setComment(creationInfoEntity.getComment());
             spdxDocument.setComment(spdxDocumentRoot.getComment());
             spdxDocument.setSpecVersion(Version.CURRENT_SPDX_VERSION);
             spdxDocument.setName(spdxDocumentRoot.getName());
             spdxDocument.setDataLicense(LicenseInfoFactory.parseSPDXLicenseStringCompatV2(
                     spdxDocumentRoot.getDataLicense(), modelStore, documentUri, null));
+            notifyProgress(30,"created creationInfo");
 
-            notifyProgress(20,"created creationInfo");
-
-            mergeService.mergeChangesToDocumentEntities(spdxDocumentRoot, project);
-            notifyProgress(30,"merged changes to document entities");
 
             log.info("create extractedLicense info");
             spdxDocumentRoot.getHasExtractedLicensingInfos().forEach(extractedLicense -> {
@@ -150,24 +150,32 @@ public class ExportService  extends ProgressReportingService  {
             spdxDocument.setExternalDocumentRefs(externalRefs);
             notifyProgress(40,"created externalDocumentRefs");
 
-            log.info("map files");
-            Map<String, SpdxFileEntity> fileEntityMap = spdxDocumentRoot.getFiles().stream()
-                    .collect(Collectors.toMap(SpdxFileEntity::getSpdxId, Function.identity(), (existing, replacement) -> existing));
+            log.info("Creating file elements...");
+            for (SpdxFileEntity fileEntity : spdxDocumentRoot.getFiles()) {
+                SpdxFile spdxFile = createSpdxFile(fileEntity, spdxDocument);
+                if (spdxFile != null) {
+                    elementMap.put(spdxFile.getId(), spdxFile);
+                }
+            }
+            notifyProgress(50, "created file elements");
 
-            log.info("start converting packages");
+            log.debug("start converting packages");
             List<SpdxPackage> packages = new ArrayList<>();
             for (SpdxPackageEntity pkgEntity : spdxDocumentRoot.getPackages()) {
-                SpdxPackage pkg = createSpdxPackage(pkgEntity, fileEntityMap, spdxDocument, modelStore, documentUri, project, elementMap);
+                SpdxPackage pkg = createSpdxPackage(pkgEntity, spdxDocument, modelStore, documentUri, elementMap);
                 if (pkg != null) {
                     packages.add(pkg);
                     elementMap.put(pkg.getId(), pkg);
                 }
             }
-            notifyProgress(70,"mapped files ");
+            log.info("finished converting packages, number of packages: {}", packages.size());
+
+            notifyProgress(70, packages.size() + "packages created");
 
             spdxDocumentRoot.getRelationships().forEach(relationship -> {
                 try {
-                    log.info("relationship: {} to {}", relationship.getSpdxElementId(), relationship.getRelatedSpdxElement());
+                    log.trace("relationship: {} to {}", relationship.getSpdxElementId(),
+                            relationship.getRelatedSpdxElement());
                     String uniqueRelationshipId = SpdxConstantsCompatV2.SPDX_ELEMENT_REF_PRENUM + "Relationship-" + UUID.randomUUID();
                     Relationship spdxRelationship = new Relationship(modelStore, documentUri, uniqueRelationshipId, null, true);
 
@@ -195,11 +203,36 @@ public class ExportService  extends ProgressReportingService  {
             });
             notifyProgress(90,"added relationships");
 
+            // Reconstruct the DESCRIBES relationships required by SPDX 2.3
+            log.info("create DESCRIBES relationships");
+            if (spdxDocumentRoot.getSpdxDocumentDescribes() != null) {
+                for (String describesId : spdxDocumentRoot.getSpdxDocumentDescribes()) {
+                    try {
+                        SpdxElement targetElement = elementMap.get(describesId);
+                        if (targetElement != null) {
+                            String relId = SpdxConstantsCompatV2.SPDX_ELEMENT_REF_PRENUM + "Relationship-" + UUID.randomUUID();
+                            Relationship describesRel = new Relationship(modelStore, documentUri, relId, null, true);
+                            describesRel.setRelationshipType(RelationshipType.DESCRIBES);
+                            describesRel.setRelatedSpdxElement(targetElement);
+
+                            // Attach the relationship to the root document
+                            spdxDocument.addRelationship(describesRel);
+                        } else {
+                            log.warn("Could not find element {} to link as described by the document.", describesId);
+                        }
+                    } catch (InvalidSPDXAnalysisException e) {
+                        log.error("Error adding DESCRIBES relationship for: {}", describesId, e);
+                    }
+                }
+            }
+            notifyProgress(95, "added DESCRIBES relationships");
+
             try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-                 java.io.BufferedOutputStream bufferedOut = new java.io.BufferedOutputStream(out)) {
+                 java.io.BufferedOutputStream bufferedOut = new java.io.BufferedOutputStream(out)
+            ) {
                 jsonStore.serialize(bufferedOut, spdxDocument);
                 bufferedOut.flush();
-                String objectStoreKey = spdxExportWorkData.getSpdxDocumentId();
+                String objectStoreKey = spdxExportWorkData.getObjectStoreKey();
 
                 log.info("Serialized SBOM JSON. Sending {} bytes to Object Store with key: {}", out.size(), objectStoreKey);
 
@@ -214,13 +247,11 @@ public class ExportService  extends ProgressReportingService  {
     }
 
     private SpdxPackage createSpdxPackage(SpdxPackageEntity pkgEntity,
-                                          Map<String, SpdxFileEntity> fileEntityMap,
                                           SpdxDocument spdxDocument,
                                           IModelStore modelStore,
                                           String documentUri,
-                                          Project project,
                                           Map<String, SpdxElement> elementMap) {
-        log.info("create pkg: {}", pkgEntity.getSpdxId());
+        log.trace("create pkg: {}", pkgEntity.getSpdxId());
         try {
             SpdxPackage.SpdxPackageBuilder builder = spdxDocument.createPackage(
                     pkgEntity.getSpdxId(),
@@ -230,7 +261,13 @@ public class ExportService  extends ProgressReportingService  {
                     LicenseInfoFactory.parseSPDXLicenseStringCompatV2(pkgEntity.getLicenseDeclared(), modelStore, documentUri, null)
             );
 
-            builder.setFilesAnalyzed(pkgEntity.isFilesAnalyzed());
+            boolean hasValidVerificationCode = pkgEntity.getPackageVerificationCode() != null &&
+                    pkgEntity.getPackageVerificationCode().getPackageVerificationCodeValue() != null &&
+                    !pkgEntity.getPackageVerificationCode().getPackageVerificationCodeValue().isEmpty();
+
+            boolean safeFilesAnalyzed = pkgEntity.isFilesAnalyzed() && hasValidVerificationCode;
+            builder.setFilesAnalyzed(safeFilesAnalyzed);
+
             builder.setDownloadLocation(pkgEntity.getDownloadLocation());
 
             if (!pkgEntity.getVersionInfo().isEmpty()) builder.setVersionInfo(pkgEntity.getVersionInfo());
@@ -240,7 +277,7 @@ public class ExportService  extends ProgressReportingService  {
             if (!pkgEntity.getOriginator().isEmpty()) builder.setOriginator(pkgEntity.getOriginator());
             if (!pkgEntity.getSupplier().isEmpty()) builder.setSupplier(pkgEntity.getSupplier());
 
-            if (pkgEntity.isFilesAnalyzed() && pkgEntity.getPackageVerificationCode() != null) {
+            if (hasValidVerificationCode) {
                 SpdxPackageVerificationCode pkgVerificationCode = new SpdxPackageVerificationCode(modelStore, documentUri, SpdxConstantsCompatV2.CLASS_SPDX_VERIFICATIONCODE + pkgEntity.getPackageVerificationCode().getPackageVerificationCodeValue(), null, true);
                 pkgVerificationCode.setValue(pkgEntity.getPackageVerificationCode().getPackageVerificationCodeValue());
                 pkgVerificationCode.getExcludedFileNames().addAll(pkgEntity.getPackageVerificationCode().getPackageVerificationCodeExcludedFiles());
@@ -249,33 +286,55 @@ public class ExportService  extends ProgressReportingService  {
 
             SpdxPackage spdxPackage = builder.build();
 
+            Set<String> seenChecksums = new HashSet<>();
             for (ChecksumEntity checksumEntity : pkgEntity.getChecksums()) {
-                spdxPackage.addChecksum(spdxPackage.createChecksum(ChecksumAlgorithm.valueOf(checksumEntity.getAlgorithm()), checksumEntity.getChecksumValue()));
+                String uniqueKey = checksumEntity.getAlgorithm() + ":" + checksumEntity.getChecksumValue();
+                if (seenChecksums.add(uniqueKey)) {
+                    spdxPackage.addChecksum(spdxPackage.createChecksum(ChecksumAlgorithm.valueOf(checksumEntity.getAlgorithm()), checksumEntity.getChecksumValue()));
+                }
             }
-
+            Set<String> seenRefs = new HashSet<>();
             for (ExternalRefEntity externalRefEntity : pkgEntity.getExternalRefs()) {
-                String extRefId = SpdxConstantsCompatV2.CLASS_SPDX_EXTERNAL_REFERENCE + UUID.randomUUID();
-                ExternalRef externalRef = new ExternalRef(modelStore, documentUri, extRefId, null, true);
-                externalRef.setReferenceLocator(externalRefEntity.getReferenceLocator());
-                externalRef.setReferenceType(new ReferenceType(externalRefEntity.getReferenceType()));
-                externalRef.setReferenceCategory(ReferenceCategory.valueOf(externalRefEntity.getReferenceCategory()));
-                externalRef.setComment(externalRefEntity.getComment());
-                spdxPackage.addExternalRef(externalRef);
+                String uniqueKey = externalRefEntity.getReferenceLocator();
+                if (seenRefs.add(uniqueKey)) {
+                    String extRefId = SpdxConstantsCompatV2.CLASS_SPDX_EXTERNAL_REFERENCE + UUID.randomUUID();
+                    ExternalRef externalRef = new ExternalRef(modelStore, documentUri, extRefId, null, true);
+                    externalRef.setReferenceLocator(externalRefEntity.getReferenceLocator());
+
+                    String refType = externalRefEntity.getReferenceType();
+                    try {
+                        ReferenceType resolvedType = ListedReferenceTypes.getListedReferenceTypes()
+                                .getListedReferenceTypeByName(refType);
+
+                        if (resolvedType != null) {
+                            externalRef.setReferenceType(resolvedType);
+                        } else {
+                            externalRef.setReferenceType(new ReferenceType(refType));
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to resolve listed reference type, falling back to basic instantiation.", e);
+                        externalRef.setReferenceType(new ReferenceType(refType));
+                    }
+
+                    externalRef.setReferenceCategory(ReferenceCategory.valueOf(externalRefEntity.getReferenceCategory()));
+
+                    if (externalRefEntity.getComment() != null && !externalRefEntity.getComment().isBlank()) {
+                        externalRef.setComment(externalRefEntity.getComment());
+                    }
+
+                    spdxPackage.addExternalRef(externalRef);
+                }
             }
 
             if (pkgEntity.getFileNames() != null) {
-                log.debug("Start adding files to package: {},...", pkgEntity.getName());
+                log.trace("Start adding files to package: {},...", pkgEntity.getName());
                 for (String fileSpdxId : pkgEntity.getFileNames()) {
-                    SpdxFileEntity fileEntity = fileEntityMap.get(fileSpdxId);
-                    if (fileEntity != null) {
-                        SpdxFile spdxFile = createSpdxFile(fileEntity, spdxDocument);
-                        if (spdxFile != null) {
-                            spdxPackage.addFile(spdxFile);
-                            elementMap.put(spdxFile.getId(), spdxFile);
-                        }
+                    SpdxElement cachedFile = elementMap.get(fileSpdxId);
+                    if (cachedFile instanceof SpdxFile) {
+                        spdxPackage.addFile((SpdxFile) cachedFile);
                     }
                 }
-                log.debug("finished adding files to package: {}, number of files added: {}", pkgEntity.getName(),
+                log.trace("finished adding files to package: {}, number of files added: {}", pkgEntity.getName(),
                         pkgEntity.getFileNames().size());
             }
 
