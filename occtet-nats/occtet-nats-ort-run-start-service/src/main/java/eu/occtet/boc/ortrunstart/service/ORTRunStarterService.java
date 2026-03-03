@@ -167,10 +167,40 @@ public class ORTRunStarterService {
         JobConfigurations jobConfigurations= new JobConfigurations();
         log.debug("creating JobConfig");
         AnalyzerJobConfiguration analyzerJobConfiguration= new AnalyzerJobConfiguration();
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Bazel");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Maven");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Bower");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Bundler");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Cargo");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Carthage");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("CocoaPods");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Composer");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Conan");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("GoMod");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("GradleInspector");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("NPM");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Nuget");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("PIP");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Pipenv");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("PNPM");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Poetry");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Pub");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("SBT");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("SpdxDocumentFile");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Stack");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("SwiftPM");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Yarn");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Yarn2");
+        analyzerJobConfiguration.addEnabledPackageManagersItem("Unmanaged");
+        analyzerJobConfiguration.allowDynamicVersions(true);
+        ProviderPluginConfiguration providerPluginConfiguration= new ProviderPluginConfiguration();
+        providerPluginConfiguration.setType("OrtConfig");
+        providerPluginConfiguration.putOptionsItem("OrtConfig", "true");
+        analyzerJobConfiguration.addPackageCurationProvidersItem(providerPluginConfiguration);
         jobConfigurations.setAnalyzer(analyzerJobConfiguration);
 
         AdvisorJobConfiguration advisorJobConfiguration = new AdvisorJobConfiguration();
-        //advisorJobConfiguration.setAdvisors(List.of("VulnerableCode"));
+        advisorJobConfiguration.setAdvisors(List.of("OSV"));
         jobConfigurations.setAdvisor(advisorJobConfiguration);
 
         //Scancode is default scanner

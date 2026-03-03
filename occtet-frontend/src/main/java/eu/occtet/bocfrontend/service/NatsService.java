@@ -27,6 +27,8 @@ import eu.occtet.boc.model.ProgressSystemMessage;
 import eu.occtet.boc.model.StatusDescriptor;
 import eu.occtet.boc.service.NatsHelperService;
 import eu.occtet.boc.service.NatsStreamSender;
+import eu.occtet.bocfrontend.config.ConfigNatsProperties;
+import eu.occtet.bocfrontend.config.ConfigOrtProperties;
 import io.nats.client.*;
 import io.nats.client.api.*;
 import jakarta.annotation.PostConstruct;
@@ -58,10 +60,11 @@ public class NatsService extends NatsHelperService {
     @Autowired
     private Connection natsConnection;
 
-    @Value("${nats.stream-name}")
-    private String streamName;
-    @Value("${nats.stream-subjects-config}")
-    private String streamSubjectsConfig;
+    private final ConfigNatsProperties natsProperties;
+
+    public NatsService(ConfigNatsProperties natsProperties) {
+        this.natsProperties = natsProperties;
+    }
 
     private @NonNull JetStream js;
 
@@ -87,8 +90,8 @@ public class NatsService extends NatsHelperService {
         js = natsConnection.jetStream();
         JetStreamManagement jsm = natsConnection.jetStreamManagement();
         StreamConfiguration config = StreamConfiguration.builder()
-                .name(streamName)
-                .subjects(streamSubjectsConfig)
+                .name(natsProperties.stream_name())
+                .subjects(natsProperties.stream_subjects_config())
                 .retentionPolicy(RetentionPolicy.WorkQueue)
                 .build();
         stream = jsm.addStream(config);

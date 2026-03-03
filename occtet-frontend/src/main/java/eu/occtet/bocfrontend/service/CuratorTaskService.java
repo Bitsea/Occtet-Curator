@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import eu.occtet.boc.model.BaseWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.NatsStreamSender;
+import eu.occtet.bocfrontend.config.ConfigNatsProperties;
 import eu.occtet.bocfrontend.dao.CuratorTaskRepository;
 import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.entity.TaskStatus;
@@ -60,13 +61,12 @@ public class CuratorTaskService {
     @Autowired
     private NatsService natsService;
 
+    private final ConfigNatsProperties natsProperties;
 
+    public CuratorTaskService(ConfigNatsProperties natsProperties) {
+        this.natsProperties = natsProperties;
+    }
 
-    private static final String sendSubjectOrtRun= "work.ortRunStarter";
-    private static final String sendSubjectExportSpdx= "work.export";
-    private static final String sendSubjectVulnerabilities="work.vulnerabilities";
-    private static final  String sendSubjectSpdx = "work.spdx";
-    private static final String sendSubjectProcessRun="work.ortProcessRun";
 
     /**
      * Save the task and send it to the NATS work queue for processing.
@@ -96,24 +96,20 @@ public class CuratorTaskService {
         log.debug("sending message to service: {}", message);
         try {
             log.debug("sending to stream {}", streamName);
-            switch(streamName) {
-                case sendSubjectSpdx:
-                    natsService.sendWorkMessageToStream(sendSubjectSpdx, message.getBytes(Charset.defaultCharset()));
-                    break;
-                case sendSubjectOrtRun:
-                    natsService.sendWorkMessageToStream(sendSubjectOrtRun, message.getBytes(Charset.defaultCharset()));
-                    break;
-                case sendSubjectExportSpdx:
-                    natsService.sendWorkMessageToStream(sendSubjectExportSpdx, message.getBytes(Charset.defaultCharset()));
-                    break;
-                case sendSubjectVulnerabilities:
-                    natsService.sendWorkMessageToStream(sendSubjectVulnerabilities, message.getBytes(Charset.defaultCharset()));
-                    break;
-                case sendSubjectProcessRun:
-                    natsService.sendWorkMessageToStream(sendSubjectProcessRun, message.getBytes(Charset.defaultCharset()));
-                    break;
 
-            }
+                if(streamName.equals(natsProperties.send_subject_spdx())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_spdx(), message.getBytes(Charset.defaultCharset()));
+                }else if(streamName.equals(natsProperties.send_subject_ort_run())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_ort_run(), message.getBytes(Charset.defaultCharset()));
+                }
+                else if(streamName.equals(natsProperties.send_subject_export())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_export(), message.getBytes(Charset.defaultCharset()));
+                }else if(streamName.equals(natsProperties.send_subject_vulnerabilities())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_vulnerabilities(), message.getBytes(Charset.defaultCharset()));
+                }else if(streamName.equals(natsProperties.send_subject_ort_result())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_ort_result(), message.getBytes(Charset.defaultCharset()));
+                }
+
         } catch (Exception e) {
             log.error("Could not send work message", e);
             curatorTask.setStatus(TaskStatus.CANCELLED);
