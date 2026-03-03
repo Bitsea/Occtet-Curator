@@ -39,6 +39,7 @@ import eu.occtet.bocfrontend.factory.AuditViewUiComponentFactory;
 import eu.occtet.bocfrontend.factory.RendererFactory;
 import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
 import eu.occtet.bocfrontend.service.*;
+import eu.occtet.bocfrontend.view.audit.fragment.OverviewOrtTabFragment;
 import eu.occtet.bocfrontend.view.audit.fragment.OverviewProjectTabFragment;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
@@ -122,6 +123,7 @@ public class AuditView extends StandardView{
     @ViewComponent private HorizontalLayout toolbarBox;
     @ViewComponent private VerticalLayout fileTreeGridLayout;
     @ViewComponent private OverviewProjectTabFragment overviewProjectTabFragment;
+    @ViewComponent private OverviewOrtTabFragment overviewOrtTabFragment;
 
     private TabManager tabManager;
     private Map<Long, Long> fileCounts = new HashMap<>();
@@ -165,6 +167,7 @@ public class AuditView extends StandardView{
         initializeFileTreeGrid();
         addTabSelectionListeners();
         overviewProjectTabFragment.setHostView(this);
+        overviewOrtTabFragment.setHostView(this);
         overviewProjectTabFragment.setDefaultAccordionValues();
     }
 
@@ -331,6 +334,7 @@ public class AuditView extends StandardView{
                 refreshAllDataForProject(project);
                 restoreTabsAndState();
                 overviewProjectTabFragment.setProjectOverview(project);
+                overviewOrtTabFragment.setProjectOrtOverview(project);
             });
         } catch (Exception e) {
             log.warn("Invalid projectId in URL: {}", projectIdStr, e);
