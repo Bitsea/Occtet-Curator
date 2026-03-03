@@ -23,12 +23,11 @@ package eu.occtet.boc.processRun.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
 import com.squareup.okhttp.*;
+import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.OrtIssueRepository;
 import eu.occtet.boc.dao.OrtViolationRepository;
 import eu.occtet.boc.dao.ProjectRepository;
-import eu.occtet.boc.entity.File;
-import eu.occtet.boc.entity.OrtIssue;
-import eu.occtet.boc.entity.OrtViolation;
+import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.model.ORTProcessWorkData;
 import eu.occtet.boc.ortclient.AuthService;
@@ -79,6 +78,9 @@ public class ProcessRunService {
     @Autowired
     private AnswerService answerService;
 
+    @Autowired
+    private InventoryItemRepository inventoryItemRepository;
+
     private final ConfigOrtProperties ortProperties;
 
     public ProcessRunService(ConfigOrtProperties ortProperties) {
@@ -113,6 +115,7 @@ public class ProcessRunService {
         Project project = projectRepository.findByProjectName(product.getName()).getFirst();
         log.debug("Processing run {} for project {}", runId, project.getProjectName());
 
+
         //handle violations and issues for display in UI and further processing
         handleViolations(runsApi, runId, project);
         handleIssues(runsApi, runId, project);
@@ -133,8 +136,14 @@ public class ProcessRunService {
 
         List<OrtViolation> toSaveViolations= new ArrayList<>();
         for(RuleViolation rV: ruleViolations){
-            toSaveViolations.add(ortViolationFactory.createOrtViolation(rV.getMessage(), rV.getRule(),
-                    rV.getSeverity().getValue(), rV.getPurl(), rV.getHowToFix(), rV.getLicense(), rV.getLicenseSource(), project));
+            OrtViolation ortVio= ortViolationFactory.createOrtViolation(rV.getMessage(), rV.getRule(),
+                    rV.getSeverity().getValue(), rV.getPurl(), rV.getHowToFix(), rV.getLicense(), rV.getLicenseSource(), project);
+            if(ortVio.getPurl()!=null) {
+                List<InventoryItem> inventoryItem = inventoryItemRepository.findByProjectIdAndSoftwareComponentPurl(project.getId(), ortVio.getPurl());
+                ortVio.setInventoryItem(inventoryItem.getFirst());
+            }
+            toSaveViolations.add(ortVio);
+
         }
         if (!toSaveViolations.isEmpty()) {
             ortViolationRepository.saveAll(toSaveViolations);
@@ -151,9 +160,14 @@ public class ProcessRunService {
         List<OrtIssue> toSaveIssues = new ArrayList<>();
         for(Issue issue: issues){
 
-            toSaveIssues.add(ortIssueFactory.createOrtIssue(issue.getIdentifier().getName(), issue.getSeverity().getValue(),
+            OrtIssue ortIssue= ortIssueFactory.createOrtIssue(issue.getIdentifier().getName(), issue.getSeverity().getValue(),
                     issue.getPurl(), issue.getAffectedPath(), issue.getMessage(), issue.getSource(),
-                    issue.getResolutions(), issue.getTimestamp(), issue.getWorker(), project));
+                    issue.getResolutions(), issue.getTimestamp(), issue.getWorker(), project);
+            if(ortIssue.getPurl()!=null) {
+                List<InventoryItem> inventoryItems = inventoryItemRepository.findByProjectIdAndSoftwareComponentPurl(project.getId(), ortIssue.getPurl());
+                ortIssue.setInventoryItem(inventoryItems.getFirst());
+            }
+            toSaveIssues.add(ortIssue);
         }
 
         if (!toSaveIssues.isEmpty()) {
