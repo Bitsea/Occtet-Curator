@@ -34,26 +34,50 @@
         <collection id="ortIssusesDc"
                     class="eu.occtet.bocfrontend.entity.OrtIssue">
             <fetchPlan extends="_base"/>
+            <loader id="ortIssuesDl">
+                <query>
+                    <![CDATA[select e from OrtIssue e where e.project.id = :projectID]]>
+                </query>
+            </loader>
         </collection>
         <collection id="ortViolationsDc"
                     class="eu.occtet.bocfrontend.entity.OrtViolation">
             <fetchPlan extends="_base"/>
+            <loader id="ortViolationsDl">
+                <query>
+                    <![CDATA[select e from OrtViolation e where e.project.id = :projectID]]>
+                </query>
+            </loader>
         </collection>
     </data>
     <content>
         <tabSheet id="mainTabSheet" width="100%" height="100%">
             <tab id="ortIssuesTab" label="Issues">
                 <split width="100%" height="100%" orientation="VERTICAL">
-                    <vbox height="60%" width="100%">
-                        <textField id="workerField" property="worker" label="ORT-Worker"  dataContainer="ortIssueDc"/>
-                        <textField id="affectedPathField" property="affectedPath" label="Affected path" dataContainer="ortIssueDc"/>
-                        <textField id="severityField" property="severity" label="Serverity" dataContainer="ortIssueDc"/>
-                        <textField id="identifierField" property="identifier" label="Identifier" dataContainer="ortIssueDc"/>
-                        <textField id="resolutionField" property="resolution" label="Resoultion" dataContainer="ortIssueDc"/>
-                        <textField id="timestampField" property="timestamp" label="Created at" dataContainer="ortIssueDc"/>
-                        <checkbox id="resolvedCheckBox" property="resolved" label="Resolved" dataContainer="ortIssueDc"/>
+                    <vbox height="63%" width="100%">
+                        <hbox width="100%">
+                            <textField id="inventoryItemIssueField" property="inventoryItem.inventoryName" width="40%"
+                                       label="IventoryItem" dataContainer="ortIssueDc"/>
+                            <button id="informationButton" icon="INFO_CIRCLE_O" alignSelf="END" enabled="false"/>
+                            <textField id="workerField" property="worker" label="ORT-Worker"
+                                       dataContainer="ortIssueDc" width="40%"/>
+                        </hbox>
+                        <textField id="affectedPathField" property="affectedPath" width="70%" label="Affected path" dataContainer="ortIssueDc"/>
+                        <hbox width="100%">
+                            <textField id="severityField" property="severity" width="20%" label="Serverity" dataContainer="ortIssueDc"/>
+                            <textField id="identifierField" property="identifier" width="30%" label="Identifier" dataContainer="ortIssueDc"/>
+                            <textField id="resolutionField" property="resolution" width="30%" label="Resoultion" dataContainer="ortIssueDc"/>
+                        </hbox>
+                        <hbox width="100%">
+                            <textField id="messageField" property="message" label="Message" width="40%" dataContainer="ortIssueDc"/>
+                            <button id="messageIssueButton" icon="INFO_CIRCLE_O" alignSelf="END" enabled="false"/>
+                            <checkbox id="resolvedCheckBox" property="resolved" label="Resolved" dataContainer="ortIssueDc"
+                                      alignSelf="END"/>
+                        </hbox>
+                        <textField id="timestampField" property="timestamp" label="Created at"
+                                   dataContainer="ortIssueDc"/>
                     </vbox>
-                    <vbox height="40%" width="100%">
+                    <vbox height="37%" width="100%">
                         <dataGrid id="issuesDataGrid"
                                   width="100%"
                                   height="20em"
@@ -75,12 +99,28 @@
             <tab id="ortViolationsTab" label="Violations">
                 <split width="100%" height="100%" orientation="VERTICAL">
                     <vbox height="60%" width="100%">
-                        <textField id="ruleField" property="rule" label="Rule"  dataContainer="ortViolationDc"/>
-                        <textField id="purlField" property="purl" label="Purl" dataContainer="ortViolationDc"/>
-                        <textField id="severityViolationField" property="severity" label="Serverity" dataContainer="ortViolationDc"/>
-                        <textField id="howToFixField" property="howToFix" label="How to fix" dataContainer="ortViolationDc"/>
-                        <textField id="licenseField" property="license" label="License" dataContainer="ortViolationDc"/>
-                        <textField id="licenseSourceField" property="licenseSource" label="License source" dataContainer="ortViolationDc"/>
+                        <hbox width="100%">
+                            <textField id="inventoryItemViolationField" property="inventoryItem.inventoryName"
+                                       width="40%" label="IventoryItem" dataContainer="ortViolationDc"/>
+                            <button id="informationViolationButton" enabled="false"  icon="INFO_CIRCLE_O" alignSelf="END"/>
+                            <textField id="ruleField" property="rule" label="Rule" width="40%" dataContainer="ortViolationDc"/>
+                        </hbox>
+                        <hbox width="100%">
+                            <textField id="purlField" property="purl" label="Purl" dataContainer="ortViolationDc" width="70%"/>
+                            <textField id="severityViolationField" property="severity" width="20%"
+                                       label="Serverity" dataContainer="ortViolationDc"/>
+                        </hbox>
+                        <hbox width="100%">
+                            <textField id="licenseField" property="license" width="30%" label="License" dataContainer="ortViolationDc"/>
+                            <textField id="licenseSourceField" property="licenseSource" width="50%"
+                                       label="License source" dataContainer="ortViolationDc"/>
+                        </hbox>
+                        <hbox width="100%">
+                            <textField id="howToFixField" property="howToFix" label="How to fix" width="40%" dataContainer="ortViolationDc"/>
+                            <button id="howToFixButton" icon="INFO_CIRCLE_O" enabled="false"  alignSelf="END"/>
+                            <textField id="messageViolationField" property="message" label="Message" width="40%" dataContainer="ortIssueDc"/>
+                            <button id="messageViolationButton" icon="INFO_CIRCLE_O" enabled="false" alignSelf="END"/>
+                        </hbox>
                         <checkbox id="resolvedViolationCheckBox" property="resolved" label="Resolved" dataContainer="ortViolationDc"/>
                     </vbox>
                     <vbox height="40%" width="100%">

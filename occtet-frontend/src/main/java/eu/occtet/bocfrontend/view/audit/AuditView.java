@@ -31,9 +31,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.*;
 import eu.occtet.bocfrontend.component.CustomParameterFilter;
-import eu.occtet.bocfrontend.dao.FileRepository;
-import eu.occtet.bocfrontend.dao.InventoryItemRepository;
-import eu.occtet.bocfrontend.dao.ProjectRepository;
+import eu.occtet.bocfrontend.dao.*;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.factory.AuditViewUiComponentFactory;
 import eu.occtet.bocfrontend.factory.RendererFactory;
@@ -93,6 +91,8 @@ public class AuditView extends StandardView{
     @Autowired private ProjectRepository projectRepository;
     @Autowired private FileRepository fileRepository;
     @Autowired private InventoryItemRepository inventoryItemRepository;
+    @Autowired private OrtIssueRepository ortIssueRepository;
+    @Autowired private OrtViolationRepository ortViolationRepository;
 
     @Autowired private Fragments fragments;
     @Autowired private Dialogs dialogs;
@@ -644,6 +644,8 @@ public class AuditView extends StandardView{
             switchProject(event.getValue());
         }
         overviewProjectTabFragment.setProjectOverview(event.getValue());
+        setOrtInformationFragment(event.getValue());
+
     }
 
     private void switchProject(Project project) {
@@ -680,6 +682,15 @@ public class AuditView extends StandardView{
 
     public List<File> getCurrentDraggedFiles() {
         return currentDraggedFiles != null ? currentDraggedFiles : Collections.emptyList();
+    }
+
+    private void setOrtInformationFragment(Project project){
+        List<OrtIssue> issues = ortIssueRepository.findByProjectId(project.getId());
+        List<OrtViolation> violations = ortViolationRepository.findByProjectId(project.getId());
+        if(!issues.isEmpty() || !violations.isEmpty()){
+            overviewOrtTabFragment.setVisible(true);
+            overviewOrtTabFragment.setProjectOrtOverview(project);
+        }
     }
 
 }
