@@ -41,10 +41,12 @@
             <formLayout id="form" dataContainer="ortViolationDc" width="100%" alignSelf="CENTER">
                 <vbox width="100%">
                     <hbox>
-                        <textField id="projectField" property="project.projectName" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.project" required="true"/>
-                        <textField id="rule" property="rule" label="msg://rule" />
+                        <textField id="projectField" property="project.projectName" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.project" />
+                        <textField id="inventoryItem" property="inventoryItem.inventoryName" label="msg://eu.occtet.bocfrontend.view.audit.fragment/inventoryName"/>
+
                     </hbox>
                     <hbox>
+                        <textField id="rule" property="rule" label="msg://rule" />
                         <textField id="purl" property="purl" label="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.purl" />
                         <textField id="severity" property="severity" label="msg://eu.occtet.bocfrontend.entity/Vulnerability.weightedSeverity"/>
                     </hbox>

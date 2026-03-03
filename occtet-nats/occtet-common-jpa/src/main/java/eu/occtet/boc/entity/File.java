@@ -46,7 +46,7 @@ public class File {
     @GeneratedValue(strategy= GenerationType.SEQUENCE)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "PROJECT_ID", nullable = false)
     @JoinColumn(name = "PROJECT_ID", nullable = false)
     private Project project;
@@ -112,12 +112,13 @@ public class File {
         }
     }
 
-    public File ( InventoryItem inventoryItem, String filePath, String fileName, Project project){
+    public File ( InventoryItem inventoryItem, String filePath, String fileName, Project project) {
         if (inventoryItem != null) {
             this.inventoryItems.add(inventoryItem);
         }        this.projectPath= filePath;
         this.fileName= fileName;
         this.project= project;
+
     }
 
     public File ( InventoryItem inventoryItem, String filePath, Project project) {

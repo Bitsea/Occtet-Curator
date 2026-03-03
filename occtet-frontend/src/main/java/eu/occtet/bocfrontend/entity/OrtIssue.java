@@ -75,6 +75,10 @@ public class OrtIssue {
     @Column(name="IDENTIFIER")
     private String identifier;
 
+    @ManyToOne
+    @JoinColumn(name="INVENTORY_ITEM_ID")
+    private InventoryItem inventoryItem;
+
 
     public OrtIssue() {
     }
@@ -173,5 +177,13 @@ public class OrtIssue {
 
     public void setIdentifier(String identifier) {
         this.identifier = identifier;
+    }
+
+    public InventoryItem getInventoryItem() {
+        return inventoryItem;
+    }
+
+    public void setInventoryItem(InventoryItem inventoryItem) {
+        this.inventoryItem = inventoryItem;
     }
 }
