@@ -28,9 +28,9 @@ import io.jmix.core.metamodel.annotation.InstanceName;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
-
-import static jakarta.persistence.FetchType.LAZY;
+import java.util.stream.Collectors;
 
 @JmixEntity
 @Table(name = "SOFTWARE_COMPONENT")
@@ -66,13 +66,9 @@ public class SoftwareComponent {
             inverseJoinColumns = @JoinColumn(name = "LICENSE_ID", referencedColumnName = "ID"))
     private List<License> licenses;
 
-    @ManyToMany(fetch = LAZY)
-    @JoinTable(
-            name = "SOFTWARE_COMPONENT_VULNERABILITY_LINK",
-            joinColumns = @JoinColumn(name = "SOFTWARE_COMPONENT_ID", referencedColumnName = "ID"),
-            inverseJoinColumns = @JoinColumn(name = "VULNERABILITY_ID", referencedColumnName = "ID"))
+    @OneToMany(mappedBy = "softwareComponent", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OnDelete(DeletePolicy.CASCADE)
-    private List<Vulnerability> vulnerabilities;
+    private List<ComponentVulnerabilityLink> vulnerabilityLinks = new ArrayList<>();
 
     @Column(name = "DETAILS_URL")
     private String detailsUrl;
@@ -161,11 +157,47 @@ public class SoftwareComponent {
     }
 
     public List<Vulnerability> getVulnerabilities() {
-        return vulnerabilities;
+        if (this.vulnerabilityLinks == null) {
+            return new ArrayList<>();
+        }
+        return this.vulnerabilityLinks.stream()
+                .map(ComponentVulnerabilityLink::getVulnerability)
+                .collect(Collectors.toList());
     }
 
     public void setVulnerabilities(List<Vulnerability> vulnerabilities) {
-        this.vulnerabilities = vulnerabilities;
+        if (this.vulnerabilityLinks == null) {
+            this.vulnerabilityLinks = new ArrayList<>();
+        }
+
+        if (vulnerabilities == null || vulnerabilities.isEmpty()) {
+            this.vulnerabilityLinks.clear();
+            return;
+        }
+
+        this.vulnerabilityLinks.removeIf(link -> !vulnerabilities.contains(link.getVulnerability()));
+
+        List<Vulnerability> existingVulnerabilities = this.vulnerabilityLinks.stream()
+                .map(ComponentVulnerabilityLink::getVulnerability)
+                .toList();
+
+        for (Vulnerability vulnerability : vulnerabilities) {
+            if (!existingVulnerabilities.contains(vulnerability)) {
+                ComponentVulnerabilityLink newLink = new ComponentVulnerabilityLink();
+                newLink.setSoftwareComponent(this);
+                newLink.setVulnerability(vulnerability);
+                newLink.setResolved(false);
+                this.vulnerabilityLinks.add(newLink);
+            }
+        }
+    }
+
+    public List<ComponentVulnerabilityLink> getVulnerabilityLinks() {
+        return vulnerabilityLinks;
+    }
+
+    public void setVulnerabilityLinks(List<ComponentVulnerabilityLink> vulnerabilityLinks) {
+        this.vulnerabilityLinks = vulnerabilityLinks;
     }
 
     public List<Copyright> getCopyrights() {

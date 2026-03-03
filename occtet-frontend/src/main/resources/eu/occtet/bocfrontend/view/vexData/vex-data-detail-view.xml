@@ -45,41 +45,49 @@
     <facets>
         <dataLoadCoordinator auto="true"/>
     </facets>
-    <layout padding="true">
+    <layout padding="true" expand="contentScroller">
+        <scroller id="contentScroller" width="100%">
+            <vbox width="100%">
+                <hbox>
+                    <nativeLabel text="msg://eu.occtet.bocfrontend.entity/VexData.timeStamp" themeNames="align-right"/>
+                    <nativeLabel id="timeStamp" property="timeStamp" dataContainer="vexDataDc" colspan="2"
+                                 themeNames="align-right"/>
+                </hbox>
+
+                <vbox width="100%">
+                    <textField width="50%" id="title" property="title" dataContainer="vexDataDc"
+                               label="msg://eu.occtet.bocfrontend.entity/VexData.title"/>
+
+                    <hbox width="100%">
+                        <textField width="50%" id="bomFormat" required="true" property="bomFormat" dataContainer="vexDataDc"
+                                   label="msg://BomFormat"/>
+                        <textField width="50%" id="specVersion" required="true" property="specVersion" dataContainer="vexDataDc"
+                                   label="msg://SpecVersion"/>
+                        <textField width="50%" id="serialNumber" required="true" property="serialNumber"
+                                   dataContainer="vexDataDc" label="msg://SerialNumber"/>
+                        <integerField width="50%" id="version" required="true" property="version" dataContainer="vexDataDc"
+                                      label="msg://eu.occtet.bocfrontend.view.vexData/version"/>
+                        <htmlObject colspan="2">
+                            <hr/>
+                        </htmlObject>
+                    </hbox>
+                    <details id="metaDataDetailsBox" summaryText="msg://metaData" classNames="bordered-panel" opened="true"
+                             width="100%">
+                    </details>
+                    <htmlObject colspan="2">
+                        <hr/>
+                    </htmlObject>
+                    <details width="100%" summaryText="msg://vulnerabilities" classNames="bordered-panel" opened="true">
+                        <virtualList id="vulnerabilityBox" itemsContainer="vulnerabilitiesDc" width="100%"/>
+                    </details>
+                </vbox>
+            </vbox>
+        </scroller>
+
         <hbox width="100%" spacing="true">
-                <button id="saveButton" text="msg://saveAndDownload" themeNames="primary small" action="saveAction"/>
-                <button id="closeButton" text="msg://close" themeNames="small" action="closeAction"/>
+            <button id="saveButton" text="msg://saveAndDownload" themeNames="primary small" action="saveAction"/>
+            <button id="closeButton" text="msg://close" themeNames="small" action="closeAction"/>
         </hbox>
-        <hbox>
-            <nativeLabel text="msg://eu.occtet.bocfrontend.entity/VexData.timeStamp" themeNames="align-right"/>
-            <nativeLabel id="timeStamp" property="timeStamp" dataContainer="vexDataDc" colspan="2" themeNames="align-right"/>
-        </hbox>
-
-        <vbox>
-            <textField width="50%" id="title" property="title" dataContainer="vexDataDc"
-                       label="msg://eu.occtet.bocfrontend.entity/VexData.title"/>
-
-            <hbox width="100%">
-            <textField width="50%" id="bomFormat" required="true" property="bomFormat" dataContainer="vexDataDc" label="msg://BomFormat"/>
-            <textField width="50%" id="specVersion" required="true" property="specVersion" dataContainer="vexDataDc" label="msg://SpecVersion" />
-                <textField width="50%" id="serialNumber" required="true" property="serialNumber"
-                           dataContainer="vexDataDc" label="msg://SerialNumber"/>
-                <integerField width="50%" id="version" required="true" property="version" dataContainer="vexDataDc"
-                              label="msg://eu.occtet.bocfrontend.view.vexData/version"/>
-                <htmlObject colspan="2">
-                    <hr/>
-                </htmlObject>
-            </hbox>
-            <details id="metaDataDetailsBox" summaryText="msg://metaData" classNames="bordered-panel" opened="true"
-                     width="100%">
-            </details>
-            <htmlObject colspan="2">
-                <hr/>
-            </htmlObject>
-            <details width="100%" summaryText="msg://vulnerabilities" classNames="bordered-panel" opened="true">
-                <virtualList id="vulnerabilityBox" itemsContainer="vulnerabilitiesDc" width="100%"/>
-            </details>
-    </vbox>
 
     </layout>
 </view>

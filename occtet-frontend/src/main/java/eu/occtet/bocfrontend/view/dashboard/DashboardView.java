@@ -168,6 +168,12 @@ public class DashboardView extends StandardView {
                 .withViewClass(VulnerabilityDetailView.class)
                 .editEntity(vulnerability)
                 .build();
+
+        Project selectedProject = projectSelector.getValue();
+        if (selectedProject != null) {
+            dialog.getView().setProject(selectedProject);
+        }
+
         dialog.setWidth("100%");
         dialog.setHeight("100%");
         dialog.open();
@@ -275,24 +281,25 @@ public class DashboardView extends StandardView {
             case noRisk -> {
                 return new ValueLoadContext()
                         .setQuery(new ValueLoadContext.Query("""
-                        select count(distinct s) as sumRiskScore
-                        from InventoryItem i
-                        join i.softwareComponent s
-                        join i.project p
-                        where p.id = :project_id and s.vulnerabilities is empty
-                        """).setParameter("project_id", project.getId()))
+                select count(distinct s) as sumRiskScore
+                from InventoryItem i
+                join i.softwareComponent s
+                join i.project p
+                where p.id = :project_id and s.vulnerabilityLinks is empty
+                """).setParameter("project_id", project.getId()))
                         .addProperty("sumRiskScore");
             }
             case vulnerabilityRisk -> {
                 return new ValueLoadContext()
                         .setQuery(new ValueLoadContext.Query("""
-                        select count(distinct v) as sumRiskScore
-                        from InventoryItem i
-                        join i.softwareComponent s
-                        join s.vulnerabilities v
-                        join i.project p
-                        where p.id = :project_id and (v.riskScore >= :minRisk and v.riskScore <= :maxRisk)
-                        """).setParameter("project_id", project.getId())
+                select count(distinct v) as sumRiskScore
+                from InventoryItem i
+                join i.softwareComponent s
+                join s.vulnerabilityLinks vl
+                join vl.vulnerability v
+                join i.project p
+                where p.id = :project_id and (v.riskScore >= :minRisk and v.riskScore <= :maxRisk)
+                """).setParameter("project_id", project.getId())
                                 .setParameter("minRisk", minRisk)
                                 .setParameter("maxRisk", maxRisk))
                         .addProperty("sumRiskScore");
@@ -300,13 +307,14 @@ public class DashboardView extends StandardView {
             case softwareRisk -> {
                 return new ValueLoadContext()
                         .setQuery(new ValueLoadContext.Query("""
-                        select count(distinct s) as sumRiskScore
-                        from InventoryItem i
-                        join i.softwareComponent s
-                        join s.vulnerabilities v
-                        join i.project p
-                        where p.id = :project_id and (v.riskScore >= :minRisk and v.riskScore <= :maxRisk)
-                        """).setParameter("project_id", project.getId())
+                select count(distinct s) as sumRiskScore
+                from InventoryItem i
+                join i.softwareComponent s
+                join s.vulnerabilityLinks vl
+                join vl.vulnerability v
+                join i.project p
+                where p.id = :project_id and (v.riskScore >= :minRisk and v.riskScore <= :maxRisk)
+                """).setParameter("project_id", project.getId())
                                 .setParameter("minRisk", minRisk)
                                 .setParameter("maxRisk", maxRisk))
                         .addProperty("sumRiskScore");

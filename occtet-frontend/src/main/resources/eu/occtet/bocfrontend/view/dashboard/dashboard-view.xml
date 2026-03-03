@@ -36,11 +36,12 @@
             <loader id="vulnerabilitiesDl">
                 <query>
                     <![CDATA[
-                    select distinct v from InventoryItem ii
-                    join ii.softwareComponent sc
-                    join sc.vulnerabilities v
-                    where ii.project = :component_projectSelector
-                    ]]>
+    select distinct v from InventoryItem ii
+    join ii.softwareComponent sc
+    join sc.vulnerabilityLinks vl
+    join vl.vulnerability v
+    where ii.project = :component_projectSelector
+    ]]>
                 </query>
             </loader>
         </collection>

@@ -33,7 +33,9 @@
         </instance>
         <instance id="softwareComponentDc" class="eu.occtet.bocfrontend.entity.SoftwareComponent">
             <fetchPlan extends="_base">
-                <property name="vulnerabilities" fetchPlan="_base"/>
+                <property name="vulnerabilityLinks" fetchPlan="_base">
+                    <property name="vulnerability" fetchPlan="_base"/>
+                </property>
             </fetchPlan>
         </instance>
         <collection id="fileDc" class="eu.occtet.bocfrontend.entity.File">
