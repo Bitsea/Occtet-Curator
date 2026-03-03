@@ -27,6 +27,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 
 @Entity
@@ -62,6 +63,9 @@ public class Project {
 
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    private Set<File> files;
 
     public Project() {this.createdAt = LocalDateTime.now();}
 
@@ -122,4 +126,14 @@ public class Project {
     public LocalDateTime getCreatedAt() {return createdAt;}
 
     public void setCreatedAt(@Nonnull LocalDateTime createdAt) {this.createdAt = createdAt;}
+
+    public Set<File> getFiles() {
+        return files;
+    }
+
+    public void setFiles(Set<File> files) {
+        if(this.files!= null){
+            this.files.addAll(files);
+        }else this.files = files;
+    }
 }

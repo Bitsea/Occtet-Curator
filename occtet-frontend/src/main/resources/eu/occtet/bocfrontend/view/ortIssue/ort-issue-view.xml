@@ -41,17 +41,26 @@
                         <vbox width="100%" id="form">
                         <hbox>
                             <textField id="projectField" property="project.projectName" dataContainer="ortIssueDc" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.project"/>
-                            <textField id="worker" property="worker" dataContainer="ortIssueDc" label="msg://worker" />
+                            <textField id="inventoryItem" property="inventoryItem.inventoryName" dataContainer="ortIssueDc" label="msg://eu.occtet.bocfrontend.view.audit.fragment/inventoryName" />
                         </hbox>
-                        <hbox>
-                            <textField id="affectedPath" property="affectedPath" dataContainer="ortIssueDc" label="msg://affectedPath" />
-                            <textField id="severity" property="severity" dataContainer="ortIssueDc" label="msg://eu.occtet.bocfrontend.entity/Vulnerability.weightedSeverity" />
-                            <textField id="identifier" property="identifier" dataContainer="ortIssueDc" label="msg://identifier" />
+                            <hbox>
+                                <textField id="affectedPath" property="affectedPath" dataContainer="ortIssueDc"
+                                           label="msg://affectedPath"/>
+                                <textField id="severity" property="severity" dataContainer="ortIssueDc"
+                                           label="msg://eu.occtet.bocfrontend.entity/Vulnerability.weightedSeverity"/>
+                            </hbox>
+                            <hbox>
 
-                            <checkbox id="resolved" property="resolved" dataContainer="ortIssueDc"
-                                      label="msg://eu.occtet.bocfrontend.view.ortViolation/resolved" alignSelf="END"/>
+                                <textField id="worker" property="worker" dataContainer="ortIssueDc"
+                                           label="msg://worker"/>
+                                <textField id="identifier" property="identifier" dataContainer="ortIssueDc"
+                                           label="msg://identifier"/>
 
-                        </hbox>
+                                <checkbox id="resolved" property="resolved" dataContainer="ortIssueDc"
+                                          label="msg://eu.occtet.bocfrontend.view.ortViolation/resolved"
+                                          alignSelf="END"/>
+
+                            </hbox>
                             <hbox width="100%">
                                 <textField id="resolution" property="resolution" dataContainer="ortIssueDc"
                                            label="msg://resolution"/>

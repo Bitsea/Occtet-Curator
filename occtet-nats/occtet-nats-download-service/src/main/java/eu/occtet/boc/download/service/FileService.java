@@ -20,6 +20,7 @@
 package eu.occtet.boc.download.service;
 
 import eu.occtet.boc.dao.FileRepository;
+import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.download.factory.FileFactory;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
@@ -54,6 +55,8 @@ public class FileService {
     private FileRepository fileRepository;
     @Autowired
     private FileFactory fileFactory;
+    @Autowired
+    private ProjectRepository projectRepository;
 
     @Value("${occtet.scanner.ignored-names:}")
     private List<String> ignoredNames = Collections.emptyList();

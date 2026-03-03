@@ -24,6 +24,7 @@ import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.fossreport.dao.SoftwareComponentRepository;
+import eu.occtet.boc.fossreport.factory.ProjectFactory;
 import eu.occtet.boc.model.*;
 import eu.occtet.boc.service.NatsStreamSender;
 import eu.occtet.boc.service.ProgressReportingService;
@@ -70,6 +71,9 @@ public class FossReportService extends ProgressReportingService {
     private SoftwareComponentRepository softwareComponentRepository;
     @Autowired
     private Connection natsConnection;
+
+    @Autowired
+    private ProjectFactory projectFactory;
 
     @Value("${nats.send-subject1}")
     private String sendSubject1;
@@ -173,6 +177,7 @@ public class FossReportService extends ProgressReportingService {
                     parentInventory, softwareComponent, copyrights, priority
             );
             File basePathFile = fileService.findOrCreateFileWithInventory(basePath, inventoryItem, inventoryItem.getProject());
+            projectFactory.addFilestoProject(Set.of(basePathFile), inventoryItem.getProject());
             notifyProgress(30, "preparing files");
 
             prepareFiles(rowDto, inventoryItem, basePathFile);

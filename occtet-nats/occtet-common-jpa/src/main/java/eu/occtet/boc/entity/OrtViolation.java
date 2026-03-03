@@ -61,6 +61,10 @@ public class OrtViolation {
     @Column(name="RESOLVED")
     private Boolean resolved;
 
+    @ManyToOne
+    @JoinColumn(name="INVENTORY_ITEM_ID")
+    private InventoryItem inventoryItem;
+
     public OrtViolation() {
     }
 
@@ -154,5 +158,13 @@ public class OrtViolation {
 
     public void setResolved(Boolean resolved) {
         this.resolved = resolved;
+    }
+
+    public InventoryItem getInventoryItem() {
+        return inventoryItem;
+    }
+
+    public void setInventoryItem(InventoryItem inventoryItem) {
+        this.inventoryItem = inventoryItem;
     }
 }

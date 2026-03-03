@@ -65,6 +65,10 @@ public class OrtViolation {
     @OnDelete(DeletePolicy.CASCADE)
     private Project project;
 
+    @ManyToOne
+    @JoinColumn(name="INVENTORY_ITEM_ID")
+    private InventoryItem inventoryItem;
+
 
     public OrtViolation() {
     }
@@ -148,5 +152,13 @@ public class OrtViolation {
 
     public void setProject(Project project) {
         this.project = project;
+    }
+
+    public InventoryItem getInventoryItem() {
+        return inventoryItem;
+    }
+
+    public void setInventoryItem(InventoryItem inventoryItem) {
+        this.inventoryItem = inventoryItem;
     }
 }
