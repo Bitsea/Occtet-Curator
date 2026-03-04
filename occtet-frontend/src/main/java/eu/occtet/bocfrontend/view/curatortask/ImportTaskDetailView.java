@@ -133,7 +133,7 @@ public class ImportTaskDetailView extends StandardDetailView<CuratorTask> {
 
             dataManager.load(Project.class).all().list().forEach(listProject::add);
             projectComboBox.setItems(listProject);
-            projectComboBox.setItemLabelGenerator(Project::getProjectName);
+            projectComboBox.setItemLabelGenerator(project -> project.getProjectName()+" - "+project.getVersion());
 
             configurationsDataGrid.setItems(new ContainerDataGridItems<>(configurationsDc));
 

@@ -112,9 +112,9 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
         });
     }
 
-    @Supply(to = "vulnerabilityDataContainer.actions", subject = "renderer")
-    private Renderer<Vulnerability> actionsButtonRenderer() {
-        return new ComponentRenderer<>(vulnerability -> {
+    @Supply(to = "vulnerabilityLinksDataGrid.actions", subject = "renderer")
+    private Renderer<ComponentVulnerabilityLink> actionsButtonRenderer() {
+        return new ComponentRenderer<>(link -> {
             JmixButton infoButton = uiComponents.create(JmixButton.class);
             infoButton.setIcon(VaadinIcon.INFO_CIRCLE.create());
             infoButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -122,7 +122,7 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
 
             infoButton.addClickListener(e -> {
                 dialogWindow.view(this, VulnerabilityDetailView.class)
-                        .withViewConfigurer(v -> v.setEntityToEdit(vulnerability)).open();
+                        .withViewConfigurer(v -> v.setEntityToEdit(link.getVulnerability())).open();
             });
 
             return infoButton;

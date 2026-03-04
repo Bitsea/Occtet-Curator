@@ -70,7 +70,7 @@ public class VexDataListView extends StandardListView<VexData> {
     @Subscribe
     public void onInit(InitEvent event){
         projectComboBox.setItems(projectRepository.findAll());
-        projectComboBox.setItemLabelGenerator(Project::getProjectName);
+        projectComboBox.setItemLabelGenerator(project -> project.getProjectName()+" - "+project.getVersion());
     }
 
     @Subscribe(id = "projectComboBox")

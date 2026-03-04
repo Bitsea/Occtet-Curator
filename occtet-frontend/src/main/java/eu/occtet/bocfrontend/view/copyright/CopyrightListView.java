@@ -27,6 +27,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.Route;
+import eu.occtet.bocfrontend.dao.CopyrightRepository;
+import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.view.main.MainView;
@@ -72,6 +74,9 @@ public class CopyrightListView extends StandardListView<Copyright> {
     @Autowired
     private ProjectRepository projectRepository;
 
+    @Autowired
+    private InventoryItemRepository inventoryItemRepository;
+
     @ViewComponent
     private JmixComboBox<Project> projectComboBox;
 
@@ -91,12 +96,14 @@ public class CopyrightListView extends StandardListView<Copyright> {
     private JmixButton markButton;
 
     private Project project;
+    @Autowired
+    private CopyrightRepository copyrightRepository;
 
 
     @Subscribe
     public void onInit(InitEvent event){
         projectComboBox.setItems(projectRepository.findAll());
-        projectComboBox.setItemLabelGenerator(Project::getProjectName);
+        projectComboBox.setItemLabelGenerator(project -> project.getProjectName()+" - "+project.getVersion());
         project = null;
     }
 
@@ -152,8 +159,10 @@ public class CopyrightListView extends StandardListView<Copyright> {
     }
 
     private void updateDatagridForProject(Project project){
-        log.debug("Loading copyrights for project: " + project.getProjectName());
-        copyrightsDl.setParameter("project",project);
+        log.debug("Loading copyrights for project: " +project.getProjectName()+" - "+project.getVersion());
+        List<InventoryItem> items = inventoryItemRepository.findByProject(project);
+        List<Copyright> copyrights = copyrightRepository.findByInventoryItems(items);
+        copyrightsDl.setParameter("copyrights",copyrights);
         copyrightsDl.load();
     }
 
