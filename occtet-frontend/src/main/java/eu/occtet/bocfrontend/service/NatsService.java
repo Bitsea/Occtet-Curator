@@ -101,7 +101,7 @@ public class NatsService {
         ObjectStoreConfiguration objectStoreConfiguration = ObjectStoreConfiguration.builder()
                 .name("file-bucket")
                 .description("bucket containing large files for other microservices")
-                .storageType(StorageType.Memory)
+                .storageType(StorageType.File)
                 .compression(true)
                 .ttl(Duration.ofHours(Long.parseLong(objectStoreTtl)))
                 .build();
