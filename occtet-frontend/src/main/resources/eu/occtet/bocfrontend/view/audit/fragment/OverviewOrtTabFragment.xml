@@ -58,7 +58,7 @@
                         <hbox width="100%">
                             <textField id="inventoryItemIssueField" property="inventoryItem.inventoryName" width="40%"
                                        label="IventoryItem" dataContainer="ortIssueDc"/>
-                            <button id="informationButton" icon="INFO_CIRCLE_O" alignSelf="END" enabled="false"/>
+                            <button id="informationIssueButton" icon="INFO_CIRCLE_O" alignSelf="END" enabled="false"/>
                             <textField id="workerField" property="worker" label="ORT-Worker"
                                        dataContainer="ortIssueDc" width="40%"/>
                         </hbox>
@@ -69,7 +69,7 @@
                             <textField id="resolutionField" property="resolution" width="30%" label="Resoultion" dataContainer="ortIssueDc"/>
                         </hbox>
                         <hbox width="100%">
-                            <textField id="messageField" property="message" label="Message" width="40%" dataContainer="ortIssueDc"/>
+                            <textField id="messageIssueField" property="message" label="Message" width="40%" dataContainer="ortIssueDc"/>
                             <button id="messageIssueButton" icon="INFO_CIRCLE_O" alignSelf="END" enabled="false"/>
                             <checkbox id="resolvedCheckBox" property="resolved" label="Resolved" dataContainer="ortIssueDc"
                                       alignSelf="END"/>
@@ -118,7 +118,7 @@
                         <hbox width="100%">
                             <textField id="howToFixField" property="howToFix" label="How to fix" width="40%" dataContainer="ortViolationDc"/>
                             <button id="howToFixButton" icon="INFO_CIRCLE_O" enabled="false"  alignSelf="END"/>
-                            <textField id="messageViolationField" property="message" label="Message" width="40%" dataContainer="ortIssueDc"/>
+                            <textField id="messageViolationField" property="message" label="Message" width="40%" dataContainer="ortViolationDc"/>
                             <button id="messageViolationButton" icon="INFO_CIRCLE_O" enabled="false" alignSelf="END"/>
                         </hbox>
                         <checkbox id="resolvedViolationCheckBox" property="resolved" label="Resolved" dataContainer="ortViolationDc"/>

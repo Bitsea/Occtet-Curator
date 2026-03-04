@@ -22,6 +22,7 @@ package eu.occtet.bocfrontend.view.audit.fragment;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.grid.ItemClickEvent;
+import com.vaadin.flow.component.textfield.TextField;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.view.audit.AuditView;
 import io.jmix.flowui.Dialogs;
@@ -68,7 +69,7 @@ public class OverviewOrtTabFragment extends Fragment<JmixTabSheet>{
     private InstanceLoader<OrtViolation> ortViolationDl;
 
     @ViewComponent
-    private JmixButton informationButton;
+    private JmixButton informationIssueButton;
 
     @ViewComponent
     private JmixButton messageIssueButton;
@@ -82,8 +83,20 @@ public class OverviewOrtTabFragment extends Fragment<JmixTabSheet>{
     @ViewComponent
     private JmixButton messageViolationButton;
 
+    @ViewComponent
+    private TextField howToFixField;
+
+    @ViewComponent
+    private TextField messageViolationField;
+
+    @ViewComponent
+    private TextField messageIssueField;
+
     @Autowired
     private Dialogs dialogs;
+
+    private InventoryItem issueItem;
+    private InventoryItem violationItem;
 
     public void setProjectOrtOverview(@Nonnull Project project){
         this.project = dataContext.merge(project);
@@ -92,6 +105,87 @@ public class OverviewOrtTabFragment extends Fragment<JmixTabSheet>{
 
     public void setHostView(View<?> hostView) {
         this.hostView = hostView;
+    }
+
+    @Subscribe("issuesDataGrid")
+    public void clickOnOrtIssuesDatagrid(final ItemClickEvent<OrtIssue> event){
+
+        OrtIssue issue = event.getItem();
+        if(issue != null){
+
+            informationIssueButton.setEnabled(false);
+            messageIssueButton.setEnabled(false);
+
+            if(issue.getInventoryItem() != null){
+                informationIssueButton.setEnabled(true);
+                issueItem = issue.getInventoryItem();
+            }
+            if(issue.getMessage() != null){
+                if(!issue.getMessage().isEmpty()) {
+                    messageIssueButton.setEnabled(true);
+                }
+            }
+            ortIssueDl.setEntityId(issue);
+            ortIssueDl.load();
+        }
+    }
+
+    @Subscribe("violationsDataGrid")
+    public void clickOnOrtViolationsDatagrid(final ItemClickEvent<OrtViolation> event){
+
+        OrtViolation violation = event.getItem();
+        if(violation != null){
+
+            howToFixButton.setEnabled(false);
+            messageViolationButton.setEnabled(false);
+            informationViolationButton.setEnabled(false);
+
+            if(violation.getInventoryItem() != null){
+                informationViolationButton.setEnabled(true);
+                violationItem = violation.getInventoryItem();
+            }
+            if(violation.getHowToFix() != null){
+                if(!violation.getHowToFix().isEmpty()){
+                    howToFixButton.setEnabled(true);
+                }
+            }
+            if(violation.getMessage() != null){
+                if(!violation.getMessage().isEmpty()){
+                    messageViolationButton.setEnabled(true);
+                }
+            }
+            ortViolationDl.setEntityId(violation);
+            ortViolationDl.load();
+        }
+    }
+
+    @Subscribe(id = "informationIssueButton", subject = "clickListener")
+    public void onInformationIssueItemButtonClick(final ClickEvent<JmixButton> event) {
+        if(issueItem != null){
+            openInventoryTab(issueItem);
+        }
+    }
+
+    @Subscribe(id = "informationViolationButton", subject = "clickListener")
+    public void onInformationViolationItemButtonClick(final ClickEvent<JmixButton> event) {
+        if(violationItem != null){
+            openInventoryTab(violationItem);
+        }
+    }
+
+    @Subscribe(id = "messageIssueButton", subject = "clickListener")
+    public void onMessageIssueButtonClick(final ClickEvent<JmixButton> event) {
+        openInformationDialog("Message",messageIssueField.getValue());
+    }
+
+    @Subscribe(id = "howToFixButton", subject = "clickListener")
+    public void onHowToFixButtonClick(final ClickEvent<JmixButton> event) {
+        openInformationDialog("How to fix",howToFixField.getValue());
+    }
+
+    @Subscribe(id = "messageViolationButton", subject = "clickListener")
+    public void onMessageViolationButtonClick(final ClickEvent<JmixButton> event) {
+        openInformationDialog("Message",messageViolationField.getValue());
     }
 
     private void setOrtInformation(Project project){
@@ -109,68 +203,19 @@ public class OverviewOrtTabFragment extends Fragment<JmixTabSheet>{
         ortViolationsDl.load();
     }
 
-    @Subscribe("issuesDataGrid")
-    public void clickOnOrtIssuesDatagrid(final ItemClickEvent<OrtIssue> event){
-
-        OrtIssue issue = event.getItem();
-        if(issue != null){
-            if(issue.getInventoryItem() != null){
-                informationButton.setEnabled(true);
-                informationButton.addClickListener(e -> {
-                    if(hostView instanceof AuditView auditView){
-                        auditView.handleInventoryItemFromOverview(issue.getInventoryItem());
-                    }
-                });
-            }
-            if(!issue.getMessage().isEmpty()){
-                messageIssueButton.setEnabled(true);
-                messageIssueButton.addClickListener(e -> openInformationDialog("Message"
-                        ,issue.getMessage()));
-            }
-            ortIssueDl.setEntityId(issue);
-            ortIssueDl.load();
-        }
-    }
-
-    @Subscribe("violationsDataGrid")
-    public void clickOnOrtViolationsDatagrid(final ItemClickEvent<OrtViolation> event){
-
-        OrtViolation violation = event.getItem();
-        if(violation != null){
-            if(violation.getInventoryItem() != null){
-                informationViolationButton.setEnabled(true);
-                informationButton.addClickListener(e -> {
-                    if(hostView instanceof AuditView auditView){
-                        auditView.handleInventoryItemFromOverview(violation.getInventoryItem());
-                    }
-                });
-            }
-            if(!violation.getHowToFix().isEmpty()){
-                howToFixButton.setEnabled(true);
-                howToFixButton.addClickListener(e -> openInformationDialog("How to fix"
-                        ,violation.getHowToFix()));
-            }
-            if(!violation.getMessage().isEmpty()){
-                messageViolationButton.setEnabled(true);
-                messageViolationButton.addClickListener(e -> openInformationDialog("Message"
-                        , violation.getMessage()));
-            }
-            ortViolationDl.setEntityId(violation);
-            ortViolationDl.load();
-        }
-    }
-
     private void openInformationDialog(String type,String message){
         dialogs.createMessageDialog()
                 .withHeader(type)
+                .withMaxWidth("30%")
+                .withMaxHeight("30%")
                 .withText(message)
                 .open();
     }
 
-    @Subscribe(id = "informationButton", subject = "clickListener")
-    public void onInformationButtonClick(final ClickEvent<JmixButton> event) {
-        //TODO implment opening inventoryItem tab
+    private void openInventoryTab(InventoryItem item){
+        if(hostView instanceof AuditView auditView){
+            auditView.handleInventoryItemFromOverview(item);
+        }
     }
-
 
 }
