@@ -107,9 +107,6 @@ public class OrphanHandler {
                         inventoryItem);
                 File dbFile = locationMap.get(filePath);
 
-                Map<String, File> locationMap = fileService.findOrCreateBatch(Collections.singletonList(filePath), inventoryItem);
-                File dbFile = locationMap.get(filePath);
-
                 boolean componentUpdated = false;
 
                 String copyrightText = file.getCopyrightText();
