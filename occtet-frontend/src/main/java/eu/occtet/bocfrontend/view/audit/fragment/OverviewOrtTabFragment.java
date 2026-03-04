@@ -20,6 +20,7 @@
 package eu.occtet.bocfrontend.view.audit.fragment;
 
 
+import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.view.audit.AuditView;
@@ -165,4 +166,11 @@ public class OverviewOrtTabFragment extends Fragment<JmixTabSheet>{
                 .withText(message)
                 .open();
     }
+
+    @Subscribe(id = "informationButton", subject = "clickListener")
+    public void onInformationButtonClick(final ClickEvent<JmixButton> event) {
+        //TODO implment opening inventoryItem tab
+    }
+
+
 }
