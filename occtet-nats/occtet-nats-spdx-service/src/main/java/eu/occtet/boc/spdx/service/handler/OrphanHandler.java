@@ -20,6 +20,8 @@
 package eu.occtet.boc.spdx.service.handler;
 
 import eu.occtet.boc.dao.CopyrightRepository;
+import eu.occtet.boc.dao.OrtIssueRepository;
+import eu.occtet.boc.dao.OrtViolationRepository;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
@@ -55,12 +57,18 @@ public class OrphanHandler {
     private SoftwareComponentService softwareComponentService;
     @Autowired
     private InventoryItemService inventoryItemService;
+    @Autowired
+    private OrtIssueRepository ortIssueRepository;
+    @Autowired
+    private OrtViolationRepository ortViolationRepository;
 
 
 
     public void processOrphanFiles(SpdxImportContext context) {
         log.info("Processing orphan files");
         SpdxDocument spdxDocument = context.getSpdxDocument();
+        List<OrtIssue> ortIssues= ortIssueRepository.findByProject(context.getProject());
+        List<OrtViolation> ortViolations = ortViolationRepository.findByProject(context.getProject());
         try {
             List<TypedValue> allFileUris = spdxDocument.getModelStore().getAllItems(null, "File").toList();
             Map<String, SpdxFile> uniqueOrphans = new HashMap<>();
@@ -100,6 +108,8 @@ public class OrphanHandler {
                 inventoryItem.setSpdxId(file.getId());
                 inventoryItem.setCurated(false);
                 inventoryItem.setSize(1);
+
+                inventoryItemService.sortViolationsAndIssues(ortIssues, ortViolations, inventoryItem);
 
                 spdxConverter.convertFile(file, context.getSpdxDocumentRoot());
                 context.getFileToInventoryItemMap().put(file.getId(), inventoryItem);
@@ -161,4 +171,6 @@ public class OrphanHandler {
             log.error("Error when trying to handle orphaned files. Skipping...", e);
         }
     }
+
+
 }

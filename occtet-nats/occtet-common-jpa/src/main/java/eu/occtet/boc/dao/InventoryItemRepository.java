@@ -24,6 +24,7 @@ import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.SoftwareComponent;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -37,18 +38,7 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
 
     List<InventoryItem> findAllByProject(Project project);
 
-//    @Query("SELECT DISTINCT ii.*\n" +
-//            "FROM inventory_item ii\n" +
-//            "JOIN project p \n" +
-//            "    ON ii.project_id = p.id\n" +
-//            "JOIN inventory_item_software_component iisc \n" +
-//            "    ON iisc.inventory_item_id = ii.id\n" +
-//            "JOIN software_component sc \n" +
-//            "    ON sc.id = iisc.software_component_id\n" +
-//            "WHERE p.id = :projectId\n" +
-//            "  AND sc.purl = :purl;")
-//    List<InventoryItem> findByProjectIdAndSoftwareComponentPurl(Long projectId, String purl);
-
     @Query("select distinct i from InventoryItem i join i.project p join i.softwareComponent sc where p.id = :projectId and sc.purl = :purl")
-    List<InventoryItem> findByProjectIdAndSoftwareComponentPurl(Long projectId, String purl);
+    List<InventoryItem> findByProjectIdAndSoftwareComponentPurl(@Param("projectId") Long projectId,
+                                                                @Param("purl") String purl);
 }

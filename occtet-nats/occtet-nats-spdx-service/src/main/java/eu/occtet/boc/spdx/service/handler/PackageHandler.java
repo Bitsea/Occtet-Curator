@@ -20,6 +20,8 @@
 package eu.occtet.boc.spdx.service.handler;
 
 import eu.occtet.boc.dao.CopyrightRepository;
+import eu.occtet.boc.dao.OrtIssueRepository;
+import eu.occtet.boc.dao.OrtViolationRepository;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
@@ -60,6 +62,10 @@ public class PackageHandler {
     private CopyrightService copyrightService;
     @Autowired
     private CopyrightRepository copyrightRepository;
+    @Autowired
+    private OrtIssueRepository ortIssueRepository;
+    @Autowired
+    private OrtViolationRepository ortViolationRepository;
 
     public void processAllPackages(SpdxImportContext context, Consumer<Integer> progressCallback) {
         SpdxDocument doc = context.getSpdxDocument();
@@ -102,6 +108,9 @@ public class PackageHandler {
 
     public InventoryItem parseSinglePackage(SpdxPackage spdxPackage, SpdxImportContext context)
             throws Exception {
+
+        List<OrtIssue> ortIssues= ortIssueRepository.findByProject(context.getProject());
+        List<OrtViolation> ortViolations = ortViolationRepository.findByProject(context.getProject());
 
         log.info("Looking at package: {}", spdxPackage.getId());
         spdxConverter.convertPackage(spdxPackage, context.getSpdxDocumentRoot(), context.getPackageLookupMap());
@@ -146,6 +155,8 @@ public class PackageHandler {
         InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, component, context.getProject());
         inventoryItem.setSpdxId(spdxPackage.getId());
         inventoryItem.setCurated(false);
+
+        inventoryItemService.sortViolationsAndIssues(ortIssues, ortViolations, inventoryItem);
 
         Set<SpdxFile> packageFiles = new HashSet<>(spdxPackage.getFiles());
 

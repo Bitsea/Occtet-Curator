@@ -36,18 +36,21 @@ import eu.occtet.boc.ortclient.TokenResponse;
 import eu.occtet.boc.processRun.config.ConfigOrtProperties;
 import eu.occtet.boc.processRun.factory.OrtIssueFactory;
 import eu.occtet.boc.processRun.factory.OrtViolationFactory;
+import eu.occtet.boc.processRun.factory.ProjectFactory;
 import org.apache.commons.codec.Charsets;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openapitools.client.ApiClient;
 import org.openapitools.client.ApiException;
 import org.openapitools.client.ApiResponse;
+import org.openapitools.client.api.OrganizationsApi;
 import org.openapitools.client.api.ProductsApi;
 import org.openapitools.client.api.RepositoriesApi;
 import org.openapitools.client.api.RunsApi;
 import org.openapitools.client.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -79,7 +82,8 @@ public class ProcessRunService {
     private AnswerService answerService;
 
     @Autowired
-    private InventoryItemRepository inventoryItemRepository;
+    private ProjectFactory projectFactory;
+
 
     private final ConfigOrtProperties ortProperties;
 
@@ -112,7 +116,16 @@ public class ProcessRunService {
         Long productId= run.getProductId();
         ProductsApi productsApi = new ProductsApi(apiClient);
         Product product= productsApi.getProduct(productId);
-        Project project = projectRepository.findByProjectName(product.getName()).getFirst();
+        OrganizationsApi organizationsApi = new OrganizationsApi(apiClient);
+        Organization organization= organizationsApi.getOrganization(product.getOrganizationId());
+
+        Project project= null;
+        List<Project> projects = projectRepository.findByProjectName(product.getName());
+        //if the run was started only via ORT, here a project is created according to the product on ort-server
+        if(projects.isEmpty()){
+            log.debug("No project found for product {}, creating new project", product.getName());
+            project= projectFactory.createProject(product.getName(), organization.getName(), "1.0");
+        }else project= projects.getFirst();
         log.debug("Processing run {} for project {}", runId, project.getProjectName());
 
 
@@ -124,7 +137,7 @@ public class ProcessRunService {
         answerService.sendToSpdxService(spdxSbom,project.getId(), false, false);
 
         //delete Run at the end
-        runsApi.deleteRun(runId);
+        //runsApi.deleteRun(runId);
         return true;
 
     }
@@ -138,10 +151,6 @@ public class ProcessRunService {
         for(RuleViolation rV: ruleViolations){
             OrtViolation ortVio= ortViolationFactory.createOrtViolation(rV.getMessage(), rV.getRule(),
                     rV.getSeverity().getValue(), rV.getPurl(), rV.getHowToFix(), rV.getLicense(), rV.getLicenseSource(), project);
-            if(ortVio.getPurl()!=null) {
-                List<InventoryItem> inventoryItem = inventoryItemRepository.findByProjectIdAndSoftwareComponentPurl(project.getId(), ortVio.getPurl());
-                ortVio.setInventoryItem(inventoryItem.getFirst());
-            }
             toSaveViolations.add(ortVio);
 
         }
@@ -163,10 +172,6 @@ public class ProcessRunService {
             OrtIssue ortIssue= ortIssueFactory.createOrtIssue(issue.getIdentifier().getName(), issue.getSeverity().getValue(),
                     issue.getPurl(), issue.getAffectedPath(), issue.getMessage(), issue.getSource(),
                     issue.getResolutions(), issue.getTimestamp(), issue.getWorker(), project);
-            if(ortIssue.getPurl()!=null) {
-                List<InventoryItem> inventoryItems = inventoryItemRepository.findByProjectIdAndSoftwareComponentPurl(project.getId(), ortIssue.getPurl());
-                ortIssue.setInventoryItem(inventoryItems.getFirst());
-            }
             toSaveIssues.add(ortIssue);
         }
 

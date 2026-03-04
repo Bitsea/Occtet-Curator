@@ -17,18 +17,25 @@
  *  License-Filename: LICENSE
  */
 
-package eu.occtet.boc.dao;
+package eu.occtet.boc.processRun.factory;
 
-import eu.occtet.boc.entity.OrtIssue;
+import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.Project;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
+@Component
+public class ProjectFactory {
 
-@Repository
-public interface OrtIssueRepository extends JpaRepository<OrtIssue, Long> {
+    @Autowired
+    private ProjectRepository projectRepository;
 
-    List<OrtIssue> findAll();
-    List<OrtIssue> findByProject(Project project);
+    public Project createProject(String projectName, String projectContact, String version) {
+        Project project= new Project();
+        project.setProjectName(projectName);
+        project.setProjectContact(projectContact);
+        project.setVersion(version);
+        projectRepository.save(project);
+        return project;
+    }
 }

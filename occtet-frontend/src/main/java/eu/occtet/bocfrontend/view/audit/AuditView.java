@@ -124,6 +124,7 @@ public class AuditView extends StandardView{
     @ViewComponent private VerticalLayout fileTreeGridLayout;
     @ViewComponent private OverviewProjectTabFragment overviewProjectTabFragment;
     @ViewComponent private OverviewOrtTabFragment overviewOrtTabFragment;
+    @ViewComponent private Tab ortSection;
 
     private TabManager tabManager;
     private Map<Long, Long> fileCounts = new HashMap<>();
@@ -334,7 +335,14 @@ public class AuditView extends StandardView{
                 refreshAllDataForProject(project);
                 restoreTabsAndState();
                 overviewProjectTabFragment.setProjectOverview(project);
-                overviewOrtTabFragment.setProjectOrtOverview(project);
+                List<OrtIssue> issues = ortIssueRepository.findByProjectId(project.getId());
+                List<OrtViolation> violations = ortViolationRepository.findByProjectId(project.getId());
+                log.debug("Project {} has {} issues and {} violations, showing ORT overview tab", project.getProjectName(), issues.size(), violations.size());
+
+                if(!issues.isEmpty() || !violations.isEmpty()) {
+                    ortSection.setVisible(true);
+                    overviewOrtTabFragment.setProjectOrtOverview(project);
+                }
             });
         } catch (Exception e) {
             log.warn("Invalid projectId in URL: {}", projectIdStr, e);
@@ -687,8 +695,13 @@ public class AuditView extends StandardView{
     private void setOrtInformationFragment(Project project){
         List<OrtIssue> issues = ortIssueRepository.findByProjectId(project.getId());
         List<OrtViolation> violations = ortViolationRepository.findByProjectId(project.getId());
+        log.debug("2Project {} has {} issues and {} violations, showing ORT overview tab", project.getProjectName(), issues.size(), violations.size());
+        log.debug("2Project {} has {} issues and {} violations",
+                project.getProjectName(),
+                issues.size(),
+                violations.size());
         if(!issues.isEmpty() || !violations.isEmpty()){
-            overviewOrtTabFragment.setVisible(true);
+            ortSection.setVisible(true);
             overviewOrtTabFragment.setProjectOrtOverview(project);
         }
     }

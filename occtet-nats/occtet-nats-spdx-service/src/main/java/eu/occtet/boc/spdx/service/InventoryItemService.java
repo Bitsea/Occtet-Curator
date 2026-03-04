@@ -20,9 +20,9 @@
 package eu.occtet.boc.spdx.service;
 
 
-import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.entity.Project;
-import eu.occtet.boc.entity.SoftwareComponent;
+import eu.occtet.boc.dao.OrtIssueRepository;
+import eu.occtet.boc.dao.OrtViolationRepository;
+import eu.occtet.boc.entity.*;
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.spdx.factory.InventoryItemFactory;
 import org.apache.logging.log4j.LogManager;
@@ -34,6 +34,11 @@ import java.util.List;
 
 @Service
 public class InventoryItemService {
+
+    @Autowired
+    private OrtIssueRepository ortIssueRepository;
+    @Autowired
+    private OrtViolationRepository ortViolationRepository;
 
     private static final Logger log = LogManager.getLogger(InventoryItemService.class);
 
@@ -59,5 +64,42 @@ public class InventoryItemService {
 
     public void update(InventoryItem inventoryItem){
         inventoryItemRepository.save(inventoryItem);
+    }
+
+
+    /**
+     * Sorts the given lists of OrtIssues and OrtViolations by the purl of the given InventoryItem's SoftwareComponent.
+     * putting this here, because it is needed multiple times
+     * @param ortIssues
+     * @param ortViolations
+     * @param inventoryItem
+     */
+    public void sortViolationsAndIssues(List<OrtIssue> ortIssues, List<OrtViolation> ortViolations, InventoryItem inventoryItem){
+        log.debug("sorting violations and issues for inventory item {}", inventoryItem.getInventoryName());
+
+        String purl = inventoryItem.getSoftwareComponent().getPurl();
+        log.debug("sorting for purl {}", purl);
+        if (purl != null) {
+            ortIssues.removeIf(issue -> {
+                if (purl.equals(issue.getPurl())) {
+                    issue.setInventoryItem(inventoryItem);
+                    ortIssueRepository.save(issue);
+                    log.debug("issue found for purl {}", purl);
+                    return true;
+                }
+                return false;
+            });
+
+            ortViolations.removeIf(vio -> {
+                if (purl.equals(vio.getPurl())) {
+                    vio.setInventoryItem(inventoryItem);
+                    ortViolationRepository.save(vio);
+                    log.debug("violation found for purl {}", purl);
+                    return true;
+                }
+                return false;
+            });
+
+        }
     }
 }

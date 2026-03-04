@@ -20,10 +20,14 @@
 package eu.occtet.boc.dao;
 
 import eu.occtet.boc.entity.OrtViolation;
+import eu.occtet.boc.entity.Project;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public interface OrtViolationRepository extends JpaRepository<OrtViolation, Long>{
 
+    List<OrtViolation> findByProject(Project project);
 }

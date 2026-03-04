@@ -86,7 +86,7 @@ public class ORTRunStarterServiceTest{
     private TestEntityManager entityManager;
 
 
-    @Test // commented out because it requires a running ORT server and Keycloak instance on localhost.
+    //@Test // commented out because it requires a running ORT server and Keycloak instance on localhost.
     public void testStartOrtRun() throws IOException, InterruptedException, ApiException/* throws ApiException*/ {
         Project project= new Project("test");
         project.setId(1234L);
@@ -111,7 +111,7 @@ public class ORTRunStarterServiceTest{
     private String password = "password";
 
 
-    @Test // commented out because it requires a running ORT server and Keycloak instance on localhost.
+    //@Test // commented out because it requires a running ORT server and Keycloak instance on localhost.
     public void startOrtRunTest() throws IOException, InterruptedException, ApiException {
         OrtClientService ortClientService = new OrtClientService("http://ort.bitsea.de");
         AuthService authService = new AuthService(tokenUrl);

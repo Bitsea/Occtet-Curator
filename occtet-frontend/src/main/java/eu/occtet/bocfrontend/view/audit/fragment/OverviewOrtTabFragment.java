@@ -21,8 +21,6 @@ package eu.occtet.bocfrontend.view.audit.fragment;
 
 
 import com.vaadin.flow.component.grid.ItemClickEvent;
-import eu.occtet.bocfrontend.dao.OrtIssueRepository;
-import eu.occtet.bocfrontend.dao.OrtViolationRepository;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.view.audit.AuditView;
 import io.jmix.flowui.Dialogs;
