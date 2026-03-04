@@ -106,7 +106,15 @@ public class NatsService {
                 .ttl(Duration.ofHours(Long.parseLong(objectStoreTtl)))
                 .build();
 
-        ObjectStoreStatus objectStoreStatus = objectStoreManagement.create(objectStoreConfiguration);
+        ObjectStoreStatus objectStoreStatus;
+        try {
+             objectStoreStatus = objectStoreManagement.create(objectStoreConfiguration);
+        } catch (JetStreamApiException e) {
+            log.warn("Error while trying to create objectStore: {}, deleting old os and creating new one",
+                    e.toString());
+            objectStoreManagement.delete("file-bucket");
+            objectStoreStatus = objectStoreManagement.create(objectStoreConfiguration);
+        }
 
         objectStore = natsConnection.objectStore("file-bucket");
 

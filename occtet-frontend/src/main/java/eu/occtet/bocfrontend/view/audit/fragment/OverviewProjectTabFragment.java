@@ -246,7 +246,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
     private JmixButton createShowButton(){
         JmixButton showButton = uiComponents.create(JmixButton.class);
         showButton.setIcon(VaadinIcon.INFO_CIRCLE.create());
-        showButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        showButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
         return showButton;
     }
 

@@ -72,6 +72,15 @@ public class ExportService  extends ProgressReportingService  {
         return createDocument(spdxExportWorkData);
     }
 
+    /**
+     * Creates an SPDX document by processing project and document data, merging entity changes,
+     * adding file elements, packages, relationships, and serializing the result to an output format.
+     *
+     * @param spdxExportWorkData Data object containing necessary parameters such as project ID,
+     *                           SPDX document ID, object store key, and progress notification references.
+     * @return {@code true} if the SPDX document creation and serialization were successful;
+     *         {@code false} otherwise.
+     */
     private boolean createDocument(SpdxExportWorkData spdxExportWorkData) {
         try {
             log.debug("creating spdx document:");
@@ -151,7 +160,10 @@ public class ExportService  extends ProgressReportingService  {
             notifyProgress(40,"created externalDocumentRefs");
 
             log.info("Creating file elements...");
+            Set<String> processedFileIds = new HashSet<>();
             for (SpdxFileEntity fileEntity : spdxDocumentRoot.getFiles()) {
+                if (!processedFileIds.add(fileEntity.getSpdxId())) continue;
+
                 SpdxFile spdxFile = createSpdxFile(fileEntity, spdxDocument);
                 if (spdxFile != null) {
                     elementMap.put(spdxFile.getId(), spdxFile);
@@ -161,7 +173,10 @@ public class ExportService  extends ProgressReportingService  {
 
             log.debug("start converting packages");
             List<SpdxPackage> packages = new ArrayList<>();
+            Set<String> processedPackageIds = new HashSet<>();
             for (SpdxPackageEntity pkgEntity : spdxDocumentRoot.getPackages()) {
+                if (!processedPackageIds.add(pkgEntity.getSpdxId())) continue;
+
                 SpdxPackage pkg = createSpdxPackage(pkgEntity, spdxDocument, modelStore, documentUri, elementMap);
                 if (pkg != null) {
                     packages.add(pkg);
@@ -246,6 +261,19 @@ public class ExportService  extends ProgressReportingService  {
         }
     }
 
+    /**
+     * Creates an SPDX package based on the provided {@link SpdxPackageEntity} and related inputs.
+     * This method constructs an {@link SpdxPackage} using the details from the given package entity,
+     * SPDX document, and model store, while also handling various attributes such as license information,
+     * checksums, external references, and included files.
+     *
+     * @param pkgEntity the entity containing package information to be converted into an {@link SpdxPackage}
+     * @param spdxDocument the SPDX document to which the new package will be associated
+     * @param modelStore the SPDX model store for persisting SPDX elements and properties
+     * @param documentUri the unique URI of the SPDX document in which the package is created
+     * @param elementMap a mapping of existing SPDX elements used to map file references to the package
+     * @return the created {@link SpdxPackage} if successful, or null if an error occurs during creation
+     */
     private SpdxPackage createSpdxPackage(SpdxPackageEntity pkgEntity,
                                           SpdxDocument spdxDocument,
                                           IModelStore modelStore,
@@ -300,22 +328,7 @@ public class ExportService  extends ProgressReportingService  {
                     String extRefId = SpdxConstantsCompatV2.CLASS_SPDX_EXTERNAL_REFERENCE + UUID.randomUUID();
                     ExternalRef externalRef = new ExternalRef(modelStore, documentUri, extRefId, null, true);
                     externalRef.setReferenceLocator(externalRefEntity.getReferenceLocator());
-
-                    String refType = externalRefEntity.getReferenceType();
-                    try {
-                        ReferenceType resolvedType = ListedReferenceTypes.getListedReferenceTypes()
-                                .getListedReferenceTypeByName(refType);
-
-                        if (resolvedType != null) {
-                            externalRef.setReferenceType(resolvedType);
-                        } else {
-                            externalRef.setReferenceType(new ReferenceType(refType));
-                        }
-                    } catch (Exception e) {
-                        log.warn("Failed to resolve listed reference type, falling back to basic instantiation.", e);
-                        externalRef.setReferenceType(new ReferenceType(refType));
-                    }
-
+                    externalRef.setReferenceType(new ReferenceType(externalRefEntity.getReferenceType()));
                     externalRef.setReferenceCategory(ReferenceCategory.valueOf(externalRefEntity.getReferenceCategory()));
 
                     if (externalRefEntity.getComment() != null && !externalRefEntity.getComment().isBlank()) {
@@ -345,6 +358,16 @@ public class ExportService  extends ProgressReportingService  {
         }
     }
 
+    /**
+     * Creates an SPDX file object based on the given SpdxFileEntity and SpdxDocument.
+     *
+     * @param fileEntity the entity containing details about the file, such as SPDX ID, file name,
+     *                   license information, copyright, and checksum.
+     * @param spdxDocument the SPDX document to which the file will be added; it provides the model
+     *                     store and document URI for constructing the SPDX file.
+     * @return the created SpdxFile object or null if an error occurs or the file cannot be created
+     *         (e.g., due to missing checksum information).
+     */
     private SpdxFile createSpdxFile(SpdxFileEntity fileEntity, SpdxDocument spdxDocument) {
         log.trace("creating file: {}", fileEntity.getSpdxId());
         IModelStore modelStore = spdxDocument.getModelStore();
