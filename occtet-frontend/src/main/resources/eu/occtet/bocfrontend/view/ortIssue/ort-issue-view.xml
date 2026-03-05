@@ -39,17 +39,17 @@
 
                 <vbox alignItems="CENTER" justifyContent="START" alignSelf="START" height="100%" width="100%">
                         <vbox width="100%" id="form">
-                        <hbox>
+                        <hbox width="100%">
                             <textField id="projectField" property="project.projectName" dataContainer="ortIssueDc" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.project"/>
-                            <textField id="inventoryItem" property="inventoryItem.inventoryName" dataContainer="ortIssueDc" label="msg://eu.occtet.bocfrontend.view.audit.fragment/inventoryName" />
+                            <textField id="inventoryItem" property="inventoryItem.inventoryName" dataContainer="ortIssueDc" label="msg://eu.occtet.bocfrontend.view.audit.fragment/inventoryName"  width="60%"/>
                         </hbox>
-                            <hbox>
+                            <hbox width="100%">
                                 <textField id="affectedPath" property="affectedPath" dataContainer="ortIssueDc"
-                                           label="msg://affectedPath"/>
+                                           label="msg://affectedPath" width="60%"/>
                                 <textField id="severity" property="severity" dataContainer="ortIssueDc"
                                            label="msg://eu.occtet.bocfrontend.entity/Vulnerability.weightedSeverity"/>
                             </hbox>
-                            <hbox>
+                            <hbox width="100%">
 
                                 <textField id="worker" property="worker" dataContainer="ortIssueDc"
                                            label="msg://worker"/>
@@ -63,8 +63,10 @@
                             </hbox>
                             <hbox width="100%">
                                 <textField id="resolution" property="resolution" dataContainer="ortIssueDc"
-                                           label="msg://resolution"/>
-                                <textField id="timestamp" property="timestamp" dataContainer="ortIssueDc" label="msg://eu.occtet.bocfrontend.entity/VexData.timeStamp" />
+                                           label="msg://resolution" width="100%"/>
+                            </hbox>
+                            <hbox width="100%">
+                                <textField id="timestamp" property="timestamp" dataContainer="ortIssueDc" label="msg://eu.occtet.bocfrontend.entity/VexData.timeStamp" width="20%"/>
 
                             </hbox>
                             <hbox width="100%">

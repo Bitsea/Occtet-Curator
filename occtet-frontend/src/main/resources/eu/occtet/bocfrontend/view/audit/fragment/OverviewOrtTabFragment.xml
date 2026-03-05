@@ -57,21 +57,24 @@
                     <vbox height="63%" width="100%">
                         <hbox width="100%">
                             <textField id="inventoryItemIssueField" property="inventoryItem.inventoryName" width="40%"
-                                       label="IventoryItem" dataContainer="ortIssueDc"/>
+                                       label="msg://eu.occtet.bocfrontend.entity/CodeLocation.inventoryItem" dataContainer="ortIssueDc"/>
                             <button id="informationIssueButton" icon="INFO_CIRCLE_O" alignSelf="END" enabled="false"/>
-                            <textField id="workerField" property="worker" label="ORT-Worker"
+                            <textField id="workerField" property="worker" label="msg://eu.occtet.bocfrontend.view.ortIssue/worker"
                                        dataContainer="ortIssueDc" width="40%"/>
                         </hbox>
-                        <textField id="affectedPathField" property="affectedPath" width="70%" label="Affected path" dataContainer="ortIssueDc"/>
+                        <textField id="affectedPathField" property="affectedPath" width="70%" label="msg://eu.occtet.bocfrontend.view.ortIssue/affectedPath" dataContainer="ortIssueDc"/>
                         <hbox width="100%">
-                            <textField id="severityField" property="severity" width="20%" label="Serverity" dataContainer="ortIssueDc"/>
-                            <textField id="identifierField" property="identifier" width="30%" label="Identifier" dataContainer="ortIssueDc"/>
-                            <textField id="resolutionField" property="resolution" width="30%" label="Resoultion" dataContainer="ortIssueDc"/>
+                            <textField id="severityField" property="severity" width="20%" label="msg://eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.severity" dataContainer="ortIssueDc"/>
+                            <textField id="identifierField" property="identifier" width="30%" label="msg://eu.occtet.bocfrontend.view.ortIssue/identifier" dataContainer="ortIssueDc"/>
+                            <textField id="resolutionField" property="resolution" width="30%" label="msg://eu.occtet.bocfrontend.view.ortIssue/resolution" dataContainer="ortIssueDc"/>
                         </hbox>
-                        <hbox width="100%">
-                            <textField id="messageIssueField" property="message" label="Message" width="40%" dataContainer="ortIssueDc"/>
+                        <vbox width="100%">
+                            <textField id="messageIssueField" property="message" label="msg://eu.occtet.bocfrontend.view.ortViolation/message"  dataContainer="ortIssueDc" width="100%"/>
                             <button id="messageIssueButton" icon="INFO_CIRCLE_O" alignSelf="END" enabled="false"/>
-                            <checkbox id="resolvedCheckBox" property="resolved" label="Resolved" dataContainer="ortIssueDc"
+                        </vbox>
+                        <hbox width="100%">
+
+                            <checkbox id="resolvedCheckBox" property="resolved" label="msg://eu.occtet.bocfrontend.view.ortViolation/resolved" dataContainer="ortIssueDc"
                                       alignSelf="END"/>
                         </hbox>
                         <textField id="timestampField" property="timestamp" label="Created at"
@@ -84,13 +87,13 @@
                                   dataContainer="ortIssusesDc"
                                   classNames="occtet-grid">
                             <columns>
-                                <column property="worker" header="ORT-Worker"/>
-                                <column property="affectedPath" header="Affected path"/>
-                                <column property="severity" header="Serverity"/>
-                                <column property="identifier" header="Identifier"/>
-                                <column property="resolution" header="Resoultion"/>
-                                <column property="resolved" header="Resolved"/>
-                                <column property="timestamp" header="created at"/>
+                                <column property="worker" header="msg://eu.occtet.bocfrontend.view.ortIssue/worker"/>
+                                <column property="affectedPath" header="msg://eu.occtet.bocfrontend.view.ortIssue/affectedPath"/>
+                                <column property="severity" header="msg://eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.severity"/>
+                                <column property="identifier" header="msg://eu.occtet.bocfrontend.view.ortIssue/identifier"/>
+                                <column property="resolution" header="msg://eu.occtet.bocfrontend.view.ortIssue/resolution"/>
+                                <column property="resolved" header="msg://eu.occtet.bocfrontend.view.ortViolation/resolved"/>
+                                <column property="timestamp" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.createdAt"/>
                             </columns>
                         </dataGrid>
                     </vbox>
@@ -101,27 +104,27 @@
                     <vbox height="60%" width="100%">
                         <hbox width="100%">
                             <textField id="inventoryItemViolationField" property="inventoryItem.inventoryName"
-                                       width="40%" label="IventoryItem" dataContainer="ortViolationDc"/>
+                                       width="40%" label="msg://eu.occtet.bocfrontend.entity/CodeLocation.inventoryItem" dataContainer="ortViolationDc"/>
                             <button id="informationViolationButton" enabled="false"  icon="INFO_CIRCLE_O" alignSelf="END"/>
-                            <textField id="ruleField" property="rule" label="Rule" width="40%" dataContainer="ortViolationDc"/>
+                            <textField id="ruleField" property="rule" label="msg://eu.occtet.bocfrontend.view.ortViolation/rule" width="40%" dataContainer="ortViolationDc"/>
                         </hbox>
                         <hbox width="100%">
-                            <textField id="purlField" property="purl" label="Purl" dataContainer="ortViolationDc" width="70%"/>
+                            <textField id="purlField" property="purl" label="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.purl" dataContainer="ortViolationDc" width="70%"/>
                             <textField id="severityViolationField" property="severity" width="20%"
-                                       label="Serverity" dataContainer="ortViolationDc"/>
+                                       label="msg://eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.severity" dataContainer="ortViolationDc"/>
                         </hbox>
                         <hbox width="100%">
-                            <textField id="licenseField" property="license" width="30%" label="License" dataContainer="ortViolationDc"/>
+                            <textField id="licenseField" property="license" width="30%" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.license" dataContainer="ortViolationDc"/>
                             <textField id="licenseSourceField" property="licenseSource" width="50%"
-                                       label="License source" dataContainer="ortViolationDc"/>
+                                       label="msg://eu.occtet.bocfrontend.view.ortViolation/licenseSource" dataContainer="ortViolationDc"/>
                         </hbox>
                         <hbox width="100%">
-                            <textField id="howToFixField" property="howToFix" label="How to fix" width="40%" dataContainer="ortViolationDc"/>
+                            <textField id="howToFixField" property="howToFix" label="msg://eu.occtet.bocfrontend.view.ortViolation/howToFix" width="40%" dataContainer="ortViolationDc"/>
                             <button id="howToFixButton" icon="INFO_CIRCLE_O" enabled="false"  alignSelf="END"/>
-                            <textField id="messageViolationField" property="message" label="Message" width="40%" dataContainer="ortViolationDc"/>
+                            <textField id="messageViolationField" property="message" label="msg://eu.occtet.bocfrontend.view.ortViolation/message" width="40%" dataContainer="ortViolationDc"/>
                             <button id="messageViolationButton" icon="INFO_CIRCLE_O" enabled="false" alignSelf="END"/>
                         </hbox>
-                        <checkbox id="resolvedViolationCheckBox" property="resolved" label="Resolved" dataContainer="ortViolationDc"/>
+                        <checkbox id="resolvedViolationCheckBox" property="resolved" label="msg://eu.occtet.bocfrontend.view.ortViolation/resolved" dataContainer="ortViolationDc"/>
                     </vbox>
                     <vbox height="40%" width="100%">
                     <dataGrid id="violationsDataGrid"
@@ -130,12 +133,12 @@
                               dataContainer="ortViolationsDc"
                               classNames="occtet-grid">
                         <columns>
-                            <column property="rule" header="Rule"/>
-                            <column property="purl" header="Purl"/>
-                            <column property="severity" header="Serverity"/>
-                            <column property="license" header="License"/>
-                            <column property="licenseSource" header="License source"/>
-                            <column property="resolved" header="Resolved"/>
+                            <column property="rule" header="msg://eu.occtet.bocfrontend.view.ortViolation/rule"/>
+                            <column property="purl" header="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.purl"/>
+                            <column property="severity" header="msg://eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.severity"/>
+                            <column property="license" header="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.license"/>
+                            <column property="licenseSource" header="msg://eu.occtet.bocfrontend.view.ortViolation/licenseSource"/>
+                            <column property="resolved" header="msg://eu.occtet.bocfrontend.view.ortViolation/resolved"/>
                         </columns>
                     </dataGrid>
                 </vbox>
