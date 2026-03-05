@@ -19,30 +19,23 @@
 
 package eu.occtet.bocfrontend.view.project;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
-import eu.occtet.boc.model.SpdxExportWorkData;
-import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.factory.CuratorTaskFactory;
-import eu.occtet.bocfrontend.service.CuratorTaskService;
-import eu.occtet.bocfrontend.service.NatsService;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
+import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.DataGrid;
-import io.jmix.flowui.download.Downloader;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 
 @Route(value = "projects", layout = MainView.class)
@@ -60,23 +53,11 @@ public class ProjectListView extends StandardListView<Project> {
     @Autowired
     private UiComponents uiComponents;
     @Autowired
-    private NatsService natsService;
-    @Autowired
-    private Downloader downloader;
-    @Autowired
     private DialogWindows dialogWindows;
-
     @Autowired
     private Messages messages;
-
-    @Value("${nats.send-subject-export}")
-    private String sendSubjectExport;
-
     @Autowired
-    private CuratorTaskService curatorTaskService;
-
-    @Autowired
-    private CuratorTaskFactory curatorTaskFactory;
+    private Dialogs dialogs;
 
     @Subscribe
     public void onInit(final InitEvent event) {
@@ -90,64 +71,14 @@ public class ProjectListView extends StandardListView<Project> {
             exportButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
             exportButton.setTooltipText(messages.getMessage("eu.occtet.bocfrontend.view.project/projectListView.exportTooltip"));
             exportButton.addClickListener(clickEvent -> {
-                handleExport(project);
+                dialogWindows.view(this, ExportProjectSbomHelperView.class)
+                        .withViewConfigurer(v -> {
+                            v.setProject(project);
+                        }).open();
             });
 
             return exportButton;
         }));
-    }
-
-    private void handleExport(Project project){
-
-        CuratorTask curatorTask = curatorTaskFactory.create(project, "SPDX_Export_Task", "processing_spdx");
-
-        SpdxExportWorkData spdxExportWorkData = new SpdxExportWorkData(project.getDocumentID(), String.valueOf(project.getId()));
-
-        boolean res = curatorTaskService.saveAndRunTask(curatorTask, spdxExportWorkData, "export data to microservice to create new spdx",sendSubjectExport );
-
-        // FIXME we cannot wait here for the file to become available
-//        UI ui = UI.getCurrent();
-//        String fileId = project.getDocumentID(); // Assuming this is the key in the bucket
-//
-//        CompletableFuture.runAsync(() -> {
-//            waitForFileAndDownload(ui, fileId, project.getProjectName()+".json");
-//        });
-
-
-    }
-
-    private void waitForFileAndDownload(UI ui, String fileId, String fileName) {
-        int timeoutSeconds = 300000;
-        int pollIntervalMillis = 1000;
-        long endTime = System.currentTimeMillis() + (timeoutSeconds * 1000);
-
-        byte[] fileData = null;
-
-        while (System.currentTimeMillis() < endTime) {
-            fileData = natsService.getFileFromBucket(fileId);
-
-            if (fileData != null) {
-                break;
-            }
-
-            try {
-                Thread.sleep(pollIntervalMillis);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
-            }
-        }
-
-        byte[] finalFileData = fileData;
-
-        byte[] finalFileData1 = fileData;
-        ui.access(() -> {
-            if (finalFileData != null) {
-                downloader.download(finalFileData1
-                        , fileName
-                );
-        }
-    });
     }
 
     @Subscribe("projectsDataGrid")
@@ -161,5 +92,4 @@ public class ProjectListView extends StandardListView<Project> {
         window.setHeight("100%");
         window.open();
     }
-
 }

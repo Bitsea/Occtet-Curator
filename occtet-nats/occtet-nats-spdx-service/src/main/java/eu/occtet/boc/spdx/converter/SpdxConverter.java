@@ -92,6 +92,12 @@ public class SpdxConverter {
             spdxDocumentRoot.setComment(spdxDocument.getComment().orElse(""));
             spdxDocumentRoot.setDocumentUri(spdxDocument.getDocumentUri());
 
+            List<String> describedIds = new ArrayList<>();
+            for (SpdxElement element : spdxDocument.getDocumentDescribes()) {
+                describedIds.add(element.getId());
+            }
+            spdxDocumentRoot.setSpdxDocumentDescribes(describedIds);
+
             if (spdxDocumentRoot.getExternalDocumentRefs() == null) {
                 spdxDocumentRoot.setExternalDocumentRefs(new ArrayList<>());
             }

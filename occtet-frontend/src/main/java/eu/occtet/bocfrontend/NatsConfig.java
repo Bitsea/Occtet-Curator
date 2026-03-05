@@ -35,19 +35,17 @@ public class NatsConfig {
 
     private static final Logger log = LogManager.getLogger(NatsConfig.class);
 
-
     @Value("${nats.url}")
-  private String natsUrl;
+    private String natsUrl;
 
-  @Bean
-  public Connection natsConnection() throws IOException, InterruptedException {
-    Options options = new Options.Builder().server(natsUrl)
-            // add a listener for logging connection events
-            .connectionListener((conn, type) -> {
-                log.debug("NATS Connection event: {}", type);
-            })
-            .maxReconnects(-1) // always try to reconnect (default is only 60). Will try to reconnect every 2 seconds.
-            .build();
-    return Nats.connect(options);
-  }
+    @Bean
+    public Connection natsConnection() throws IOException, InterruptedException {
+        Options options = new Options.Builder().server(natsUrl)
+                // add a listener for logging connection events
+                .connectionListener((conn, type) -> {
+                    log.debug("NATS Connection event: {}", type);
+                }).maxReconnects(-1) // always try to reconnect (default is only 60). Will try to reconnect every 2 seconds.
+                .build();
+        return Nats.connect(options);
+    }
 }

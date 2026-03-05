@@ -50,6 +50,11 @@ public class SpdxDocumentRoot {
     @Column(nullable = false, name = "DOCUMENT_URI")
     private String documentUri;
 
+    @ElementCollection
+    @CollectionTable(name = "SPDX_DOCUMENT_DESCRIBES", joinColumns = @JoinColumn(name = "spdx_document_id"))
+    @Column(name = "described_element_id")
+    private List<String> spdxDocumentDescribes = new ArrayList<>();
+
     @OneToOne(cascade = CascadeType.ALL, optional = false)
     @JoinColumn(name = "creation_info_id", referencedColumnName = "id")
     private CreationInfoEntity creationInfoEntity;
@@ -192,5 +197,13 @@ public class SpdxDocumentRoot {
 
     public void addSnippet(Snippet snippet){
         this.snippets.add(snippet);
+    }
+
+    public List<String> getSpdxDocumentDescribes() {
+        return spdxDocumentDescribes;
+    }
+
+    public void setSpdxDocumentDescribes(List<String> spdxDocumentDescribes) {
+        this.spdxDocumentDescribes = spdxDocumentDescribes;
     }
 }

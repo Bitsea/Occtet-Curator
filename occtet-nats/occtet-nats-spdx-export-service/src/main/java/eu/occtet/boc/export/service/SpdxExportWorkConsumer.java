@@ -35,7 +35,8 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 
 @Service
-public class SpdxExportWorkConsumer extends WorkConsumer {
+public class
+SpdxExportWorkConsumer extends WorkConsumer {
 
     private static final Logger log = LogManager.getLogger(SpdxExportWorkConsumer.class);
 
@@ -74,7 +75,5 @@ public class SpdxExportWorkConsumer extends WorkConsumer {
         catch (JsonProcessingException e){
             throw new RuntimeException(e);
         }
-
-
     }
 }

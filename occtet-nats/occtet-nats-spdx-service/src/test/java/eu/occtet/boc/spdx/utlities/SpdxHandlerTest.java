@@ -112,6 +112,7 @@ public class SpdxHandlerTest {
     public void setup() throws Exception {
         project = new Project();
         project.setProjectName("IntegrationTestProject");
+        project.setVersion("1.0.0");
         project = projectRepository.save(project);
 
         SpdxModelFactory.init();

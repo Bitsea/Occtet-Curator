@@ -34,7 +34,9 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
 
     List<InventoryItem> findByProjectAndSoftwareComponentAndInventoryName(Project project, SoftwareComponent sc, String inventoryName);
 
+    // TODO add isOld flag to query, taking only the correct most recent used one (waiting for branch #132)
     List<InventoryItem> findBySpdxIdAndProject(String spdxID, Project project);
 
+    // TODO same thing here with the old flag (we do not want to conclude duplicates)
     List<InventoryItem> findAllByProject(Project project);
 }
