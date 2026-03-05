@@ -19,8 +19,6 @@
 
 package eu.occtet.boc.spdx.factory;
 
-
-
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;

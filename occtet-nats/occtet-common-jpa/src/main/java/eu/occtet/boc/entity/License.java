@@ -121,11 +121,11 @@ public class License {
         this.licenseName = licenseName;
     }
 
-    public boolean getIsModified() {
+    public Boolean getIsModified() {
         return isModified;
     }
 
-    public void setIsModified(boolean modified) {
+    public void setIsModified(Boolean modified) {
         this.isModified = modified;
     }
 
@@ -137,27 +137,27 @@ public class License {
         this.detailsUrl = detailsUrl;
     }
 
-    public boolean isModified() {
+    public Boolean isModified() {
         return isModified;
     }
 
-    public void setModified(boolean modified) {
+    public void setModified(Boolean modified) {
         isModified = modified;
     }
 
-    public boolean isCurated() {
+    public Boolean isCurated() {
         return curated;
     }
 
-    public void setCurated(boolean curated) {
+    public void setCurated(Boolean curated) {
         this.curated = curated;
     }
 
-    public boolean isSpdx() {
+    public Boolean isSpdx() {
         return isSpdx;
     }
 
-    public void setSpdx(boolean spdx) {
+    public void setSpdx(Boolean spdx) {
         isSpdx = spdx;
     }
 

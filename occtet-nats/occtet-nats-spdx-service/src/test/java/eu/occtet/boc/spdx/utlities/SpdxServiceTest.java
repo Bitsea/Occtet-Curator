@@ -109,6 +109,7 @@ public class SpdxServiceTest {
     public void setup() throws IOException {
         project = new Project();
         project.setProjectName("Orchestration Project");
+        project.setVersion("0.0.1");
         project = projectRepository.save(project);
 
         jsonBytes = Thread.currentThread().getContextClassLoader()

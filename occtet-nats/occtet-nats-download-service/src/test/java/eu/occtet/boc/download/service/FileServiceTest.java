@@ -67,6 +67,7 @@ class FileServiceTest {
     void setup() {
         testProject = new Project();
         testProject.setProjectName("TestProject");
+        testProject.setVersion("1.0.0");
         testProject = entityManager.persistAndFlush(testProject);
     }
 

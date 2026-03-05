@@ -57,23 +57,6 @@ public class CuratorTask {
     @Column(name = "PROGRESS")
     private Integer progress=0;
 
-    public Integer getProgress() {
-        return progress;
-    }
-
-    public void setProgress(Integer progress) {
-        this.progress = progress;
-    }
-
-    @Nullable
-    public LocalDateTime getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(@Nullable LocalDateTime startDate) {
-        this.startDate = startDate;
-    }
-
     public CuratorTask() {
         status = TaskStatus.CREATING;
         progress = 0;
@@ -90,6 +73,7 @@ public class CuratorTask {
     public void notifyStarted() {
         status = TaskStatus.IN_PROGRESS;
         startDate = LocalDateTime.now();
+        lastUpdate = LocalDateTime.now();
         progress=0;
     }
 
@@ -109,6 +93,22 @@ public class CuratorTask {
         lastUpdate = LocalDateTime.now();
     }
 
+    public Integer getProgress() {
+        return progress;
+    }
+
+    public void setProgress(Integer progress) {
+        this.progress = progress;
+    }
+
+    @Nullable
+    public LocalDateTime getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(@Nullable LocalDateTime startDate) {
+        this.startDate = startDate;
+    }
 
     public Project getProject() {
         return project;
@@ -176,4 +176,6 @@ public class CuratorTask {
     public void setTaskType(String taskType) {
         this.taskType = taskType;
     }
+
+
 }

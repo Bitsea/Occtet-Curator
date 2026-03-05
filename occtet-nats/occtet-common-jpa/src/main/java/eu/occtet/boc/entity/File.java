@@ -55,6 +55,10 @@ public class File {
     @JoinColumn(name = "PARENT_ID")
     private File parent;
 
+    // The id used in the imported document, important for the export
+    @Column(name = "DOCUMENT_ID", columnDefinition = "TEXT")
+    private String documentId;
+
     @ManyToMany(mappedBy = "files", cascade = CascadeType.REMOVE)
     private Set<Copyright> copyrights = new HashSet<>();
 
@@ -257,6 +261,22 @@ public class File {
         this.artifactPath = artifactPath;
     }
 
+    public Set<Copyright> getCopyrights() {
+        return copyrights;
+    }
+
+    public void setCopyrights(Set<Copyright> copyrights) {
+        this.copyrights = copyrights;
+    }
+
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass())
@@ -273,14 +293,6 @@ public class File {
     @Override
     public String toString() {
         return "File{" + "id=" + id + ", fileName='" + fileName + '\'' + ", isDirectory=" + isDirectory + '}';
-    }
-
-    public Set<Copyright> getCopyrights() {
-        return copyrights;
-    }
-
-    public void setCopyrights(Set<Copyright> copyrights) {
-        this.copyrights = copyrights;
     }
 
     @PreRemove

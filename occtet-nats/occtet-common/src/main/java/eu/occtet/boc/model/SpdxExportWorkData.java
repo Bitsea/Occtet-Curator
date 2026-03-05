@@ -25,25 +25,28 @@ import eu.occtet.boc.service.IWorkDataProcessor;
 
 public class SpdxExportWorkData extends BaseWorkData{
 
+    private String spdxDocumentId;
+    private Long projectId;
+    private String objectStoreKey;
+
     @JsonCreator
     public SpdxExportWorkData(
             @JsonProperty("spdxDocumentId")String spdxDocumentId,
-            @JsonProperty("projectId")String projectId
+            @JsonProperty("projectId")Long projectId,
+            @JsonProperty("objectStoreKey")String objectStoreKey
     ){
         this.spdxDocumentId = spdxDocumentId;
         this.projectId = projectId;
+        this.objectStoreKey = objectStoreKey;
     }
 
     public SpdxExportWorkData(){}
 
-    private String spdxDocumentId;
-    private String projectId;
-
-    public String getProjectId() {
+    public Long getProjectId() {
         return projectId;
     }
 
-    public void setProjectId(String projectId) {
+    public void setProjectId(Long projectId) {
         this.projectId = projectId;
     }
 
@@ -53,6 +56,14 @@ public class SpdxExportWorkData extends BaseWorkData{
 
     public void setSpdxDocumentId(String spdxDocumentId) {
         this.spdxDocumentId = spdxDocumentId;
+    }
+
+    public String getObjectStoreKey() {
+        return objectStoreKey;
+    }
+
+    public void setObjectStoreKey(String objectStoreKey) {
+        this.objectStoreKey = objectStoreKey;
     }
 
     @Override

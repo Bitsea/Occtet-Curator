@@ -92,7 +92,9 @@ public class AuditViewUiComponentFactory {
         VerticalLayout legend = new VerticalLayout(
                 createLegendItem(VaadinIcon.CIRCLE, "curated-icon", messages.getMessage("eu.occtet.bocfrontend.factory/AuditViewUiComponentFactory.legend.curated")),
                 createLegendItem(VaadinIcon.CIRCLE, "not-curated-icon", messages.getMessage("eu.occtet.bocfrontend.factory/AuditViewUiComponentFactory.legend.uncurated")),
-                createLegendItem(VaadinIcon.WARNING, "warning-icon", messages.getMessage("eu.occtet.bocfrontend.factory/AuditViewUiComponentFactory.legend.todos"))
+                createLegendItem(VaadinIcon.WARNING, "warning-icon", messages.getMessage("eu.occtet.bocfrontend.factory/AuditViewUiComponentFactory.legend.todos")),
+                createLegendItem(VaadinIcon.BAN, "vulnerable-icon", messages.getMessage("eu.occtet.bocfrontend.factory/AuditViewUiComponentFactory.legend.vulnerable"))
+
         );
 
         statusColumn.setHeader(infoButtonFactory.createInfoButtonFromComponent(legend, null, null));
@@ -102,6 +104,10 @@ public class AuditViewUiComponentFactory {
         Icon icon = iconType.create();
         icon.setSize("14px");
         icon.setClassName(className);
+
+        if ("vulnerable-icon".equals(className)) {
+            icon.getStyle().set("color", "var(--lumo-error-text-color, red)");
+        }
 
         NativeLabel label = new NativeLabel(labelText);
         label.getStyle().set("font-size", "14px");
