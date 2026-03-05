@@ -106,7 +106,7 @@ public class NatsService extends NatsHelperService {
                 .description("bucket containing large files for other microservices")
                 .storageType(StorageType.File)
                 .compression(true)
-                .ttl(Duration.ofHours(Long.parseLong(objectStoreTtl)))
+                .ttl(Duration.ofHours(Long.parseLong(natsProperties.objectStoreTtl())))
                 .build();
 
         ObjectStoreStatus objectStoreStatus;
@@ -191,7 +191,7 @@ public class NatsService extends NatsHelperService {
             JetStreamManagement jsm = natsConnection.jetStreamManagement();
 
             StreamInfoOptions options = StreamInfoOptions.builder().filterSubjects(streamSubjectName).build();
-            StreamInfo liveStreamInfo = jsm.getStreamInfo(streamName, options);
+            StreamInfo liveStreamInfo = jsm.getStreamInfo(natsProperties.stream_name(), options);
 
             Map<String, Long> subjectMap = liveStreamInfo.getStreamState().getSubjectMap();
             if (subjectMap.containsKey(streamSubjectName)) {
@@ -238,7 +238,6 @@ public class NatsService extends NatsHelperService {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             objectStore.get(fileId, out);
-//            objectStore.delete(fileId);
             return out.toByteArray();
         } catch (Exception e) {
             return null;
