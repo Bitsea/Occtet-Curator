@@ -57,11 +57,17 @@ public class Project {
     @ManyToMany
     private List<SearchTermsProfile> searchTermsProfiles;
 
-    @Column(name = "PROJECT_CONTACT", columnDefinition = "VARCHAR(255)")
+    @Column(name = "PROJECT_CONTACT", columnDefinition = "VARCHAR(255)", nullable = false)
     private String projectContact;
 
     @Column(name = "CONTACT_EMAIL", columnDefinition = "VARCHAR(255)")
     private String contactEmail;
+
+    @Column(name = "ORGANIZATION_NAME", columnDefinition = "VARCHAR(255)", nullable = false)
+    private String organizationName;
+
+    @Column(name = "ORGANIZATION_EMAIL", columnDefinition = "VARCHAR(255)")
+    private String organizationEmail;
 
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
@@ -125,4 +131,20 @@ public class Project {
     public LocalDateTime getCreatedAt() {return createdAt;}
 
     public void setCreatedAt(@Nonnull LocalDateTime createdAt) {this.createdAt = createdAt;}
+
+    public String getOrganizationName() {
+        return organizationName;
+    }
+
+    public void setOrganizationName(String organizationName) {
+        this.organizationName = organizationName;
+    }
+
+    public String getOrganizationEmail() {
+        return organizationEmail;
+    }
+
+    public void setOrganizationEmail(String organizationEmail) {
+        this.organizationEmail = organizationEmail;
+    }
 }

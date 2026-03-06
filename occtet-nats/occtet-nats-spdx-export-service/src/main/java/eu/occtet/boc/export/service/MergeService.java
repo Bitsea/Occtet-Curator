@@ -59,8 +59,6 @@ public class MergeService {
 
         spdxDocumentRoot.setName(project.getProjectName());
 
-        handleSpdxDocumentRoot(spdxDocumentRoot, project);
-
         for (SpdxPackageEntity spdxPackageEntity : spdxDocumentRoot.getPackages()) {
             try {
                 InventoryItem inventoryItem = inventoryItemRepository.findBySpdxIdAndProject(spdxPackageEntity.getSpdxId(), project).getFirst();
@@ -81,25 +79,6 @@ public class MergeService {
 
         spdxDocumentRootRepository.save(spdxDocumentRoot);
         log.info("Successfully merged curated changes for project: {}", project.getProjectName());
-    }
-
-    /**
-     * Updates document root properties using the audited project data.
-     *
-     * @param spdxDocumentRoot The target document root entity.
-     * @param project          The source project containing the updated name and contact info.
-     */
-    private void handleSpdxDocumentRoot(SpdxDocumentRoot spdxDocumentRoot, Project project){
-        if (project.getContactEmail() != null && !project.getContactEmail().isBlank()) {
-            String contactInfo = "Project Contact: " + project.getContactEmail();
-            String existingComment = spdxDocumentRoot.getComment();
-
-            if (existingComment == null || existingComment.isBlank()) {
-                spdxDocumentRoot.setComment(contactInfo);
-            } else if (!existingComment.contains(contactInfo)) {
-                spdxDocumentRoot.setComment(existingComment + "\n" + contactInfo);
-            }
-        }
     }
 
     /**
