@@ -6,8 +6,6 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
 
-
-
   <!--  <changeSet id="mergeCodeLocation" author="leoni">
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="code_location"/>
@@ -39,13 +37,57 @@
     </changeSet>
 -->
 
-  <changeSet id="rename-app-config-value" author="leoni">
-    <renameColumn
-            tableName="APP_CONFIGURATION"
-            oldColumnName="VALUE"
-            newColumnName="CONFIG_VALUE"
-            columnDataType="TEXT"/>
-  </changeSet>
+
+    <changeSet id="2-mergeCodeLocation-fixed" author="leoni">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="CODE_LOCATION"/>
+        </preConditions>
+
+        <dropForeignKeyConstraint
+                baseTableName="FILE"
+                constraintName="fk_file_code_location_id"/>
+
+        <dropForeignKeyConstraint
+                baseTableName="COPYRIGHT_CODE_LOCATION_LINK"
+                constraintName="fk_copyright_code_location_link_code_location_id"/>
+
+        <dropForeignKeyConstraint
+                baseTableName="COPYRIGHT"
+                constraintName="fk_copyright_code_location_id"/>
+
+        <createTable tableName="COPYRIGHT_FILE_LINK">
+            <column name="COPYRIGHT_ID" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="FILE_ID" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <dropTable tableName="CODE_LOCATION"/>
+        <dropTable tableName="COPYRIGHT_CODE_LOCATION_LINK"/>
+    </changeSet>
+
+<!--  <changeSet id="rename-app-config-value" author="leoni">-->
+<!--    <renameColumn-->
+<!--            tableName="APP_CONFIGURATION"-->
+<!--            oldColumnName="VALUE"-->
+<!--            newColumnName="CONFIG_VALUE"-->
+<!--            columnDataType="TEXT"/>-->
+<!--  </changeSet>-->
+<!--    -->
+
+    <changeSet id="2-rename-app-config-value-fixed" author="leoni">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="APP_CONFIGURATION" columnName="VALUE"/>
+        </preConditions>
+
+        <renameColumn
+                tableName="APP_CONFIGURATION"
+                oldColumnName="VALUE"
+                newColumnName="CONFIG_VALUE"
+                columnDataType="TEXT"/>
+    </changeSet>
 
 
 </databaseChangeLog>
