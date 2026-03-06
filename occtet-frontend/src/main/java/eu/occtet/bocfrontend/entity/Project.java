@@ -21,17 +21,20 @@ package eu.occtet.bocfrontend.entity;
 
 
 import eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile;
+import io.jmix.core.DeletePolicy;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
+import io.jmix.core.entity.annotation.OnDelete;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 
 @JmixEntity
-@Table(name = "PROJECT")
+@Table(name = "PROJECT", uniqueConstraints = { @UniqueConstraint(columnNames = { "PROJECT_NAME"})})
 @Entity
 public class Project {
 
@@ -63,6 +66,10 @@ public class Project {
 
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "project")
+    @OnDelete(DeletePolicy.CASCADE)
+    private Set<File> files;
 
     public Project() {this.createdAt = LocalDateTime.now();}
 
@@ -121,6 +128,17 @@ public class Project {
 
     public void setCreatedAt(@Nonnull LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Set<File> getFiles() {
+        return files;
+    }
+
+    public void setFiles(Set<File> files) {
+            if(this.files!= null){
+                this.files.addAll(files);
+            }else this.files = files;
+
     }
 }
 

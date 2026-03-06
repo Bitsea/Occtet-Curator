@@ -93,10 +93,14 @@
                             </treeDataGrid>
                         </vbox>
                     </vbox>
-                    <tabSheet id="mainTabSheet" width="84%" height="100%" themeNames="no-padding" >
+                    <tabSheet id="mainTabSheet" width="84%" height="100%" themeNames="no-padding">
                         <tab id="overviewProjectSection" label="msg://eu.occtet.bocfrontend.view.audit/overviewProjectSection">
                             <fragment class="eu.occtet.bocfrontend.view.audit.fragment.OverviewProjectTabFragment"
                                       id="overviewProjectTabFragment"/>
+                        </tab>
+                        <tab id="ortSection" label="ORT" visible="false">
+                            <fragment class="eu.occtet.bocfrontend.view.audit.fragment.OverviewOrtTabFragment"
+                                      id="overviewOrtTabFragment"/>
                         </tab>
                         <tab id="inventoryItemSection" label="msg://inventoryItems" visible="false">
                             <tabSheet id="inventoryItemTabSheet" width="100%" height="100%"

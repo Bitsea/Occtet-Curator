@@ -1,23 +1,20 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
- *
  */
 
 package eu.occtet.boc.entity;
@@ -30,6 +27,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 
 @Entity
@@ -65,6 +63,9 @@ public class Project {
 
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    private Set<File> files;
 
     public Project() {this.createdAt = LocalDateTime.now();}
 
@@ -125,4 +126,14 @@ public class Project {
     public LocalDateTime getCreatedAt() {return createdAt;}
 
     public void setCreatedAt(@Nonnull LocalDateTime createdAt) {this.createdAt = createdAt;}
+
+    public Set<File> getFiles() {
+        return files;
+    }
+
+    public void setFiles(Set<File> files) {
+        if(this.files!= null){
+            this.files.addAll(files);
+        }else this.files = files;
+    }
 }

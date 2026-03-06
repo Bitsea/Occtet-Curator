@@ -49,7 +49,7 @@
                                label="msg://eu.occtet.bocfrontend.view.project/projectDetailView.projectVersion"
                                requiredMessage="msg://eu.occtet.bocfrontend.view.project/Project.version.required.message"/>
                     <textField id="projectContactField" property="projectContact" width="50%"
-                               label="msg://eu.occtet.bocfrontend.view.project/Project.projectContact"/>
+                               label="msg://eu.occtet.bocfrontend.view.project/Project.projectContact" required="true"/>
                     <textField id="contactEmailField" label="msg://eu.occtet.bocfrontend.view.project/Project.contactEmail"
                                property="contactEmail" width="50%"/>
                 </vbox>
