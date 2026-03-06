@@ -21,13 +21,17 @@ package eu.occtet.bocfrontend.entity;
 
 
 import eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile;
+import io.jmix.core.DeletePolicy;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
+import io.jmix.core.entity.annotation.OnDelete;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @JmixEntity
@@ -63,6 +67,10 @@ public class Project {
 
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "project", orphanRemoval = true)
+    @OnDelete(DeletePolicy.CASCADE)
+    private Set<File> files= new HashSet<>();
 
     public Project() {this.createdAt = LocalDateTime.now();}
 
@@ -121,6 +129,27 @@ public class Project {
 
     public void setCreatedAt(@Nonnull LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Set<File> getFiles() {
+        return files;
+    }
+
+    public void addFile(File file) {
+        files.add(file);
+        file.setProject(this);
+    }
+
+    public void removeFiles(Set<File> file) {
+        files.removeAll(file);
+        for(File f: file) {
+            f.setProject(null);
+        }
+        this.getFiles().clear();
+    }
+
+    public void removeInventories(){
+
     }
 }
 

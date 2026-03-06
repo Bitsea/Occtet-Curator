@@ -2,6 +2,7 @@ package eu.occtet.boc.spdx.service;
 
 import eu.occtet.boc.dao.AppConfigurationRepository;
 import eu.occtet.boc.dao.FileRepository;
+import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.appconfigurations.AppConfigKey;
 import eu.occtet.boc.entity.appconfigurations.AppConfiguration;
@@ -25,6 +26,8 @@ public class CleanUpService {
     private FileRepository fileRepository;
     @Autowired
     private AppConfigurationRepository appConfigurationRepository;
+    @Autowired
+    private ProjectRepository projectRepository;
 
     private static final Logger log = LoggerFactory.getLogger(CleanUpService.class);
 
@@ -42,6 +45,8 @@ public class CleanUpService {
         Path projectDir = Paths.get(globalBasePath).resolve(folderName);
         deleteProjectDirectory(projectDir);
         log.debug("Cleaning up directory {}", projectDir);
+        project.removeFiles();
+        projectRepository.save(project);
         //deleting all entities in the file tree associated with the project
         fileRepository.deleteAllByProject(project);
 

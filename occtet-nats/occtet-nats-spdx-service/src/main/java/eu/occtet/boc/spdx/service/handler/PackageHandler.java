@@ -19,6 +19,7 @@
 package eu.occtet.boc.spdx.service.handler;
 
 import eu.occtet.boc.dao.CopyrightRepository;
+import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
@@ -59,6 +60,8 @@ public class PackageHandler {
     private CopyrightService copyrightService;
     @Autowired
     private CopyrightRepository copyrightRepository;
+    @Autowired
+    private ProjectRepository projectRepository;
 
     public void processAllPackages(SpdxImportContext context, Consumer<Integer> progressCallback) {
         SpdxDocument doc = context.getSpdxDocument();
@@ -228,6 +231,10 @@ public class PackageHandler {
 
 
         Map<String, File> locationMap = fileService.findOrCreateBatch(fileToSpdxIdMap, inventoryItem);
+        Project project= inventoryItem.getProject();
+        project.addFiles((Set<File>) locationMap.values());
+        projectRepository.save(project);
+
         Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts);
 
         List<Copyright> copyrightsToUpdate = new ArrayList<>();

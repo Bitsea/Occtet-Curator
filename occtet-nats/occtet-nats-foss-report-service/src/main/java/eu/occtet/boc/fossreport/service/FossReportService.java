@@ -176,6 +176,8 @@ public class FossReportService extends ProgressReportingService {
                     parentInventory, softwareComponent, copyrights, priority
             );
             File basePathFile = fileService.findOrCreateFileWithInventory(basePath, inventoryItem, inventoryItem.getProject());
+            project.addFile(basePathFile);
+
             notifyProgress(30, "preparing files");
 
             prepareFiles(rowDto, inventoryItem, basePathFile);
@@ -193,6 +195,8 @@ public class FossReportService extends ProgressReportingService {
             // send inventory item to next step in workflow
             ScannerSendWorkData workDataResponse = new ScannerSendWorkData(inventoryItem.getId());
             sendResultToStream(workDataResponse, workData, !copyrights.isEmpty());
+
+            projectRepository.save(project);
 
         } catch (Exception e) {
             log.error("Exception occurred while processing: {}", e.getMessage(), e);
@@ -250,7 +254,8 @@ public class FossReportService extends ProgressReportingService {
         if (rowDto.files() != null && !rowDto.files().isEmpty()) {
             List<String> filePaths = PathUtilities.cleanAndSplits(rowDto.files());
             fileService.deleteOldFilesOfInventoryItem(inventoryItem, basePathFile);
-            fileService.createFilesWithInventory(filePaths, inventoryItem,inventoryItem.getProject() );
+            Set<File> files= fileService.createFilesWithInventory(filePaths, inventoryItem);
+            inventoryItem.getProject().addFiles(files);
         }
     }
 

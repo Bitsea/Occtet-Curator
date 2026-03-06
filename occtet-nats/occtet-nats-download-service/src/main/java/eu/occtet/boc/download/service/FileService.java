@@ -22,6 +22,7 @@
 package eu.occtet.boc.download.service;
 
 import eu.occtet.boc.dao.FileRepository;
+import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.download.factory.FileFactory;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
@@ -56,6 +57,8 @@ public class FileService {
     private FileRepository fileRepository;
     @Autowired
     private FileFactory fileFactory;
+    @Autowired
+    private ProjectRepository projectRepository;
 
     @Value("${occtet.scanner.ignored-names:}")
     private List<String> ignoredNames = Collections.emptyList();
@@ -122,6 +125,7 @@ public class FileService {
                         true,
                         parentForRoot
                 );
+                project.addFile(rootEntity);
                 filesCreatedOrUpdatedInFileService.put(rootPhysicalPath, rootEntity);
                 addToBatch(rootEntity, batchBuffer, BATCHSIZE);
             }
@@ -143,7 +147,7 @@ public class FileService {
                 fileRepository.flush();
                 log.debug("Saved {} File entities in batch", batchBuffer.size());
             }
-
+            projectRepository.save(project);
             log.info("Scan completed. Processed files in {} ms", System.currentTimeMillis() - start);
 
         } catch (Exception e) {
@@ -242,6 +246,7 @@ public class FileService {
                     file.isDirectory(),
                     parentEntity
             );
+            project.addFile(fileEntity);
             filesInFileService.put(physicalPath, fileEntity);
             addToBatch(fileEntity, batchBuffer, batchSize);
             if (file.isDirectory()){
@@ -307,7 +312,7 @@ public class FileService {
                 true,
                 parentFile
         );
-
+        project.addFile(newEntity);
         filesInFileService.put(currentPhysicalPath, newEntity);
         addToBatch(newEntity, batchBuffer, 500);
 

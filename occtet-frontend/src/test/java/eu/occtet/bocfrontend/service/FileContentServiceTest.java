@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.nio.file.Paths;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -56,9 +57,6 @@ public class FileContentServiceTest {
 
         String projectRootPath = Paths.get("").toAbsolutePath().toString();
         when(rootItem.getParent()).thenReturn(null);
-
-        File file = fileFactory.create(new InventoryItem(),
-                "src/test/resources/FileContentTestFile",project);
 
         FileResult result = fileContentService.getFileContent(projectRootPath);
 

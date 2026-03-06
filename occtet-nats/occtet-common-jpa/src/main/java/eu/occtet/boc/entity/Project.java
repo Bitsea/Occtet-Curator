@@ -23,13 +23,16 @@
 package eu.occtet.boc.entity;
 
 
+import eu.occtet.boc.converter.ListStringConverter;
 import eu.occtet.boc.entity.appconfigurations.SearchTermsProfile;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @Entity
@@ -65,6 +68,9 @@ public class Project {
 
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "project",cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<File> files= new HashSet<>();
 
     public Project() {this.createdAt = LocalDateTime.now();}
 
@@ -125,4 +131,24 @@ public class Project {
     public LocalDateTime getCreatedAt() {return createdAt;}
 
     public void setCreatedAt(@Nonnull LocalDateTime createdAt) {this.createdAt = createdAt;}
+
+    public Set<File> getFiles() {
+        return files;
+    }
+
+    public void addFile(File file) {
+        this.files.add(file);
+        file.setProject(this);
+    }
+
+    public void addFiles(Set<File> files) {
+        this.files.addAll(files);
+        for(File f : files){
+            f.setProject(this);
+        }
+    }
+
+    public void removeFiles() {
+        this.files= new HashSet<>();
+    }
 }

@@ -19,6 +19,7 @@
 package eu.occtet.boc.spdx.service.handler;
 
 import eu.occtet.boc.dao.CopyrightRepository;
+import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
@@ -54,6 +55,8 @@ public class OrphanHandler {
     private SoftwareComponentService softwareComponentService;
     @Autowired
     private InventoryItemService inventoryItemService;
+    @Autowired
+    private ProjectRepository projectRepository;
 
 
 
@@ -105,6 +108,11 @@ public class OrphanHandler {
 
                 Map<String, File> locationMap = fileService.findOrCreateBatch(Collections.singletonMap(filePath, file.getId()),
                         inventoryItem);
+
+                Project project = inventoryItem.getProject();
+                project.addFiles((Set<File>) locationMap.values());
+                projectRepository.save(project);
+
                 File dbFile = locationMap.get(filePath);
 
                 boolean componentUpdated = false;
