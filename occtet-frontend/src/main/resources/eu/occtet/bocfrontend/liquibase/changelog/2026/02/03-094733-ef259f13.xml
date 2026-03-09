@@ -38,9 +38,12 @@
 -->
 
 
-    <changeSet id="2-mergeCodeLocation-fixed" author="leoni">
+    <changeSet id="2-mergeCodeLocation-deleteFK-fixed" author="leoni">
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="CODE_LOCATION"/>
+            <foreignKeyConstraintExists foreignKeyTableName="COPYRIGHT" foreignKeyName="fk_copyright_code_location_id"/>
+            <foreignKeyConstraintExists foreignKeyTableName="FILE" foreignKeyName="fk_file_code_location_id"/>
+            <foreignKeyConstraintExists foreignKeyTableName="COPYRIGHT_CODE_LOCATION_LINK" foreignKeyName="fk_copyright_code_location_link_code_location_id"/>
         </preConditions>
 
         <dropForeignKeyConstraint
