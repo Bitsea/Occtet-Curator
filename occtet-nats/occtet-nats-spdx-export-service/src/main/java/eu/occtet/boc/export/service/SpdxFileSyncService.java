@@ -51,6 +51,8 @@ public class SpdxFileSyncService {
     @Autowired
     private SpdxFileRepository spdxFileRepository;
 
+    private final String CONTAINS = "CONTAINS";
+
     /**
      * Synchronizes the curated file state with the SPDX document output.
      * Evaluates all active files linked to an inventory item. Updates the copyright data
@@ -62,39 +64,35 @@ public class SpdxFileSyncService {
      */
     public void synchronizeFiles(SpdxPackageEntity spdxPackageEntity, InventoryItem inventoryItem, SpdxDocumentRoot spdxDocumentRoot) {
         List<File> filesToSync = fileRepository.findByInventoryItemsContaining(inventoryItem);
-
-        if (filesToSync.isEmpty()) {
-            spdxPackageEntity.setFileNames(new ArrayList<>());
-            spdxPackageEntity.setFilesAnalyzed(false);
-            return;
-        }
-
         List<String> activeSpdxFileIds = new ArrayList<>();
 
-        for (File auditedFile : filesToSync) {
-            String fileSpdxId = auditedFile.getDocumentId();
-            String aggregatedCopyrights = aggregateValidCopyrights(auditedFile);
+        if (!filesToSync.isEmpty()) {
+            for (File auditedFile : filesToSync) {
+                String fileSpdxId = auditedFile.getDocumentId();
+                String aggregatedCopyrights = aggregateValidCopyrights(auditedFile);
 
-            if (fileSpdxId != null && !fileSpdxId.isBlank()) {
-                updateExistingSpdxFile(fileSpdxId, aggregatedCopyrights, spdxDocumentRoot);
-            } else {
-                SpdxFileEntity newSpdxFile = createNewSpdxFileEntity(auditedFile, aggregatedCopyrights,
-                        spdxDocumentRoot);
-                spdxDocumentRoot.getFiles().add(newSpdxFile);
+                if (fileSpdxId != null && !fileSpdxId.isBlank()) {
+                    updateExistingSpdxFile(fileSpdxId, aggregatedCopyrights, spdxDocumentRoot);
+                } else {
+                    SpdxFileEntity newSpdxFile = createNewSpdxFileEntity(auditedFile, aggregatedCopyrights,
+                            spdxDocumentRoot);
+                    spdxDocumentRoot.getFiles().add(newSpdxFile);
 
-                auditedFile.setDocumentId(newSpdxFile.getSpdxId());
-                fileRepository.save(auditedFile);
-                spdxFileRepository.save(newSpdxFile);
-                fileSpdxId = newSpdxFile.getSpdxId();
+                    auditedFile.setDocumentId(newSpdxFile.getSpdxId());
+                    fileRepository.save(auditedFile);
+                    spdxFileRepository.save(newSpdxFile);
+                    fileSpdxId = newSpdxFile.getSpdxId();
+                }
+
+                activeSpdxFileIds.add(fileSpdxId);
             }
-
-            activeSpdxFileIds.add(fileSpdxId);
+            spdxPackageEntity.setFilesAnalyzed(true);
+        } else {
+            spdxPackageEntity.setFilesAnalyzed(false);
         }
-
         spdxPackageEntity.setFileNames(activeSpdxFileIds);
-        spdxPackageEntity.setFilesAnalyzed(true);
 
-        rebuildContainsRelationships(spdxPackageEntity.getSpdxId(), activeSpdxFileIds, spdxDocumentRoot);
+        rebuildContainsRelationshipsAndCleanOrphans(spdxPackageEntity.getSpdxId(), activeSpdxFileIds, spdxDocumentRoot);
     }
 
     /**
@@ -204,27 +202,58 @@ public class SpdxFileSyncService {
      * @param activeFileIds    The exact set of file identifiers the package should currently hold.
      * @param spdxDocumentRoot The root document managing relationship linkages.
      */
-    private void rebuildContainsRelationships(String packageSpdxId, List<String> activeFileIds,
+    private void rebuildContainsRelationshipsAndCleanOrphans(String packageSpdxId, List<String> activeFileIds,
                                                 SpdxDocumentRoot spdxDocumentRoot) {
+        log.trace("Rebuilding CONTAINS relationships for package {} with files {}", packageSpdxId, activeFileIds);
         if (spdxDocumentRoot.getRelationships() == null) {
             spdxDocumentRoot.setRelationships(new ArrayList<>());
         }
+        Set<String> knownFileIds = spdxDocumentRoot.getFiles().stream()
+                .map(SpdxFileEntity::getSpdxId)
+                .collect(Collectors.toSet());
+
+        List<String> prevLinkedFileIds = spdxDocumentRoot.getRelationships().stream()
+                    .filter(rel -> packageSpdxId.equals(rel.getSpdxElementId()) &&
+                            CONTAINS.equals(rel.getRelationshipType()) &&
+                            rel.getRelatedSpdxElement() != null &&
+                            knownFileIds.contains(rel.getRelatedSpdxElement()))
+                    .map(RelationshipEntity::getRelatedSpdxElement)
+                    .toList();
+
+        List<String> deletedFileIds = prevLinkedFileIds.stream()
+                .filter(oldId -> !activeFileIds.contains(oldId))
+                .toList();
 
         spdxDocumentRoot.getRelationships().removeIf(rel ->
-                        packageSpdxId.equals(rel.getSpdxElementId()) &&
-                                "CONTAINS".equals(rel.getRelationshipType()) &&
-                                rel.getRelatedSpdxElement() != null &&
-                                rel.getRelatedSpdxElement().startsWith("SPDXRef-File-")
-                );
+                packageSpdxId.equals(rel.getSpdxElementId()) &&
+                CONTAINS.equals(rel.getRelationshipType()) &&
+                deletedFileIds.contains(rel.getRelatedSpdxElement())
+        );
+
+        if (spdxDocumentRoot.getFiles() != null && !deletedFileIds.isEmpty()) {
+            spdxDocumentRoot.getFiles().removeIf(file -> {
+                if (!deletedFileIds.contains(file.getSpdxId())) {
+                    return false;
+                }
+                return spdxDocumentRoot.getRelationships().stream() // important for cases when duplicates
+                        .noneMatch(rel -> CONTAINS.equals(rel.getRelationshipType()) &&
+                                file.getSpdxId().equals(rel.getRelatedSpdxElement()));
+            });
+        }
 
         for (String fileId : activeFileIds) {
-            RelationshipEntity rel = new RelationshipEntity();
-            rel.setSpdxDocument(spdxDocumentRoot);
-            rel.setSpdxElementId(packageSpdxId);
-            rel.setRelatedSpdxElement(fileId);
-            rel.setRelationshipType("CONTAINS");
+            boolean relationShipExists = spdxDocumentRoot.getRelationships().stream()
+                    .anyMatch(rel -> packageSpdxId.equals(rel.getSpdxElementId()) && fileId.equals(rel.getRelatedSpdxElement()));
 
-            spdxDocumentRoot.getRelationships().add(rel);
+            if (!relationShipExists) {
+                RelationshipEntity rel = new RelationshipEntity();
+                rel.setSpdxDocument(spdxDocumentRoot);
+                rel.setSpdxElementId(packageSpdxId);
+                rel.setRelatedSpdxElement(fileId);
+                rel.setRelationshipType(CONTAINS);
+
+                spdxDocumentRoot.getRelationships().add(rel);
+            }
         }
     }
 }
