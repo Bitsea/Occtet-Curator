@@ -38,6 +38,9 @@
             <button id="generateSbomButton"
                     text="msg://eu.occtet.bocfrontend.view.project/exportProjectSbomHelperView.generate.sbom.button"
                     icon="vaadin:plus-circle" themeNames="primary"/>
+
+            <checkbox id="enrichCopyrightCheckbox"
+                      label="msg://exportProjectSbomHelperView.enrichCopyright.label"/>
         </hbox>
 
         <vbox id="activeTasksBox" width="100%" spacing="false" padding="false"/>
