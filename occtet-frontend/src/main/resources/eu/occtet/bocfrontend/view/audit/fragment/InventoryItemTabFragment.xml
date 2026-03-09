@@ -88,8 +88,13 @@
                                    property="softwareComponent" dataContainer="inventoryItemDc" width="50%"/>
                         <button id="softwareComponentButton" title="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.button" icon="INFO_CIRCLE_O"/>
                     </hbox>
-                    <textField id="detailsUrlTextField" property="detailsUrl" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.url"
-                               dataContainer="softwareComponentDc" width="100%"/>
+                    <hbox spacing="true" width="100%" alignItems="BASELINE">
+                        <textField id="downloadUrlTextField" property="detailsUrl"
+                                   label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.url"
+                                   dataContainer="softwareComponentDc" width="100%"/>
+                        <button id="downloadBtn" icon="DOWNLOAD_ALT"
+                                title="msg://download.button.tooltip"/>
+                    </hbox>
                     <hbox spacing="true" width="100%" alignItems="BASELINE">
                         <comboBox id="linkingComboBox" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.linking" itemsEnum="eu.occtet.bocfrontend.entity.Linking"/>
                         <textField id="priorityField" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.priority" property="priority" dataContainer="inventoryItemDc"
