@@ -27,16 +27,19 @@ public class SpdxExportWorkData extends BaseWorkData{
     private String spdxDocumentId;
     private Long projectId;
     private String objectStoreKey;
+    private Boolean enrichment;
 
     @JsonCreator
     public SpdxExportWorkData(
             @JsonProperty("spdxDocumentId")String spdxDocumentId,
             @JsonProperty("projectId")Long projectId,
-            @JsonProperty("objectStoreKey")String objectStoreKey
+            @JsonProperty("objectStoreKey")String objectStoreKey,
+            @JsonProperty("enrichment")Boolean enrichment
     ){
         this.spdxDocumentId = spdxDocumentId;
         this.projectId = projectId;
         this.objectStoreKey = objectStoreKey;
+        this.enrichment = enrichment;
     }
 
     public SpdxExportWorkData(){}
@@ -64,6 +67,12 @@ public class SpdxExportWorkData extends BaseWorkData{
     public void setObjectStoreKey(String objectStoreKey) {
         this.objectStoreKey = objectStoreKey;
     }
+
+    public Boolean getEnrichment() {
+        return enrichment;
+    }
+
+    public void setEnrichment(Boolean enrichment) {}
 
     @Override
     public boolean process(IWorkDataProcessor processor) {

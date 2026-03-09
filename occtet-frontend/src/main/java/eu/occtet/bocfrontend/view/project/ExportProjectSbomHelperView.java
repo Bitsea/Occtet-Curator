@@ -41,6 +41,7 @@ import io.jmix.core.Messages;
 import io.jmix.core.entity.KeyValueEntity;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.component.checkbox.JmixCheckbox;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.download.Downloader;
@@ -106,6 +107,7 @@ public class ExportProjectSbomHelperView extends StandardView {
     @ViewComponent private VerticalLayout activeTasksBox;
     @ViewComponent private Span infoSpan;
     @ViewComponent private Span currentlyInQueue;
+    @ViewComponent private JmixCheckbox enrichCopyrightCheckbox;
 
     private Project project;
     private String projectTaskPrefix;
@@ -124,7 +126,9 @@ public class ExportProjectSbomHelperView extends StandardView {
     @Subscribe
     protected void onInit(final InitEvent event) {
         sbomFormatComboBox.setItems("SPDX 2.3");
-        generateSbomButton.addClickListener(e -> handleExport(project, sbomFormatComboBox.getValue()));
+        generateSbomButton.addClickListener(e ->
+                handleExport(project, sbomFormatComboBox.getValue(), enrichCopyrightCheckbox.getValue())
+        );
 
         infoSpan.setText(String.format(messages.getMessage("eu.occtet.bocfrontend.view" +
                 ".project/exportProjectSbomHelperView.deletion.fino"), natsObjectStoreTtl));
@@ -163,7 +167,7 @@ public class ExportProjectSbomHelperView extends StandardView {
      * @param project    the project target for the SBOM generation
      * @param sbomFormat the desired output format selected by the user
      */
-    private void handleExport(Project project, String sbomFormat) {
+    private void handleExport(Project project, String sbomFormat, boolean enrichment) {
         if (sbomFormat == null) {
             log.warn("Attempted to start export without an active format selection.");
             notifications.create(messages.getMessage("eu.occtet.bocfrontend.view" +
@@ -187,7 +191,8 @@ public class ExportProjectSbomHelperView extends StandardView {
         SpdxExportWorkData spdxExportWorkData = new SpdxExportWorkData(
                 project.getDocumentID(),
                 project.getId(),
-                expectedObjectStoreKey
+                expectedObjectStoreKey,
+                enrichment
         );
 
         WorkTask workTask = new WorkTask(taskId, dynamicTaskName, "Export data to microservice to create new SPDX", actualTimestamp, spdxExportWorkData);
