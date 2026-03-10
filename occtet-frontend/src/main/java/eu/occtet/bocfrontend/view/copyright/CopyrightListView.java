@@ -113,7 +113,6 @@ public class CopyrightListView extends StandardListView<Copyright> {
         if(event != null){
             project = event.getValue();
             updateDatagridForProject(project);
-            filterBox.setVisible(true);
             markButton.setVisible(true);
         }
     }
@@ -151,6 +150,13 @@ public class CopyrightListView extends StandardListView<Copyright> {
         return new ComponentRenderer<>(this::createCheckbox);
     }
 
+    @Subscribe("showAllButton")
+    public void clickOnShowAllButton(ClickEvent<Button> event){
+        List<Copyright> copyrights = copyrightRepository.findAll();
+        loadCopyrights(copyrights);
+        filterBox.setVisible(!copyrights.isEmpty());
+    }
+
     private JmixCheckbox createCheckbox(Copyright copyright){
         JmixCheckbox checkbox = uiComponents.create(JmixCheckbox.class);
         checkbox.setReadOnly(true);
@@ -162,13 +168,18 @@ public class CopyrightListView extends StandardListView<Copyright> {
         log.debug("Loading copyrights for project: " +project.getProjectName()+" - "+project.getVersion());
         List<InventoryItem> items = inventoryItemRepository.findByProject(project);
         List<Copyright> copyrights = copyrightRepository.findByInventoryItems(items);
-        copyrightsDl.setParameter("copyrights",copyrights);
-        copyrightsDl.load();
+        loadCopyrights(copyrights);
+        filterBox.setVisible(!copyrights.isEmpty());
     }
 
     private void setButtonVisible(boolean isVisible){
         saveButton.setVisible(isVisible);
         exitButton.setVisible(isVisible);
+    }
+
+    private void loadCopyrights(List<Copyright> copyrights){
+        copyrightsDl.setParameter("copyrights",copyrights);
+        copyrightsDl.load();
     }
 
 }
