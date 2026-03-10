@@ -283,6 +283,6 @@ public class NatsService extends NatsHelperService {
             mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
             String message = mapper.writeValueAsString(workTask);
             log.debug("sending message to download service: {}", message);
-            sendWorkMessageToStream(sendSubjectDownload, message.getBytes());
+            sendWorkMessageToStream(natsProperties.send_subject_download(), message.getBytes());
     }
 }
