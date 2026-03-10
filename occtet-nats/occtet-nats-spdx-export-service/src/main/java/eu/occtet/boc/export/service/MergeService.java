@@ -150,7 +150,10 @@ public class MergeService {
             externalRefs.add(purlRef);
         }
 
-        spdxPackageEntity.getExternalRefs().clear();
+        if (spdxPackageEntity.getExternalRefs() != null) {
+            spdxPackageEntity.getExternalRefs().clear();
+        } else
+            spdxPackageEntity.setExternalRefs(new ArrayList<>());
         spdxPackageEntity.getExternalRefs().addAll(externalRefs);
     }
 
