@@ -93,6 +93,8 @@ class DownloadManagerTest {
         project = new Project();
         project.setId(101L);
         project.setProjectName("TestProject");
+        project.setProjectContact("test");
+        project.setOrganizationName("test");
 
         softwareComponent = new SoftwareComponent();
         softwareComponent.setId(1L);

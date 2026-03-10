@@ -137,6 +137,7 @@ public class ProjectDetailView extends StandardDetailView<Project> {
                     ,NotificationVariant.LUMO_WARNING);
             event.preventSave();
             return;
+            //
         }else if(checkProjectDataInput(projectNameField.getValue(),projectVersion.getValue())){
             userMessage("eu.occtet.bocfrontend.view.project/Project.projectAlreadyExists"
                     ,NotificationVariant.LUMO_ERROR);
@@ -147,7 +148,7 @@ public class ProjectDetailView extends StandardDetailView<Project> {
 
     private boolean checkProjectDataInput(String projectName, String projectVersion){
         for(Project p : projects){
-            if(p.getProjectName().equals(projectName) && p.getVersion().equals(projectVersion)){
+            if(p.getProjectName().equals(projectName) && p.getVersion().equals(projectVersion) && !p.getId().equals(getEditedEntity().getId())){
                 return true;
             }
         }
