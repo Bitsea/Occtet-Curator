@@ -21,6 +21,7 @@ package eu.occtet.bocfrontend.view.curatortask;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.html.H6;
 import com.vaadin.flow.component.html.Span;
@@ -47,6 +48,7 @@ import io.jmix.flowui.component.image.JmixImage;
 import io.jmix.flowui.facet.Timer;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.CollectionContainer;
+import io.jmix.flowui.model.InstanceLoader;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -80,6 +82,12 @@ public class ImportTaskListView extends StandardListView<CuratorTask> {
     private CreateAction<CuratorTask> curatorTaskDataGridCreate;
     @ViewComponent
     private CollectionContainer<CuratorTask> curatorTaskDc;
+    @ViewComponent
+    private JmixButton createReportButton;
+    @ViewComponent
+    private JmixButton downlaodReportButton;
+    @ViewComponent
+    private InstanceLoader<CuratorTask> curatorTaskProjectDl;
 
     @Autowired
     private Dialogs dialogs;
@@ -242,5 +250,20 @@ public class ImportTaskListView extends StandardListView<CuratorTask> {
                         new DialogAction(DialogAction.Type.NO)
                 )
                 .open();
+    }
+
+    @Subscribe("curatorTaskDataGrid")
+    public void clickOnCuratorTaskDataGrid(final ItemClickEvent<CuratorTask> event){
+
+        CuratorTask task = event.getItem();
+        if(task != null){
+            curatorTaskProjectDl.setEntityId(task);
+            curatorTaskProjectDl.load();
+        }
+    }
+
+    @Subscribe("createReportButton")
+    public void clickOnCreateReportButton(ClickEvent<Button> event){
+        downlaodReportButton.setEnabled(true);
     }
 }

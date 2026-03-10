@@ -57,7 +57,7 @@ vaadin-grid vaadin-button {
 
 .import-layout{
 border: 1px solid;
-border-color: var(--lumo-contrast-10pct);
+border-color: darkGray;
 }
 
 .image-border {
@@ -176,4 +176,15 @@ vaadin-menu-bar-button[theme~="primary"]{
     width: 100%;
     border: none;
     padding-left: 0 !important;
+}
+
+.box-layout-report{
+   border: 1px solid;
+   border-color: darkGray;
+   margin-top: 89px;
+   margin-bottom: 15px;
+}
+
+.box-layout-report vaadin-text-field[readonly]::part(input-field){
+   background-color: var(--lumo-contrast-5pct) !important;
 }

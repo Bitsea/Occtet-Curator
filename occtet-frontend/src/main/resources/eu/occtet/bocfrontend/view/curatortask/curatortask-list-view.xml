@@ -30,6 +30,12 @@
                 </query>
             </loader>
         </collection>
+        <instance id="curatortaskProject" class="eu.occtet.bocfrontend.entity.CuratorTask">
+            <fetchPlan extends="_base">
+                <property name="project" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader id="curatorTaskProjectDl"/>
+        </instance>
     </data>
     <facets>
         <dataLoadCoordinator auto="true"/>
@@ -53,37 +59,68 @@
                 </scroller>
             </vbox>
 
-            <vbox>
-                <hbox id="buttonsPanel" classNames="buttons-panel">
-                    <button id="refreshBtn" action="curatorTaskDataGrid.refresh"/>
-                    <button text="msg://removeStopped" id="removeStoppedBtn"/>
+
+            <hbox width="100%" height="100%">
+                <vbox width="60%" height="100%" css="padding-left: 0; padding-top: 30px">
+                    <hbox id="buttonsPanel" classNames="buttons-panel" width="100%">
+                        <button id="refreshBtn" action="curatorTaskDataGrid.refresh"/>
+                        <button text="msg://removeStopped" id="removeStoppedBtn"/>
+                        <button text="msg://eu.occtet.bocfrontend/ImportTask.feedback" id="showFeedback" enabled="false"
+                                themeNames="success"/>
+                        <button text="msg://eu.occtet.bocfrontend.entity/Configuration" id="showConfig" enabled="false"/>
+                        <button text="msg://stop" id="stopTaskBtn" enabled="false" themeNames="error" visible="false"/>
+                        <button id="removeBtn" action="curatorTaskDataGrid.remove"/>
+                        <simplePagination id="pagination" dataLoader="curatorTaskDl" alignSelf="END" itemsPerPageItems="100"/>
+                    </hbox>
+                    <dataGrid classNames="occtet-grid" id="curatorTaskDataGrid"
+                              width="100%"
+                              height="40em"
+                              dataContainer="curatorTaskDc"
+                              columnReorderingAllowed="true"
+                              selectionMode="SINGLE"
+                              themeNames="row-stripes">
+                        <actions>
+                            <action id="create" type="list_create" visible="false"/>
+                            <action id="refresh" type="list_refresh"/>
+                            <action id="remove" type="list_remove"/>
+                        </actions>
+                        <columns resizable="true" sortable="true">
+                            <column property="taskName" sortable="true" header="msg://name"/>
+                            <column property="status" sortable="true" header="msg://status"/>
+                            <column property="lastUpdate" sortable="true" header="msg://lastUpdate"/>
+                        </columns>
+                    </dataGrid>
+                </vbox>
+                <hbox width="40%" classNames="box-layout-report">
+                    <vbox width="100%">
+                        <h5 text="Report import"/>
+                        <hbox width="100%">
+                            <textField id="projectNameField" label="Project" readOnly="true" width="60%"
+                                       dataContainer="curatortaskProject" property="project.projectName"/>
+                            <textField id="projectVersionField" label="Version" readOnly="true" width="40%"
+                                       dataContainer="curatortaskProject" property="project.version"/>
+                        </hbox>
+                        <textField id="projectOwnerField" label="Owner" readOnly="true" width="50%"
+                                   dataContainer="curatortaskProject" property="project.projectContact"/>
+                        <textField id="projectOrganizationField" label="Organization" readOnly="true" width="70%"
+                                   dataContainer="curatortaskProject" property="project.organizationName"/>
+                        <hbox width="100%">
+                            <textField id="importDateField" label="Import date" readOnly="true" width="33%"
+                                       dataContainer="curatortaskProject" property="lastUpdate"/>
+                            <textField id="importTypeField" label="Import type" readOnly="true" width="30%"
+                                       dataContainer="curatortaskProject" property="taskType"/>
+                            <textField id="importStatusField" label="Import status" readOnly="true" width="30%"
+                                       dataContainer="curatortaskProject" property="status"/>
+                        </hbox>
+                        <hbox width="100%" height="100%" justifyContent="CENTER">
+                            <button id="createReportButton" text="Create report" alignSelf="CENTER"
+                                    icon="vaadin:clipboard-text" enabled="true"/>
+                            <button id="downlaodReportButton" text="Download" icon="vaadin:download" alignSelf="END"
+                            enabled="false"/>
+                        </hbox>
+                    </vbox>
                 </hbox>
-                <hbox>
-                    <button text="msg://eu.occtet.bocfrontend/ImportTask.feedback" id="showFeedback" enabled="false" themeNames="success"/>
-                    <button text="msg://eu.occtet.bocfrontend.entity/Configuration" id="showConfig" enabled="false"/>
-                    <button text="msg://stop" id="stopTaskBtn" enabled="false" themeNames="error" visible="false"/>
-                    <button id="removeBtn" action="curatorTaskDataGrid.remove"/>
-                    <simplePagination id="pagination" dataLoader="curatorTaskDl"/>
-                </hbox>
-            </vbox>
-            <dataGrid classNames="occtet-grid" id="curatorTaskDataGrid"
-                      width="100%"
-                      minHeight="20em"
-                      dataContainer="curatorTaskDc"
-                      columnReorderingAllowed="true"
-                      selectionMode="SINGLE"
-                      themeNames="row-stripes">
-                <actions>
-                    <action id="create" type="list_create" visible="false"/>
-                    <action id="refresh" type="list_refresh"/>
-                    <action id="remove" type="list_remove"/>
-                </actions>
-                <columns resizable="true" sortable="true">
-                    <column property="taskName" sortable="true" header="msg://name"/>
-                    <column property="status" sortable="true" header="msg://status"/>
-                    <column property="lastUpdate" sortable="true" header="msg://lastUpdate"/>
-                </columns>
-            </dataGrid>
+            </hbox>
         </vbox>
     </layout>
 </view>
