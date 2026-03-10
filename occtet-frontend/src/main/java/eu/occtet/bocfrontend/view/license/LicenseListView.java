@@ -113,9 +113,8 @@ public class LicenseListView extends StandardListView<License> {
     public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
         if(event != null){
             List<License> licensesProject = licenseRepository.findLicensesByProject(event.getValue());
-            licensesDl.setParameter("licenses",licensesProject);
-            licensesDl.load();
-            filterBox.setVisible(true);
+            loadLicenses(licensesProject);
+            filterBox.setVisible(!licensesProject.isEmpty());
         }
     }
 
@@ -182,5 +181,17 @@ public class LicenseListView extends StandardListView<License> {
         window.setWidth("100%");
         window.setHeight("100%");
         window.open();
+    }
+
+    @Subscribe("showAllButton")
+    public void clickOnShowAllButton(ClickEvent<Button> event){
+        List<License> licenses = licenseRepository.findAll();
+        loadLicenses(licenses);
+        filterBox.setVisible(!licenses.isEmpty());
+    }
+
+    private void loadLicenses(List<License> licenses){
+        licensesDl.setParameter("licenses",licenses);
+        licensesDl.load();
     }
 }

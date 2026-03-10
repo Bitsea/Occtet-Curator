@@ -30,9 +30,7 @@
             </fetchPlan>
             <loader id="inventoryItemsDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from InventoryItem e
-                      join e.project p
-                      where p = :project]]>
+                    <![CDATA[select e from InventoryItem e where e in :inventoryItems]]>
                 </query>
             </loader>
         </collection>
@@ -48,7 +46,11 @@
         <action id="discardAction" type="lookup_discard"/>
     </actions>
     <layout>
-        <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
+        <hbox>
+            <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
+            <button id="showAllButton" text="msg://eu.occtet.bocfrontend.view/showAllButton"
+                    alignSelf="END" themeNames="primary"/>
+        </hbox>
         <hbox width="100%" visible="false" id="filterBox">
             <genericFilter id="genericFilter" dataLoader="inventoryItemsDl" themeNames="small" alignSelf="START" opened="false">
                 <properties include=".*"/>
