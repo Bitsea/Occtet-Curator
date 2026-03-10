@@ -135,21 +135,13 @@ public class Project {
         return files;
     }
 
-    public void addFile(File file) {
-        files.add(file);
-        file.setProject(this);
-    }
 
-    public void removeFiles(Set<File> file) {
-        files.removeAll(file);
-        for(File f: file) {
+    public void removeFiles(List<File> fileList) {
+        for(File f: fileList) {
             f.setProject(null);
         }
-        this.getFiles().clear();
+        this.files.clear();
     }
 
-    public void removeInventories(){
-
-    }
 }
 

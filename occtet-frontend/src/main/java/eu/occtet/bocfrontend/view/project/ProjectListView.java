@@ -25,7 +25,10 @@ import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
+import eu.occtet.bocfrontend.dao.FileRepository;
+import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.entity.File;
+import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
@@ -36,6 +39,7 @@ import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.view.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.checkerframework.checker.units.qual.A;
@@ -43,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -70,6 +75,10 @@ public class ProjectListView extends StandardListView<Project> {
     private Dialogs dialogs;
     @Autowired
     private DataManager dataManager;
+    @Autowired
+    private InventoryItemRepository inventoryItemRepository;
+    @Autowired
+    private FileRepository fileRepository;
 
     @Subscribe
     public void onInit(final InitEvent event) {
@@ -111,15 +120,32 @@ public class ProjectListView extends StandardListView<Project> {
         Set<Project> projects = projectsDataGrid.getSelectedItems();
         for (Project p : projects) {
 
-            Set<File> files = new HashSet<>(dataManager.load(File.class)
-                    .query("select f from File f where f.project = :project")
-                    .parameter("project", p).list());
+            List<File> files = fileRepository.findByProject(p);
 
             //delete relation of files and project
             p.removeFiles(files);
-            //TODO remove inventoryItems ans see what softwarecomponents doing etc
+            removeInventories(p);
 
+            dataManager.remove(files);
             dataManager.remove(p);
         }
+    }
+
+    private void removeInventories(Project project){
+
+        List<InventoryItem> inventoryItemList= inventoryItemRepository.findByProject(project);
+        for(InventoryItem item: inventoryItemList){
+            List<InventoryItem> itemList= inventoryItemRepository.findBySoftwareComponent(item.getSoftwareComponent());
+            //if item curated and there only exists one for this component, we want to reuse this data
+            if(item.getCurated() && itemList.size()<=1){
+                item.setProject(null);
+                dataManager.save(item);
+            }else{
+                //softwareComponent is global and gets reused, no deleting here
+                item.setSoftwareComponent(null);
+                dataManager.remove(item);
+            }
+        }
+
     }
 }
