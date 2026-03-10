@@ -68,6 +68,8 @@ class FileServiceTest {
         testProject = new Project();
         testProject.setProjectName("TestProject");
         testProject.setVersion("1.0.0");
+        testProject.setProjectContact("test");
+        testProject.setOrganizationName("test");
         testProject = entityManager.persistAndFlush(testProject);
     }
 

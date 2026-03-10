@@ -21,6 +21,8 @@ package eu.occtet.bocfrontend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import eu.occtet.boc.model.*;
 import eu.occtet.boc.model.BaseSystemMessage;
 import eu.occtet.boc.model.MicroserviceDescriptor;
 import eu.occtet.boc.model.ProgressSystemMessage;
@@ -45,6 +47,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -256,5 +260,29 @@ public class NatsService extends NatsHelperService {
             log.error("Error while trying to get previous export of same project: {}", e.toString());
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * Sends a download request message to the download microservice via nats.
+     *
+     * @param projectId        The ID of the project associated with the download request.
+     * @param inventoryItemId  The ID of the inventory item associated with the software component containing the
+     *                         download URL.
+     * @param isMainPackage    Indicates whether the item to be downloaded is the main package or not.
+     * @throws IOException              If there are issues with input/output operations.
+     * @throws JetStreamApiException    If there are errors interacting with the messaging stream.
+     */
+    public void sendToDownload(Long projectId, Long inventoryItemId, Boolean isMainPackage) throws IOException,
+            JetStreamApiException{
+            DownloadServiceWorkData payload = new DownloadServiceWorkData(projectId, inventoryItemId,
+                    isMainPackage);
+            LocalDateTime now = LocalDateTime.now();
+            long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
+            WorkTask workTask = new WorkTask(UUID.randomUUID().toString(),"download-service", "information about a component to be downloaded to a specific location", actualTimestamp, payload);
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+            String message = mapper.writeValueAsString(workTask);
+            log.debug("sending message to download service: {}", message);
+            sendWorkMessageToStream(sendSubjectDownload, message.getBytes());
     }
 }

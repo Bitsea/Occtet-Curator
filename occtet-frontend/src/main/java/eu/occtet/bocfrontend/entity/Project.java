@@ -34,7 +34,7 @@ import java.util.Set;
 
 
 @JmixEntity
-@Table(name = "PROJECT", uniqueConstraints = { @UniqueConstraint(columnNames = { "PROJECT_NAME"})})
+@Table(name = "PROJECT")
 @Entity
 public class Project {
 
@@ -58,11 +58,17 @@ public class Project {
     @ManyToMany
     private List<SearchTermsProfile> searchTermsProfiles;
 
-    @Column(name = "PROJECT_CONTACT", columnDefinition = "VARCHAR(255)")
-    private String projectContact;
+    @Column(name = "PROJECT_CONTACT", columnDefinition = "VARCHAR(255)", nullable = false)
+    private String projectContact; // name of product owner (author in spdx context)
 
     @Column(name = "CONTACT_EMAIL", columnDefinition = "VARCHAR(255)")
     private String contactEmail;
+
+    @Column(name = "ORGANIZATION_NAME", columnDefinition = "VARCHAR(255)", nullable = false)
+    private String organizationName;
+
+    @Column(name = "ORGANIZATION_EMAIL", columnDefinition = "VARCHAR(255)")
+    private String organizationEmail;
 
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
@@ -128,6 +134,22 @@ public class Project {
 
     public void setCreatedAt(@Nonnull LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getOrganizationName() {
+        return organizationName;
+    }
+
+    public void setOrganizationName(String organizationName) {
+        this.organizationName = organizationName;
+    }
+
+    public String getOrganizationEmail() {
+        return organizationEmail;
+    }
+
+    public void setOrganizationEmail(String organizationEmail) {
+        this.organizationEmail = organizationEmail;
     }
 
     public Set<File> getFiles() {

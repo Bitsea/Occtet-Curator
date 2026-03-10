@@ -174,6 +174,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
                 updatedNotes += ExternalNotesConstants.SECTION_SEPARATOR +
                         ExternalNotesConstants.WARNING_AUDITOR_ATTENTION_REQ + 
                         ExternalNotesConstants.DOWNLOAD_SERVICE_FAILURE_MSG +
+                        "\nAffected download URL: " + softwareComponent.getDetailsUrl() +
                         ExternalNotesConstants.SECTION_SEPARATOR;
                 inventoryItem.setExternalNotes(updatedNotes);
                 inventoryItem.setHasTodos(true);

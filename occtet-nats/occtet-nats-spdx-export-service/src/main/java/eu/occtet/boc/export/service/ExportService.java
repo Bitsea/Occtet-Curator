@@ -37,7 +37,6 @@ import org.spdx.library.model.v2.enumerations.ReferenceCategory;
 import org.spdx.library.model.v2.enumerations.RelationshipType;
 import org.spdx.library.model.v2.license.AnyLicenseInfo;
 import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
-import org.spdx.library.referencetype.ListedReferenceTypes;
 import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,16 +118,28 @@ public class ExportService  extends ProgressReportingService  {
             elementMap.put("SPDXRef-DOCUMENT", spdxDocument);
 
             log.info("create creationInfo");
-            String userName = project.getProjectContact();
+            String createAttributeTemplate = "%s: %s %s";
             CreationInfoEntity creationInfoEntity = spdxDocumentRoot.getCreationInfo();
             spdxDocument.setCreationInfo(
                     spdxDocument.createCreationInfo(
-                            Arrays.asList(toolName, userName),
+                            Arrays.asList(
+                                    String.format(createAttributeTemplate,
+                                            "Person",
+                                            project.getProjectContact(),
+                                            project.getContactEmail() != null ?
+                                                    "(" + project.getContactEmail() + ")" : "()"
+                                   ),
+                                    String.format(createAttributeTemplate,
+                                            "Organization",
+                                            project.getOrganizationName(),
+                                            project.getOrganizationEmail() != null ?
+                                                    "(" + project.getOrganizationEmail() + ")" : "()"
+                                    ),
+                                    String.format(createAttributeTemplate, "Tool", toolName, "")
+                            ),
                             Instant.now().truncatedTo(ChronoUnit.SECONDS).toString())
             );
             Objects.requireNonNull(spdxDocument.getCreationInfo()).setLicenseListVersion(creationInfoEntity.getLicenseListVersion());
-            spdxDocument.getCreationInfo().setComment(creationInfoEntity.getComment());
-            spdxDocument.setComment(spdxDocumentRoot.getComment());
             spdxDocument.setSpecVersion(Version.CURRENT_SPDX_VERSION);
             spdxDocument.setName(spdxDocumentRoot.getName());
             spdxDocument.setDataLicense(LicenseInfoFactory.parseSPDXLicenseStringCompatV2(

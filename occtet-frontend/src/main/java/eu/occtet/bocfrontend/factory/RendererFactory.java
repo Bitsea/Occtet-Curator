@@ -25,7 +25,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
-import eu.occtet.bocfrontend.entity.ComponentVulnerabilityLink;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import io.jmix.flowui.UiComponents;
 import org.springframework.beans.factory.annotation.Autowired;
