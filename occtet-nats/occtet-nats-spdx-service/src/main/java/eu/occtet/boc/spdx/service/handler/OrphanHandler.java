@@ -121,7 +121,7 @@ public class OrphanHandler {
                         inventoryItem);
 
                 Project project = inventoryItem.getProject();
-                project.addFiles((Set<File>) locationMap.values());
+                project.addFiles(locationMap.values());
                 projectRepository.save(project);
 
                 File dbFile = locationMap.get(filePath);

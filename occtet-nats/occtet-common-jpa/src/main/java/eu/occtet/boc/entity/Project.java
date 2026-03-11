@@ -20,16 +20,13 @@
 package eu.occtet.boc.entity;
 
 
-import eu.occtet.boc.converter.ListStringConverter;
 import eu.occtet.boc.entity.appconfigurations.SearchTermsProfile;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 @Entity
@@ -160,7 +157,7 @@ public class Project {
         file.setProject(this);
     }
 
-    public void addFiles(Set<File> files) {
+    public void addFiles(Collection<File> files) {
         this.files.addAll(files);
         for(File f : files){
             f.setProject(this);

@@ -132,7 +132,7 @@ public class PackageHandler {
 
         //get License from package
         AnyLicenseInfo spdxPkgLicense = spdxPackage.getLicenseConcluded();
-        if (spdxPkgLicense.isNoAssertion(spdxPkgLicense)) {
+        if (spdxPkgLicense == null || spdxPkgLicense.isNoAssertion(spdxPkgLicense)) {
             spdxPkgLicense = spdxPackage.getLicenseDeclared();
         }
 
@@ -244,7 +244,7 @@ public class PackageHandler {
 
         Map<String, File> locationMap = fileService.findOrCreateBatch(fileToSpdxIdMap, inventoryItem);
         Project project= inventoryItem.getProject();
-        project.addFiles((Set<File>) locationMap.values());
+        project.addFiles(locationMap.values());
         projectRepository.save(project);
 
         Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts);
