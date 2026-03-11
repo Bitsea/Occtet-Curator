@@ -1,24 +1,27 @@
 /*
- *  Copyright (C) 2025 Bitsea GmbH
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * You may obtain a copy of the License at
  *
- *  https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and limitations under the License.
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
- *   SPDX-License-Identifier: Apache-2.0
+ *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
  */
 
 package eu.occtet.boc.spdx.service.handler;
 
 import eu.occtet.boc.dao.CopyrightRepository;
+import eu.occtet.boc.dao.OrtIssueRepository;
+import eu.occtet.boc.dao.OrtViolationRepository;
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.spdx.context.SpdxImportContext;
@@ -56,6 +59,10 @@ public class OrphanHandler {
     @Autowired
     private InventoryItemService inventoryItemService;
     @Autowired
+    private OrtIssueRepository ortIssueRepository;
+    @Autowired
+    private OrtViolationRepository ortViolationRepository;
+    @Autowired
     private ProjectRepository projectRepository;
 
 
@@ -63,6 +70,8 @@ public class OrphanHandler {
     public void processOrphanFiles(SpdxImportContext context) {
         log.info("Processing orphan files");
         SpdxDocument spdxDocument = context.getSpdxDocument();
+        List<OrtIssue> ortIssues= ortIssueRepository.findByProject(context.getProject());
+        List<OrtViolation> ortViolations = ortViolationRepository.findByProject(context.getProject());
         try {
             List<TypedValue> allFileUris = spdxDocument.getModelStore().getAllItems(null, "File").toList();
             Map<String, SpdxFile> uniqueOrphans = new HashMap<>();
@@ -102,6 +111,8 @@ public class OrphanHandler {
                 inventoryItem.setSpdxId(file.getId());
                 inventoryItem.setCurated(false);
                 inventoryItem.setSize(1);
+
+                inventoryItemService.sortViolationsAndIssues(ortIssues, ortViolations, inventoryItem);
 
                 spdxConverter.convertFile(file, context.getSpdxDocumentRoot());
                 context.getFileToInventoryItemMap().put(file.getId(), inventoryItem);
@@ -169,4 +180,6 @@ public class OrphanHandler {
             log.error("Error when trying to handle orphaned files. Skipping...", e);
         }
     }
+
+
 }

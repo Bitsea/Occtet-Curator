@@ -20,6 +20,8 @@
 package eu.occtet.bocfrontend.view.vexData;
 
 import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.Route;
@@ -78,9 +80,8 @@ public class VexDataListView extends StandardListView<VexData> {
         if(event != null){
             List<SoftwareComponent> softwareComponents = softwareComponentRepository.findByProject(event.getValue());
             List<VexData> vexDataList = vexDataRepository.findBySoftwareComponents(softwareComponents);
-            vexDataDl.setParameter("vexDataList",vexDataList);
-            vexDataDl.load();
-            filterBox.setVisible(true);
+            loadVexData(vexDataList);
+            filterBox.setVisible(!vexDataList.isEmpty());
         }
     }
 
@@ -94,5 +95,17 @@ public class VexDataListView extends StandardListView<VexData> {
         window.setWidth("100%");
         window.setHeight("100%");
         window.open();
+    }
+
+    @Subscribe("showAllButton")
+    public void clickOnShowAllButton(ClickEvent<Button> event){
+        List<VexData> vexData = vexDataRepository.findAll();
+        loadVexData(vexData);
+        filterBox.setVisible(!vexData.isEmpty());
+    }
+
+    private void loadVexData(List<VexData> vexDataList){
+        vexDataDl.setParameter("vexDataList",vexDataList);
+        vexDataDl.load();
     }
 }

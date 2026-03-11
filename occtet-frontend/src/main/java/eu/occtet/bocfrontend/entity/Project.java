@@ -165,5 +165,12 @@ public class Project {
         this.files.clear();
     }
 
+    public void setFiles(Set<File> files) {
+        if(this.files!= null){
+            this.files.addAll(files);
+        }else this.files = files;
+
+    }
+
 }
 

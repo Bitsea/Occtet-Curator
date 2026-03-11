@@ -44,7 +44,11 @@
     </actions>
     <layout>
         <vbox height="100%" width="100%">
-            <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
+            <hbox>
+                <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
+                <button id="showAllButton" text="msg://eu.occtet.bocfrontend.view/showAllButton"
+                        alignSelf="END" themeNames="primary"/>
+            </hbox>
             <hbox width="100%" visible="false" id="filterBox">
                 <genericFilter id="genericFilter" dataLoader="licensesDl" themeNames="small" alignSelf="START" opened="false" autoApply="true">
                     <properties include=".*"/>

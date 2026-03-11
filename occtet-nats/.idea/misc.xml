@@ -9,6 +9,7 @@
         <option value="$PROJECT_DIR$/occtet-nats-licenseMatcher-service/pom.xml" />
         <option value="$PROJECT_DIR$/occtet-nats-ai-copyrightFilter-service/pom.xml" />
         <option value="$PROJECT_DIR$/occtet-nats-ai-licenseMatcher-service/pom.xml" />
+        <option value="$PROJECT_DIR$/occtet-nats-ort-process-run-service/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
