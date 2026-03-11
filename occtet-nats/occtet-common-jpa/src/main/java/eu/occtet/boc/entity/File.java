@@ -56,7 +56,7 @@ public class File {
     @Column(name = "DOCUMENT_ID", columnDefinition = "TEXT")
     private String documentId;
 
-    @ManyToMany(mappedBy = "files", cascade = CascadeType.REMOVE)
+    @ManyToMany(mappedBy = "files")
     private Set<Copyright> copyrights = new HashSet<>();
 
     @JoinTable(name = "FILE_INVENTORY_ITEM_LINK",

@@ -19,7 +19,6 @@
 
 package eu.occtet.bocfrontend.entity;
 
-
 import eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile;
 import io.jmix.core.DeletePolicy;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
@@ -32,7 +31,6 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 
 @JmixEntity
 @Table(name = "PROJECT")
@@ -74,8 +72,7 @@ public class Project {
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "project", orphanRemoval = true)
-    @OnDelete(DeletePolicy.CASCADE)
+    @OneToMany(mappedBy = "project")
     private Set<File> files= new HashSet<>();
 
     public Project() {this.createdAt = LocalDateTime.now();}

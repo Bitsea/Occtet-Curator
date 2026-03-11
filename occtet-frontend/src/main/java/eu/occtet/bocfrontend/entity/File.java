@@ -95,8 +95,8 @@ public class File {
     @Column(name = "CREATED_DATE")
     private LocalDateTime createdDate;
 
-
-    @ManyToMany(mappedBy = "files", cascade = CascadeType.REMOVE)
+    @ManyToMany(mappedBy = "files")
+    @OnDelete(DeletePolicy.UNLINK)
     private Set<Copyright> copyrights = new HashSet<>();
 
     @LastModifiedDate
@@ -113,7 +113,6 @@ public class File {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PROJECT_ID")
-    @OnDelete(DeletePolicy.CASCADE)
     private Project project;
 
     public File() {
