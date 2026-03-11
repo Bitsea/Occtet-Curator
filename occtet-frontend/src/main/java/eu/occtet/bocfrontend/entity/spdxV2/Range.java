@@ -31,13 +31,13 @@ public class Range {
     private Long id;
 
     @Column(name="start")
-    Integer start;
+    private Integer start;
     @Column(name="end")
-    Integer end;
+    private Integer end;
     @Column(name="type")
-    String type;
+    private String type;
     @Column(name="reference")
-    String reference;
+    private String reference;
 
     public Range() {}
 
