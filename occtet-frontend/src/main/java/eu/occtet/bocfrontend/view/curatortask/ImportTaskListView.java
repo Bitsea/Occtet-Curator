@@ -47,6 +47,7 @@ import io.jmix.flowui.component.image.JmixImage;
 import io.jmix.flowui.facet.Timer;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.CollectionContainer;
+import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -81,6 +82,8 @@ public class ImportTaskListView extends StandardListView<CuratorTask> {
     @ViewComponent
     private CollectionContainer<CuratorTask> curatorTaskDc;
 
+    @ViewComponent
+    private CollectionLoader<CuratorTask> curatorTaskDl;
     @Autowired
     private Dialogs dialogs;
     @Autowired
@@ -108,7 +111,9 @@ public class ImportTaskListView extends StandardListView<CuratorTask> {
 
         updateAvailableImportsBox();
 
-        curatorTaskDc.setItems(curatorTaskRepository.findByStatus(TaskStatus.COMPLETED));
+        //curatorTaskDl.setParameter("status", TaskStatus.COMPLETED);
+        //curatorTaskDl.load();
+        load();
 
     }
 
@@ -162,8 +167,7 @@ public class ImportTaskListView extends StandardListView<CuratorTask> {
 
     @Subscribe("refreshTimer")
     public void onRefreshTimerTimerAction(final Timer.TimerActionEvent event) {
-        List<CuratorTask> tasks = curatorTaskRepository.findAll();
-        curatorTaskDc.setItems(tasks);
+        load();
     }
 
     @Subscribe("curatorTaskDataGrid")
