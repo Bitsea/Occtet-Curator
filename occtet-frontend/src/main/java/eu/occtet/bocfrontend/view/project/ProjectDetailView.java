@@ -19,6 +19,7 @@
 
 package eu.occtet.bocfrontend.view.project;
 
+import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
@@ -30,17 +31,21 @@ import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.AppConfigurationRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.entity.ProjectMember;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfiguration;
 import eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile;
+import eu.occtet.bocfrontend.factory.ProjectMemberFactory;
 import eu.occtet.bocfrontend.service.Utilities;
 import eu.occtet.bocfrontend.view.main.MainView;
+import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.kit.action.ActionPerformedEvent;
+import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -77,6 +82,8 @@ public class ProjectDetailView extends StandardDetailView<Project> {
     private Notifications notifications;
     @Autowired
     private ProjectRepository projectRepository;
+    @Autowired
+    private ProjectMemberFactory projectMemberFactory;
 
 
     private static final Logger log = LogManager.getLogger(ProjectDetailView.class);
@@ -162,4 +169,14 @@ public class ProjectDetailView extends StandardDetailView<Project> {
                 .withThemeVariant(variant)
                 .show();
     }
+
+    @Subscribe(id = "addMemberButton", subject = "clickListener")
+    public void onAddMemberButtonClick(final ClickEvent<JmixButton> event) {
+        //TODO fetch User from KeyCloak? or create user here?
+        //ProjectMember member= projectMemberFactory.createProjectMember(getEditedEntity(), user );
+
+
+    }
+
+
 }

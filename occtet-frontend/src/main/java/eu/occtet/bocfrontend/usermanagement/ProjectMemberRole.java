@@ -19,20 +19,16 @@
 
 package eu.occtet.bocfrontend.usermanagement;
 
-
 import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.ProjectMember;
-import io.jmix.security.model.EntityPolicyAction;
-import io.jmix.security.role.annotation.EntityPolicy;
-import io.jmix.security.role.annotation.ResourceRole;
+import io.jmix.security.role.annotation.JpqlRowLevelPolicy;
+import io.jmix.security.role.annotation.RowLevelRole;
 
-@ResourceRole(name = "Admin", code = "admin")
-public interface AdminRole {
+@RowLevelRole(name = "projectMember", code = "projectMember")
+public interface ProjectMemberRole {
 
-    @EntityPolicy(entityClass = Project.class,
-            actions = EntityPolicyAction.ALL)
-    void projectAdmin();
-
-    @EntityPolicy(entityClass = ProjectMember.class, actions = EntityPolicyAction.ALL)
-    void manageMembers();
+    @JpqlRowLevelPolicy(
+            entityClass = Project.class,
+            where = "{E}.id in (select pm.project.id from ProjectMember pm where pm.username = :current_user_username)"
+    )
+    void projectPolicy();
 }

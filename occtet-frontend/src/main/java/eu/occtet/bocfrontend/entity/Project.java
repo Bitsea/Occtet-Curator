@@ -77,6 +77,8 @@ public class Project {
     @OnDelete(DeletePolicy.CASCADE)
     private Set<File> files;
 
+    @OneToMany(mappedBy = "project")
+    private List<ProjectMember> members;
 
     public Project() {this.createdAt = LocalDateTime.now();}
 
@@ -162,6 +164,14 @@ public class Project {
                 this.files.addAll(files);
             }else this.files = files;
 
+    }
+
+    public List<ProjectMember> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<ProjectMember> members) {
+        this.members = members;
     }
 }
 

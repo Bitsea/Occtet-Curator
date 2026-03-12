@@ -26,10 +26,28 @@
                   class="eu.occtet.bocfrontend.entity.Project">
             <fetchPlan extends="_base">
                 <property name="searchTermsProfiles" fetchPlan="_base"/>
+                <property name="members" fetchPlan="_base"/>
             </fetchPlan>
             <loader id="projectDl"/>
             <collection id="searchTermsProfilesDc" property="searchTermsProfiles"/>
         </instance>
+        <collection id="memberDc"
+                    class="eu.occtet.bocfrontend.entity.ProjectMember">
+            <fetchPlan extends="_base">
+                <property name="project" fetchPlan="_base">
+                    <property name="projectName"/>
+                </property>
+                <property name="user" fetchPlan="_base">
+                    <property name="lastName"/>
+                </property>
+            </fetchPlan>
+            <loader id="memberDl" readOnly="true">
+                <query>
+                    <![CDATA[select e from ProjectMember e
+                        where e.project =:project]]>
+                </query>
+            </loader>
+        </collection>
     </data>
     <facets>
         <dataLoadCoordinator auto="true"/>
@@ -94,6 +112,22 @@
                     <button id="removeProfileBtn"
                             action="searchTermsProfilesDataGrid.exclude"
                             themeNames="error small" />
+                </hbox>
+            </vbox>
+            <vbox>
+                <h3 text="msg://eu.occtet.bocfrontend.view.projectMember/projectMember"/>
+                <dataGrid id="memberDataGrid"
+                          width="100%"
+                          dataContainer="memberDc"
+                          columnReorderingAllowed="true"
+                          classNames="occtet-grid">
+                    <columns resizable="true" >
+                        <column property="user.lastName" header="msg://eu.occtet.bocfrontend.view.login/loginForm.username"/>
+                    </columns>
+                </dataGrid>
+                <hbox>
+                    <button id="addMemberButton" text="msg://addMember" themeNames="primary"/>
+                    <button id="removeMemberButton" icon="TRASH" themeNames="error"/>
                 </hbox>
             </vbox>
 

@@ -17,22 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.usermanagement;
+package eu.occtet.bocfrontend.entity;
 
-
-import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.ProjectMember;
-import io.jmix.security.model.EntityPolicyAction;
-import io.jmix.security.role.annotation.EntityPolicy;
-import io.jmix.security.role.annotation.ResourceRole;
-
-@ResourceRole(name = "Admin", code = "admin")
-public interface AdminRole {
-
-    @EntityPolicy(entityClass = Project.class,
-            actions = EntityPolicyAction.ALL)
-    void projectAdmin();
-
-    @EntityPolicy(entityClass = ProjectMember.class, actions = EntityPolicyAction.ALL)
-    void manageMembers();
+public enum ProjectRole {
+    ADMIN,
+    CURATOR
 }
