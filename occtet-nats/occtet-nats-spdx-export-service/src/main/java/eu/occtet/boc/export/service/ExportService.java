@@ -109,6 +109,9 @@ public class ExportService  extends ProgressReportingService  {
             mergeService.mergeChangesToDocumentEntities(spdxDocumentRoot, project);
             notifyProgress(20,"merged changes to document entities");
 
+            Boolean enriched = spdxExportWorkData.getEnrichment();
+            log.debug("LicenseText enrichment with Copyright: {}",enriched);
+
             String documentUri = spdxDocumentRoot.getDocumentUri();
             SpdxDocument spdxDocument = new SpdxDocument(modelStore, documentUri, null, true);
 
@@ -150,7 +153,23 @@ public class ExportService  extends ProgressReportingService  {
             spdxDocumentRoot.getHasExtractedLicensingInfos().forEach(extractedLicense -> {
                 try {
                     ExtractedLicenseInfo extractedInfo = new ExtractedLicenseInfo(modelStore, documentUri, extractedLicense.getLicenseId(), null, true);
-                    extractedInfo.setExtractedText(extractedLicense.getExtractedText());
+
+                    String finalLicenseText = extractedLicense.getExtractedText();
+
+                    if (Boolean.TRUE.equals(enriched)) {
+                        log.debug("Enriching license {} with aggregated copyrights", extractedLicense.getLicenseId());
+
+                        String aggregatedCopyrights = aggregateCopyrightsForLicense(
+                                extractedLicense.getLicenseId(),
+                                spdxDocumentRoot
+                        );
+
+                        if (aggregatedCopyrights != null && !aggregatedCopyrights.isBlank()) {
+                            finalLicenseText = aggregatedCopyrights + "  \n\n  " + finalLicenseText;
+                        }
+                    }
+
+                    extractedInfo.setExtractedText(finalLicenseText);
                     spdxDocument.addExtractedLicenseInfos(extractedInfo);
                 } catch (InvalidSPDXAnalysisException e) {
                     log.error("Error adding extractedLicenseInfo", e);
@@ -407,6 +426,70 @@ public class ExportService  extends ProgressReportingService  {
         } catch (Exception e) {
             log.error("Error creating SpdxFile: {}", fileEntity.getFileName(), e);
             return null;
+        }
+    }
+
+    /**
+     * Scans all packages and files in the document root to find copyrights associated
+     * with the given license ID.
+     */
+    private String aggregateCopyrightsForLicense(String licenseId, SpdxDocumentRoot spdxDocumentRoot) {
+        Set<String> uniqueCopyrights = new LinkedHashSet<>();
+
+        if (spdxDocumentRoot.getPackages() != null) {
+            for (SpdxPackageEntity pkg : spdxDocumentRoot.getPackages()) {
+                if (matchesLicense(licenseId, pkg.getLicenseConcluded()) ||
+                        matchesLicense(licenseId, pkg.getLicenseDeclared())) {
+                    addValidCopyright(uniqueCopyrights, pkg.getCopyrightText());
+                }
+            }
+        }
+
+        if (spdxDocumentRoot.getFiles() != null) {
+            for (SpdxFileEntity file : spdxDocumentRoot.getFiles()) {
+                boolean fileMatches = matchesLicense(licenseId, file.getLicenseConcluded());
+
+                if (!fileMatches && file.getLicenseInfoInFiles() != null) {
+                    for (String lic : file.getLicenseInfoInFiles()) {
+                        if (matchesLicense(licenseId, lic)) {
+                            fileMatches = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (fileMatches) {
+                    addValidCopyright(uniqueCopyrights, file.getCopyrightText());
+                }
+            }
+        }
+
+        if (uniqueCopyrights.isEmpty()) {
+            return null;
+        }
+
+        return String.join("\n", uniqueCopyrights);
+    }
+
+    /**
+     * Safely checks if an SPDX license expression contains our target license ID.
+     */
+    private boolean matchesLicense(String targetLicenseId, String licenseExpression) {
+        if (licenseExpression == null || licenseExpression.isEmpty() ||
+                "NONE".equals(licenseExpression) || "NOASSERTION".equals(licenseExpression)) {
+            return false;
+        }
+        return licenseExpression.contains(targetLicenseId);
+    }
+
+    /**
+     * Adds the copyright text to the set, ignoring blanks and SPDX null-equivalents.
+     */
+    private void addValidCopyright(Set<String> copyrights, String copyrightText) {
+        if (copyrightText != null && !copyrightText.isBlank() &&
+                !"NONE".equalsIgnoreCase(copyrightText.trim()) &&
+                !"NOASSERTION".equalsIgnoreCase(copyrightText.trim())) {
+            copyrights.add(copyrightText.trim());
         }
     }
 }
