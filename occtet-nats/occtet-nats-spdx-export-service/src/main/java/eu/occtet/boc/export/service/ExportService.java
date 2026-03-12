@@ -68,7 +68,7 @@ public class ExportService  extends ProgressReportingService  {
     private String toolName;
 
     public boolean process(SpdxExportWorkData spdxExportWorkData) {
-        log.info("exporting spdx!");
+        log.info("exporting SPDX!");
         return createDocument(spdxExportWorkData);
     }
 
