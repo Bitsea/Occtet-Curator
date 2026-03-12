@@ -19,16 +19,22 @@
 
 package eu.occtet.bocfrontend.view.audit.fragment;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.textfield.TextField;
+import eu.occtet.boc.model.DownloadServiceWorkData;
+import eu.occtet.boc.model.WorkTask;
 import eu.occtet.bocfrontend.dao.*;
 import eu.occtet.bocfrontend.entity.*;
+import eu.occtet.bocfrontend.service.NatsService;
 import eu.occtet.bocfrontend.view.audit.AuditView;
 import eu.occtet.bocfrontend.view.copyright.CopyrightDetailView;
 import eu.occtet.bocfrontend.view.dialog.*;
@@ -38,8 +44,12 @@ import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
 import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
+import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.app.inputdialog.DialogActions;
+import io.jmix.flowui.app.inputdialog.DialogOutcome;
+import io.jmix.flowui.app.inputdialog.InputParameter;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
@@ -51,14 +61,23 @@ import io.jmix.flowui.kit.component.dropdownbutton.DropdownButton;
 import io.jmix.flowui.kit.component.dropdownbutton.DropdownButtonItem;
 import io.jmix.flowui.model.*;
 import io.jmix.flowui.view.*;
+import io.nats.client.JetStreamApiException;
 import jakarta.annotation.Nonnull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.awt.*;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @FragmentDescriptor("InventoryItemTabFragment.xml")
@@ -128,6 +147,10 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private FilesTabFragment filesReuseTabFragment;
     @ViewComponent
     private Tab reuseTab;
+    @ViewComponent
+    private JmixButton downloadBtn;
+    @ViewComponent
+    private TextField downloadUrlTextField;
 
 
     @Autowired
@@ -157,7 +180,10 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private DataManager dataManager;
     @Autowired
     private ProjectRepository projectRepository;
-
+    @Autowired
+    private Dialogs dialogs;
+    @Autowired
+    private NatsService natsService;
 
     public void activateAutocomplete() {
         log.info("on before show");
@@ -622,4 +648,83 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         filesReuseTabFragment.setHostView(hostView);
         inventoryProjectReuseField.setValue(item.getProject().getProjectName()+" - "+item.getProject().getVersion());
     }
+
+    /**
+     * Handles the download action triggered by clicking a button.
+     * Validates the provided URL, saves the current data context if valid,
+     * and prompts the user with an input dialog to configure and start the download task.
+     */
+    @Subscribe(id = "downloadBtn")
+    private void download(ClickEvent<JmixButton> event) {
+        String url = downloadUrlTextField.getValue();
+
+        if (url == null || url.isBlank()) {
+            notifications.create(
+                            messages.getMessage(
+                                    "eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.url.empty.message"
+                            )
+                    ).withPosition(Notification.Position.BOTTOM_END)
+                    .withThemeVariant(NotificationVariant.LUMO_WARNING)
+                    .show();
+            return;
+        }
+        try {
+            new URL(url).toURI();
+            dataContext.save();
+        } catch (MalformedURLException e) {
+            notifications.create(
+                            messages.formatMessage(
+                                    "eu.occtet.bocfrontend.view",
+                                    "inventoryTabFragment.tabSheet.softwareComponent.url.malformed.message",
+                                    url
+                            )
+                    ).withPosition(Notification.Position.BOTTOM_END)
+                    .withThemeVariant(NotificationVariant.LUMO_WARNING)
+                    .show();
+            return;
+        } catch (URISyntaxException e) {
+            notifications.create(
+                            messages.formatMessage(
+                                    "eu.occtet.bocfrontend.view",
+                                    "inventoryTabFragment.tabSheet.softwareComponent.url.syntax.message",
+                                    url
+                            )
+                    ).withPosition(Notification.Position.BOTTOM_END)
+                    .withThemeVariant(NotificationVariant.LUMO_WARNING)
+                    .show();
+            return;
+        }
+        dialogs.createInputDialog(hostView)
+                .withHeader(messages.formatMessage("eu.occtet.bocfrontend.view",
+                        "inventoryTabFragment.tabSheet.softwareComponent.url.start.download.task",
+                        url))
+                .withLabelsPosition(Dialogs.InputDialogBuilder.LabelsPosition.TOP)
+                .withParameter(InputParameter.booleanParameter("isMainPkg") // important
+                        .withDefaultValue(false)
+                        .withLabel(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.url.start.download.task.isMainPkg"))
+                        .withRequired(false)
+                ).withActions(DialogActions.OK_CANCEL)
+                .withCloseListener(closeEvent -> {
+                    if (closeEvent.closedWith(DialogOutcome.OK)) {
+                        try {
+                            natsService.sendToDownload(inventoryItem.getProject().getId(), inventoryItem.getId(), closeEvent.getValue("isMainPkg"));
+
+                            notifications.create(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.url.start.download.request.sent.title"),
+                                            messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.url.start.download.request.sent.description"))
+                                    .withType(Notifications.Type.SUCCESS)
+                                    .withPosition(Notification.Position.BOTTOM_END).show();
+
+                        } catch (IOException | JetStreamApiException e) {
+                            log.error("NATS Connection failure for project {}: {}", inventoryItem.getProject().getId(), e.getMessage(), e);
+
+                            notifications.create(
+                                            messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.url.start.download.error.title"),
+                                            messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.url.start.download.error.network.msg")
+                                    ).withType(Notifications.Type.ERROR)
+                                    .show();
+                        }
+                    }
+                }).withDraggable(true).open();
+    }
+
 }

@@ -7622,6 +7622,15 @@
                   "title" : "String"
                 }
               }
+            },
+            "content" : {
+              "application/*" : {
+                "schema" : {
+                  "type" : "string",
+                  "format": "binary",
+                  "title" : "Any"
+                }
+              }
             }
           },
           "404" : {

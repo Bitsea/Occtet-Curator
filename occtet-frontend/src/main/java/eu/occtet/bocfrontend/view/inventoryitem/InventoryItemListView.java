@@ -20,11 +20,14 @@
 package eu.occtet.bocfrontend.view.inventoryitem;
 
 import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
+import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.License;
@@ -37,6 +40,7 @@ import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -62,6 +66,9 @@ public class InventoryItemListView extends StandardListView<InventoryItem> {
     @Autowired
     private DialogWindows dialogWindows;
 
+    @Autowired
+    private InventoryItemRepository inventoryItemRepository;
+
     @Subscribe
     public void onInit(InitEvent event){
         projectComboBox.setItems(projectRepository.findAll());
@@ -71,9 +78,9 @@ public class InventoryItemListView extends StandardListView<InventoryItem> {
     @Subscribe(id = "projectComboBox")
     public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
         if(event != null){
-            inventoryItemsDl.setParameter("project",event.getValue());
-            inventoryItemsDl.load();
-            filterBox.setVisible(true);
+            List<InventoryItem> itemList = inventoryItemRepository.findByProject(event.getValue());
+            loadInventoryItems(itemList);
+            filterBox.setVisible(!itemList.isEmpty());
         }
     }
 
@@ -102,5 +109,17 @@ public class InventoryItemListView extends StandardListView<InventoryItem> {
         window.setWidth("100%");
         window.setHeight("100%");
         window.open();
+    }
+
+    @Subscribe("showAllButton")
+    public void clickOnShowAllButton(ClickEvent<Button> event){
+        List<InventoryItem> items = inventoryItemRepository.findAll();
+        loadInventoryItems(items);
+        filterBox.setVisible(!items.isEmpty());
+    }
+
+    private void loadInventoryItems(List<InventoryItem> inventoryItems){
+        inventoryItemsDl.setParameter("inventoryItems",inventoryItems);
+        inventoryItemsDl.load();
     }
 }

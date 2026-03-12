@@ -244,11 +244,10 @@ public class ExportProjectSbomHelperView extends StandardView {
                     uiNeedsUpdate = true;
                     downloadsNeedRefresh = true;
 
-                    String completedMsg = String.format(messages.getMessage("eu.occtet.bocfrontend.view" +
-                            ".project/exportProjectSbomHelperView.task.completed"), progress.getName());
+                    String completedMsg = String.format(messages.getMessage("eu.occtet.bocfrontend.view.project/exportProjectSbomHelperView.task.completed"), progress.getName());
                     notifications.create(completedMsg)
-                            .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
-                            .withPosition(Notification.Position.TOP_START).show();
+                            .withType(Notifications.Type.SUCCESS)
+                            .withDuration(0).withCloseable(true).show();
 
                 } else if (progress.getStatus() == WorkTaskStatus.ERROR) {
                     String failedMsg = String.format(messages.getMessage("eu.occtet.bocfrontend.view" +
