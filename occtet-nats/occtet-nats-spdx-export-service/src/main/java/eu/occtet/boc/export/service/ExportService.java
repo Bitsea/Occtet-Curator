@@ -83,7 +83,7 @@ public class ExportService  extends ProgressReportingService  {
      */
     private boolean createDocument(SpdxExportWorkData spdxExportWorkData) {
         try {
-            log.debug("creating spdx document:");
+            log.debug("creating SPDX document:");
             SpdxModelFactory.init();
             InMemSpdxStore modelStore = new InMemSpdxStore();
             MultiFormatStore jsonStore = new MultiFormatStore(modelStore, MultiFormatStore.Format.JSON_PRETTY);
