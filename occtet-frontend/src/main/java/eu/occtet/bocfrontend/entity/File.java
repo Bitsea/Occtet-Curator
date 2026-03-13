@@ -57,11 +57,6 @@ public class File {
     @Column(name = "FILENAME")
     private String fileName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PROJECT_ID", nullable = false)
-    @OnDelete(DeletePolicy.CASCADE)
-    private Project project;
-
     // The id used in the imported document, important for the export
     @Column(name = "DOCUMENT_ID", columnDefinition = "TEXT")
     private String documentId;
@@ -100,8 +95,8 @@ public class File {
     @Column(name = "CREATED_DATE")
     private LocalDateTime createdDate;
 
-
-    @ManyToMany(mappedBy = "files", cascade = CascadeType.REMOVE)
+    @ManyToMany(mappedBy = "files")
+    @OnDelete(DeletePolicy.UNLINK)
     private Set<Copyright> copyrights = new HashSet<>();
 
     @LastModifiedDate
@@ -115,6 +110,10 @@ public class File {
     @LastModifiedBy
     @Column(name = "LAST_MODIFIED_BY")
     private String lastModifiedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PROJECT_ID")
+    private Project project;
 
     public File() {
     }
@@ -140,14 +139,6 @@ public class File {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
-    }
-
-    public Project getProject() {
-        return project;
-    }
-
-    public void setProject(Project project) {
-        this.project = project;
     }
 
     public File getParent() {
@@ -260,6 +251,14 @@ public class File {
 
     public void setDocumentId(String documentId) {
         this.documentId = documentId;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     @Override
