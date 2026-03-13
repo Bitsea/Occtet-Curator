@@ -40,9 +40,10 @@ public class SecurityConfiguration extends OidcVaadinWebSecurity {
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
 
-
-        http.authorizeHttpRequests(authorizeRequests -> authorizeRequests.anyRequest().authenticated())
-                .oauth2Login(oauthLogin -> oauthLogin.userInfoEndpoint(userInfoEndpointConfig ->
-                        userInfoEndpointConfig.oidcUserService(keycloakUserService)));
+        http.oauth2Login(oauthLogin ->
+                oauthLogin.userInfoEndpoint(userInfoEndpointConfig ->
+                        userInfoEndpointConfig.oidcUserService(keycloakUserService)
+                )
+        );
     }
 }
