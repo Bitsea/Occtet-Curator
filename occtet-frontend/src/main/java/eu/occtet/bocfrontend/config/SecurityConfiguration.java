@@ -19,7 +19,9 @@
 
 package eu.occtet.bocfrontend.config;
 
+import eu.occtet.bocfrontend.service.KeyCloakUserService;
 import io.jmix.oidc.OidcVaadinWebSecurity;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -28,8 +30,19 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @Configuration
 public class SecurityConfiguration extends OidcVaadinWebSecurity {
 
+    private final KeyCloakUserService keycloakUserService;
+
+    public SecurityConfiguration(KeyCloakUserService keycloakUserService) {
+        this.keycloakUserService = keycloakUserService;
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
+
+
+        http.authorizeHttpRequests(authorizeRequests -> authorizeRequests.anyRequest().authenticated())
+                .oauth2Login(oauthLogin -> oauthLogin.userInfoEndpoint(userInfoEndpointConfig ->
+                        userInfoEndpointConfig.oidcUserService(keycloakUserService)));
     }
 }

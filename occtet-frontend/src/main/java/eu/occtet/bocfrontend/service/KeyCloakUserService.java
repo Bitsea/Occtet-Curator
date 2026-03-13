@@ -19,10 +19,32 @@
 
 package eu.occtet.bocfrontend.service;
 
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 
 @Service
-public class KeyCloakUserService {
+public class KeyCloakUserService extends OidcUserService {
+
+    @Override
+    public OidcUser loadUser(OidcUserRequest userRequest) {
+        //TODO
+        // ruft die Standard-Implementierung auf, um OidcUser zu laden
+        OidcUser oidcUser = super.loadUser(userRequest);
+
+        // Hier kannst du die Claims aus Keycloak auslesen
+        String username = oidcUser.getPreferredUsername();
+        String email = oidcUser.getEmail();
+
+        // Rollen aus Keycloak
+        var roles = oidcUser.getClaimAsStringList("roles");
+
+        // Hier könntest du die User-Entity in Jmix anlegen oder updaten
+        // z.B. UserRepository.saveOrUpdate(username, email, roles);
+
+        return oidcUser;
+    }
 
 
 }

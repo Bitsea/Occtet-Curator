@@ -31,4 +31,6 @@ public interface ProjectMemberRole {
             where = "{E}.id in (select pm.project.id from ProjectMember pm where pm.username = :current_user_username)"
     )
     void projectPolicy();
+
+    //TODO also all other data is only supposed to be seen for projectUser
 }
