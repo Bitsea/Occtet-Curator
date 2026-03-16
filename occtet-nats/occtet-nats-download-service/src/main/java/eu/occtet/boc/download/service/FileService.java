@@ -123,6 +123,7 @@ public class FileService {
                         true,
                         parentForRoot
                 );
+                project.addFile(rootEntity);
                 filesCreatedOrUpdatedInFileService.put(rootPhysicalPath, rootEntity);
                 addToBatch(rootEntity, batchBuffer, BATCHSIZE);
             }
@@ -144,7 +145,7 @@ public class FileService {
                 fileRepository.flush();
                 log.debug("Saved {} File entities in batch", batchBuffer.size());
             }
-
+            projectRepository.save(project);
             log.info("Scan completed. Processed files in {} ms", System.currentTimeMillis() - start);
 
         } catch (Exception e) {
@@ -243,6 +244,7 @@ public class FileService {
                     file.isDirectory(),
                     parentEntity
             );
+            project.addFile(fileEntity);
             filesInFileService.put(physicalPath, fileEntity);
             addToBatch(fileEntity, batchBuffer, batchSize);
             if (file.isDirectory()){
@@ -308,7 +310,7 @@ public class FileService {
                 true,
                 parentFile
         );
-
+        project.addFile(newEntity);
         filesInFileService.put(currentPhysicalPath, newEntity);
         addToBatch(newEntity, batchBuffer, 500);
 

@@ -26,8 +26,7 @@ import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 @Entity
@@ -70,8 +69,8 @@ public class Project {
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    private Set<File> files;
+    @OneToMany(mappedBy = "project",cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<File> files= new HashSet<>();
 
     public Project() {this.createdAt = LocalDateTime.now();}
 
@@ -153,9 +152,19 @@ public class Project {
         return files;
     }
 
-    public void setFiles(Set<File> files) {
-        if(this.files!= null){
-            this.files.addAll(files);
-        }else this.files = files;
+    public void addFile(File file) {
+        this.files.add(file);
+        file.setProject(this);
+    }
+
+    public void addFiles(Collection<File> files) {
+        this.files.addAll(files);
+        for(File f : files){
+            f.setProject(this);
+        }
+    }
+
+    public void removeFiles() {
+        this.files= new HashSet<>();
     }
 }

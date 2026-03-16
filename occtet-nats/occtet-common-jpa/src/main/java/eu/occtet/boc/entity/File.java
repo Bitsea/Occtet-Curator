@@ -27,6 +27,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -46,10 +47,6 @@ public class File {
     @GeneratedValue(strategy= GenerationType.SEQUENCE)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "PROJECT_ID", nullable = false)
-    @JoinColumn(name = "PROJECT_ID", nullable = false)
-    private Project project;
 
     @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     @JoinColumn(name = "PARENT_ID")
@@ -59,7 +56,7 @@ public class File {
     @Column(name = "DOCUMENT_ID", columnDefinition = "TEXT")
     private String documentId;
 
-    @ManyToMany(mappedBy = "files", cascade = CascadeType.REMOVE)
+    @ManyToMany(mappedBy = "files")
     private Set<Copyright> copyrights = new HashSet<>();
 
     @JoinTable(name = "FILE_INVENTORY_ITEM_LINK",
@@ -104,6 +101,10 @@ public class File {
     @LastModifiedBy
     @Column(name = "LAST_MODIFIED_BY")
     private String lastModifiedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PROJECT_ID")
+    private Project project;
 
 
     public File() {
@@ -155,14 +156,6 @@ public class File {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Project getProject() {
-        return project;
-    }
-
-    public void setProject(Project project) {
-        this.project = project;
     }
 
     public File getParent() {
@@ -275,6 +268,14 @@ public class File {
 
     public void setDocumentId(String documentId) {
         this.documentId = documentId;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     @Override
