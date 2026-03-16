@@ -207,22 +207,30 @@ public class MergeService {
      * Constructs a valid SPDX license expression string from a list of licenses.
      *
      * @param licenses The list of applied licenses.
-     * @return The formatted license expression string (e.g., "MIT AND LicenseRef-12").
+     * @return The formatted license expression string (e.g., "MIT AND LicenseRef-12" or "NOASSERTION").
      */
     private String formatLicenseExpression(Collection<License> licenses) {
-        return licenses.stream()
-                .map(license -> {
+        if (licenses == null || licenses.isEmpty()) {
+            return "NOASSERTION";
+        }
+
+        List<String> validLicenses = licenses.stream()
+                .filter(license -> {
                     String name = license.getLicenseName();
-                    // Intercept UNKNOWN and replace with SPDX standard NOASSERTION
-                    if (name != null && name.trim().equalsIgnoreCase("UNKNOWN")) {
-                        return "NOASSERTION";
-                    }
+                    return name != null && !name.trim().equalsIgnoreCase("UNKNOWN") && !name.trim().isBlank();
+                })
+                .map(license -> {
                     if (Boolean.FALSE.equals(license.isSpdx()) || Boolean.TRUE.equals(license.isModified())) {
                         return generateLicenseRefId(license);
                     }
-                    return name;
+                    return license.getLicenseName();
                 })
-                .collect(Collectors.joining(" AND "));
+                .toList();
+
+        if (validLicenses.isEmpty()) {
+            return "NOASSERTION";
+        }
+        return String.join(" AND ", validLicenses);
     }
 
     private String generateLicenseRefId(License license) {
