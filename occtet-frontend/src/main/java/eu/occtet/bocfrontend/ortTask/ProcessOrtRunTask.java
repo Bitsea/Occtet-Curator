@@ -84,10 +84,10 @@ public class ProcessOrtRunTask  {
                 log.debug("Got {} finished_with_issues runs", pagedSearch.getData().size());
                 sendRuns(pagedSearchWithIssues);
             } else log.debug("No finished_with_issues runs found");
-        } catch (Exception e){
-                log.error("ORT API not reachable, could not fetch runs", e);
+            } catch (Exception e){
+                log.error("ORT API not reachable, could not fetch runs", e.getMessage());
             }
-            return null;
+        return null;
         });
 
     }

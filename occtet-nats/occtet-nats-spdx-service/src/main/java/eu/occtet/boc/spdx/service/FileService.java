@@ -21,6 +21,7 @@ package eu.occtet.boc.spdx.service;
 
 
 import eu.occtet.boc.dao.FileRepository;
+import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.spdx.factory.FileFactory;
@@ -43,6 +44,7 @@ public class FileService {
     private FileRepository fileRepository;
     @Autowired
     private FileFactory filefactory;
+
 
     /**
      * Resolves existing file entities or instantiates new ones to persist the structural file tree.

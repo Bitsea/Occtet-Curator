@@ -20,6 +20,7 @@
 package eu.occtet.bocfrontend.dao;
 
 import eu.occtet.bocfrontend.entity.OrtIssue;
+import eu.occtet.bocfrontend.entity.Project;
 import io.jmix.core.repository.JmixDataRepository;
 
 import java.util.List;
@@ -28,5 +29,6 @@ public interface OrtIssueRepository extends JmixDataRepository<OrtIssue, Long> {
 
     List<OrtIssue> findAll();
     List<OrtIssue> findByProjectId(Long projectId);
+    List<OrtIssue> findByProject(Project project);
 
 }
