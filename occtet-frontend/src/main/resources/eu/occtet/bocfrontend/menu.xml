@@ -33,7 +33,7 @@
           icon="vaadin:archives"/>
     <item view="License.list" title="msg://eu.occtet.bocfrontend.view.license/licenseListView.title"
           icon="vaadin:file-text-o"/>
-    <item view="Copyright.list" title="msg://eu.occtet.bocfrontend/Copyrights.Quick-Check"
+    <item view="Copyright.list" title="msg://eu.occtet.bocfrontend/copyrights"
           icon="vaadin:copyright"/>
     <item view="ortIssue.list" title="msg://eu.occtet.bocfrontend.view.ortIssue/title"
           icon="vaadin:exclamation"/>
