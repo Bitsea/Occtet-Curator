@@ -153,6 +153,7 @@ public class ExportService  extends ProgressReportingService  {
             log.info("create extractedLicense info");
             spdxDocumentRoot.getHasExtractedLicensingInfos().forEach(extractedLicense -> {
                 try {
+                    extractedLicense.setLicenseId(extractedLicense.getLicenseId().replaceAll("LicenseRef-", ""));
                     ExtractedLicenseInfo extractedInfo = new ExtractedLicenseInfo(modelStore, documentUri, extractedLicense.getLicenseId(), null, true);
 
                     String finalLicenseText = extractedLicense.getExtractedText();

@@ -157,11 +157,6 @@ public class MergeService {
         spdxPackageEntity.getExternalRefs().addAll(externalRefs);
     }
 
-     // Reconstructs the structural relationships based on the current inventory item hierarchy.
-//    private void rebuildRelationships(SpdxDocumentRoot spdxDocumentRoot, Project project) {
-//        // Discuss how relations between packages should be rebuilt
-//    }
-
     /**
      * Converts non-standard or modified licenses into extracted licensing info for the SPDX document.
      *
@@ -234,6 +229,11 @@ public class MergeService {
         if (license.getLicenseName() != null && !license.getLicenseName().isBlank()) {
             String sanitizedName = license.getLicenseName().replaceAll("[^A-Za-z0-9.-]", "-");
             sanitizedName = sanitizedName.replaceAll("-+", "-");
+
+            if (sanitizedName.startsWith("LicenseRef-")) {
+                return sanitizedName;
+            }
+
             return "LicenseRef-" + sanitizedName;
         }
         return "LicenseRef-custom-" + license.getId();
