@@ -200,7 +200,7 @@ public class MergeService {
                 .filter(c -> !Boolean.TRUE.equals(c.getGarbage()))
                 .map(Copyright::getCopyrightText)
                 .filter(text -> text != null && !text.isBlank())
-                .collect(Collectors.joining("\n"));
+                .collect(Collectors.joining(", "));
     }
 
     /**
