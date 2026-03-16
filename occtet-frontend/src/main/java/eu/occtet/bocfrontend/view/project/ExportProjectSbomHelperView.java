@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -184,7 +183,6 @@ public class ExportProjectSbomHelperView extends StandardView {
         String dynamicTaskName = projectTaskPrefix + timeStamp;
         String formatSuffix = sbomFormat.replace(" ", "").toLowerCase();
 
-        // Example: "MyProject_1_2026-02-26_10-25-00_spdx2.3"
         String expectedObjectStoreKey = String.format("%s_%s_%s_%s",
                 project.getProjectName(), project.getId(), timeStamp, formatSuffix);
 
