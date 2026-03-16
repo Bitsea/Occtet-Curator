@@ -39,8 +39,10 @@ import eu.occtet.bocfrontend.service.WorkTaskProgressMonitor;
 import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
 import io.jmix.core.entity.KeyValueEntity;
+import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.checkbox.JmixCheckbox;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
@@ -98,6 +100,7 @@ public class ExportProjectSbomHelperView extends StandardView {
     @Autowired private Messages messages;
     @Autowired private Notifications notifications;
     @Autowired private WorkTaskProgressMonitor workTaskProgressMonitor;
+    @Autowired private Dialogs dialogs;
 
     @ViewComponent private KeyValueCollectionContainer prevExportsDc;
     @ViewComponent private DataGrid<KeyValueEntity> prevExportsDataGrid;
@@ -354,6 +357,35 @@ public class ExportProjectSbomHelperView extends StandardView {
                 }
             });
             return downloadButton;
+        });
+    }
+
+    @Supply(to = "prevExportsDataGrid.deleteButton", subject = "renderer")
+    protected Renderer<KeyValueEntity> deleteButtonRenderer() {
+        return new ComponentRenderer<>(kv -> {
+            String key = kv.getValue(KV_ENTITY_OBJECT_STORE_KEY);
+            JmixButton deleteButton = uiComponents.create(JmixButton.class);
+
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR,  ButtonVariant.LUMO_PRIMARY);
+            deleteButton.setIcon(VaadinIcon.TRASH.create());
+
+            deleteButton.addClickListener(e -> dialogs.createOptionDialog()
+                    .withText(messages.getMessage("exportProjectSbomHelperView.notification.fileDeletedSuccess"))
+                    .withActions(
+                            new DialogAction(DialogAction.Type.YES).withHandler(actionEvent -> {
+                                natsService.deleteFileFromBucket(key);
+
+                                notifications.create(messages.getMessage("exportProjectSbomHelperView.notification.fileDeletedSuccessfull"))
+                                        .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
+                                        .show();
+
+                                refreshDownloadsList();
+                            }),
+                            new DialogAction(DialogAction.Type.NO)
+                    )
+                    .open());
+
+            return deleteButton;
         });
     }
 }
