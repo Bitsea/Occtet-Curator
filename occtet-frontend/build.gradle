@@ -94,6 +94,9 @@ dependencies {
 
     implementation 'io.nats:jnats:2.22.0'
 
+    //  shou preferably match the keycloak server version
+    implementation 'org.keycloak:keycloak-core:26.5.5'
+
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
