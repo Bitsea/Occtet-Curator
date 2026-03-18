@@ -23,12 +23,9 @@
       focusComponent="form">
     <data>
         <instance id="organizationDc"
-                  class="eu.occtet.bocfrontend.entity.Project">
-            <fetchPlan extends="_base">
-                <property name="searchTermsProfiles" fetchPlan="_base"/>
-            </fetchPlan>
-            <loader id="projectDl"/>
-            <collection id="searchTermsProfilesDc" property="searchTermsProfiles"/>
+                  class="eu.occtet.bocfrontend.entity.Organization">
+            <loader id="organizationDl"/>
+
         </instance>
         <collection id="userDc"
                     class="eu.occtet.bocfrontend.entity.User">
@@ -37,6 +34,17 @@
             <loader id="userDl">
                 <query>
                     <![CDATA[select e from User e
+                        where e.organization =:organization]]>
+                </query>
+            </loader>
+        </collection>
+        <collection id="projectDc"
+                    class="eu.occtet.bocfrontend.entity.Project">
+            <fetchPlan extends="_base">
+            </fetchPlan>
+            <loader id="projectDl">
+                <query>
+                    <![CDATA[select e from Project e
                         where e.organization =:organization]]>
                 </query>
             </loader>
@@ -54,12 +62,30 @@
             <h3 text="msg://eu.occtet.bocfrontend.view.project/OrganizationDetails" colspan="2" classNames="occtet-dialog-title"/>
             <vbox id="projectDetailContainer" colspan="2" margin="false" padding="false">
                 <vbox colspan="2" margin="false" padding="false">
-                    <textField id="projectNameField" property="projectName" required="true"
-                               width="50%" label="msg://organizationName" requiredMessage="msg://eu.occtet.bocfrontend.view.project/Project.name.required.message" colspan="2"/>
+                    <textField id="projectNameField" property="organizationName" required="true"
+                               width="50%" label="msg://organizationName" requiredMessage="msg://io.jmix.flowui.entity.filter/AbstractSingleFilterCondition.required" colspan="2"/>
                     <textField id="organizationContactField" property="organizationEmail"
                                label="msg://organizationEmail" width="50%"/>
 
                 </vbox>
+            </vbox>
+
+            <vbox>
+                <h3 text="msg://eu.occtet.bocfrontend.view.project/projectListView.title"/>
+                <dataGrid id="projectDataGrid"
+                          width="100%"
+                          dataContainer="projectDc"
+                          columnReorderingAllowed="true"
+                          classNames="occtet-grid">
+                    <columns resizable="true" >
+                        <column property="projectName" header="msg://eu.occtet.bocfrontend.entity/Project.projectName"/>
+                        <column property="version" header="msg://eu.occtet.bocfrontend.entity/Project.version"/>
+                    </columns>
+                </dataGrid>
+                <hbox>
+                    <button id="addMemberButton" text="msg://eu.occtet.bocfrontend.view.inventoryitem/button.dropdown.add" themeNames="primary"/>
+                    <button id="removeMemberButton" icon="TRASH" themeNames="error"/>
+                </hbox>
             </vbox>
 
             <vbox>
@@ -75,8 +101,8 @@
                     </columns>
                 </dataGrid>
                 <hbox>
-                    <button id="addMemberButton" text="msg://addMember" themeNames="primary"/>
-                    <button id="removeMemberButton" icon="TRASH" themeNames="error"/>
+                    <button id="addProjectButton" text="msg://eu.occtet.bocfrontend.view.inventoryitem/button.dropdown.add" themeNames="primary"/>
+                    <button id="removeProjectButton" icon="TRASH" themeNames="error"/>
                 </hbox>
             </vbox>
 

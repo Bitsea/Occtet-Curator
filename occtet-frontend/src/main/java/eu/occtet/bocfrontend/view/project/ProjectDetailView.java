@@ -114,7 +114,8 @@ public class ProjectDetailView extends StandardDetailView<Project> {
         return currentAuthentication.getAuthentication()
                 .getAuthorities()
                 .stream()
-                .anyMatch(a -> a.getAuthority().equals("admin"));
+                .anyMatch(a -> a.getAuthority().equals("admin")
+                        || a.getAuthority().equals("system-full-access"));
     }
 
     private <E> void initHeaderForDataGrid(DataGrid<E> dataGrid, String title){

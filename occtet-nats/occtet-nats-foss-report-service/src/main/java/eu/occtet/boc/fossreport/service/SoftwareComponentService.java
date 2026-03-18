@@ -21,6 +21,7 @@ package eu.occtet.boc.fossreport.service;
 
 
 import eu.occtet.boc.entity.License;
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.fossreport.dao.SoftwareComponentRepository;
 import eu.occtet.boc.fossreport.factory.SoftwareComponentFactory;
@@ -43,14 +44,14 @@ public class SoftwareComponentService {
             String softwareName,
             String version,
             List<License> license,
-            String url){
+            String url, Organization organization){
         List<SoftwareComponent> existing = softwareComponentRepository.findByNameAndVersion(softwareName, version);
 
         SoftwareComponent softwareComponent;
 
         if (existing.isEmpty()) {
             softwareComponent = softwareComponentFactory.create(
-                    softwareName, version, license, url);
+                    softwareName, version, license, url, organization);
         } else {
             // Ensure the existing software component is updated otherwise newly imported data could be lost.
             softwareComponent = existing.getFirst();
@@ -59,11 +60,11 @@ public class SoftwareComponentService {
         return softwareComponent;
     }
 
-    public SoftwareComponent getOrCreateSoftwareComponent(String softwareName, String version){
+    public SoftwareComponent getOrCreateSoftwareComponent(String softwareName, String version, Organization organization){
         List<SoftwareComponent> softwareComponent = softwareComponentRepository.findByNameAndVersion(
                 softwareName, version);
         if(softwareComponent.isEmpty()) {
-            return softwareComponentFactory.create(softwareName, version);
+            return softwareComponentFactory.create(softwareName, version, organization);
         } else {
             return softwareComponent.getFirst();
         }

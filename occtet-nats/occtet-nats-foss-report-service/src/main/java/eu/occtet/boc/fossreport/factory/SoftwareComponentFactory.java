@@ -20,6 +20,7 @@
 package eu.occtet.boc.fossreport.factory;
 
 import eu.occtet.boc.entity.License;
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.fossreport.dao.SoftwareComponentRepository;
 import org.slf4j.Logger;
@@ -38,18 +39,19 @@ public class SoftwareComponentFactory {
     private SoftwareComponentRepository softwareComponentRepository;
 
     public SoftwareComponent create(String softwareName, String version,
-                                              List<License> license, String url) {
+                                    List<License> license, String url, Organization organization) {
         log.debug("Creating Software Component with name: {}, version: {} and more...", softwareName, version);
             return softwareComponentRepository.save(new SoftwareComponent(
                     softwareName,
                     version,
                     license,
-                    url));
+                    url,
+                    organization));
     }
 
-    public SoftwareComponent create(String softwareName, String version) {
+    public SoftwareComponent create(String softwareName, String version, Organization organization) {
         log.debug("Creating Software Component with name: {} and version: {}", softwareName, version);
 
-        return softwareComponentRepository.save(new SoftwareComponent(softwareName,version));
+        return softwareComponentRepository.save(new SoftwareComponent(softwareName,version,organization ));
     }
 }

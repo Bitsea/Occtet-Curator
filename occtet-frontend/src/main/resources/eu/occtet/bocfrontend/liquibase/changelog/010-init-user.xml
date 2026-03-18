@@ -55,7 +55,12 @@
         </createIndex>
     </changeSet>
 
-    <changeSet id="3" author="OcctetFrontend" context="!cuba">
+    <changeSet id="3" author="OcctetFrontend" context="!cuba" runAlways="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(id) FROM USER_ WHERE USERNAME = 'admin'
+            </sqlCheck>
+        </preConditions>
 
         <insert tableName="USER_" dbms="postgresql, mssql, hsqldb">
             <column name="ID" value="60885987-1b61-4247-94c7-dff348347f93"/>
@@ -67,7 +72,12 @@
 
     </changeSet>
 
-    <changeSet id="4" author="OcctetFrontend" context="!cuba">
+    <changeSet id="4" author="OcctetFrontend" context="!cuba" runAlways="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(id) FROM SEC_ROLE_ASSIGNMENT WHERE USERNAME = 'admin' AND ROLE_CODE = 'system-full-access'
+            </sqlCheck>
+        </preConditions>
 
         <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="postgresql, mssql, hsqldb">
             <column name="ID" value="6c9e420a-2b7a-4c42-8654-a9027ee14083"/>
@@ -78,5 +88,6 @@
         </insert>
 
     </changeSet>
+
 
 </databaseChangeLog>
