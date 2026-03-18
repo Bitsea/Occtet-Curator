@@ -17,26 +17,17 @@
  *   License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.factory;
+package eu.occtet.bocfrontend.view.organization;
 
+import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.ProjectMember;
-import eu.occtet.bocfrontend.entity.User;
-import io.jmix.core.DataManager;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import eu.occtet.bocfrontend.view.main.MainView;
+import io.jmix.flowui.view.*;
 
-@Component
-public class ProjectMemberFactory {
-
-    @Autowired
-    private DataManager dataManager;
-
-    public ProjectMember createProjectMember(Project project, User user){
-        ProjectMember projectMember= dataManager.create(ProjectMember.class);
-        projectMember.setProject(project);
-        projectMember.setUsername(user);
-        dataManager.save(projectMember);
-        return projectMember;
-    }
+@Route(value = "organizations", layout = MainView.class)
+@ViewController(id = "Organization.list")
+@ViewDescriptor(path = "organization-list-view.xml")
+@LookupComponent("organizationDataGrid")
+@DialogMode(width = "64em")
+public class OrganizationListView extends StandardListView<Project> {
 }

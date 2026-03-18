@@ -21,9 +21,7 @@
 
 package eu.occtet.bocfrontend.security.oidc;
 
-import eu.occtet.bocfrontend.entity.CuratorTask;
-import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.entity.*;
 import io.jmix.security.role.annotation.JpqlRowLevelPolicy;
 import io.jmix.security.role.annotation.RowLevelRole;
 
@@ -32,25 +30,67 @@ public interface CuratorRowLevelRole {
 
     @JpqlRowLevelPolicy(
             entityClass = Project.class,
-            where = "{E}.createdBy = :current_user_username"
+            where = "{E}.organization.id = :current_user_organization_id"
     )
-    void projectCreatorOnly();
+    void projectPolicy();
 
     @JpqlRowLevelPolicy(
-            entityClass = CuratorTask.class,
-            where = "{E}.createdBy = :current_user_username"
+            entityClass = Vulnerability.class,
+            where = "{E}.organization.id = :current_user_organization_id"
     )
-    void assignedTasksOnly();
+    void vulnerabilityPolicy();
+
+    @JpqlRowLevelPolicy(
+            entityClass = SoftwareComponent.class,
+            where = "{E}.organization.id = :current_user_organization_id"
+    )
+    void softwareComponentPolicy();
+
 
     @JpqlRowLevelPolicy(
             entityClass = InventoryItem.class,
-            where = "{E}.project.createdBy = :current_user_username"
+            where = "{E}.project.organization.id = :current_user_organization_id"
     )
-    void inventoryForMyProjectsOnly();
+    void inventoryItemPolicy();
 
-    // TODO the same to other entities such as SoftwareComponent which as discusses should only show for the creator
-    //  for now <- this might require some changes to the entities themselves
-    // FIXME This can be done using the createdBy field, meaning when the user sends a message to the
-    // nats-micorservice we need to send the logged in username within the WorkTask messages and later when entities
-    // gets created we need to set the user manually
+    @JpqlRowLevelPolicy(
+            entityClass = OrtIssue.class,
+            where = "{E}.project.organization.id = :current_user_organization_id"
+    )
+    void ortIssuePolicy();
+
+    @JpqlRowLevelPolicy(
+            entityClass = OrtViolation.class,
+            where = "{E}.project.organization.id = :current_user_organization_id"
+    )
+    void ortViolationPolicy();
+
+    @JpqlRowLevelPolicy(
+            entityClass = File.class,
+            where = "{E}.project.organization.id = :current_user_organization_id"
+    )
+    void filePolicy();
+
+    @JpqlRowLevelPolicy(
+            entityClass = Copyright.class,
+            where = "{E}.project.organization.id = :current_user_organization_id"
+    )
+    void copyrightPolicy();
+
+    @JpqlRowLevelPolicy(
+            entityClass = CuratorTask.class,
+            where = "{E}.project.organization.id = :current_user_organization_id"
+    )
+    void curatorTaskPolicy();
+
+    @JpqlRowLevelPolicy(
+            entityClass = VexData.class,
+            where = "{E}.software_component.organization.id = :current_user_organization_id"
+    )
+    void vexDataPolicy();
+
+
+
+
+
 }

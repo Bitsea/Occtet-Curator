@@ -29,23 +29,24 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.AppConfigurationRepository;
+import eu.occtet.bocfrontend.dao.OrganizationRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
+import eu.occtet.bocfrontend.entity.Organization;
 import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.ProjectMember;
+import eu.occtet.bocfrontend.entity.User;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfiguration;
 import eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile;
-import eu.occtet.bocfrontend.factory.ProjectMemberFactory;
 import eu.occtet.bocfrontend.service.Utilities;
 import eu.occtet.bocfrontend.view.main.MainView;
-import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
+import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.kit.action.ActionPerformedEvent;
-import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -83,7 +84,12 @@ public class ProjectDetailView extends StandardDetailView<Project> {
     @Autowired
     private ProjectRepository projectRepository;
     @Autowired
-    private ProjectMemberFactory projectMemberFactory;
+    private CurrentAuthentication currentAuthentication;
+    @Autowired
+    private JmixComboBox<Organization> organization;
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
 
 
     private static final Logger log = LogManager.getLogger(ProjectDetailView.class);
@@ -92,7 +98,23 @@ public class ProjectDetailView extends StandardDetailView<Project> {
     @Subscribe
     protected void onInit(InitEvent event) {
         projects = projectRepository.findAll();
+        Project project= this.getEditedEntity();
+        User user = (User) currentAuthentication.getUser();
+        if(isAdmin()){
+            List<Organization> organizations= organizationRepository.findAll();
+            organization.setItems(organizations);
+        }else {
+            project.setOrganization(user.getOrganization());
+            organization.setItems(List.of(user.getOrganization()));
+        }
         initHeaderForDataGrid(searchTermsProfilesDataGrid, messages.getMessage("eu.occtet.bocfrontend.view.project/Project.h2.searchTermsProfile"));
+    }
+
+    public boolean isAdmin() {
+        return currentAuthentication.getAuthentication()
+                .getAuthorities()
+                .stream()
+                .anyMatch(a -> a.getAuthority().equals("admin"));
     }
 
     private <E> void initHeaderForDataGrid(DataGrid<E> dataGrid, String title){
@@ -133,6 +155,7 @@ public class ProjectDetailView extends StandardDetailView<Project> {
 
     @Subscribe
     protected void onBeforeSave(BeforeSaveEvent event){
+
         AppConfiguration globalBasePath =
                 appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH).orElse(null);
 
@@ -143,13 +166,11 @@ public class ProjectDetailView extends StandardDetailView<Project> {
             userMessage("eu.occtet.bocfrontend.view.project/Project.globalPathNotSet.WarningMsg"
                     ,NotificationVariant.LUMO_WARNING);
             event.preventSave();
-            return;
-            //
+
         }else if(checkProjectDataInput(projectNameField.getValue(),projectVersion.getValue())){
             userMessage("eu.occtet.bocfrontend.view.project/Project.projectAlreadyExists"
                     ,NotificationVariant.LUMO_ERROR);
             event.preventSave();
-            return;
         }
     }
 
@@ -170,13 +191,6 @@ public class ProjectDetailView extends StandardDetailView<Project> {
                 .show();
     }
 
-    @Subscribe(id = "addMemberButton", subject = "clickListener")
-    public void onAddMemberButtonClick(final ClickEvent<JmixButton> event) {
-        //TODO fetch User from KeyCloak? or create user here?
-        //ProjectMember member= projectMemberFactory.createProjectMember(getEditedEntity(), user );
-
-
-    }
 
 
 }

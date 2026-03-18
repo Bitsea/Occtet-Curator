@@ -70,31 +70,38 @@ public class SoftwareComponent {
     @OneToMany(mappedBy = "softwareComponent", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ComponentVulnerabilityLink> vulnerabilityLinks = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
+    private Organization organization;
+
     public SoftwareComponent() {
     }
 
     public SoftwareComponent(String softwareName, String version,
-                             List<License> license) {
+                             List<License> license, Organization organization) {
         this.name = softwareName;
         this.version = version;
         this.licenses = license;
         this.curated = false;
+        this.organization= organization;
     }
 
     public SoftwareComponent(String softwareName, String version,
-                             List<License> license, String url) {
+                             List<License> license, String url, Organization organization) {
         this.name = softwareName;
         this.version = version;
         this.licenses = license;
         this.curated = false;
         this.detailsUrl= url;
+        this.organization= organization;
     }
 
-    public SoftwareComponent(String softwareName, String version){
+    public SoftwareComponent(String softwareName, String version, Organization organization){
         this.name = softwareName;
         this.version = version;
         this.curated = false;
         this.licenses = new ArrayList<>();
+        this.organization= organization;
     }
     public SoftwareComponent(
             String name,
@@ -241,5 +248,13 @@ public class SoftwareComponent {
 
     public void setCopyrights(List<Copyright> copyrights) {
         this.copyrights = copyrights;
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 }

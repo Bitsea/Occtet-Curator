@@ -22,7 +22,6 @@
 package eu.occtet.bocfrontend.security;
 
 import eu.occtet.bocfrontend.entity.User;
-import eu.occtet.bocfrontend.security.oidc.ReaderRole;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.security.UserRepository;
 import io.jmix.oidc.claimsmapper.ClaimsRolesMapper;

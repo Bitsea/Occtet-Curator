@@ -73,6 +73,10 @@ public class Project {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     private Set<File> files;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
+    private Organization organization;
+
     public Project() {this.createdAt = LocalDateTime.now();}
 
     public Project(String projectName ) {
@@ -158,4 +162,13 @@ public class Project {
             this.files.addAll(files);
         }else this.files = files;
     }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
+    }
+
 }

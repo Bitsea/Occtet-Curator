@@ -20,10 +20,7 @@
 
 package eu.occtet.boc.processRun.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.Files;
-import com.squareup.okhttp.*;
-import eu.occtet.boc.dao.InventoryItemRepository;
+
 import eu.occtet.boc.dao.OrtIssueRepository;
 import eu.occtet.boc.dao.OrtViolationRepository;
 import eu.occtet.boc.dao.ProjectRepository;
@@ -37,7 +34,6 @@ import eu.occtet.boc.processRun.config.ConfigOrtProperties;
 import eu.occtet.boc.processRun.factory.OrtIssueFactory;
 import eu.occtet.boc.processRun.factory.OrtViolationFactory;
 import eu.occtet.boc.processRun.factory.ProjectFactory;
-import org.apache.commons.codec.Charsets;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openapitools.client.ApiClient;
@@ -45,18 +41,15 @@ import org.openapitools.client.ApiException;
 import org.openapitools.client.ApiResponse;
 import org.openapitools.client.api.OrganizationsApi;
 import org.openapitools.client.api.ProductsApi;
-import org.openapitools.client.api.RepositoriesApi;
 import org.openapitools.client.api.RunsApi;
 import org.openapitools.client.model.*;
+import org.openapitools.client.model.Organization;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ProcessRunService {

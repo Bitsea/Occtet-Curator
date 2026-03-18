@@ -22,7 +22,6 @@
 package eu.occtet.bocfrontend.security.oidc;
 
 import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.ProjectMember;
 import io.jmix.security.model.EntityAttributePolicyAction;
 import io.jmix.security.model.EntityPolicyAction;
 import io.jmix.security.role.annotation.EntityAttributePolicy;
@@ -53,8 +52,8 @@ public interface CuratorRole {
             "License.list", "License.detail",
             "Project.list", "Project.detail",
             "SoftwareComponent.list", "SoftwareComponent.detail",
-            "ortIssue.list", "ortIssue.detail",
-            "ortViolation.list", "ortViolation.detail",
+            "ortIssue.list", "OrtIssue.detail",
+            "ortViolation.list", "OrtViolation.detail",
             "CuratorTask.list", "CuratorTask.detail"
     })
     void viewAccess();
@@ -63,9 +62,6 @@ public interface CuratorRole {
     @EntityAttributePolicy(entityClass = Project.class, attributes = "*", action = EntityAttributePolicyAction.MODIFY)
     void projectUpdate();
 
-    @EntityPolicy(entityClass = ProjectMember.class, actions = {EntityPolicyAction.READ})
-    @EntityAttributePolicy(entityClass = ProjectMember.class, attributes = "*", action = EntityAttributePolicyAction.VIEW)
-    void readMembers();
 
     @EntityPolicy(entityName = "*", actions = {EntityPolicyAction.CREATE, EntityPolicyAction.READ, EntityPolicyAction.UPDATE, EntityPolicyAction.DELETE})
     @EntityAttributePolicy(entityName = "*", attributes = "*", action = EntityAttributePolicyAction.MODIFY)

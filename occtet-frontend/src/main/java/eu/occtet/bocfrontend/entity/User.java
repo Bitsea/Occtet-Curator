@@ -77,6 +77,10 @@ public class User extends JmixOidcUserEntity implements JmixUserDetails, HasTime
     @Column(name = "TIME_ZONE_ID")
     private String timeZoneId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID")
+    private Organization organization;
+
 
     @Transient
     private Collection<? extends GrantedAuthority> authorities;
@@ -146,7 +150,13 @@ public class User extends JmixOidcUserEntity implements JmixUserDetails, HasTime
         this.lastName = lastName;
     }
 
+    public Organization getOrganization() {
+        return organization;
+    }
 
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -77,6 +77,10 @@ public class SoftwareComponent {
     @JoinColumn(name= "SOFTWARE_COMPONENT_ID")
     private List<Copyright> copyrights;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
+    private Organization organization;
+
 
     public SoftwareComponent(){
         this.licenseAiControlled= false;
@@ -206,5 +210,13 @@ public class SoftwareComponent {
 
     public void setCopyrights(List<Copyright> copyrights) {
         this.copyrights = copyrights;
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 }

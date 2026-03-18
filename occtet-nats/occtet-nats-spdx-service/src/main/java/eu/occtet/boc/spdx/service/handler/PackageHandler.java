@@ -123,7 +123,7 @@ public class PackageHandler {
         SoftwareComponent component = context.getComponentCache().get(componentKey);
 
         if (component == null) {
-            component = softwareComponentService.getOrCreateSoftwareComponent(packageName, version);
+            component = softwareComponentService.getOrCreateSoftwareComponent(packageName, version, context.getProject().getOrganization());
             context.getComponentCache().put(componentKey, component);
         }
 
