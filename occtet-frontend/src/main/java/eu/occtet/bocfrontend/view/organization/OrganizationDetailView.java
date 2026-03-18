@@ -19,13 +19,20 @@
 
 package eu.occtet.bocfrontend.view.organization;
 
+import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.Organization;
+import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.view.dialog.AddProjectDialog;
 import eu.occtet.bocfrontend.view.main.MainView;
-import io.jmix.flowui.view.EditedEntityContainer;
-import io.jmix.flowui.view.StandardDetailView;
-import io.jmix.flowui.view.ViewController;
-import io.jmix.flowui.view.ViewDescriptor;
+import io.jmix.flowui.DialogWindows;
+import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.model.CollectionContainer;
+import io.jmix.flowui.view.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+
 
 
 @Route(value = "organization/:id", layout = MainView.class)
@@ -33,4 +40,48 @@ import io.jmix.flowui.view.ViewDescriptor;
 @ViewDescriptor(path = "organization-detail-view.xml")
 @EditedEntityContainer("organizationDc")
 public class OrganizationDetailView extends StandardDetailView<Organization> {
+
+    private static final Logger log = LogManager.getLogger(OrganizationDetailView.class);
+
+
+    @Autowired
+    private DialogWindows dialogWindow;
+
+    @ViewComponent
+    private CollectionContainer<Project> projectDc;
+
+    @Subscribe(id = "addProjectButton", subject = "clickListener")
+    public void onAddProjectButtonClick(final ClickEvent<JmixButton> event) {
+
+        DialogWindow<AddProjectDialog> window = dialogWindow.view(this, AddProjectDialog.class).build();
+        window.getView().setAvailableContent(getEditedEntity());
+        window.open();
+        window.addAfterCloseListener(close ->
+                updateProjectGrid());
+
+    }
+
+    public void updateProjectGrid(){
+        log.debug("update projects {}", getEditedEntity().getProjects().size());
+        projectDc.setItems(getEditedEntity().getProjects());
+    }
+
+    @Subscribe(id = "addMemberButton", subject = "clickListener")
+    public void onAddMemberButtonClick(final ClickEvent<JmixButton> event) {
+        DialogWindow<AddUserDialog> window = dialogWindow.view(this, AddUserDialog.class).build();
+        window.getView().setAvailableContent(getEditedEntity());
+        window.open();
+        window.addAfterCloseListener(close ->
+                updateMemberGrid());
+
+    }
+
+    public void updateMemberGrid(){
+        log.debug("update users {}", getEditedEntity().getProjects().size());
+        userDc.setItems(getEditedEntity().getProjects());
+    }
+
+
+
+
 }

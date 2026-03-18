@@ -83,8 +83,8 @@
                     </columns>
                 </dataGrid>
                 <hbox>
-                    <button id="addMemberButton" text="msg://eu.occtet.bocfrontend.view.inventoryitem/button.dropdown.add" themeNames="primary"/>
-                    <button id="removeMemberButton" icon="TRASH" themeNames="error"/>
+                    <button id="addProjectButton" text="msg://eu.occtet.bocfrontend.view.inventoryitem/button.dropdown.add" themeNames="primary"/>
+                    <button id="removeProjectButton" icon="TRASH" themeNames="error"/>
                 </hbox>
             </vbox>
 
@@ -96,13 +96,13 @@
                           columnReorderingAllowed="true"
                           classNames="occtet-grid">
                     <columns resizable="true" >
-                        <column property="lastName" header="msg://eu.occtet.bocfrontend.view.login/loginForm.username"/>
-                        <column property="firstName" header="msg://eu.occtet.bocfrontend.view.login/loginForm.username"/>
+                        <column property="lastName" header="msg://eu.occtet.bocfrontend.entity/User.lastName"/>
+                        <column property="firstName" header="msg://eu.occtet.bocfrontend.entity/User.firstName"/>
                     </columns>
                 </dataGrid>
                 <hbox>
-                    <button id="addProjectButton" text="msg://eu.occtet.bocfrontend.view.inventoryitem/button.dropdown.add" themeNames="primary"/>
-                    <button id="removeProjectButton" icon="TRASH" themeNames="error"/>
+                    <button id="addMemberButton" text="msg://eu.occtet.bocfrontend.view.inventoryitem/button.dropdown.add" themeNames="primary"/>
+                    <button id="removeMemberButton" icon="TRASH" themeNames="error"/>
                 </hbox>
             </vbox>
 

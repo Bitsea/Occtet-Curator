@@ -52,6 +52,8 @@ public class Organization {
     private Set<SoftwareComponent> softwareComponents = new HashSet<>();
 
 
+
+
     public Organization() {
     }
 

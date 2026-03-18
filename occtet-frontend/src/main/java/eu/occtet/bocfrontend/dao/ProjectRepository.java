@@ -19,13 +19,13 @@
 
 package eu.occtet.bocfrontend.dao;
 
+import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Project;
 import io.jmix.core.repository.JmixDataRepository;
 import io.jmix.core.repository.Query;
 
 import java.util.List;
-
-
+import java.util.Set;
 
 
 public interface ProjectRepository extends JmixDataRepository<Project, Long> {
@@ -33,4 +33,6 @@ public interface ProjectRepository extends JmixDataRepository<Project, Long> {
     @Query("select p from project p where p.projectName = :name and p.version = :version")
     List<Project> findByNameAndVersion(String name, String version);
     List<Project> findByProjectName(String name);
+    @Query("select p from Project p where p not in :projects")
+    List<Project> findAvailableProjects(Set<Project> projects);
 }

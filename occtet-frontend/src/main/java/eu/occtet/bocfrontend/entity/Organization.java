@@ -57,6 +57,10 @@ public class Organization {
     @OnDelete(DeletePolicy.CASCADE)
     private Set<SoftwareComponent> softwareComponents = new HashSet<>();
 
+    @OneToMany(mappedBy = "organization")
+    @OnDelete(DeletePolicy.CASCADE)
+    private Set<User> users = new HashSet<>();
+
 
     public Organization() {
     }
@@ -108,5 +112,13 @@ public class Organization {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Set<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(Set<User> users) {
+        this.users = users;
     }
 }
