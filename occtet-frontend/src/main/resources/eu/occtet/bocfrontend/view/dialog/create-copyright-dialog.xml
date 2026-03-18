@@ -19,7 +19,7 @@
   -->
 
 <view xmlns="http://jmix.io/schema/flowui/view"
-      title="Create copyright and add to inventoryItem">
+      title="msg://title">
     <layout width="100%" height="100%">
         <vbox width="100%" height="100%">
             <textField id="copyrightNameField" label="Copyright name" width="100%"/>
