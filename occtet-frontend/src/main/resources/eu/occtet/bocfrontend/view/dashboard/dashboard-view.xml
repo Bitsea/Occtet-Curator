@@ -76,7 +76,7 @@
                 <columns>
                     <column property="vulnerabilityId" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.vulnerabilityId" autoWidth="true"/>
                     <column property="riskScore" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.riskScore"/>
-                    <column property="weightedSeverity" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.weightedSeverity"/>
+                    <column property="severity" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.weightedSeverity"/>
                     <column property="summary" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.summary"/>
                 </columns>
             </dataGrid>

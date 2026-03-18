@@ -135,8 +135,8 @@ public class DashboardView extends StandardView {
                         messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.NoScore"));
 
         vulnerabilitiesGrid.getColumnByKey("weightedSeverity")
-                .setTooltipGenerator(v -> v.getWeightedSeverity() != null ?
-                        messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.severity") + ": " + v.getWeightedSeverity() :
+                .setTooltipGenerator(v -> v.getSeverity() != null ?
+                        messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.severity") + ": " + v.getSeverity() :
                         messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.NoSeverity"));
     }
 
