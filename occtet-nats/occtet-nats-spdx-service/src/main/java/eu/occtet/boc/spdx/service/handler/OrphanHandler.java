@@ -168,7 +168,7 @@ public class OrphanHandler {
                                         .equals(newUsage.getTemplate().getLicenseType()));
 
                         if (!alreadyExists) {
-                            newUsage.setSoftwareComponent(component);
+                            newUsage.setSoftwareComponent(component); // Bind the component
                             component.getLicenses().add(newUsage);
                             componentUpdated = true;
                         }

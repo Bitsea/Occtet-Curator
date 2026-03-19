@@ -19,11 +19,8 @@
 
 package eu.occtet.boc.spdx.service.handler;
 
-import eu.occtet.boc.dao.LicenseRepository;
-import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.TemplateLicense;
 import eu.occtet.boc.entity.UsageLicense;
-import eu.occtet.boc.spdx.service.LicenseService;
 import eu.occtet.boc.spdx.service.TemplateLicenseService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,11 +35,6 @@ import java.util.*;
 
 @Service
 public class LicenseHandler {
-
-    @Autowired
-    private LicenseRepository licenseRepository;
-    @Autowired
-    private LicenseService licenseService;
 
     @Autowired
     private TemplateLicenseService templateLicenseService;
