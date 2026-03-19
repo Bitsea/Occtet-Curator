@@ -113,6 +113,11 @@ public class TemplateLicense {
         this.usages = usages;
     }
 
+    public Long getId() {
+        return id;
+    }
 
-
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

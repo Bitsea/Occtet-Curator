@@ -21,7 +21,6 @@ package eu.occtet.boc.spdx.service;
 
 
 import eu.occtet.boc.dao.FileRepository;
-import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.spdx.factory.FileFactory;
@@ -32,7 +31,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
