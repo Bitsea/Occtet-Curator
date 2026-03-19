@@ -1,29 +1,25 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
- *
  */
 
 package eu.occtet.boc.copyrightFilter.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.copyrightFilter.factory.PromptFactory;
 import eu.occtet.boc.copyrightFilter.preprocessor.CopyrightPreprocessor;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.InventoryItem;
@@ -52,6 +48,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class CopyrightFilterService  extends BaseWorkDataProcessor {
@@ -67,8 +64,6 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
 
-    @Autowired
-    private PromptFactory promptFactory;
 
     @Autowired
     private Connection natsConnection;
@@ -82,8 +77,6 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
         return new NatsStreamSender(natsConnection, sendSubject);
     }
 
-
-    private static final Path BASEPATH_JSON = Paths.get("src", "main", "resources", "garbage-Copyrights", "garbage-copyrights.json");
 
     @Override
     public boolean process(ScannerSendWorkData workData) {
@@ -110,8 +103,7 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
             List<String> questionableCopyrights = filterFalsCopyrightsWithGarbageFile(copyrightTexts, item.getSoftwareComponent());
             if (!questionableCopyrights.isEmpty()) {
                 log.info("sending copyrightList to ai for inventory item: {}, copyrights to check: {}", item.getInventoryName(), questionableCopyrights.size());
-                String message= promptFactory.createFalseCopyrightPrompt();
-                AICopyrightFilterWorkData workData = new AICopyrightFilterWorkData( message,item.getId(), questionableCopyrights);
+                AICopyrightFilterWorkData workData = new AICopyrightFilterWorkData( item.getId(), questionableCopyrights);
                 sendAnswerToStream(workData);
                 return true;
 
@@ -121,7 +113,8 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
 
 
     public List<String> filterFalsCopyrightsWithGarbageFile(List<String> copyrightTexts, SoftwareComponent item) {
-        List<String> garbageCopyrightTexts= copyrightPreprocessor.readGarbageCopyrightsFromJson(BASEPATH_JSON);
+        log.debug("filterFalsCopyrightsWithGarbageFile called with {} copyright texts", copyrightTexts.size());
+        List<String> garbageCopyrightTexts= copyrightPreprocessor.getGarbageCopyrights();
         for(String garbage: garbageCopyrightTexts) {
             if(copyrightTexts.contains(garbage)) {
                 for(Copyright c: item.getCopyrights()){
@@ -146,7 +139,7 @@ public class CopyrightFilterService  extends BaseWorkDataProcessor {
     private void sendAnswerToStream(AICopyrightFilterWorkData aiCopyrightFilterWorkData) {
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("process_inventoryItems", "sending inventoryItem to next microservice according to config", actualTimestamp, aiCopyrightFilterWorkData);
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(),"ai-answer", "sending inventoryItem to next microservice according to config", actualTimestamp, aiCopyrightFilterWorkData);
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String message = objectMapper.writeValueAsString(workTask);

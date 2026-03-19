@@ -24,13 +24,14 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import eu.occtet.bocfrontend.dao.*;
-import eu.occtet.bocfrontend.dto.AuditCopyrightDTO;
-import eu.occtet.bocfrontend.dto.AuditLicenseDTO;
-import eu.occtet.bocfrontend.dto.AuditVulnerabilityDTO;
+import eu.occtet.bocfrontend.model.AuditCopyrightDTO;
+import eu.occtet.bocfrontend.model.AuditLicenseDTO;
+import eu.occtet.bocfrontend.model.AuditVulnerabilityDTO;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.view.audit.AuditView;
 import eu.occtet.bocfrontend.view.dialog.OverviewContentInfoDialog;
 import io.jmix.core.DataManager;
+import io.jmix.core.Messages;
 import io.jmix.core.ValueLoadContext;
 import io.jmix.core.entity.KeyValueEntity;
 import io.jmix.flowui.DialogWindows;
@@ -51,7 +52,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Nonnull;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 @FragmentDescriptor("OverviewProjectTabFragment.xml")
@@ -101,20 +101,19 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
 
-    @Autowired
-    private CodeLocationRepository codeLocationRepository;
 
     @Autowired
     private UiComponents uiComponents;
 
-    @Autowired
-    private Notifications notifications;
 
     @Autowired
     private DialogWindows dialogWindows;
 
     @Autowired
     private DataManager dataManager;
+
+    @Autowired
+    private Messages messages;
 
     private InventoryItem item;
 
@@ -127,19 +126,8 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
 
     public void setProjectOverview(@Nonnull Project project){
         this.project = dataContext.merge(project);
-        List<InventoryItem> items = inventoryItemRepository.findByProject(project);
-        List<CodeLocation> codeLocations = new ArrayList<>();
-        List<SoftwareComponent> components = new ArrayList<>();
-        if(items != null){
-            for(InventoryItem item : items){
-                if(item.getSoftwareComponent() != null){
-                    components.add(item.getSoftwareComponent());
-                }
-                codeLocations.addAll(codeLocationRepository.findByInventoryItem(item));
-            }
-        }
         setAllProjectInformation(this.project);
-        addInfoButton();
+        addInfoButton(this.project);
     }
 
     public void setHostView(View<?> hostView) {
@@ -162,7 +150,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
                             from InventoryItem i
                             join i.softwareComponent s
                             join s.copyrights cr
-                            join cr.codeLocations cl
+                            join cr.files cl
                             join i.project p
                             where p.id = :project_id
                             group by cr.id
@@ -180,7 +168,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
         });
 
         auditCopyrightDc.setItems(auditCopyrightDTOs);
-        copyrightAccordion.setSummaryText("Copyrights ("+auditCopyrightDTOs.size()+")");
+        copyrightAccordion.setSummaryText(messages.getMessage("eu.occtet.bocfrontend.view/overvoewProjectTabFragment.copyrightAccordion.summary") + " ("+auditCopyrightDTOs.size()+")");
 
     }
 
@@ -210,7 +198,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
             licensesDTOs.add(new AuditLicenseDTO(license.getLicenseName(),value.intValue()));
         });
         auditLicensesDc.setItems(licensesDTOs);
-        licensesAccordion.setSummaryText("Licenses ("+licensesDTOs.size()+")");
+        licensesAccordion.setSummaryText(messages.getMessage("eu.occtet.bocfrontend.view/overvoewProjectTabFragment.licenseAccordion.summary") + " ("+licensesDTOs.size()+")");
     }
 
     private void setVulnerabilities(Project project){
@@ -219,15 +207,16 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
 
         ValueLoadContext context = new ValueLoadContext()
                 .setQuery(new ValueLoadContext.Query("""
-                            select v.id as vulnerabilityId, count(s) as countV
-                            from InventoryItem i
-                            join i.softwareComponent s
-                            join s.vulnerabilities v
-                            join i.project p
-                            where p.id = :project_id
-                            group by v.id
-                       """)
-                        .setParameter("project_id",project.getId()))
+                    select v.id as vulnerabilityId, count(s) as countV
+                    from InventoryItem i
+                    join i.softwareComponent s
+                    join s.vulnerabilityLinks vl
+                    join vl.vulnerability v
+                    join i.project p
+                    where p.id = :project_id
+                    group by v.id
+               """)
+                        .setParameter("project_id", project.getId()))
                 .addProperty("vulnerabilityId")
                 .addProperty("countV");
 
@@ -239,13 +228,13 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
             vulnerabilityDTOs.add(new AuditVulnerabilityDTO(v.getVulnerabilityId(),v.getRiskScore(),value.intValue()));
         });
         auditVulnerabilitiesDc.setItems(vulnerabilityDTOs);
-        vulnerabilityAccordion.setSummaryText("Vulnerabilities ("+vulnerabilityDTOs.size()+")");
+        vulnerabilityAccordion.setSummaryText(messages.getMessage("eu.occtet.bocfrontend.view/overvoewProjectTabFragment.vulnerabilityAccordion.summary") + " ("+vulnerabilityDTOs.size()+")");
     }
 
     private void showContentInformationDialog(Object content){
         DialogWindow<OverviewContentInfoDialog> window =
                 dialogWindows.view(hostView, OverviewContentInfoDialog.class).build();
-        window.getView().setInformationContent(content);
+        window.getView().setInformationContent(content,project);
         window.addAfterCloseListener(event -> {
             item = window.getView().getInventoryItem();
             if(hostView instanceof AuditView auditView){
@@ -258,36 +247,36 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
     private JmixButton createShowButton(){
         JmixButton showButton = uiComponents.create(JmixButton.class);
         showButton.setIcon(VaadinIcon.INFO_CIRCLE.create());
-        showButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        showButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
         return showButton;
     }
 
-    private void addInfoButton(){
+    private void addInfoButton(Project project){
 
         if(auditLicensesDataGrid.getColumnByKey("infoButton") == null) {
             auditLicensesDataGrid.addComponentColumn(auditLicenseDTO -> {
                 JmixButton showButton = createShowButton();
-                showButton.addClickListener(click -> openOverviewContentDialog(auditLicenseDTO));
+                showButton.addClickListener(click -> openOverviewContentDialog(auditLicenseDTO,project));
                 return showButton;
-            }).setKey("infoButton");
+            }).setKey("infoButton").setFlexGrow(0);
         }
         if(auditVulnerabilityDataGrid.getColumnByKey("infoButton") == null){
             auditVulnerabilityDataGrid.addComponentColumn(auditVulnerabilityDTO -> {
                 JmixButton showButton = createShowButton();
-                showButton.addClickListener(click -> openOverviewContentDialog(auditVulnerabilityDTO));
+                showButton.addClickListener(click -> openOverviewContentDialog(auditVulnerabilityDTO,project));
                 return showButton;
-            }).setKey("infoButton");
+            }).setKey("infoButton").setFlexGrow(0);
         }
     }
 
-    private void openOverviewContentDialog(Object content){
+    private void openOverviewContentDialog(Object content, Project project){
         if(content instanceof AuditLicenseDTO auditLicenseDTO){
-            List<License> licenses = licenseRepository.findLicensesByLicenseName(auditLicenseDTO.getLicenseName());
+            List<License> licenses = licenseRepository.findLicensesByLicenseNameAndProject(auditLicenseDTO.getLicenseName(),project);
             showContentInformationDialog(licenses.getFirst());
         }
         if(content instanceof AuditVulnerabilityDTO auditVulnerabilityDTO){
             List<Vulnerability> vulnerabilities = vulnerabilityRepository
-                    .findByVulnerabilityId(auditVulnerabilityDTO.getVulnerabilityName());
+                    .findByVulnerabilityIdAndProject(auditVulnerabilityDTO.getVulnerabilityName(),project);
             showContentInformationDialog(vulnerabilities.getFirst());
         }
     }

@@ -1,23 +1,20 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
- *
  */
 
 package eu.occtet.boc.ai.licenseMatcher.service;
@@ -57,12 +54,12 @@ public class LicenseTemplateWebService {
             WebClient.RequestHeadersUriSpec<?> uriSpec = client.get();
             Mono<SPDXLicenseDetails> response = uriSpec.retrieve().bodyToMono(SPDXLicenseDetails.class);
             details = response.block();
-            log.debug("control upload, licenseId: {}", details.licenseId());
+            log.debug("control upload, licenseId: {}", details.getLicenseId());
 
             return details;
         }   catch (WebClientResponseException e){
             //Handling of 404 Not Found from GET https://spdx.org/licenses/<license>.json error.
-            log.error("License information not Found from GET {} for the license: {} ",url, details.licenseId());
+            log.error("License information not Found from GET {} for the license: {} ",url, details.getLicenseId());
             return null;
         }
 
@@ -72,6 +69,7 @@ public class LicenseTemplateWebService {
 
     public SPDXLicenseDetails readDefaultLicenseInfos( String url) {
         try {
+            log.debug("read URL {}", url);
             URL detailUrl = new URL(url);
             return readLicenseInfos(detailUrl.openStream());
         } catch (IOException e) {
@@ -88,7 +86,7 @@ public class LicenseTemplateWebService {
             Gson gson = gsonBuilder.create();
             SPDXLicenseDetails spdxLicenseDetails = gson.fromJson(br, SPDXLicenseDetails.class);
 
-            log.info("processed '{}' license", spdxLicenseDetails.licenseId());
+            log.info("processed '{}' license", spdxLicenseDetails.getLicenseId());
             return spdxLicenseDetails;
         } catch (Exception e) {
             log.error("licenses file could not be processed ", e);

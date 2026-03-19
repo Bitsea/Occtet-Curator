@@ -1,0 +1,83 @@
+/*
+ * Copyright (C) 2025 Bitsea GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https:www.apache.orglicensesLICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *  License-Filename: LICENSE
+ */
+
+
+package eu.occtet.boc.model;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import eu.occtet.boc.service.IWorkDataProcessor;
+
+public class ORTStartRunWorkData extends BaseWorkData{
+
+    private String repositoryType;
+    private String repositoryUrl;
+    private String repositoryVersion;
+    private long projectId;
+
+
+    @JsonCreator
+    public ORTStartRunWorkData(@JsonProperty("repositoryType") String repositoryType,
+                              @JsonProperty("repositoryUrl") String repositoryUrl,
+                              @JsonProperty("repositoryVersion") String repositoryVersion,
+                              @JsonProperty("projectId") long projectId) {
+        this.repositoryType = repositoryType;
+        this.repositoryUrl = repositoryUrl;
+        this.repositoryVersion = repositoryVersion;
+        this.projectId = projectId;
+    }
+
+    public String getRepositoryType() {
+        return repositoryType;
+    }
+
+    public void setRepositoryType(String repositoryType) {
+        this.repositoryType = repositoryType;
+    }
+
+    public long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(long projectId) {
+        this.projectId = projectId;
+    }
+
+    public String getRepositoryUrl() {
+        return repositoryUrl;
+    }
+
+    public void setRepositoryUrl(String repositoryUrl) {
+        this.repositoryUrl = repositoryUrl;
+    }
+
+    public String getRepositoryVersion() {
+        return repositoryVersion;
+    }
+
+    public void setRepositoryVersion(String repositoryVersion) {
+        this.repositoryVersion = repositoryVersion;
+    }
+
+
+    @Override
+    public boolean process(IWorkDataProcessor processor) {
+        return processor.process(this);
+    }
+}

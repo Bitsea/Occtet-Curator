@@ -21,7 +21,6 @@ package eu.occtet.bocfrontend.view.audit;
 
 
 import com.vaadin.flow.component.*;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
@@ -31,18 +30,18 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.*;
-import eu.occtet.bocfrontend.dao.FileRepository;
-import eu.occtet.bocfrontend.dao.InventoryItemRepository;
-import eu.occtet.bocfrontend.dao.ProjectRepository;
-import eu.occtet.bocfrontend.view.TabManager;
+import eu.occtet.bocfrontend.component.CustomParameterFilter;
+import eu.occtet.bocfrontend.dao.*;
 import eu.occtet.bocfrontend.entity.*;
-import eu.occtet.bocfrontend.factory.UiComponentFactory;
+import eu.occtet.bocfrontend.factory.AuditViewUiComponentFactory;
 import eu.occtet.bocfrontend.factory.RendererFactory;
 import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
 import eu.occtet.bocfrontend.service.*;
+import eu.occtet.bocfrontend.view.audit.fragment.OverviewOrtTabFragment;
 import eu.occtet.bocfrontend.view.audit.fragment.OverviewProjectTabFragment;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
+import io.jmix.core.Messages;
 import io.jmix.core.ValueLoadContext;
 import io.jmix.core.entity.KeyValueEntity;
 import io.jmix.flowui.*;
@@ -92,6 +91,8 @@ public class AuditView extends StandardView{
     @Autowired private ProjectRepository projectRepository;
     @Autowired private FileRepository fileRepository;
     @Autowired private InventoryItemRepository inventoryItemRepository;
+    @Autowired private OrtIssueRepository ortIssueRepository;
+    @Autowired private OrtViolationRepository ortViolationRepository;
 
     @Autowired private Fragments fragments;
     @Autowired private Dialogs dialogs;
@@ -103,7 +104,7 @@ public class AuditView extends StandardView{
 
     @Autowired private TreeGridHelper treeGridHelper;
 
-    @Autowired private UiComponentFactory componentFactory;
+    @Autowired private AuditViewUiComponentFactory componentFactory;
     @Autowired private RendererFactory rendererFactory;
 
     @ViewComponent private DataContext dataContext;
@@ -122,16 +123,22 @@ public class AuditView extends StandardView{
     @ViewComponent private HorizontalLayout toolbarBox;
     @ViewComponent private VerticalLayout fileTreeGridLayout;
     @ViewComponent private OverviewProjectTabFragment overviewProjectTabFragment;
+    @ViewComponent private OverviewOrtTabFragment overviewOrtTabFragment;
+    @ViewComponent private Tab ortSection;
 
     private TabManager tabManager;
     private Map<Long, Long> fileCounts = new HashMap<>();
     private boolean suppressNavigation = false;
     private final Set<Long> expandedItemIds = new HashSet<>();
+    private CustomParameterFilter inventorItemGridFilter;
+    private List<File> currentDraggedFiles = new ArrayList<>(); // for dragging files across grids contained in fragments
 
     private FileTreeSearchHelper fileTreeSearchHelper;
     @Autowired
     private TransactionTemplate transactionTemplate; // important for fileTreeSearchHelper
 
+    @Autowired
+    private Messages messages;
     /**
      * Handles actions to be performed before the view is entered. This method ensures
      * proper initialization of the project context based on route parameters or session state.
@@ -153,12 +160,15 @@ public class AuditView extends StandardView{
      */
     @Subscribe
     protected void onInit(InitEvent event) {
+        inventoryItemDl.setParameter("project", projectComboBox.getValue());
+
         initializeTabManager();
         initializeProjectComboBox();
         initializeInventoryDataGrid();
         initializeFileTreeGrid();
         addTabSelectionListeners();
         overviewProjectTabFragment.setHostView(this);
+        overviewOrtTabFragment.setHostView(this);
         overviewProjectTabFragment.setDefaultAccordionValues();
     }
 
@@ -184,12 +194,12 @@ public class AuditView extends StandardView{
         fileTreeGridLayout.addComponentAsFirst(toolboxWrapper);
 
         JmixComboBox<FileReviewedFilterMode> filterBox = (JmixComboBox<FileReviewedFilterMode>)
-                findComponentById(toolboxWrapper, UiComponentFactory.REVIEWED_FILTER_ID);
-        TextField searchField = (TextField) findComponentById(toolboxWrapper, UiComponentFactory.SEARCH_FIELD_ID);
-        JmixButton nextBtn = (JmixButton) findComponentById(toolboxWrapper, UiComponentFactory.FIND_NEXT_ID);
-        JmixButton prevBtn = (JmixButton) findComponentById(toolboxWrapper, UiComponentFactory.FIND_PREVIOUS_ID);
-        NativeLabel countLabel = (NativeLabel) findComponentById(toolboxWrapper, UiComponentFactory.COUNT_LABEL_ID);
-        JmixButton searchBtn = (JmixButton) findComponentById(toolboxWrapper, UiComponentFactory.SEARCH_BUTTON);
+                findComponentById(toolboxWrapper, AuditViewUiComponentFactory.REVIEWED_FILTER_ID);
+        TextField searchField = (TextField) findComponentById(toolboxWrapper, AuditViewUiComponentFactory.SEARCH_FIELD_ID);
+        JmixButton nextBtn = (JmixButton) findComponentById(toolboxWrapper, AuditViewUiComponentFactory.FIND_NEXT_ID);
+        JmixButton prevBtn = (JmixButton) findComponentById(toolboxWrapper, AuditViewUiComponentFactory.FIND_PREVIOUS_ID);
+        NativeLabel countLabel = (NativeLabel) findComponentById(toolboxWrapper, AuditViewUiComponentFactory.COUNT_LABEL_ID);
+        JmixButton searchBtn = (JmixButton) findComponentById(toolboxWrapper, AuditViewUiComponentFactory.SEARCH_BUTTON);
 
         // Filter Logic
         if (filterBox != null) {
@@ -248,6 +258,15 @@ public class AuditView extends StandardView{
         fileTreeGrid.addCollapseListener(event -> {
             event.getItems().forEach(file -> expandedItemIds.remove(file.getId()));
             saveStateToSession();
+        });
+
+        fileTreeGrid.setRowsDraggable(true);
+
+        fileTreeGrid.addDragStartListener(event -> {
+            this.currentDraggedFiles = event.getDraggedItems();
+        });
+
+        fileTreeGrid.addDragEndListener(event -> {
         });
     }
 
@@ -316,6 +335,14 @@ public class AuditView extends StandardView{
                 refreshAllDataForProject(project);
                 restoreTabsAndState();
                 overviewProjectTabFragment.setProjectOverview(project);
+                List<OrtIssue> issues = ortIssueRepository.findByProjectId(project.getId());
+                List<OrtViolation> violations = ortViolationRepository.findByProjectId(project.getId());
+                log.debug("Project {} has {} issues and {} violations, showing ORT overview tab", project.getProjectName(), issues.size(), violations.size());
+
+                if(!issues.isEmpty() || !violations.isEmpty()) {
+                    ortSection.setVisible(true);
+                    overviewOrtTabFragment.setProjectOrtOverview(project);
+                }
             });
         } catch (Exception e) {
             log.warn("Invalid projectId in URL: {}", projectIdStr, e);
@@ -372,26 +399,46 @@ public class AuditView extends StandardView{
 
     private void initializeProjectComboBox() {
         projectComboBox.setItems(projectRepository.findAll());
-        projectComboBox.setItemLabelGenerator(Project::getProjectName);
+        projectComboBox.setItemLabelGenerator(project -> project.getProjectName()+" - "+project.getVersion());
     }
 
     /**
      * Initializes the inventory data grid for displaying and managing inventory items.
      */
     private void initializeInventoryDataGrid() {
-        HorizontalLayout inventoryToolbox = componentFactory.createToolBox(
-                inventoryItemDataGrid, InventoryItem.class,
+        Map<String, String> filterConfig = new LinkedHashMap<>();
+        filterConfig.put(messages.getMessage("eu.occtet.bocfrontend.view.audit/auditView.filter" +
+                ".vulnerable"), "vulnerableOnly");
+        filterConfig.put(messages.getMessage("eu.occtet.bocfrontend.view.audit/auditView.filter.invulnerable"),
+                "invulnerableOnly");
+        filterConfig.put(messages.getMessage("eu.occtet.bocfrontend.view.audit/auditView.filter.curated"),
+                "curatedOnly");
+        filterConfig.put(messages.getMessage("eu.occtet.bocfrontend.view.audit/auditView.filter.uncurated"),
+                "uncuratedOnly");
+        filterConfig.put(messages.getMessage("eu.occtet.bocfrontend.view.audit/auditView.filter" +
+                ".hasTodos"), "hasTodos");
+        filterConfig.put(messages.getMessage("eu.occtet.bocfrontend.view.audit/auditView.filter" +
+                ".noTodos"), "noTodos");
+
+        HorizontalLayout inventoryToolbox = componentFactory.createToolBoxForInventoryItemGrid(
+                inventoryItemDataGrid,
+                inventoryItemDl,
+                filterConfig,
                 () -> treeGridHelper.expandChildrenOfRoots(inventoryItemDataGrid),
-                () -> treeGridHelper.collapseChildrenOfRoots(inventoryItemDataGrid));
+                () -> treeGridHelper.collapseChildrenOfRoots(inventoryItemDataGrid)
+        );
 
-        findCheckBoxById(inventoryToolbox, componentFactory.getVulnerabilityFilterId())
-                .ifPresentOrElse(checkbox -> {
-                    checkbox.addValueChangeListener(event ->
-                                    onVulnerabilityFilterToggled(Boolean.TRUE.equals(event.getValue())));
-                }, () -> log.warn("Unable to find vulnerability filter checkbox in inventory toolbox")
-                );
+        this.inventorItemGridFilter = (CustomParameterFilter) findComponentById(
+                inventoryToolbox, AuditViewUiComponentFactory.CUSTOM_FILTER_ID_FOR_INVENTORY_GRID);
+        if(inventorItemGridFilter != null) {
+            inventorItemGridFilter.setOnFilterApplied((f) -> {
+                // reload file count
+                Project project = projectComboBox.getValue();
+                if (project != null) loadFileCounts(project);
+            });
+        }
+        // queries regarding the filters are added in the descriptor
 
-        // TODO is not listening due the default jmix listener
         inventoryItemDataGrid.addItemClickListener(event -> {
             if (event.getClickCount() == 2) {
                 tabManager.openInventoryItemTab(event.getItem(), true);
@@ -400,32 +447,7 @@ public class AuditView extends StandardView{
         toolbarBox.removeAll();
         toolbarBox.add(inventoryToolbox);
         componentFactory.createInfoButtonHeaderForInventoryGrid(inventoryItemDataGrid, "status");
-
         inventoryItemDataGrid.setTooltipGenerator(InventoryItem::getInventoryName);
-    }
-
-    private Optional<Checkbox> findCheckBoxById(Component container, String id){
-        return container.getChildren()
-                .filter(child -> id.equals(child.getId().orElse(null)))
-                .filter(child -> child instanceof Checkbox)
-                .map(child -> (Checkbox) child)
-                .findFirst();
-    }
-
-    /**
-     * Toggles the vulnerability filter for inventory items. Updates the data loader parameter to
-     * filter items based on their vulnerability status and reloads the data.
-     *
-     * @param vulnerableOnly a boolean indicating whether to display only vulnerable inventory items (true)
-     *                        or all items (false)
-     */
-    private void onVulnerabilityFilterToggled(boolean vulnerableOnly) {
-        Project project = projectComboBox.getValue();
-        if (project == null) return;
-
-        inventoryItemDl.setParameter("vulnerableOnly", vulnerableOnly);
-        inventoryItemDl.load();
-        loadFileCounts(project);
     }
 
     private void initializeTabManager() {
@@ -536,14 +558,17 @@ public class AuditView extends StandardView{
             clearView();
             return;
         }
+        if (this.inventorItemGridFilter != null) {
+            this.inventorItemGridFilter.reset();
+        }
         refreshInventoryItemDc(project);
-
+        log.debug("Setting new FileHierarchyProvider for project {}", project.getProjectName());
         fileTreeGrid.setDataProvider(new FileHierarchyProvider(fileRepository, project));
     }
 
     public void refreshInventoryItemDc(Project project) {
         inventoryItemDl.setParameter("project", project);
-        inventoryItemDl.setParameter("vulnerableOnly", false);
+
         inventoryItemDl.load();
         loadFileCounts(project);
     }
@@ -560,10 +585,11 @@ public class AuditView extends StandardView{
     private void loadFileCounts(Project project) {
         ValueLoadContext context = new ValueLoadContext()
                 .setQuery(new ValueLoadContext.Query("""
-                            select cl.inventoryItem.id as itemId, count(cl) as fileCount
-                            from CodeLocation cl
-                            where cl.inventoryItem.project = :project
-                            group by cl.inventoryItem.id
+                            select i.id as itemId, count(f) as fileCount
+                            from File f
+                            join f.inventoryItems i
+                            where f.project = :project
+                            group by i.id
                         """)
                         .setParameter("project", project))
                 .addProperty("itemId")
@@ -604,24 +630,30 @@ public class AuditView extends StandardView{
         }
 
         if (event.getValue() == event.getOldValue()) return;
+        if (event.getValue() == null) {
+            clearView();
+            return;
+        }
 
         if (event.isFromClient() && tabManager.hasOpenTabs()) {
             dialogs.createOptionDialog()
-                    .withHeader("Change Project")
-                    .withText("Do you want to close all tabs from the previous project?")
+                    .withHeader(messages.getMessage("eu.occtet.bocfrontend.view.audit/projectComboBox"))
+                    .withText(messages.getMessage("eu.occtet.bocfrontend.view.audit/projectComboBoxText"))
                     .withActions(
                             new DialogAction(DialogAction.Type.YES).withHandler(e -> {
                                 tabManager.closeAllTabs();
                                 switchProject(event.getValue());
                             }),
                             new DialogAction(DialogAction.Type.NO)
-                                    .withText("Keep Tabs")
+                                    .withText(messages.getMessage("eu.occtet.bocfrontend.view.audit/projectComboBoxDialog"))
                                     .withHandler(e -> switchProject(event.getValue()))
                     ).open();
         } else {
             switchProject(event.getValue());
         }
         overviewProjectTabFragment.setProjectOverview(event.getValue());
+        setOrtInformationFragment(event.getValue());
+
     }
 
     private void switchProject(Project project) {
@@ -633,15 +665,6 @@ public class AuditView extends StandardView{
         updateUrl();
     }
 
-//    @Subscribe("inventoryItemDataGrid")
-//    public void onInventoryItemDataGridClick(final ItemClickEvent<InventoryItem> event) {
-//        if (event.getClickCount() == 2) {
-//            inventoryItemSection.setVisible(true);
-//            tabManager.openInventoryItemTab(event.getItem(), true);
-//        } else {
-//            treeGridHelper.toggleExpansion(inventoryItemDataGrid, event.getItem());
-//        }
-//    }
 
     private void clearView() {
         inventoryItemDc.setItems(Collections.emptyList());
@@ -663,6 +686,24 @@ public class AuditView extends StandardView{
 
     public TabManager getTabManager() {
         return tabManager;
+    }
+
+    public List<File> getCurrentDraggedFiles() {
+        return currentDraggedFiles != null ? currentDraggedFiles : Collections.emptyList();
+    }
+
+    private void setOrtInformationFragment(Project project){
+        List<OrtIssue> issues = ortIssueRepository.findByProjectId(project.getId());
+        List<OrtViolation> violations = ortViolationRepository.findByProjectId(project.getId());
+        log.debug("2Project {} has {} issues and {} violations, showing ORT overview tab", project.getProjectName(), issues.size(), violations.size());
+        log.debug("2Project {} has {} issues and {} violations",
+                project.getProjectName(),
+                issues.size(),
+                violations.size());
+        if(!issues.isEmpty() || !violations.isEmpty()){
+            ortSection.setVisible(true);
+            overviewOrtTabFragment.setProjectOrtOverview(project);
+        }
     }
 
 }

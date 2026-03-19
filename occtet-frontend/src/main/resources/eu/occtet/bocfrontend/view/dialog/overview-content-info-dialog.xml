@@ -27,7 +27,7 @@
             </fetchPlan>
             <loader id="inventoryItemsDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from InventoryItem e]]>
+                    <![CDATA[select e from InventoryItem e where e in :items]]>
                 </query>
             </loader>
         </collection>
@@ -35,6 +35,8 @@
     <layout width="100%" height="100%">
         <h3 id="title" classNames="occtet-dialog-title"/>
         <vbox width="100%">
+            <simplePagination id="pagination" dataLoader="inventoryItemsDl" itemsPerPageItems="100"
+                              alignSelf="END" justifySelf="END"/>
             <dataGrid id="inventoryItemsDataGrid"
                       dataContainer="inventoryItemsDc"
                       columnReorderingAllowed="true"

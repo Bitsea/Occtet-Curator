@@ -52,6 +52,11 @@ public class SpdxDocumentRoot {
     @Column(nullable = false, name = "DOCUMENT_URI")
     private String documentUri;
 
+    @ElementCollection
+    @CollectionTable(name = "SPDX_DOCUMENT_DESCRIBES", joinColumns = @JoinColumn(name = "spdx_document_id"))
+    @Column(name = "described_element_id")
+    private List<String> spdxDocumentDescribes = new ArrayList<>();
+
     @OneToOne(cascade = CascadeType.ALL, optional = false)
     @JoinColumn(name = "creation_info_id", referencedColumnName = "id")
     private CreationInfoEntity creationInfoEntity;
@@ -190,5 +195,53 @@ public class SpdxDocumentRoot {
 
     public Long getId() {
         return id;
+    }
+
+    public List<String> getSpdxDocumentDescribes() {
+        return spdxDocumentDescribes;
+    }
+
+    public void setSpdxDocumentDescribes(List<String> spdxDocumentDescribes) {
+        this.spdxDocumentDescribes = spdxDocumentDescribes;
+    }
+
+    public CreationInfoEntity getCreationInfoEntity() {
+        return creationInfoEntity;
+    }
+
+    public void setCreationInfoEntity(CreationInfoEntity creationInfoEntity) {
+        this.creationInfoEntity = creationInfoEntity;
+    }
+
+    public List<ExternalDocumentRefEntity> getExternalDocumentRefEntities() {
+        return externalDocumentRefEntities;
+    }
+
+    public void setExternalDocumentRefEntities(List<ExternalDocumentRefEntity> externalDocumentRefEntities) {
+        this.externalDocumentRefEntities = externalDocumentRefEntities;
+    }
+
+    public List<ExtractedLicensingInfoEntity> getHasExtractedLicensingInfoEntities() {
+        return hasExtractedLicensingInfoEntities;
+    }
+
+    public void setHasExtractedLicensingInfoEntities(List<ExtractedLicensingInfoEntity> hasExtractedLicensingInfoEntities) {
+        this.hasExtractedLicensingInfoEntities = hasExtractedLicensingInfoEntities;
+    }
+
+    public List<RelationshipEntity> getRelationshipEntities() {
+        return relationshipEntities;
+    }
+
+    public void setRelationshipEntities(List<RelationshipEntity> relationshipEntities) {
+        this.relationshipEntities = relationshipEntities;
+    }
+
+    public List<SpdxPackageEntity> getSpdxPackageEntities() {
+        return spdxPackageEntities;
+    }
+
+    public void setSpdxPackageEntities(List<SpdxPackageEntity> spdxPackageEntities) {
+        this.spdxPackageEntities = spdxPackageEntities;
     }
 }

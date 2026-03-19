@@ -1,31 +1,28 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
- *
  */
 
 package eu.occtet.boc.spdx.service;
 
 
-import eu.occtet.boc.entity.CodeLocation;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.dao.CopyrightRepository;
+import eu.occtet.boc.entity.File;
 import eu.occtet.boc.spdx.factory.CopyrightFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,16 +39,16 @@ public class CopyrightService {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public Copyright findOrCreateCopyright(String copyrightString, List<CodeLocation> codeLocations){
+    public Copyright findOrCreateCopyright(String copyrightString, Set<File> files){
         List<Copyright> copyrights = copyrightRepository.findByCopyrightText(copyrightString);
         Copyright copyright;
         if (copyrights.isEmpty()) {
-            copyright = copyrightFactory.create(copyrightString, codeLocations);
+            copyright = copyrightFactory.create(copyrightString, files);
         }else{
             copyright= copyrights.getFirst();
-            for(CodeLocation cl: codeLocations) {
-               if(! copyright.getCodeLocations().contains(cl)){
-                   copyright.getCodeLocations().add(cl);
+            for(File cl: files) {
+               if(! copyright.getFiles().contains(cl)){
+                   copyright.getFiles().add(cl);
                }
             }
         }
@@ -79,10 +76,10 @@ public class CopyrightService {
             found.forEach(c -> cache.put(c.getCopyrightText(), c));
         }
 
-        List<Copyright> toSave = new ArrayList<>();
+        Set<Copyright> toSave = new HashSet<>();
         for (String text : copyrightTexts) {
             if (!cache.containsKey(text)) {
-                Copyright newCopyright = copyrightFactory.createTransient(text, new ArrayList<>());
+                Copyright newCopyright = copyrightFactory.createTransient(text, new HashSet<>());
                 toSave.add(newCopyright);
                 cache.put(text, newCopyright);
             }

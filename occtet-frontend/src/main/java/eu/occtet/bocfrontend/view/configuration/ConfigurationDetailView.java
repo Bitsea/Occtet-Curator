@@ -23,8 +23,9 @@ import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.Configuration;
-import eu.occtet.bocfrontend.entity.ImportTask;
-import eu.occtet.bocfrontend.importer.ImportManager;
+import eu.occtet.bocfrontend.entity.CuratorTask;
+import eu.occtet.bocfrontend.importer.TaskManager;
+import eu.occtet.bocfrontend.ortTask.RepositoryType;
 import eu.occtet.bocfrontend.service.ConfigurationService;
 import eu.occtet.bocfrontend.validator.NumericValidator;
 import eu.occtet.bocfrontend.validator.PathValidator;
@@ -62,13 +63,14 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
     private FileUploadField uploadField;
     @ViewComponent
     private JmixCheckbox booleanField;
-
+    @ViewComponent
+    private JmixComboBox<RepositoryType> repoType;
     @Autowired
     protected DataManager dataManager;
     @Autowired
     private Dialogs dialogs;
     @Autowired
-    private ImportManager importManager;
+    private TaskManager taskManager;
     @Autowired
     private ConfigurationService configurationService;
     @Autowired
@@ -81,14 +83,14 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
     private final String SPDX = "SPDX_Import";
 
     private Configuration configPayload;
-    private ImportTask importTask;
+    private CuratorTask curatorTask;
     private result finalResult;
 
     public enum result {Cancel, Edit}
 
 
-    public void setup(ImportTask sI) {
-        this.importTask = sI;
+    public void setup(CuratorTask sI) {
+        this.curatorTask = sI;
     }
 
     @Subscribe
@@ -97,7 +99,7 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
         this.nameField.setValue(entity.getName());
 
         // Initialize booleanField if the type is BOOLEAN
-        if (configurationService.getTypeOfConfiguration(entity.getName(), importTask) == Configuration.Type.BOOLEAN) {
+        if (configurationService.getTypeOfConfiguration(entity.getName(), curatorTask) == Configuration.Type.BOOLEAN) {
             booleanField.setValue("true".equals(entity.getValue()));
             booleanField.setVisible(true);
             valueField.setVisible(false);
@@ -118,9 +120,10 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
     }
 
     private void updateValueFieldVisibility(String key) {
-        Configuration.Type typeOfConfiguration = configurationService.getTypeOfConfiguration(key, importTask);
+        Configuration.Type typeOfConfiguration = configurationService.getTypeOfConfiguration(key, curatorTask);
         switch (typeOfConfiguration) {
             case FILE_UPLOAD:
+                nameField.setVisible(true);
                 setupForFileUpload();
                 break;
             case BASE_PATH:
@@ -130,14 +133,21 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
                 setupForNumeric();
                 break;
             case STRING:
+                nameField.setVisible(false);
                 uploadField.setVisible(false);
                 valueField.setVisible(true);
                 booleanField.setVisible(false);
+                repoType.setVisible(false);
                 break;
             case BOOLEAN:
+                nameField.setVisible(false);
                 uploadField.setVisible(false);
                 valueField.setVisible(false);
                 booleanField.setVisible(true);
+                repoType.setVisible(false);
+                break;
+            case REPOSITORY_TYPE:
+                setUpForComboBox();
                 break;
         }
     }
@@ -165,7 +175,8 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
                     uploadField.getValue(),
                     uploadField.getUploadedFileName(),
                     booleanField.getValue(),
-                    importTask
+                    repoType.getValue(),
+                    curatorTask
             );
 
             if (res) {
@@ -219,7 +230,7 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
         uploadField.setMaxFileSize(maxFileSizeInBytes);
 
         // Here the setup might vary depending on the import
-        if (importTask.getImportName().equals(FLEXERA)) {
+        if (curatorTask.getTaskName().equals(FLEXERA)) {
             uploadField.setAcceptedFileTypes(".xlsx");
             uploadField.setHelperText("Upload a Flexera report in Excel format (.xlsx, max 70 MB)");
         }
@@ -238,5 +249,14 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
         valueField.setVisible(true);
         booleanField.setVisible(false);
         valueField.addValidator(numericValidator);
+    }
+
+    private void setUpForComboBox(){
+        nameField.setVisible(false);
+        uploadField.setVisible(false);
+        valueField.setVisible(false);
+        booleanField.setVisible(false);
+        repoType.setVisible(true);
+        repoType.setItems(RepositoryType.values());
     }
 }

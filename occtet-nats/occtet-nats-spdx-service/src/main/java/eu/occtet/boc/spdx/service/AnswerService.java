@@ -1,23 +1,20 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
- *
  */
 
 package eu.occtet.boc.spdx.service;
@@ -96,17 +93,18 @@ public class AnswerService {
      * @throws JetStreamApiException
      * @throws IOException
      */
-    public boolean prepareAnswers(List<InventoryItem> inventoryItems, boolean toCopyrightAi, boolean toLicenseMatcher
-            , Set<Long> mainInventoryItemIds) throws JetStreamApiException, IOException {
+    public boolean prepareAnswers(List<InventoryItem> inventoryItems, boolean toCopyrightAi,
+                                  boolean toLicenseMatcher, Set<Long> mainInventoryItemIds
+    ) throws JetStreamApiException, IOException {
             log.debug("prepare answer size {}", inventoryItems.size());
         for (InventoryItem inventoryItem : inventoryItems) {
-            log.debug("SEND inventoryId {}", inventoryItem.getId());
+            log.debug("SEND inventoryId {} inventoryName {}", inventoryItem.getId(), inventoryItem.getInventoryName());
             ScannerSendWorkData sendWorkData = new ScannerSendWorkData(inventoryItem.getId());
             LocalDateTime now = LocalDateTime.now();
             long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
             log.debug("scannerWorkData: {}", sendWorkData.toString());
             if (toCopyrightAi) {
-                WorkTask workTask = new WorkTask("copyrightFilter_task", "send processed inventory item from spdx microservice to copyrightFilter", actualTimestamp, sendWorkData);
+                WorkTask workTask = new WorkTask(UUID.randomUUID().toString(),"copyrightfilter", "send processed inventory item from spdx microservice to copyrightFilter", actualTimestamp, sendWorkData);
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
                 String message = mapper.writeValueAsString(workTask);
@@ -114,7 +112,7 @@ public class AnswerService {
                 natsStreamSenderCopyrightFilter().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
             }
             if (toLicenseMatcher) {
-                WorkTask workTask = new WorkTask("licenseMatcher_task", "send processed inventory item from spdx microservice to licenseMatcher", actualTimestamp, sendWorkData);
+                WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "licensematcher", "send processed inventory item from spdx microservice to licenseMatcher", actualTimestamp, sendWorkData);
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
                 String message = mapper.writeValueAsString(workTask);
@@ -123,25 +121,18 @@ public class AnswerService {
             }
 
             VulnerabilityServiceWorkData vulnerabilityWorkData= new VulnerabilityServiceWorkData(inventoryItem.getSoftwareComponent().getId());
-            WorkTask workTask = new WorkTask("vulnerability_task", "send processed softwareComponent from spdx microservice to vulnerabilityService", actualTimestamp, vulnerabilityWorkData);
+            WorkTask workTask = new WorkTask(UUID.randomUUID().toString(),"vulnerability", "send processed softwareComponent from spdx microservice to vulnerabilityService", actualTimestamp, vulnerabilityWorkData);
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
             String message = mapper.writeValueAsString(workTask);
             log.debug("sending message to vulnerability service: {}", message);
             natsStreamSenderVulnerabilities().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
+            sendToDownload(
+                    inventoryItem.getProject().getId(),
+                    inventoryItem.getId(),
+                    mainInventoryItemIds.contains(inventoryItem.getId())
+            );
 
-            String detailsUrl = inventoryItem.getSoftwareComponent().getDetailsUrl(); // DownloadLocation
-            String version = inventoryItem.getSoftwareComponent().getVersion();
-            if (!version.isEmpty() && !detailsUrl.isEmpty() && !"NOASSERTION".equals(detailsUrl)) {
-                sendToDownload(
-                        detailsUrl,
-                        inventoryItem.getProject().getBasePath(),
-                        version,
-                        inventoryItem.getProject().getId().toString(),
-                        mainInventoryItemIds.contains(inventoryItem.getId()),
-                        inventoryItem.getId().toString()
-                );
-            }
         }
 
         return true;
@@ -149,23 +140,19 @@ public class AnswerService {
 
     /**
      * Send messages to the DownloadService, the service downloads the component at the specified link with the provided version to the base path
-     * @param url url where the component is located
-     * @param location location path where the component will be downloaded into
-     * @param version version of the component to be downloaded
      * @param projectId id of the project where the component belongs to
      * @param isMainPackage weather the component is a main package of the project or not -> important for
      *                      differentiating between them and dependencies
      * @return true if sending was successful otherwise false
      */
-    public boolean sendToDownload(String url, String location, String version, String projectId,
-                                  Boolean isMainPackage, String inventoryItemId){
+    public boolean sendToDownload(Long projectId, Long inventoryItemId, Boolean isMainPackage){
         try {
 
-            DownloadServiceWorkData payload = new DownloadServiceWorkData(url, location, version, projectId,
-                    isMainPackage, inventoryItemId);
+            DownloadServiceWorkData payload = new DownloadServiceWorkData(projectId, inventoryItemId,
+                    isMainPackage);
             LocalDateTime now = LocalDateTime.now();
             long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-            WorkTask workTask = new WorkTask("download_task", "information about a component to be downloaded to a specific location", actualTimestamp, payload);
+            WorkTask workTask = new WorkTask(UUID.randomUUID().toString(),"download-service", "information about a component to be downloaded to a specific location", actualTimestamp, payload);
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
             String message = mapper.writeValueAsString(workTask);

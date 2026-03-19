@@ -20,13 +20,13 @@
 package eu.occtet.bocfrontend.factory;
 
 
-import eu.occtet.bocfrontend.entity.CodeLocation;
 import eu.occtet.bocfrontend.entity.Copyright;
+import eu.occtet.bocfrontend.entity.File;
 import io.jmix.core.DataManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Set;
 
 @Component
 public class CopyrightFactory {
@@ -34,11 +34,11 @@ public class CopyrightFactory {
     @Autowired
     private DataManager dataManager;
 
-    public Copyright create(String copyrightName, List<CodeLocation> codeLocation, boolean isCurated, boolean isGarbage){
+    public Copyright create(String copyrightName, Set<File> files, boolean isCurated, boolean isGarbage){
 
         Copyright copyright = dataManager.create(Copyright.class);
         copyright.setCopyrightText(copyrightName);
-        copyright.setCodeLocations(codeLocation);
+        copyright.setFiles(files);
         copyright.setCurated(isCurated);
         copyright.setGarbage(isGarbage);
 

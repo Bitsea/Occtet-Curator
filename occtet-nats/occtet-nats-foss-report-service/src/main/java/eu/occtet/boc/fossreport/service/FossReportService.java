@@ -1,36 +1,32 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
- *
  */
 
 package eu.occtet.boc.fossreport.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.dao.ImportTaskRepository;
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.fossreport.dao.SoftwareComponentRepository;
 import eu.occtet.boc.model.*;
-import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
+import eu.occtet.boc.service.ProgressReportingService;
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import org.slf4j.Logger;
@@ -46,15 +42,12 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 
 @Service
 @Transactional
-public class FossReportService extends BaseWorkDataProcessor {
+public class FossReportService extends ProgressReportingService {
 
     private static final Logger log = LoggerFactory.getLogger(FossReportService.class);
 
@@ -62,7 +55,7 @@ public class FossReportService extends BaseWorkDataProcessor {
     @Autowired
     private SoftwareComponentService softwareComponentService;
     @Autowired
-    private CodeLocationService codeLocationService;
+    private FileService fileService;
     @Autowired
     private LicenseService licenseService;
     @Autowired
@@ -72,16 +65,12 @@ public class FossReportService extends BaseWorkDataProcessor {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
-    private ImportTaskRepository scannerInitializerRepository;
-    @Autowired
-    private ImportTaskService importTaskService;
-    @Autowired
     private ProjectRepository projectRepository;
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
-
     @Autowired
     private Connection natsConnection;
+
 
     @Value("${nats.send-subject1}")
     private String sendSubject1;
@@ -94,21 +83,21 @@ public class FossReportService extends BaseWorkDataProcessor {
     private static final String CONFIG_KEY_USE_FALSE_COPYRIGHT_FILTER = "UseFalseCopyrightFilter";
 
     @Bean
-    public NatsStreamSender natsStreamSenderLicenseMatcher(){
+    public NatsStreamSender natsStreamSenderLicenseMatcher() {
         return new NatsStreamSender(natsConnection, sendSubject1);
     }
 
     @Bean
-    public NatsStreamSender natsStreamSenderCopyrightFilter(){
+    public NatsStreamSender natsStreamSenderCopyrightFilter() {
         return new NatsStreamSender(natsConnection, sendSubject2);
     }
 
     @Bean
-    public NatsStreamSender natsStreamSenderVulnerabilityService(){
+    public NatsStreamSender natsStreamSenderVulnerabilityService() {
         return new NatsStreamSender(natsConnection, sendSubject3);
     }
 
-    @Override
+
     public boolean process(FossReportServiceWorkData workData) {
         log.debug("FossReportService: creates entities to curate from data {}", workData.toString());
         return generateAndStoreData(workData);
@@ -127,93 +116,91 @@ public class FossReportService extends BaseWorkDataProcessor {
         if (workData == null || workData.getRowData() == null) {
             log.error("No data provided!");
         }
+        notifyProgress(1, "converting data");
         RowDto rowDto;
         InventoryItem inventoryItem;
         try {
             Map<String, Object> rowData = workData.getRowData();
             rowDto = FossReportUtilities.convertMapToRowDto(rowData);
+            if (rowDto == null) {
+                log.error("row data invalid");
+                return false;
+            }
         } catch (Exception e) {
             log.error("Error while processing data: ", e);
             return false;
         }
-        Optional<ImportTask> importTask = scannerInitializerRepository.findById(workData.getScannerInitializerId());
-        Optional<Project> project;
+        notifyProgress(20, "converted data");
+        Project project = projectRepository.findById(workData.getProjectId()).orElseThrow(IllegalArgumentException::new);
 
-        if (importTask.isEmpty() ) {
-            log.error("Scanner not found! (id:{})", workData.getScannerInitializerId() );
-        } else {
-            project = projectRepository.findById(importTask.get().getProject().getId());
-                    //inventoryItemRepository.findById(importTask.get().getInventoryItem().getId());
-            if (project.isEmpty() || rowDto == null) {
-                log.error("Project not found! (id:{}) or row is null: {}", importTask.get().getProject().getId(), rowDto== null );
-            } else {
-                try {
-                    // prepare necessary data
-                    String inventoryName = rowDto.componentNameAndVersion();
-                    log.debug("InventoryName: {}", inventoryName);
-                    String componentVersion = FossReportUtilities.extractVersion(inventoryName);
-                    String componentName = FossReportUtilities.extractVersionOfComponentName(inventoryName, componentVersion);
-                    String cveDictionaryEntry = FossReportUtilities.extractCveDictionaryEntry(rowDto.vulnerabilityList());
-                    String severity = FossReportUtilities.extractSeverity(rowDto.vulnerabilityList());
-                    boolean wasCombined = FossReportUtilities.wasCombined(inventoryName);
-                    boolean isStyleBy = inventoryName.contains("Style");
-                    String url= rowDto.URL();
-                    List<License> licenses = prepareLicenses(wasCombined, isStyleBy, rowDto);
-                    String parentComponentVersion = FossReportUtilities.extractVersion(rowDto.parentNameAndVersion());
-                    String parentComponentName = FossReportUtilities.extractVersionOfComponentName(rowDto.parentNameAndVersion(),
-                            parentComponentVersion);
-                    String parentInventoryName = rowDto.parentNameAndVersion();
-                    int priority = rowDto.priority();
-                    log.debug("parentInventoryName: {}", parentInventoryName);
-                    log.debug("project: {}", project);
+        try {
+            // prepare necessary data
+            String inventoryName = rowDto.componentNameAndVersion();
+            log.debug("InventoryName: {}", inventoryName);
+            String componentVersion = FossReportUtilities.extractVersion(inventoryName);
+            String componentName = FossReportUtilities.extractVersionOfComponentName(inventoryName, componentVersion);
+            String cveDictionaryEntry = FossReportUtilities.extractCveDictionaryEntry(rowDto.vulnerabilityList());
+            String severity = FossReportUtilities.extractSeverity(rowDto.vulnerabilityList());
+            boolean wasCombined = FossReportUtilities.wasCombined(inventoryName);
+            boolean isStyleBy = inventoryName.contains("Style");
+            String url = rowDto.URL();
+            List<License> licenses = prepareLicenses(wasCombined, isStyleBy, rowDto);
+            String parentComponentVersion = FossReportUtilities.extractVersion(rowDto.parentNameAndVersion());
+            String parentComponentName = FossReportUtilities.extractVersionOfComponentName(rowDto.parentNameAndVersion(),
+                    parentComponentVersion);
+            String parentInventoryName = rowDto.parentNameAndVersion();
+            int priority = rowDto.priority();
+            log.debug("parentInventoryName: {}", parentInventoryName);
+            log.debug("project: {}", project);
 
-                    SoftwareComponent softwareComponent = softwareComponentService.getOrCreateSoftwareComponent(
-                            componentName, componentVersion, licenses, url);
+            SoftwareComponent softwareComponent = softwareComponentService.getOrCreateSoftwareComponent(
+                    componentName, componentVersion, licenses, url);
 
-                    // Ensure that the parent inventory has a software Component
-                    SoftwareComponent parentSoftwareComponent =
-                            softwareComponentService.getOrCreateSoftwareComponent(parentComponentName, parentComponentVersion);
+            // Ensure that the parent inventory has a software Component
+            SoftwareComponent parentSoftwareComponent =
+                    softwareComponentService.getOrCreateSoftwareComponent(parentComponentName, parentComponentVersion);
 
-                    InventoryItem parentInventory = inventoryItemService.getOrCreateInventoryItem(parentInventoryName, parentSoftwareComponent, project.get());
+            InventoryItem parentInventory = inventoryItemService.getOrCreateInventoryItem(parentInventoryName, parentSoftwareComponent, project);
 
-                    log.debug("parent inventory : {}", parentInventory.getInventoryName());
+            log.debug("parent inventory : {}", parentInventory.getInventoryName());
 
-                    String basePath = FossReportUtilities.determineBasePath(rowDto.files()).trim();
-                    log.debug("basePath: {}", basePath);
+            String basePath = FossReportUtilities.determineBasePath(rowDto.files()).trim();
+            log.debug("basePath: {}", basePath);
 
-                    List<Copyright> copyrights = new ArrayList<>();
-                    inventoryItem=  inventoryItemService.getOrCreateInventoryItemWithAllAttributes(
-                            project.get(), inventoryName, rowDto.size()==null?0:rowDto.size(),
-                            rowDto.linking(), rowDto.externalNotes(),
-                            parentInventory, softwareComponent, wasCombined, copyrights, priority
-                    );
-                    CodeLocation basePathCodeLocation = codeLocationService.findOrCreateCodeLocationWithInventory(basePath, inventoryItem);
-                    prepareCodeLocations(rowDto, inventoryItem, basePathCodeLocation);
-                    //as we have no specific codeLocation for the copyrights here, we just use the basepath
-                    copyrights = prepareCopyrights(rowDto, basePathCodeLocation);
+            List<Copyright> copyrights = new ArrayList<>();
+            inventoryItem = inventoryItemService.getOrCreateInventoryItemWithAllAttributes(
+                    project, inventoryName, rowDto.size() == null ? 0 : rowDto.size(),
+                    rowDto.linking(), rowDto.externalNotes(),
+                    parentInventory, softwareComponent, copyrights, priority
+            );
+            File basePathFile = fileService.findOrCreateFileWithInventory(basePath, inventoryItem, inventoryItem.getProject());
+            project.addFile(basePathFile);
 
-                    inventoryItem.getSoftwareComponent().setCopyrights(copyrights);
-                    inventoryItemRepository.save(inventoryItem);
-                    softwareComponentRepository.save(inventoryItem.getSoftwareComponent());
+            notifyProgress(30, "preparing files");
 
-                    log.info("Finished generating data.");
+            prepareFiles(rowDto, inventoryItem, basePathFile);
+            //as we have no specific file for the copyrights here, we just use the basepath
+            copyrights = prepareCopyrights(rowDto, basePathFile);
 
-                    importTaskService.updateImportFeedback(importTask.get(),
-                            "Finished processing data and related data for inventory item " + inventoryItem.getInventoryName());
+            inventoryItem.getSoftwareComponent().setCopyrights(copyrights);
+            inventoryItemRepository.save(inventoryItem);
+            softwareComponentRepository.save(inventoryItem.getSoftwareComponent());
 
-                   sendVulnerbilityToStream(inventoryItem);
-                    // send inventory item to next step in workflow
-                    ScannerSendWorkData workDataResponse = new ScannerSendWorkData(inventoryItem.getId());
-                    sendResultToStream(workDataResponse, importTask.get(), !copyrights.isEmpty());
+            log.info("Finished generating data.");
 
-                } catch (Exception e) {
-                    log.error("Exception occurred while processing: {}", e.getMessage(), e);
-                    importTaskService.updateImportFeedback(importTask.get(),
-                            "Error occured while processing data and related data for inventory item " + rowDto.componentNameAndVersion() + ": " + e.getMessage());
-                    return false;
-                }
-            }
+            sendVulnerbilityToStream(inventoryItem);
+            notifyProgress(90, "sending results to next services");
+            // send inventory item to next step in workflow
+            ScannerSendWorkData workDataResponse = new ScannerSendWorkData(inventoryItem.getId());
+            sendResultToStream(workDataResponse, workData, !copyrights.isEmpty());
+
+            projectRepository.save(project);
+
+        } catch (Exception e) {
+            log.error("Exception occurred while processing: {}", e.getMessage(), e);
+            return false;
         }
+
         return true;
     }
 
@@ -223,7 +210,7 @@ public class FossReportService extends BaseWorkDataProcessor {
         VulnerabilityServiceWorkData vulnerabilityServiceWorkData =
                 new VulnerabilityServiceWorkData(inventoryItem.getSoftwareComponent().getId());
         WorkTask workTask = new WorkTask(
-                "vulnerability_task",
+                UUID.randomUUID().toString(), "vulnerability-service",
                 "sending software component to vulnerability microservice",
                 LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().getEpochSecond(),
                 vulnerabilityServiceWorkData);
@@ -237,6 +224,7 @@ public class FossReportService extends BaseWorkDataProcessor {
 
     /**
      * Helper method to extract license information from the given RowDto object.
+     *
      * @return a list of License objects containing extracted license information.
      */
     private List<License> prepareLicenses(boolean wasCombined, Boolean isStyleBy, RowDto rowDto) {
@@ -258,17 +246,18 @@ public class FossReportService extends BaseWorkDataProcessor {
         return licenses;
     }
 
-    private void prepareCodeLocations(RowDto rowDto, InventoryItem inventoryItem, CodeLocation basePathCodeLocation) {
-        log.debug("prepare codeLocations with paths: {}", rowDto.files());
+    private void prepareFiles(RowDto rowDto, InventoryItem inventoryItem, File basePathFile) {
+        log.debug("prepare files with paths: {}", rowDto.files());
 
         if (rowDto.files() != null && !rowDto.files().isEmpty()) {
-            List<String> filePaths= PathUtilities.cleanAndSplits(rowDto.files());
-            codeLocationService.deleteOldCodeLocationsOfInventoryItem(inventoryItem, basePathCodeLocation);
-            codeLocationService.CreateCodeLocationsWithInventory(filePaths, inventoryItem);
+            List<String> filePaths = PathUtilities.cleanAndSplits(rowDto.files());
+            fileService.deleteOldFilesOfInventoryItem(inventoryItem, basePathFile);
+            Set<File> files= fileService.createFilesWithInventory(filePaths, inventoryItem);
+            inventoryItem.getProject().addFiles(files);
         }
     }
 
-    private List<Copyright> prepareCopyrights(RowDto rowDto, CodeLocation basePathCodeLocation) {
+    private List<Copyright> prepareCopyrights(RowDto rowDto, File basePathFile) {
         log.debug("prepare copyrights with text: {}", rowDto.copyright());
         List<Copyright> copyrights = new ArrayList<>();
         List<String> copyrightTexts = FossReportUtilities.getCopyrights(rowDto.copyright());
@@ -276,7 +265,7 @@ public class FossReportService extends BaseWorkDataProcessor {
         if (!copyrightTexts.isEmpty()) {
             copyrightTexts.forEach(copyrightText -> {
                 // For FlexeraReport use the basepath for copyrights, as we dont have a specific path for them.
-                Copyright copyright = copyrightService.findOrCreateCopyright(copyrightText, basePathCodeLocation);
+                Copyright copyright = copyrightService.findOrCreateCopyright(copyrightText, basePathFile);
                 copyrights.add(copyright);
             });
         }
@@ -286,48 +275,41 @@ public class FossReportService extends BaseWorkDataProcessor {
 
     /**
      * Sends the generated InventoryItem to the NATS stream for further processing.
+     *
      * @param sendWorkData
      * @throws JetStreamApiException
      * @throws IOException
      */
-    private void sendResultToStream(ScannerSendWorkData sendWorkData, ImportTask importTask, boolean hasCopyrights){
+    private void sendResultToStream(ScannerSendWorkData sendWorkData, FossReportServiceWorkData workData, boolean hasCopyrights) {
 
 
-        boolean useLicenseMatcher = importTask.getImportConfiguration().stream()
-                .filter(c -> CONFIG_KEY_USE_LICENSE_MATCHER.equals(c.getName()))
-                .map(c -> Boolean.parseBoolean(c.getValue()))
-                .findFirst()
-                .orElse(false);
+        boolean useLicenseMatcher = workData.isUseLicenseMatcher();
 
-        boolean useCopyrightFilter = importTask.getImportConfiguration().stream()
-                .filter(c -> CONFIG_KEY_USE_FALSE_COPYRIGHT_FILTER.equals(c.getName()))
-                .map(c -> Boolean.parseBoolean(c.getValue()))
-                .findFirst()
-                .orElse(false);
+        boolean useCopyrightFilter = workData.isUseCopyrightFilter();
 
-        log.info("Sending work data to stream, license {} copyright{}",useLicenseMatcher, useCopyrightFilter);
+        log.info("Sending work data to stream, license {} copyright{}", useLicenseMatcher, useCopyrightFilter);
         log.debug("SEND inventoryId {}", sendWorkData.getInventoryItemId());
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("process_inventoryItems", "sending inventoryItem to next microservice according to config", actualTimestamp, sendWorkData);
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "foss-next", "sending inventoryItem to next microservice according to config", actualTimestamp, sendWorkData);
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String message = objectMapper.writeValueAsString(workTask);
 
-        // Get the current date and time
-        if (useLicenseMatcher) {
-            log.debug("sending message to licenseMatcher service: {}", message);
-            natsStreamSenderLicenseMatcher().sendWorkMessageToStream( message.getBytes(Charset.defaultCharset()));
-        }
-        if (useCopyrightFilter && hasCopyrights) {
-            log.info("Sending copyright filtering work data to ai service");
-            natsStreamSenderCopyrightFilter().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
-        } else {
-            log.info("No more work to do");
-        }
+            // Get the current date and time
+            if (useLicenseMatcher) {
+                log.debug("sending message to licenseMatcher service: {}", message);
+                natsStreamSenderLicenseMatcher().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
+            }
+            if (useCopyrightFilter && hasCopyrights) {
+                log.info("Sending copyright filtering work data to ai service");
+                natsStreamSenderCopyrightFilter().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
+            } else {
+                log.info("No more work to do");
+            }
         } catch (Exception e) {
-        log.debug("Error with foss service connection: " + e.getMessage());
-    }
+            log.debug("Error with foss service connection: " + e.getMessage());
+        }
     }
 
 }

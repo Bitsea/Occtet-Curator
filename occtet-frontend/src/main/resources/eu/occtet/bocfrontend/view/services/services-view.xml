@@ -30,7 +30,7 @@
                 <button id="detectServices" text="Fetch Services Details" icon="REFRESH" />
                 <button id="stopServices" text="Stop Services..." icon="STOP" />
             </hbox>
-
+            <span id="applicationVersion" text="..."/>
         </vbox>
     </layout>
 </view>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~  Copyright (C) 2025 Bitsea GmbH
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      https:www.apache.orglicensesLICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  ~  SPDX-License-Identifier: Apache-2.0
+  ~  License-Filename: LICENSE
+  ~
+  ~
+  -->
+
+<view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:c="http://jmix.io/schema/flowui/jpql-condition"
+      title="msg://fileListView.title"
+      focusComponent="filesDataGrid">
+    <data>
+        <collection id="filesDc"
+                    class="eu.occtet.bocfrontend.entity.File">
+            <fetchPlan>
+                <property name="projectPath"/>
+                <property name="isDirectory"/>
+            </fetchPlan>
+            <loader id="filesDl">
+                <query>
+                    <![CDATA[
+                        select e from File e
+                        where e.project = :project
+                        and e.isDirectory = false
+                        order by e.projectPath asc
+                    ]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <actions>
+        <action id="selectAction" type="lookup_select"/>
+        <action id="discardAction" type="lookup_discard"/>
+    </actions>
+    <layout>
+        <vbox id="rootLayout" height="100%" spacing="true" expand="filesDataGrid">
+            <dataGrid id="filesDataGrid"
+                      width="100%"
+                      minHeight="20em"
+                      dataContainer="filesDc"
+                      selectionMode="MULTI">
+                <actions>
+                </actions>
+                <columns resizable="true">
+                    <column property="projectPath" header="msg://eu.occtet.bocfrontend.view.audit/context.projectPath" filterable="true"/>
+                </columns>
+                <simplePagination/>
+            </dataGrid>
+
+            <hbox id="lookupActions" spacing="true" visible="false">
+                <button id="selectButton" action="selectAction" text="msg://eu.occtet.bocfrontend.view.file/fileListView.confirmAndSave.button"/>
+                <button id="discardButton" action="discardAction" test="msg://eu.occtet.bocfrontend.view.file/fileListView.discard.button"/>
+            </hbox>
+        </vbox>
+    </layout>
+</view>

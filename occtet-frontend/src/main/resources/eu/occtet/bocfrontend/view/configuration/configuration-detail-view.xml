@@ -37,10 +37,11 @@
     </actions>
     <layout>
         <formLayout id="form" dataContainer="configurationDc">
-            <textField id="nameField" property="name" required="true"/>
-            <textField id="valueField" property="value" visible="false"/>
+            <textField id="nameField" property="name" label="msg://fileName"/>
+            <textField id="valueField" property="value" visible="false" label="msg://eu.occtet.bocfrontend.entity/Configuration.value"/>
             <fileUploadField id="uploadField" fileNameVisible="true" maxFileSize="921600" visible="true"/>
-            <checkbox id="booleanField" label="boolean value" visible="false"/>
+            <checkbox id="booleanField" label="msg://Check" visible="false"/>
+            <comboBox id="repoType" visible="false" label="msg://repoType"/>
         </formLayout>
         <hbox id="detailActions">
             <button id="saveAndCloseBtn" text="Edit" />

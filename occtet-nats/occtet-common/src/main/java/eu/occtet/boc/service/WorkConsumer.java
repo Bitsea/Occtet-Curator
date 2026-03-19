@@ -1,27 +1,29 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
- *
  */
 
 package eu.occtet.boc.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.occtet.boc.model.ProgressSystemMessage;
+import eu.occtet.boc.model.WorkTaskProgress;
+import eu.occtet.boc.model.WorkTaskStatus;
 import eu.occtet.boc.model.WorkerStatus;
 import io.nats.client.*;
 import io.nats.client.api.AckPolicy;
@@ -30,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 
 public abstract class WorkConsumer implements InformativeService {
@@ -59,15 +62,16 @@ public abstract class WorkConsumer implements InformativeService {
 
         log.debug("startHandlingMessages called, listening on stream {} for subject {}", streamName, workSubject);
 
-        while(true) {
+        while(natsConnection.getStatus() != Connection.Status.CLOSED) {
             try (FetchConsumer fetchConsumer = consumerContext.fetchMessages(1)) {
                 Message msg= fetchConsumer.nextMessage();
                 if (msg != null) {
                     log.debug("received message on subject... {}", msg.getSubject());
-                    msg.ack();
 
                     workerStatus=WorkerStatus.WORKING;
                     handleMessage(msg);
+
+                    msg.ack();
                 }
             } catch (Exception e) {
                 log.warn("error handling message: {}", e.getMessage());
@@ -96,9 +100,29 @@ public abstract class WorkConsumer implements InformativeService {
         return progressPercent;
     }
 
-    public void setProgressPercent(int progressPercent) {
-        this.progressPercent = progressPercent;
+    protected void notifyCompleted(String taskId, String taskName) {
+        notifyProgress(taskId, taskName, WorkTaskStatus.COMPLETED, 100, "completed");
     }
+
+    protected void notifyError(String taskId, String taskName, String details) {
+        notifyProgress(taskId, taskName, WorkTaskStatus.ERROR, progressPercent, details);
+    }
+
+    protected void notifyProgress(String taskId, String taskName, WorkTaskStatus status, int progressPercent, String details) {
+        this.progressPercent = progressPercent;
+        ProgressSystemMessage progressSystemMessage = new ProgressSystemMessage(taskId, taskName, status, progressPercent, details);
+        String message = null;
+        try {
+            message = (new ObjectMapper()).writerFor(ProgressSystemMessage.class)
+                    .writeValueAsString(progressSystemMessage);
+        } catch (JsonProcessingException e) {
+            log.warn("error creating progress message: {}", e.getMessage());
+        }
+        log.debug("notifying progress: taskId {} has now progress {}", taskId, progressPercent);
+        natsConnection.publish("system", message.getBytes(StandardCharsets.UTF_8));
+    }
+
+
 
     @Override
     public WorkerStatus getWorkerStatus() {

@@ -27,8 +27,9 @@ import io.jmix.core.metamodel.annotation.InstanceName;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
+import java.util.HashSet;
 import java.util.List;
-
+import java.util.Set;
 
 
 @JmixEntity
@@ -42,7 +43,7 @@ public class Copyright {
     private Long id;
 
     @InstanceName
-    @Column(name = "COPYRIGHT_TEXT")
+    @Column(name = "COPYRIGHT_TEXT", columnDefinition = "TEXT")
     private String copyrightText;
 
     @Column(name= "CURATED")
@@ -56,11 +57,11 @@ public class Copyright {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "COPYRIGHT_CODE_LOCATION_LINK",
+            name = "COPYRIGHT_FILE_LINK",
             joinColumns = @JoinColumn(name = "COPYRIGHT_ID", referencedColumnName = "ID"),
-            inverseJoinColumns = @JoinColumn(name = "CODE_LOCATION_ID", referencedColumnName = "ID"))
-    @OnDelete(DeletePolicy.CASCADE)
-    private List<CodeLocation> codeLocations;
+            inverseJoinColumns = @JoinColumn(name = "FILE_ID", referencedColumnName = "ID"))
+    @OnDelete(DeletePolicy.UNLINK)
+    private Set<File> files = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name= "COPYRIGHT_ID")
@@ -86,9 +87,9 @@ public class Copyright {
 
     public void setGarbage(Boolean garbage) {this.garbage = garbage;}
 
-    public List<CodeLocation> getCodeLocations(){return this.codeLocations;}
+    public Set<File> getFiles(){return this.files;}
 
-    public void setCodeLocations(List<CodeLocation> codeLocations) {this.codeLocations = codeLocations;}
+    public void setFiles(Set<File> files) {this.files = files;}
 
     public Boolean getCurated() {
         return curated;

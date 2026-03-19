@@ -24,6 +24,7 @@ package eu.occtet.bocfrontend.entity;
 import io.jmix.core.DeletePolicy;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.entity.annotation.OnDelete;
+import io.jmix.core.entity.annotation.SystemLevel;
 import io.jmix.core.metamodel.annotation.InstanceName;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
@@ -33,8 +34,9 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
-
+import java.util.Set;
 
 
 @JmixEntity
@@ -52,44 +54,50 @@ public class File {
     private Long id;
 
     @InstanceName
-    @Column(name = "FILENAME", nullable = false)
+    @Column(name = "FILENAME")
     private String fileName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PROJECT_ID", nullable = false)
-    @OnDelete(DeletePolicy.CASCADE)
-    private Project project;
+    // The id used in the imported document, important for the export
+    @Column(name = "DOCUMENT_ID", columnDefinition = "TEXT")
+    private String documentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PARENT_ID")
     @OnDelete(DeletePolicy.CASCADE)
     private File parent;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "CODE_LOCATION_ID", nullable = true)
-    @OnDelete(DeletePolicy.UNLINK)
-    private CodeLocation codeLocation;
+    @JoinTable(name = "FILE_INVENTORY_ITEM_LINK",
+            joinColumns = @JoinColumn(name = "FILE_ID"),
+            inverseJoinColumns = @JoinColumn(name = "INVENTORY_ITEM_ID"))
+    @ManyToMany(fetch = FetchType.LAZY)
+    private Set<InventoryItem> inventoryItems = new HashSet<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "INVENTORY_ITEM_ID")
-    @OnDelete(DeletePolicy.UNLINK)
-    private InventoryItem inventoryItem;
+    // Example: C:\Users\Temp\scan\project\dep\lib\com\acme\Util.java
+    @SystemLevel
+    @Column(name = "PHYSICAL_PATH", columnDefinition = "TEXT")
+    private String physicalPath;
 
-    @Column(name = "ABSOLUTE_PATH", nullable = false, columnDefinition = "TEXT")
-    private String absolutePath;
+    // Example: dependencies/lib-v1/com/acme/Util.java
+    @Column(name = "PROJECT_PATH", columnDefinition = "TEXT")
+    private String projectPath;
 
-    @Column(name = "RELATIVE_PATH", nullable = false, columnDefinition = "TEXT")
-    private String relativePath;
+    // Example: com/acme/Util.java
+    @Column(name = "ARTIFACT_PATH", columnDefinition = "TEXT")
+    private String artifactPath;
 
-    @Column(name = "IS_DIRECTORY", nullable = false)
+    @Column(name = "IS_DIRECTORY")
     private Boolean isDirectory = false;
 
-    @Column(name = "REVIEWED", nullable = false)
+    @Column(name = "REVIEWED")
     private Boolean reviewed = false;
 
     @CreatedDate
     @Column(name = "CREATED_DATE")
     private LocalDateTime createdDate;
+
+    @ManyToMany(mappedBy = "files")
+    @OnDelete(DeletePolicy.UNLINK)
+    private Set<Copyright> copyrights = new HashSet<>();
 
     @LastModifiedDate
     @Column(name = "LAST_MODIFIED_DATE")
@@ -103,7 +111,18 @@ public class File {
     @Column(name = "LAST_MODIFIED_BY")
     private String lastModifiedBy;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PROJECT_ID")
+    private Project project;
+
     public File() {
+    }
+
+    public File(InventoryItem inventoryItem, String filePath) {
+        this.projectPath = filePath;
+        if (inventoryItem != null) {
+            this.inventoryItems.add(inventoryItem);
+        }
     }
 
     public Long getId() {
@@ -122,44 +141,12 @@ public class File {
         this.fileName = fileName;
     }
 
-    public Project getProject() {
-        return project;
-    }
-
-    public void setProject(Project project) {
-        this.project = project;
-    }
-
     public File getParent() {
         return parent;
     }
 
     public void setParent(File parent) {
         this.parent = parent;
-    }
-
-    public CodeLocation getCodeLocation() {
-        return codeLocation;
-    }
-
-    public void setCodeLocation(CodeLocation codeLocation) {
-        this.codeLocation = codeLocation;
-    }
-
-    public String getAbsolutePath() {
-        return absolutePath;
-    }
-
-    public void setAbsolutePath(String absolutePath) {
-        this.absolutePath = absolutePath;
-    }
-
-    public String getRelativePath() {
-        return relativePath;
-    }
-
-    public void setRelativePath(String relativePath) {
-        this.relativePath = relativePath;
     }
 
     public Boolean getIsDirectory() {
@@ -210,12 +197,12 @@ public class File {
         this.lastModifiedBy = lastModifiedBy;
     }
 
-    public InventoryItem getInventoryItem() {
-        return inventoryItem;
+    public Set<InventoryItem> getInventoryItems() {
+        return inventoryItems;
     }
 
-    public void setInventoryItem(InventoryItem inventoryItem) {
-        this.inventoryItem = inventoryItem;
+    public void setInventoryItems(Set<InventoryItem> inventoryItems) {
+        this.inventoryItems = inventoryItems;
     }
 
     public Boolean getDirectory() {
@@ -224,6 +211,54 @@ public class File {
 
     public void setDirectory(Boolean directory) {
         isDirectory = directory;
+    }
+
+    public String getPhysicalPath() {
+        return physicalPath;
+    }
+
+    public void setPhysicalPath(String physicalPath) {
+        this.physicalPath = physicalPath;
+    }
+
+    public String getProjectPath() {
+        return projectPath;
+    }
+
+    public void setProjectPath(String projectPath) {
+        this.projectPath = projectPath;
+    }
+
+    public String getArtifactPath() {
+        return artifactPath;
+    }
+
+    public void setArtifactPath(String artifactPath) {
+        this.artifactPath = artifactPath;
+    }
+
+    public Set<Copyright> getCopyrights() {
+        return copyrights;
+    }
+
+    public void setCopyrights(Set<Copyright> copyrights) {
+        this.copyrights = copyrights;
+    }
+
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     @Override
@@ -246,4 +281,12 @@ public class File {
                 ", fileName='" + fileName + '\'' +
                 '}';
     }
+
+    public void addInventoryItem(InventoryItem item) {
+        if (this.inventoryItems == null) {
+            this.inventoryItems = new HashSet<>();
+        }
+        this.inventoryItems.add(item);
+    }
+
 }

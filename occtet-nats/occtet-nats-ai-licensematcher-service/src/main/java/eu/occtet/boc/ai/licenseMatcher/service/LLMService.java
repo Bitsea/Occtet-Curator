@@ -1,28 +1,25 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
- *
  */
 
 package eu.occtet.boc.ai.licenseMatcher.service;
 
-
+import eu.occtet.boc.dao.InventoryItemRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.ai.licenseMatcher.factory.PromptFactory;
 import eu.occtet.boc.ai.licenseMatcher.postprocessing.PostProcessor;
@@ -35,6 +32,7 @@ import eu.occtet.boc.model.AIStatusQueryWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
+import eu.occtet.boc.util.ExternalNotesConstants;
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import org.slf4j.Logger;
@@ -52,6 +50,7 @@ import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class LLMService extends BaseWorkDataProcessor {
@@ -64,7 +63,7 @@ public class LLMService extends BaseWorkDataProcessor {
     private PostProcessor postProcessor;
 
     @Autowired
-    private eu.occtet.boc.dao.InventoryItemRepository inventoryItemRepository;
+    private InventoryItemRepository inventoryItemRepository;
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
 
@@ -128,7 +127,7 @@ public class LLMService extends BaseWorkDataProcessor {
             return false;
         }
         String response = "";
-        Prompt question = promptFactory.createLicenseMatcherPrompt(aiWorkData.getUserMessage(), aiWorkData.getUrl());
+        Prompt question = promptFactory.createLicenseMatcherPrompt( aiWorkData.getUrl(), aiWorkData.getLicenseText(), aiWorkData.getLicenseMatcherResult(), aiWorkData.getDifferenceLines());
         try {
             response = chatClient.prompt(question)
                     .tools(licenseTool)
@@ -144,9 +143,10 @@ public class LLMService extends BaseWorkDataProcessor {
                 sendAnswerToStream(result);
             } catch (Exception e) {
                 log.error("Error when sending message to stream: {}", e.getMessage());
+                return false;
             }
         }
-        return true; // FIXME return false on error
+        return true;
     }
 
     public InventoryItem getInventoryItem(Long inventoryItemId) {
@@ -160,12 +160,18 @@ public class LLMService extends BaseWorkDataProcessor {
      * @param response
      */
     public void handleAIResult(InventoryItem item, String response){
-
-        if(item.getExternalNotes()== null &&  !response.isEmpty()){
-            item.setExternalNotes(response);
-        }else{
-            item.setExternalNotes(item.getExternalNotes()+"\n"+response);
+        String oldExternalNotes = item.getExternalNotes();
+        if(oldExternalNotes == null &&  !response.isEmpty()){
+            item.setExternalNotes(ExternalNotesConstants.SECTION_SEPARATOR +
+                    ExternalNotesConstants.LICENSE_MATCHER_INFO_AI_RESPONSE_MESSAGE +
+                    response + ExternalNotesConstants.SECTION_SEPARATOR);
+        }else {
+            item.setExternalNotes(oldExternalNotes +
+                    ExternalNotesConstants.SECTION_SEPARATOR +
+                    ExternalNotesConstants.LICENSE_MATCHER_INFO_AI_RESPONSE_MESSAGE +
+                    response + ExternalNotesConstants.SECTION_SEPARATOR);
         }
+
         item.getSoftwareComponent().setLicenseAiControlled(true);
         softwareComponentRepository.save(item.getSoftwareComponent());
         inventoryItemRepository.save(item);
@@ -182,7 +188,7 @@ public class LLMService extends BaseWorkDataProcessor {
         // Get the current date and time
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("status_request", "question", actualTimestamp, new AIAnswerWorkData(answer));
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "ai-answer", "question", actualTimestamp, new AIAnswerWorkData(answer));
         ObjectMapper objectMapper = new ObjectMapper();
         String message = objectMapper.writeValueAsString(workTask);
 

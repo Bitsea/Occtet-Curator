@@ -33,15 +33,17 @@
         </instance>
         <instance id="softwareComponentDc" class="eu.occtet.bocfrontend.entity.SoftwareComponent">
             <fetchPlan extends="_base">
-                <property name="vulnerabilities" fetchPlan="_base"/>
+                <property name="vulnerabilityLinks" fetchPlan="_base">
+                    <property name="vulnerability" fetchPlan="_base"/>
+                </property>
             </fetchPlan>
         </instance>
-        <collection id="codeLocationDc" class="eu.occtet.bocfrontend.entity.CodeLocation">
+        <collection id="fileDc" class="eu.occtet.bocfrontend.entity.File">
             <fetchPlan extends="_base"/>
-            <loader id="codeLocationDl">
+            <loader id="fileDl">
                 <query>
                 <![CDATA[
-                    select c from CodeLocation c where c.inventoryItem=:inventoryItem
+                    SELECT f FROM File f WHERE :inventoryItem MEMBER OF f.inventoryItems
                 ]]>
                 </query>
             </loader>
@@ -49,217 +51,237 @@
         <collection id="licenseDc"
                     class="eu.occtet.bocfrontend.entity.License">
             <fetchPlan extends="_base"/>
+            <loader id="licensesDl">
+                <query>
+                    <![CDATA[select e from License e where e in :licensesList]]>
+                </query>
+            </loader>
         </collection>
         <collection id="copyrightDc"
                     class="eu.occtet.bocfrontend.entity.Copyright">
             <fetchPlan extends="_base"/>
             <loader id="copyrightDl">
                 <query>
-                    <![CDATA[select e from Copyright e]]>
+                    <![CDATA[select e from Copyright e where e in :copyrightsList]]>
                 </query>
             </loader>
         </collection>
-        <collection id="inventoryItemDcReuse"
-                    class="eu.occtet.bocfrontend.entity.InventoryItem">
-            <fetchPlan extends="_local">
-                <property name="parent" fetchPlan="_base"/>
-            </fetchPlan>
-            <loader id="inventoryItemDlReuse" readOnly="true">
-                <query>
-                    <![CDATA[select i from InventoryItem i]]>
-                </query>
-            </loader>
-        </collection>
+        <instance id="inventoryItemDcReuse"
+                  class="eu.occtet.bocfrontend.entity.InventoryItem">
+            <fetchPlan extends="_base"/>
+            <loader id="inventoryItemDlReuse"/>
+        </instance>
     </data>
     <actions>
         <action id="saveAction"/>
     </actions>
     <content>
         <tabSheet id="mainTabSheet" width="100%" height="100%">
-            <tab id="inventoriesTab" label="Inventory item" >
+            <tab id="inventoriesTab" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.inventory.header" >
                 <vbox id="form"  height="100%">
-                    <vbox id="inventoryNameField" margin="false" padding="false"/>
+                    <vbox id="inventoryNameField" width="100%" padding="false"/>
                     <hbox spacing="true" width="100%" alignItems="BASELINE">
                         <comboBox id="parentField" property="parent"
                                   label="msg://eu.occtet.bocfrontend.entity/InventoryItem.parent" width="50%" dataContainer="inventoryItemDc"/>
                         <button id="parentButton" icon="INFO_CIRCLE_O" title="Show parent details"/>
-                    </hbox>
-                    <hbox spacing="true" width="100%" alignItems="BASELINE">
-                        <textField id="softwareComponentField" label="Software component"
+                        <textField id="softwareComponentField" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.header"
                                    property="softwareComponent" dataContainer="inventoryItemDc" width="50%"/>
-                        <button id="softwareComponentButton" title="Show component details" icon="INFO_CIRCLE_O"/>
+                        <button id="softwareComponentButton" title="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.button" icon="INFO_CIRCLE_O"/>
                     </hbox>
-                    <textField id="detailsUrlTextField" property="detailsUrl" label="url"
-                               dataContainer="softwareComponentDc" width="100%"/>
                     <hbox spacing="true" width="100%" alignItems="BASELINE">
-                        <textField id="priorityField" label="Priority" property="priority" dataContainer="inventoryItemDc"
-                                   width="100px"/>
+                        <textField id="downloadUrlTextField" property="detailsUrl"
+                                   label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.url"
+                                   dataContainer="softwareComponentDc" width="100%"/>
+                        <button id="downloadBtn" icon="DOWNLOAD_ALT"
+                                title="msg://download.button.tooltip"/>
                     </hbox>
-                    <hbox spacing="true">
+                    <hbox spacing="true" width="100%" alignItems="BASELINE">
+                        <comboBox id="linkingComboBox" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.linking" itemsEnum="eu.occtet.bocfrontend.entity.Linking"/>
+                        <textField id="priorityField" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.priority" property="priority" dataContainer="inventoryItemDc"
+                                   width="100px"/>
+                        <textField id="numberOfFilesField" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.size" property="size" dataContainer="inventoryItemDc"
+                                   width="10%"/>
                         <checkbox id="curatedID" property="curated"  dataContainer="inventoryItemDc" label="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
-                        <checkbox id="combinedID" property="wasCombined" dataContainer="inventoryItemDc" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.wasCombined"/>
-                        <checkbox id="licenseAIControlled" property="softwareComponent.licenseAiControlled" dataContainer="inventoryItemDc" label="msg://eu.occtet.bocfrontend.view.softwareComponent/licenseAiControlled"/>
                     </hbox>
                     <htmlObject colspan="2">
                         <hr></hr>
                     </htmlObject>
-                    <hbox spacing="true" width="100%" colspan="2">
-                        <vbox spacing="true" alignItems="CENTER" width="50%">
-                            <dataGrid id="licensesDataGrid"
-                                      width="100%"
-                                      height="20em"
-                                      dataContainer="licenseDc">
-                                <columns>
-                                    <column property="licenseType" header="License"/>
-                                </columns>
-                            </dataGrid>
-                            <hbox>
-                                <dropdownButton id="editLicense" text="edit" icon="lumo:edit"
-                                                dropdownIndicatorVisible="false" themeNames="small">
-                                    <items>
-                                        <componentItem id="createLicense">
-                                            <hbox padding="false">
-                                                <span text="create new"/>
-                                            </hbox>
-                                        </componentItem>
-                                        <componentItem id="addLicense">
-                                            <hbox padding="false">
-                                                <span text="add"/>
-                                            </hbox>
-                                        </componentItem>
-                                        <componentItem id="removeLicense">
-                                            <hbox padding="false">
-                                                <span text="remove"/>
-                                            </hbox>
-                                        </componentItem>
-                                    </items>
-                                </dropdownButton>
-                                <button id="removeLicenseButton" icon="TRASH" visible="false" themeNames="error small"/>
-                            </hbox>
-                        </vbox>
-                        <vbox spacing="true" alignItems="CENTER" width="50%">
-                            <dataGrid id="copyrightsDataGrid"
-                                      width="100%"
-                                      height="20em"
-                                      dataContainer="copyrightDc">
-                                <columns>
-                                    <column property="copyrightText" header="Copyright"/>
-                                </columns>
-                            </dataGrid>
-                            <hbox>
-                                <dropdownButton id="editCopyright" text="edit" icon="lumo:edit"
-                                                dropdownIndicatorVisible="false" themeNames="small">
-                                    <items>
-                                        <componentItem id="createCopyright">
-                                            <hbox padding="false">
-                                                <span text="create new"/>
-                                            </hbox>
-                                        </componentItem>
-                                        <componentItem id="addCopyright">
-                                            <hbox padding="false">
-                                                <span text="add"/>
-                                            </hbox>
-                                        </componentItem>
-                                        <componentItem id="removeCopyright">
-                                            <hbox padding="false">
-                                                <span text="remove"/>
-                                            </hbox>
-                                        </componentItem>
-                                    </items>
-                                </dropdownButton>
-                                <button id="removeCopyrightButton" icon="TRASH" visible="false"
-                                        themeNames="error small"/>
-                            </hbox>
-                        </vbox>
-                    </hbox>
-                    <hbox>
+                    <hbox height="100%" alignItems="END">
                         <nativeLabel text="Created at: "/>
                         <nativeLabel id="createdField" property="createdAt" dataContainer="inventoryItemDc" colspan="2"/>
                     </hbox>
                 </vbox>
             </tab>
-            <tab id="vulnerabilitiesTab" label="Vulnerabilities">
+            <tab id="vulnerabilitiesTab" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.vulnerability.label">
                 <vbox height="100%">
                     <fragment class="eu.occtet.bocfrontend.view.audit.fragment.Vulnerabilitytabfragment" id="vulnerabilitytabfragment"/>
                 </vbox>
             </tab>
-            <tab id="filesTab" label="Files">
+            <tab id="filesTab" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.files">
                 <fragment class="eu.occtet.bocfrontend.view.audit.fragment.FilesTabFragment"
                           id="filesTabFragment"/>
             </tab>
-            <tab id="auditNotesTab" label="Audit notes">
-                    <vbox id="auditNotesText" width="100%" height="100%"/>
-
-            </tab>
-            <tab id="reuseTab" label="msg://eu.occtet.bocfrontend.view.audit/auditView.reuse">
-                <vbox width="100%" height="100%">
-                    <split width="100%" height="100%" themeNames="small" orientation="VERTICAL">
-                        <hbox width="100%" height="70%" classNames="border rounded-m border-contrast-20">
-                            <tabSheet id="ReuseTabSheet" width="100%" height="100%" >
-                                <tab id="generalInformationReuse" label="General information">
-                                    <vbox>
-                                            <vbox>
-                                                <hbox>
-                                                    <textField id="inventoryNameReuseField" property="inventoryName" dataContainer="inventoryItemDcReuse"
-                                                               label="Inventory Name" width="25em"/>
-                                                    <textField id="softwareComponentReuseField" label="Software component"
-                                                               width="25em"/>
-                                                    <textField id="priorityReuseField" label="priority" property="priority" dataContainer="inventoryItemDcReuse" maxWidth="10em"/>
-                                                    <textField id="createdAtIDReuse" property="createdAt" dataContainer="inventoryItemDcReuse" label="Created"/>
-                                                </hbox>
-                                                <hbox>
-                                                    <textField id="linkingIDReuse" property="linking" dataContainer="inventoryItemDcReuse" label="Linking"/>
-                                                    <textField id="sizeIDReuse" property="size" dataContainer="inventoryItemDcReuse" label="Size" maxWidth="5em"/>
-                                                </hbox>
-                                                <hbox>
-                                                    <textField id="parentReuseID" property="parent.inventoryName" dataContainer="inventoryItemDcReuse"
-                                                               label="Parent-Inventory item" width="25em"/>
-                                                    <button id="parentReuseButton" title="Show parent details"
-                                                            width="5em" alignSelf="END" icon="INFO_CIRCLE_O"/>
-                                                </hbox>
-                                                <hbox>
-                                                    <checkbox id="curatedIDReuse" property="curated" dataContainer="inventoryItemDcReuse" label="Curated"/>
-                                                    <checkbox id="combinedIDReuse" property="wasCombined" dataContainer="inventoryItemDcReuse" label="Combined"/>
-                                                </hbox>
-                                            </vbox>
-                                    </vbox>
-                                </tab>
-                                <tab id="ReuseFilesTab" label="Files">
-                                    <fragment class="eu.occtet.bocfrontend.view.audit.fragment.FilesTabFragment"
-                                              id="filesReuseTabFragment"/>
-                                </tab>
-                                <tab id="ReuseAuditNotes" label="Audit notes">
-                                        <vbox width="100%" height="100%" alignItems="CENTER" alignSelf="CENTER">
-                                            <textArea id="auditNotesTextReuse" label="Audit notes"
-                                                      property="externalNotes" dataContainer="inventoryItemDcReuse" width="100%" height="100%"
-                                                      alignSelf="CENTER" />
-                                            <button id="auditReuseButton" text="Add notes to latest inventory"
-                                                    alignSelf="CENTER" themeNames="small"/>
-                                        </vbox>
-                                </tab>
-                            </tabSheet>
-                        </hbox>
-                        <hbox width="100%" height="30%" alignItems="CENTER" classNames="border rounded-m border-contrast-20" >
-                           <vbox width="100%" height="100%" >
-                               <nativeLabel text="msg://eu.occtet.bocfrontend.view.audit.fragment.InventoryItemTabFragment/reuseItems"/>
-                            <dataGrid classNames="occtet-grid" id="inventoryDataGridReuse"
-                                      width="100%"
-                                      height="100%"
-                                      dataContainer="inventoryItemDcReuse"
-                                      columnReorderingAllowed="true"  >
-                                <columns resizable="true">
-                                    <column property="inventoryName" header="Reuse-items"/>
-                                    <column property="createdAt" header="Date"/>
-                                </columns>
-                            </dataGrid>
-                           </vbox>
-                        </hbox>
-                    </split>
+            <tab id="auditNotesTab" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.auditNotes">
+                <vbox width="100%" height="100%" padding="false" margin="false" spacing="false">
+                    <checkbox id="todoCheckbox" dataContainer="inventoryItemDc" property="hasTodos"
+                              label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.auditNotes.checkbox.todos"/>
+                    <vbox id="auditNotesText" width="100%" height="95%" margin="false"
+                          padding="false"/>
                 </vbox>
+            </tab>
+            <tab id="licenseTab" label="msg://eu.occtet.bocfrontend.view.audit/auditView.licenses">
+                <vbox width="100%" height="100%" alignItems="CENTER">
+                    <hbox width="100%">
+                        <genericFilter id="genericFilterLicense" dataLoader="licensesDl" themeNames="small"
+                                       alignSelf="START" opened="false">
+                            <properties include=".*"/>
+                            <conditions> </conditions>
+                        </genericFilter>
+                        <simplePagination id="paginationLicense" dataLoader="licensesDl" alignSelf="END"/>
+                    </hbox>
+                    <dataGrid id="licensesDataGrid"
+                              width="100%"
+                              height="20em"
+                              dataContainer="licenseDc"
+                              classNames="occtet-grid">
+                        <columns>
+                            <column property="licenseType" header="msg://eu.occtet.bocfrontend.entity/License"/>
+                            <column property="priority" header="msg://eu.occtet.bocfrontend.entity/LicenseType.priority"/>
+                            <column property="licenseText" header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseText"/>
+                            <column property="licenseName" header="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
+                            <column property="detailsUrl" header="msg://eu.occtet.bocfrontend.entity/License.detailsUrl"/>
+                            <column property="isModified" header="msg://eu.occtet.bocfrontend.entity/License.isModified"/>
+                            <column property="curated" header="msg://eu.occtet.bocfrontend.entity/License.curated"/>
+                            <column property="isSpdx" header="msg://eu.occtet.bocfrontend.entity/License.isSpdx"/>
+                        </columns>
+                    </dataGrid>
+                    <hbox>
+                        <dropdownButton id="editLicense" text="msg://editLicenseText" icon="lumo:edit"
+                                        dropdownIndicatorVisible="false" >
+                            <items>
+                                <componentItem id="createLicense">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.create"/>
+                                    </hbox>
+                                </componentItem>
+                                <componentItem id="addLicense">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.add"/>
+                                    </hbox>
+                                </componentItem>
+                                <componentItem id="removeLicense">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.remove"/>
+                                    </hbox>
+                                </componentItem>
+                            </items>
+                        </dropdownButton>
+                        <button id="removeLicenseButton" icon="TRASH" visible="false" themeNames="error small"/>
+                    </hbox>
+                </vbox>
+            </tab>
+            <tab id="copyrightTab" label="msg://eu.occtet.bocfrontend.view.audit/auditView.copyrights">
+                <vbox width="100%" height="100%" alignItems="CENTER">
+                    <hbox width="100%">
+                        <genericFilter id="genericFilterCopyright" dataLoader="copyrightDl" themeNames="small"
+                                       alignSelf="START" opened="false">
+                            <properties include=".*"/>
+                            <conditions> </conditions>
+                        </genericFilter>
+                        <simplePagination id="paginationCopyright" dataLoader="copyrightDl" alignSelf="END"/>
+                    </hbox>
+                    <dataGrid id="copyrightsDataGrid"
+                              width="100%"
+                              height="20em"
+                              dataContainer="copyrightDc"
+                              classNames="occtet-grid">
+                        <columns>
+                            <column property="copyrightText" header="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.copyright.heaer"/>
+                            <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
+                            <column property="garbage" header="msg://eu.occtet.bocfrontend.entity/Copyright.garbage"/>
+                            <column property="aiControlled" header="msg://eu.occtet.bocfrontend.entity/Copyright.aiControlled"/>
+                        </columns>
+                    </dataGrid>
+                    <hbox>
+                        <dropdownButton id="editCopyright" text="msg://editCopyright" icon="lumo:edit"
+                                        dropdownIndicatorVisible="false">
+                            <items>
+                                <componentItem id="createCopyright">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.create"/>
+                                    </hbox>
+                                </componentItem>
+                                <componentItem id="addCopyright">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.add"/>
+                                    </hbox>
+                                </componentItem>
+                                <componentItem id="removeCopyright">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.remove"/>
+                                    </hbox>
+                                </componentItem>
+                            </items>
+                        </dropdownButton>
+                        <button id="removeCopyrightButton" icon="TRASH" visible="false"
+                                themeNames="error small"/>
+                    </hbox>
+                </vbox>
+            </tab>
+            <tab id="reuseTab" label="msg://eu.occtet.bocfrontend.view.audit/auditView.reuse" visible="false">
+                <hbox width="100%" height="100%" classNames="border rounded-m border-contrast-20" margin="false" padding="false">
+                    <tabSheet id="ReuseTabSheet" width="100%" height="100%">
+                        <tab id="generalInformationReuse" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.vulnerability.generalInformation">
+                            <vbox width="100%" height="100%" margin="false" padding="false">
+                                <hbox width="100%">
+                                    <textField id="inventoryNameReuseField" property="inventoryName"
+                                               dataContainer="inventoryItemDcReuse" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.inventoryName"
+                                               width="70%"/>
+                                    <textField id="inventoryProjectReuseField" width="30%" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.project"
+                                               readOnly="true"/>
+                                </hbox>
+                                <hbox width="100%">
+                                    <textField id="parentReuseID" property="parent.inventoryName"
+                                               dataContainer="inventoryItemDcReuse"
+                                               label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.parent" width="45%"/>
+                                    <button id="parentReuseButton" title="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.parent.button"
+                                            width="5%" alignSelf="END" icon="INFO_CIRCLE_O"/>
+                                    <textField id="softwareComponentReuseField" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.header"
+                                               width="50%"/>
+                                </hbox>
+                                <hbox>
+                                    <textField id="linkingIDReuse" property="linking" dataContainer="inventoryItemDcReuse" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.linking"/>
+                                    <textField id="priorityReuseField" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.priority" property="priority" dataContainer="inventoryItemDcReuse" maxWidth="10em"/>
+                                    <checkbox id="curatedIDReuse" property="curated" dataContainer="inventoryItemDcReuse" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.curated" alignSelf="END"/>
+                                </hbox>
+                                <htmlObject colspan="2">
+                                    <hr></hr>
+                                </htmlObject>
+                                <hbox height="100%" alignItems="END">
+                                    <nativeLabel text="Created at: "/>
+                                    <nativeLabel id="createdAtIDReuse" property="createdAt" dataContainer="inventoryItemDc" colspan="2"/>
+                                </hbox>
+                            </vbox>
+                        </tab>
+                        <tab id="ReuseFilesTab" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.files">
+                            <fragment class="eu.occtet.bocfrontend.view.audit.fragment.FilesTabFragment"
+                                      id="filesReuseTabFragment"/>
+                        </tab>
+                        <tab id="ReuseAuditNotes" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.auditNotes">
+                            <vbox width="100%" height="100%" alignItems="CENTER" alignSelf="CENTER">
+                                <textArea id="auditNotesTextReuse" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.auditNotes"
+                                          property="externalNotes" dataContainer="inventoryItemDcReuse" width="100%" height="100%"
+                                          alignSelf="CENTER" />
+                                <button id="auditReuseButton" text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.auditNotes.text"
+                                        alignSelf="CENTER" themeNames="small"/>
+                            </vbox>
+                        </tab>
+                    </tabSheet>
+                </hbox>
             </tab>
             <suffix>
                 <hbox>
-                    <button id="saveButton" text="save" themeNames="primary small" action="saveAction"/>
+                    <button id="saveButton" text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.auditNotes.save" themeNames="primary small" action="saveAction"/>
                 </hbox>
             </suffix>
         </tabSheet>

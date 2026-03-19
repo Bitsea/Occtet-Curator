@@ -1,23 +1,20 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
- *
  */
 
 package eu.occtet.boc.ai.copyrightFilter.service;
@@ -36,6 +33,7 @@ import eu.occtet.boc.model.AIStatusQueryWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
+import eu.occtet.boc.util.ExternalNotesConstants;
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import org.apache.logging.log4j.LogManager;
@@ -56,6 +54,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class LLMService extends BaseWorkDataProcessor {
@@ -124,6 +123,7 @@ public class LLMService extends BaseWorkDataProcessor {
 
 
     private boolean filterCopyrightsWithAI(AICopyrightFilterWorkData aiWorkData) {
+        log.debug("filterCopyrightsWithAI for inventory item id {}", aiWorkData.getInventoryItemId());
         //MemoryAdvisor is default
         Optional<InventoryItem> optItem = inventoryItemRepository.findById(aiWorkData.getInventoryItemId());
         if(!optItem.isPresent()) {
@@ -132,12 +132,12 @@ public class LLMService extends BaseWorkDataProcessor {
         }
         List<Advisor> advisors = advisorFactory.createAdvisors();
         String response = "";
-        Prompt question = promptFactory.createFalseCopyrightPrompt(aiWorkData.getUserMessage());
         List<Copyright> copyrightList= new ArrayList<>();
         String copyrights = createString(aiWorkData.getQuestionableCopyrights(), copyrightList);
-        String userQuestion = "List of copyrights, separated by |||. Delete invalid copyrights from this list: " + copyrights;
+        Prompt question = promptFactory.createFalseCopyrightPrompt(copyrights);
+
         try {
-            response = chatClient.prompt(question).user(userQuestion)
+            response = chatClient.prompt(question)
                     .advisors(advisors)
                     .call().content();
 
@@ -145,7 +145,7 @@ public class LLMService extends BaseWorkDataProcessor {
             log.error("Exception with calling ai {}", e.getMessage());
         }
         String result = postProcessor.deleteThinking(response);
-
+        log.debug("result of AI: {}", result);
         handleAIResult(optItem.get(), result, copyrightList);
         if(!result.isEmpty()) {
             try {
@@ -180,11 +180,16 @@ public class LLMService extends BaseWorkDataProcessor {
      * @param response
      */
     public void handleAIResult(InventoryItem item, String response, List<Copyright> copyrightList){
-
-        if(item.getExternalNotes()== null &&  !response.isEmpty()){
-            item.setExternalNotes(response);
-        }else{
-            item.setExternalNotes(item.getExternalNotes()+"\n"+response);
+        String oldExternalNotes = item.getExternalNotes();
+        if(oldExternalNotes == null &&  !response.isEmpty()){
+            item.setExternalNotes(ExternalNotesConstants.SECTION_SEPARATOR +
+                    ExternalNotesConstants.COPYRIGHT_FILTER_INFO_AI_RESPONSE_MESSAGE +
+                    response + ExternalNotesConstants.SECTION_SEPARATOR);
+        }else {
+            item.setExternalNotes(oldExternalNotes +
+                    ExternalNotesConstants.SECTION_SEPARATOR +
+                    ExternalNotesConstants.COPYRIGHT_FILTER_INFO_AI_RESPONSE_MESSAGE +
+                    response + ExternalNotesConstants.SECTION_SEPARATOR);
         }
         for(Copyright c: copyrightList) {
             if (!response.contains(c.getCopyrightText())) {
@@ -208,10 +213,11 @@ public class LLMService extends BaseWorkDataProcessor {
         // Get the current date and time
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("status_request", "question", actualTimestamp, new AIAnswerWorkData(answer));
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "ai-answer","question", actualTimestamp, new AIAnswerWorkData(answer));
         ObjectMapper objectMapper = new ObjectMapper();
         String message = objectMapper.writeValueAsString(workTask);
         log.debug("sending message to ai service: {}", message);
         natsStreamSender().sendWorkMessageToStream( message.getBytes(Charset.defaultCharset()));
     }
 }
+ 

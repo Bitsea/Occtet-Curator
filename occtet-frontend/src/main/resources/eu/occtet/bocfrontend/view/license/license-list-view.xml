@@ -24,11 +24,10 @@
       focusComponent="licensesDataGrid">
     <data>
         <collection id="licensesDc"
-                    class="eu.occtet.bocfrontend.entity.License">
-            <fetchPlan extends="_base"/>
+                    class="eu.occtet.bocfrontend.entity.License" fetchPlan="_local">
             <loader id="licensesDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from License e]]>
+                    <![CDATA[select l from License l where l in :licenses]]>
                 </query>
             </loader>
         </collection>
@@ -44,19 +43,21 @@
         <action id="discardAction" type="lookup_discard"/>
     </actions>
     <layout>
-        <vbox>
-            <button id="textSearchLicense" text="msg://licenseListView.searchText"/>
-            <hbox width="100%">
-                <genericFilter id="genericFilter" dataLoader="licensesDl" themeNames="small"
-                               width="80%" alignSelf="START">
+        <vbox height="100%" width="100%">
+            <hbox>
+                <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
+                <button id="showAllButton" text="msg://eu.occtet.bocfrontend.view/showAllButton"
+                        alignSelf="END" themeNames="primary"/>
+            </hbox>
+            <hbox width="100%" visible="false" id="filterBox">
+                <genericFilter id="genericFilter" dataLoader="licensesDl" themeNames="small" alignSelf="START" opened="false" autoApply="true">
                     <properties include=".*"/>
-                    <conditions> </conditions>
                 </genericFilter>
-                <simplePagination id="pagination" dataLoader="licensesDl" alignSelf="END"/>
+                <simplePagination id="pagination" dataLoader="licensesDl" itemsPerPageItems="100"  alignSelf="END"/>
             </hbox>
             <dataGrid classNames="occtet-grid" id="licensesDataGrid"
                       width="100%"
-                      height="30em"
+                      minHeight="20em"
                       dataContainer="licensesDc"
                       columnReorderingAllowed="true">
                 <actions>
@@ -66,14 +67,14 @@
                     <action id="removeAction" type="list_remove"/>
                 </actions>
                 <columns resizable="true">
-                    <column property="licenseType" header="Type"/>
-                    <column property="priority" header="Priority"/>
-                    <column property="licenseText" header="License text"/>
-                    <column property="licenseName" header="Licence name"/>
-                    <column property="detailsUrl" header="Details url"/>
-                    <column property="isModified" header="Modified"/>
-                    <column property="curated" header="Curated"/>
-                    <column property="isSpdx" header="SPDX"/>
+                    <column property="licenseType" header="msg://eu.occtet.bocfrontend.entity/License"/>
+                    <column property="priority" header="msg://eu.occtet.bocfrontend.entity/LicenseType.priority"/>
+                    <column property="licenseText" header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseText"/>
+                    <column property="licenseName" header="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
+                    <column property="detailsUrl" header="msg://eu.occtet.bocfrontend.entity/License.detailsUrl"/>
+                    <column property="isModified" header="msg://eu.occtet.bocfrontend.entity/License.isModified"/>
+                    <column property="curated" header="msg://eu.occtet.bocfrontend.entity/License.curated"/>
+                    <column property="isSpdx" header="msg://eu.occtet.bocfrontend.entity/License.isSpdx"/>
                 </columns>
             </dataGrid>
             <hbox width="100%">
@@ -83,6 +84,7 @@
                     <button id="removeButton" action="licensesDataGrid.removeAction"/>
                 </hbox>
                 <hbox alignSelf="END">
+                    <button id="textSearchLicense" text="msg://licenseListView.searchText" themeNames="primary"/>
                     <button id="fetchSPDXButton" text="Fetch spdx licenses" themeNames="primary" alignSelf="END"/>
                 </hbox>
             </hbox>

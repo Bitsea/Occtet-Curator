@@ -19,8 +19,11 @@
 
 package eu.occtet.bocfrontend.dao;
 
+import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.Project;
 import io.jmix.core.repository.JmixDataRepository;
+import io.jmix.core.repository.Query;
 
 import java.util.List;
 
@@ -32,5 +35,13 @@ public interface LicenseRepository  extends JmixDataRepository<License, Long> {
     List<License> findLicensesByCurated(Boolean curated);
     List<License> findLicensesByPriority(Integer priority);
     List<License> findLicensesByLicenseName(String licenseName);
+    @Query("select distinct l from InventoryItem i join i.project p join i.softwareComponent sc join sc.licenses l where p = :project")
+    List<License> findLicensesByProject(Project project);
     License findLicenseById(Long id);
+    @Query("select l from InventoryItem i join i.project p join i.softwareComponent sc join sc.licenses l where p = :project and l.licenseName = :licenseName")
+    List<License> findLicensesByLicenseNameAndProject(String licenseName, Project project);
+    @Query("select l from InventoryItem i join i.softwareComponent sc join sc.licenses l where i = :item")
+    List<License> findByInventoryItem(InventoryItem item);
+    @Query("select l from License l where l not in :licenses")
+    List<License> findAvailableLicenses(List<License> licenses);
 }

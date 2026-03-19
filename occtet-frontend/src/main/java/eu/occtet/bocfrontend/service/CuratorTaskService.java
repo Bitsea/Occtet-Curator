@@ -1,0 +1,163 @@
+/*
+ * Copyright (C) 2025 Bitsea GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https:www.apache.orglicensesLICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+package eu.occtet.bocfrontend.service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import eu.occtet.boc.model.BaseWorkData;
+import eu.occtet.boc.model.WorkTask;
+import eu.occtet.boc.service.NatsStreamSender;
+import eu.occtet.bocfrontend.config.ConfigNatsProperties;
+import eu.occtet.bocfrontend.dao.CuratorTaskRepository;
+import eu.occtet.bocfrontend.entity.CuratorTask;
+import eu.occtet.bocfrontend.entity.TaskStatus;
+import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
+import io.jmix.core.DataManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Service;
+
+import java.nio.charset.Charset;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import static org.reflections.Reflections.log;
+
+@Service
+public class CuratorTaskService {
+
+    private static final Logger log = LogManager.getLogger(CuratorTaskService.class);
+
+    @Autowired
+    private CuratorTaskRepository curatorTaskRepository;
+
+    @Autowired
+    private DataManager dataManager;
+
+    @Autowired
+    private NatsService natsService;
+
+    private final ConfigNatsProperties natsProperties;
+
+    public CuratorTaskService(ConfigNatsProperties natsProperties) {
+        this.natsProperties = natsProperties;
+    }
+
+
+    /**
+     * Save the task and send it to the NATS work queue for processing.
+     * @param curatorTask
+     * @param workData
+     * @param optDetails optional details about the task for information/metadata purposes
+     * @return true on success
+     */
+    public boolean saveAndRunTask(CuratorTask curatorTask, BaseWorkData workData, String optDetails, String streamName)  {
+        log.debug("save and run task");
+        LocalDateTime now = LocalDateTime.now();
+        long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
+        curatorTask.notifyStarted();
+        dataManager.save(curatorTask);
+        // Use the curator task id as the work task id, so we don't lose connection to whom the work task belongs to
+        WorkTask workTask = new WorkTask(curatorTask.getId().toString(), curatorTask.getTaskName(), optDetails, actualTimestamp, workData);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        String message = null;
+        try {
+            message = mapper.writeValueAsString(workTask);
+        } catch (JsonProcessingException e) {
+            log.error("Could not serialize work task to JSON", e);
+            curatorTask.setStatus(TaskStatus.CANCELLED);
+            return false;
+        }
+        log.debug("sending message to service: {}", message);
+        try {
+            log.debug("sending to stream {}", streamName);
+
+                if(streamName.equals(natsProperties.send_subject_spdx())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_spdx(), message.getBytes(Charset.defaultCharset()));
+                }else if(streamName.equals(natsProperties.send_subject_ort_run())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_ort_run(), message.getBytes(Charset.defaultCharset()));
+                }
+                else if(streamName.equals(natsProperties.send_subject_export())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_export(), message.getBytes(Charset.defaultCharset()));
+                }else if(streamName.equals(natsProperties.send_subject_vulnerabilities())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_vulnerabilities(), message.getBytes(Charset.defaultCharset()));
+                }else if(streamName.equals(natsProperties.send_subject_ort_result())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_ort_result(), message.getBytes(Charset.defaultCharset()));
+                }
+
+        } catch (Exception e) {
+            log.error("Could not send work message", e);
+            curatorTask.setStatus(TaskStatus.CANCELLED);
+            return false;
+        }
+        return true;
+
+    }
+
+    public List<CuratorTask> getTasksByStatus(TaskStatus status){
+        return curatorTaskRepository.findByStatus(status);
+    }
+
+    public long countTasksByStatus(TaskStatus status){
+        return curatorTaskRepository.countByStatus(status);
+    }
+
+    public void updateTaskFeedback(String feedback, CuratorTask task){
+        if (task.getFeedback() == null) {
+            task.setFeedback(new ArrayList<>());
+        }
+        task.getFeedback().add(feedback);
+        dataManager.save(task);
+    }
+
+    public void updateTaskStatus(CuratorTask curatorTask, TaskStatus status){
+        curatorTask.setStatus(status);
+        dataManager.save(curatorTask);
+    }
+
+
+    public List<CuratorTask> getCancelledTasks(){
+        return curatorTaskRepository.findByStatus(TaskStatus.CANCELLED);
+    }
+
+
+
+    public CuratorTask saveWithFeedBack(CuratorTask curatorTask, List<String> feedback, TaskStatus status){
+        List<String> newFeedbacks= new ArrayList<>();
+        List<String> oldFeedbacks= curatorTask.getFeedback(); // get preexisting feedbacks
+        if (oldFeedbacks!=null && !oldFeedbacks.isEmpty()) newFeedbacks.addAll(oldFeedbacks);
+
+        // Add new feedback
+        newFeedbacks.addAll(feedback);
+
+        curatorTask.setFeedback(newFeedbacks);
+        curatorTask.setStatus(status);
+        return dataManager.save(curatorTask);
+    }
+}

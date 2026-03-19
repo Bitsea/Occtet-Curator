@@ -1,23 +1,20 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
- *
  */
 
 package eu.occtet.boc.licenseMatcher.service;
@@ -27,13 +24,13 @@ import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.licenseMatcher.factory.InventoryItemFactory;
-import eu.occtet.boc.licenseMatcher.factory.PromptFactory;
 import eu.occtet.boc.licenseMatcher.tools.LicenseMatcher;
 import eu.occtet.boc.model.AILicenseMatcherWorkData;
 import eu.occtet.boc.model.ScannerSendWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.NatsStreamSender;
+import eu.occtet.boc.util.ExternalNotesConstants;
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import org.slf4j.Logger;
@@ -49,6 +46,10 @@ import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Component
 public class LicenseMatcherService extends BaseWorkDataProcessor {
@@ -57,9 +58,6 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
 
     @Autowired
     private LicenseMatcher licenseMatcher;
-
-    @Autowired
-    private PromptFactory promptFactory;
 
     @Autowired
     private InventoryItemFactory inventoryItemFactory;
@@ -72,6 +70,9 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
 
     @Value("${nats.send-subject}")
     private String sendSubject;
+
+    private final static String[] commentSignsRegex = {"\\_","\\-","\\#","\\%","\\=", "\\\\", "//", "\\+", "\\-", "\\*"};
+
 
 
     @Bean
@@ -97,41 +98,59 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
         try {
             long inventoryItemId = workData.getInventoryItemId();
 
-            String response = "";
             Optional<InventoryItem> optItem = inventoryItemRepository.findById(inventoryItemId);
             if (optItem.isPresent()) {
                 InventoryItem item = optItem.get();
-                log.debug("working on item {}, softwareComponent {}", item, item.getSoftwareComponent().getName());
+                log.debug("working on item {}, softwareComponent {}", item.getInventoryName(), item.getSoftwareComponent().getName());
+                log.debug("softwarecomponent has {} licenses", item.getSoftwareComponent().getLicenses().size());
                 for (License license : item.getSoftwareComponent().getLicenses()) {
                     String licenseId = license.getLicenseType();
                     String licenseText = license.getLicenseText();
-                    log.debug("checking inventory item: {}, licenseId: {}", item.getId(), licenseId);
+                    if(licenseId.contains("LicenseRef-") || licenseId.contains("licenseref-")){
+                        licenseId= licenseId.replace("LicenseRef-","").replace("licenseref-","");
+                    }
+                    licenseText= cleanupLicenseText(licenseText);
+                    log.debug("checking inventory item: {}, licenseId: {}", item.getInventoryName(), licenseId);
                     //rule-based, comparing original license text with specific file license text with spdx library
                     CompareTemplateOutputHandler.DifferenceDescription result = licenseMatcher.spdxCompareLicense(licenseId, licenseText);
-
                     if (result != null && result.isDifferenceFound()) {
-
+                        log.debug("license texts are different for licenseId: {}", licenseId);
                         //baseURL for the licenseTool is given to the prompt as parameter, AI is using the tool with it
                         //the result of the spdx matcher is also given for further information
-                        String baseURL = "https://raw.githubusercontent.com/spdx/license-list-data/main/json/details/" + licenseId + ".json"; // fixme make configurable later
-                        String userMessage = promptFactory.createUserMessage(result);
-                        sendAnswerToStream(new AILicenseMatcherWorkData(userMessage, baseURL, result.getDifferenceMessage(), licenseId, licenseText, inventoryItemId));
+                        String baseURL = "https://raw.githubusercontent.com/spdx/license-list-data/main/json/details/" + licenseId + ".json";
+                        String lineNumbers = result.getDifferences().stream()
+                                .map(d -> String.valueOf(d.getLine()))
+                                .collect(Collectors.joining(", "));
+                        sendAnswerToStream(new AILicenseMatcherWorkData(lineNumbers, baseURL, result.getDifferenceMessage(), licenseId, licenseText, inventoryItemId));
 
                     } else if (result == null) {
+                        log.debug("result is null");
                         log.error("url not successfully for license: {}", licenseId);
+                        String message = ExternalNotesConstants.SECTION_SEPARATOR +
+                                ExternalNotesConstants.WARNING_AUDITOR_ATTENTION_REQ +
+                                String.format(ExternalNotesConstants.LICENSE_URL_NOT_SUCCESSFUL, licenseId) +
+                                ExternalNotesConstants.SECTION_SEPARATOR;
                         if (item.getExternalNotes() == null) {
-                            item.setExternalNotes("url not successfully for license: " + licenseId + "/ no spdx match possible");
+                            item.setExternalNotes(message);
                         } else {
-                            item.setExternalNotes(item.getExternalNotes() + " \n url not successfully for license: " + licenseId + "/ no spdx match possible");
+                            item.setExternalNotes(item.getExternalNotes() + "\n" + message);
                         }
                     } else {
-                        if (item.getExternalNotes() == null)
-                            item.setExternalNotes("License " + licenseId + " matches license text");
-                        else {
-                            item.setExternalNotes(item.getExternalNotes() + "\n License " + licenseId + " matches license text");
+                        log.debug("license text matched");
+
+                        String message = ExternalNotesConstants.SECTION_SEPARATOR +
+                                ExternalNotesConstants.INFO +
+                                String.format(ExternalNotesConstants.LICENSE_TEXT_MATCHED, licenseId) +
+                                ExternalNotesConstants.SECTION_SEPARATOR;
+
+                        if (item.getExternalNotes() == null) {
+                            item.setExternalNotes(message);
+                        } else {
+                            item.setExternalNotes(item.getExternalNotes() + "\n" + message);
                         }
                     }
                     inventoryItemFactory.update(item);
+                    log.debug("updated");
                 }
             }
         }catch (Exception e){
@@ -141,6 +160,40 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
         return true;
     }
 
+    /**
+     * remove comment characters like /* # ...
+     *
+     * @param licenseText
+     * @return
+     */
+    private static String cleanupLicenseText(String licenseText) {
+        licenseText = licenseText
+                .replace("/*", "")
+                .replace("*/", "")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("<br>", " ");
+        char[] array=  licenseText.toCharArray();
+        //make the threshold dependent on the length of text
+        int commentThreshold = array.length/ 80;
+        try {
+            for (String sign : commentSignsRegex) {
+                int count= 0;
+                Pattern pattern = Pattern.compile(sign);
+                Matcher matches = pattern.matcher(licenseText);
+                while (matches.find()) {
+                    count++;
+                }
+                if( count > commentThreshold) {
+                    licenseText = licenseText.replaceAll(pattern.pattern(), "");
+                }
+            }
+        } catch (Exception ex) {
+            log.error("comment match not found: {}", ex.getMessage());
+        }
+        return licenseText;
+    }
+
 
     /**
      * Sends the AI-generated answer to the NATS stream for further processing.
@@ -148,14 +201,14 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
      * @throws JetStreamApiException
      * @throws IOException
      */
-    private void sendAnswerToStream(AILicenseMatcherWorkData aiLicenseMatcherWorkData) throws JetStreamApiException, IOException {
+    private void sendAnswerToStream(AILicenseMatcherWorkData aiLicenseMatcherWorkData) {
         LocalDateTime now = LocalDateTime.now();
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
-        WorkTask workTask = new WorkTask("process_inventoryItems", "sending inventoryItem to next microservice according to config", actualTimestamp, aiLicenseMatcherWorkData);
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "aiLicenceMatcher","sending inventoryItem to next microservice according to config", actualTimestamp, aiLicenseMatcherWorkData);
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String message = objectMapper.writeValueAsString(workTask);
-            log.debug("sending message to ai service: {}", message);
+            log.debug("sending message to ai service: {} under subject {}", message, natsStreamSender().toString());
             natsStreamSender().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
         }catch(Exception e){
             log.error("error sending message to stream: {}", e.getMessage());

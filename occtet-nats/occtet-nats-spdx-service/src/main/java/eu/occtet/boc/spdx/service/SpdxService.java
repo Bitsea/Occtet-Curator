@@ -1,50 +1,43 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
- *
  */
 
 package eu.occtet.boc.spdx.service;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.occtet.boc.dao.*;
 import eu.occtet.boc.entity.*;
-import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
-import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.model.SpdxWorkData;
-import eu.occtet.boc.service.BaseWorkDataProcessor;
+import eu.occtet.boc.service.ProgressReportingService;
+import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
-import eu.occtet.boc.dao.CopyrightRepository;
-import eu.occtet.boc.dao.InventoryItemRepository;
-import eu.occtet.boc.dao.LicenseRepository;
-import eu.occtet.boc.dao.ProjectRepository;
-import eu.occtet.boc.dao.SpdxDocumentRootRepository;
+import eu.occtet.boc.spdx.exception.SpdxImportException;
+import eu.occtet.boc.spdx.service.handler.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
-import org.spdx.core.TypedValue;
 import org.spdx.jacksonstore.MultiFormatStore;
-import org.spdx.library.LicenseInfoFactory;
 import org.spdx.library.SpdxModelFactory;
 import org.spdx.library.model.v2.*;
 import org.spdx.library.model.v2.license.*;
-import org.spdx.library.model.v3_0_1.expandedlicensing.ListedLicense;
 import org.spdx.storage.simple.InMemSpdxStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,31 +47,25 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class SpdxService extends BaseWorkDataProcessor{
+public class SpdxService extends ProgressReportingService {
 
     private static final Logger log = LogManager.getLogger(SpdxService.class);
 
     @Autowired
-    SpdxConverter spdxConverter;
+    private SpdxConverter spdxConverter;
     @Autowired
-    private SoftwareComponentService softwareComponentService;
+    private PackageHandler packageHandler;
     @Autowired
-    private CopyrightService copyrightService;
+    private RelationshipHandler relationshipHandler;
     @Autowired
-    private InventoryItemService inventoryItemService;
+    private SnippetHandler snippetHandler;
     @Autowired
-    private LicenseService licenseService;
-    @Autowired
-    private CodeLocationService codeLocationService;
-    @Autowired
-    private LicenseRepository licenseRepository;
+    private OrphanHandler orphanHandler;
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
@@ -88,411 +75,147 @@ public class SpdxService extends BaseWorkDataProcessor{
     @Autowired
     private SpdxDocumentRootRepository spdxDocumentRootRepository;
     @Autowired
-    private CopyrightRepository copyrightRepository;
+    private CleanUpService cleanUpService;
+    @Autowired
+    private JsonSanitizer sanitizer;
 
-
-
-    private Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc = new ArrayList<>();
-
-
-    @Override
-    public boolean process(SpdxWorkData workData) {
-        log.debug("SpdxService: reads spdx and creates entities to curate {}", workData.toString());
+    public boolean process(SpdxWorkData workData) throws SpdxImportException {
+        log.debug("SpdxService: reads SPDX and creates entities to curate {}", workData.toString());
         return parseDocument(workData);
     }
 
     /**
-     * Takes spdxWorkData, extracts contained json and creates entities based on the deserialized spdxDocument created from the json.
+     * Takes spdxWorkData, extracts contained JSON and creates entities based on the deserialized spdxDocument created from the JSON.
      * If the entities are already present then no new ones will be created, however some of their attributes may change.
+     *
      * @param spdxWorkData
      * @return true if the entities where created successfully, false is any error occurred
      */
-    public boolean parseDocument(SpdxWorkData spdxWorkData){
+    public boolean parseDocument(SpdxWorkData spdxWorkData) throws SpdxImportException {
         try {
-            log.info("now processing spdx for project id: {}", spdxWorkData.getProjectId());
+            log.info("now processing SPDX for project id: {}", spdxWorkData.getProjectId());
+            notifyProgress(1, "init");
             // setup for spdx library need to be called once before any spdx model objects are accessed
-            SpdxModelFactory.init();
-            InMemSpdxStore modelStore = new InMemSpdxStore();
-            MultiFormatStore inputStore = new MultiFormatStore(modelStore, MultiFormatStore.Format.JSON);
 
-            byte[] spdxJsonBytes = spdxWorkData.getJsonBytes();
-
-            InputStream inputStream = new ByteArrayInputStream(spdxJsonBytes);
-            SpdxDocument spdxDocument = inputStore.deSerialize(inputStream, false);
-
-            SpdxDocumentRoot spdxDocumentRoot = spdxConverter.convertSpdxV2DocumentInformation(spdxDocument);
-
-            long projectId = spdxWorkData.getProjectId();
-            Optional<Project> projectOptional = projectRepository.findById(projectId);
-            if(projectOptional.isEmpty()) {
-               log.error("failed to find the project");
+            SpdxDocument spdxDocument = loadSpdxDocument(spdxWorkData.getJsonBytes());
+            Project project = loadProject(spdxWorkData.getProjectId(), spdxDocument);
+            if (project == null) {
                 return false;
             }
-            Project project = projectOptional.get();
-            project.setDocumentID(spdxDocument.getDocumentUri());
-            projectRepository.save(project);
+
+            cleanUpService.cleanUpFileTree(project);
+            SpdxDocumentRoot spdxDocumentRoot = spdxConverter.convertSpdxV2DocumentInformation(spdxDocument);
 
 
-            List<InventoryItem> inventoryItems = new ArrayList<>();
-            List<TypedValue> packageUri = spdxDocument.getModelStore().getAllItems(null, "Package").toList();
-            List<SpdxPackage> spdxPackages = new ArrayList<>();
-            //avoid looking at packages multiple times
-            HashSet<String> seenPackages = new HashSet<>();
-            licenseInfosExtractedSpdxDoc = spdxDocument.getExtractedLicenseInfos();
+            SpdxImportContext context = new SpdxImportContext(project, spdxDocument, spdxDocumentRoot);
+            context.setExtractedLicenseInfos(spdxDocument.getExtractedLicenseInfos());
+            initDocumentDescribes(context);
 
-            //get the list of described packages for the download-service to differentiate between them and dependencies
-            Set<String> mainPackageIds = new HashSet<>();
-            Set<Long> mainInventoryItems = new HashSet<>();
+            notifyProgress(10, "converting SPDX");
 
-            try {
-                Set<String> ids = spdxDocument.getDocumentDescribes().stream()
-                        .map(SpdxElement::getId)
-                        .collect(Collectors.toSet());
-                mainPackageIds.addAll(ids);
-            } catch (InvalidSPDXAnalysisException e) {
-                log.warn("Could not read DocumentDescribes: {}", e.getMessage());
-            }
+            packageHandler.processAllPackages(context, (percent) -> notifyProgress(20 + percent, "processing packages"));
 
-            Map<String, SpdxPackageEntity> packageLookupMap = new HashMap<>();
-            if (spdxDocumentRoot.getPackages() != null) {
-                for (SpdxPackageEntity entity : spdxDocumentRoot.getPackages()) {
-                    if (entity.getSpdxId() != null) {
-                        packageLookupMap.put(entity.getSpdxId(), entity);
-                    }
-                }
-            }
+            orphanHandler.processOrphanFiles(context);
 
-            //Caches for component and license
-            Map<String, SoftwareComponent> componentCache = new HashMap<>();
-            Map<String, License> licenseCache = new HashMap<>();
+            refreshInventoryCache(context);
+            relationshipHandler.processAllRelationships(context, (percent) -> notifyProgress(60 + percent, "converting relationships"));
 
-            for (TypedValue uri : packageUri) {
-                SpdxModelFactory.getSpdxObjects(spdxDocument.getModelStore(), null, "Package", uri.getObjectUri(), null).forEach(
-                        spdxPackage -> {
-                            try {
-                                if (!seenPackages.contains(spdxPackage.toString())) {
-                                    log.debug("Processing unseen package: {}", spdxPackage.toString());
-                                    inventoryItems.add(parsePackages((SpdxPackage) spdxPackage, project,
-                                            spdxDocumentRoot, packageLookupMap, componentCache, licenseCache,
-                                            mainInventoryItems, mainPackageIds));
-                                    spdxPackages.add((SpdxPackage) spdxPackage);
-                                    seenPackages.add((spdxPackage).toString());
-                                }
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                );
-            }
-
-            List<InventoryItem> allItems = inventoryItemRepository.findAllByProject(project);
-            Map<String, InventoryItem> inventoryCache = allItems.stream()
-                    .filter(i -> i.getSpdxId() != null)
-                    .collect(Collectors.toMap(InventoryItem::getSpdxId, item -> item, (p1, p2) -> p1));
-
-            for (SpdxPackage spdxPackage : spdxPackages) {
-                parseRelationships(spdxPackage, spdxPackage.getRelationships().stream().toList(), inventoryCache);
-                for(Relationship relationship: spdxPackage.getRelationships()) {
-                    spdxConverter.convertRelationShip(relationship, spdxDocumentRoot, spdxPackage);
-                }
-                log.info("Converted {} relationships for package {}", spdxPackage.getRelationships().size(), spdxPackage.getId());
-            }
+            snippetHandler.processAllSnippets(context);
 
             spdxDocumentRootRepository.save(spdxDocumentRoot);
+            scheduleAnswerService(context, spdxWorkData);
 
-            log.info("processed spdx with {} items", inventoryItems.size());
-
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                        log.debug("Transaction committed, sending answers service");
-                    try {
-                        answerService.prepareAnswers(
-                                inventoryItems,
-                                spdxWorkData.isUseCopyrightAi(),
-                                spdxWorkData.isUseLicenseMatcher(),
-                                mainInventoryItems
-                        );
-                    } catch (Exception e) {
-                        log.error("Error sending answers to the answers service", e);
-                    }
-                    log.debug(("SENT"));
-
-                    }
-            });
-
+            notifyProgress(100, "completed");
             return true;
 
-        }catch (InvalidSPDXAnalysisException | IOException e ){
-            log.error("An error occurred while trying to deserialize spdx: {}", e.toString());
-            return false;
-        }
-    }
-
-    private InventoryItem parsePackages(SpdxPackage spdxPackage, Project project,
-                                        SpdxDocumentRoot spdxDocumentRoot,
-                                        Map<String, SpdxPackageEntity> packageLookupMap,
-                                        Map<String, SoftwareComponent> componentCache,
-                                        Map<String, License> licenseCache,Set<Long> mainInventoryItems,
-                                        Set<String> mainPackageIds)
-            throws Exception {
-
-        log.info("Looking at package: {}", spdxPackage.getId());
-        //Convert to entities
-        spdxConverter.convertPackage(spdxPackage, spdxDocumentRoot, packageLookupMap);
-
-        String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
-        String version = spdxPackage.getVersionInfo().orElse("");
-        List<CodeLocation> codeLocations = new ArrayList<>();
-        List<Copyright> copyrights = new ArrayList<>();
-
-        String componentKey = packageName + ":" + version;
-        SoftwareComponent component = componentCache.get(componentKey);
-
-        if (component == null) {
-            // Cache Miss: Hit the DB
-            component = softwareComponentService.getOrCreateSoftwareComponent(packageName, version);
-            // Cache Put
-            componentCache.put(componentKey, component);
-        }
-
-        //get License from package
-        AnyLicenseInfo spdxPkgLicense = spdxPackage.getLicenseConcluded();
-        if (spdxPkgLicense.isNoAssertion(spdxPkgLicense)) {
-            spdxPkgLicense = spdxPackage.getLicenseDeclared();
-        }
-
-        List<License> pkgLicenses = createLicenses(spdxPkgLicense, licenseCache);
-        if(component.getLicenses() != null) {
-            //make double sure there are no doubles
-            Set<License> lSet= new HashSet<>( component.getLicenses());
-            component.setLicenses(new ArrayList<>(lSet));
-            SoftwareComponent finalComponent = component;
-            pkgLicenses.stream()
-                    .filter(license -> !finalComponent.getLicenses().contains(license))
-                    .forEach(component::addLicense);
-        } else {
-            component.setLicenses(pkgLicenses);
-        }
-
-        String packageLicenseString = spdxPkgLicense != null ? spdxPkgLicense.toString() : "";
-
-        String inventoryName = spdxPackage.getId().replaceAll("(?i)^SPDXRef-[^-]+-[^-]+-", "");
-        if (!inventoryName.contains(component.getVersion())) inventoryName += component.getVersion();
-        inventoryName += " (" + packageLicenseString + ")";
-
-        //Check if license of component is combined
-        Pattern pattern = Pattern.compile("\\b(?:BUT|AND)\\b");
-        boolean isCombined = pattern.matcher(packageLicenseString).find();
-
-        InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, component, project);
-        inventoryItem.setWasCombined(isCombined);
-        inventoryItem.setSpdxId(spdxPackage.getId());
-        inventoryItem.setCurated(false);
-
-        inventoryItem.setSize(spdxPackage.getFiles().size());
-
-        log.info("Converting {} files", spdxPackage.getFiles().size());
-        spdxPackage.getFiles().forEach(f -> {
-            spdxConverter.convertFile(f, spdxDocumentRoot);
-        });
-
-        try {
-            copyrights = parseFiles(spdxPackage, inventoryItem);
         } catch (InvalidSPDXAnalysisException e) {
-            log.error("Error batch processing files", e);
-        }
-
-
-        if (component.getCopyrights() == null){
-            component.setCopyrights(new ArrayList<>(copyrights)); // Copy to new list
-        } else {
-            Set<Copyright> uniqueCopyrights = new HashSet<>(component.getCopyrights());
-            uniqueCopyrights.addAll(copyrights);
-            component.setCopyrights(new ArrayList<>(uniqueCopyrights));
-        }
-
-
-        String downloadLocation = spdxPackage.getDownloadLocation().orElse("");
-        component.setDetailsUrl(downloadLocation);
-
-        List<ExternalRef> externalRefs = spdxPackage.getExternalRefs().stream().toList();
-        for(ExternalRef externalRef: externalRefs){
-            if(externalRef.getReferenceType().getIndividualURI().endsWith("purl")){
-                component.setPurl(externalRef.getReferenceLocator());
-                log.info("Found purl: {} for Component: {}", externalRef.getReferenceLocator(), component.getName());
-            }
-        }
-
-        inventoryItemService.update(inventoryItem);
-        log.info("created inventoryItem: {}", inventoryName);
-        log.info("created softwareComponent: {}", component.getName());
-
-        if (mainPackageIds.contains(spdxPackage.getId())) {
-            mainInventoryItems.add(inventoryItem.getId());
-        }
-
-        return inventoryItem;
-    }
-
-    private List<License> createLicenses(AnyLicenseInfo spdxLicenseInfo, Map<String, License> licenseCache)
-            throws InvalidSPDXAnalysisException {
-
-        Set<License> allLicenses = new HashSet<>();
-        List<AnyLicenseInfo> allLicenseInfo = new ArrayList<>();
-        parseLicenseText(spdxLicenseInfo, allLicenseInfo);
-
-        for (AnyLicenseInfo individualLicenseInfo : allLicenseInfo) {
-            String licenseId = "";
-            String licenseText = "";
-            boolean isListed = false;
-
-            if (individualLicenseInfo instanceof SpdxListedLicense) {
-                ListedLicense license = LicenseInfoFactory.getListedLicenseById(individualLicenseInfo.getId());
-                licenseId = license.getId();
-                licenseText = license.getLicenseText();
-                isListed = true;
-            } else if (individualLicenseInfo instanceof ExtractedLicenseInfo) {
-                Optional<ExtractedLicenseInfo> extracted = licenseInfosExtractedSpdxDoc.stream()
-                        .filter(s -> s.getLicenseId().equals(individualLicenseInfo.getId())).findFirst();
-                if (extracted.isPresent()) {
-                    licenseId = extracted.get().getId();
-                    licenseText = extracted.get().getExtractedText();
-                }
-            }
-
-            if (licenseId.isEmpty()) licenseId = "Unknown";
-
-            License licenseEntity = licenseCache.get(licenseId);
-
-            if (licenseEntity == null) {
-                licenseEntity = licenseService.findOrCreateLicense(licenseId, licenseText, licenseId);
-
-                if (isListed) {
-                    licenseEntity.setSpdx(true);
-                    licenseRepository.save(licenseEntity);
-                }
-
-                // Cache Put
-                licenseCache.put(licenseId, licenseEntity);
-            }
-
-            allLicenses.add(licenseEntity);
-        }
-
-        return allLicenses.stream().toList();
-    }
-
-    private void parseLicenseText(AnyLicenseInfo licenseInfo, List<AnyLicenseInfo> allLicenseInfos) throws InvalidSPDXAnalysisException {
-        switch (licenseInfo) {
-            case ConjunctiveLicenseSet conjunctiveLicenseSet -> {
-                for (AnyLicenseInfo member : conjunctiveLicenseSet.getMembers()) {
-                    parseLicenseText(member, allLicenseInfos);
-                }
-            }
-            case DisjunctiveLicenseSet disjunctiveLicenseSet -> {
-                for (AnyLicenseInfo member : disjunctiveLicenseSet.getMembers()) {
-                    parseLicenseText(member, allLicenseInfos);
-                }
-            }
-            case WithExceptionOperator withExceptionOperator -> parseLicenseText(withExceptionOperator.getLicense(), allLicenseInfos);
-            case SpdxListedLicense listed -> allLicenseInfos.add(listed);
-            case ExtractedLicenseInfo extracted -> allLicenseInfos.add(extracted);
-            //No action needed if there is no license
-            case SpdxNoneLicense ignored -> {
-            }
-            case null, default -> log.info("Encountered unknown license type: {}", licenseInfo);
+            log.error("Handler caused SPDX Analysis to fail: {}", e.getMessage());
+            throw new SpdxImportException("The SPDX file could not be analyzed by a handler. It may contain invalid fields or unsupported versions.", e);
         }
     }
 
-    private List<Copyright> parseFiles(SpdxPackage spdxPackage, InventoryItem inventoryItem) throws InvalidSPDXAnalysisException {
-        List<String> allFileNames = new ArrayList<>();
-        Set<String> allCopyrightsTexts = new HashSet<>();
-        Map<String, String> fileToCopyrightMap = new HashMap<>();
-        for (SpdxFile f : spdxPackage.getFiles()) {
-            if (f.getName().isPresent()){
-                String path = f.getName().get();
-                allFileNames.add(path);
-                String copyright = f.getCopyrightText();
-                if (!"NONE".equals(copyright) && !"NOASSERTION".equals(copyright)){
-                    allCopyrightsTexts.add(copyright);
-                    fileToCopyrightMap.put(path, copyright);
-                }
-            }
-        }
-        Map<String, CodeLocation> locationMap = codeLocationService.findOrCreateBatch(allFileNames, inventoryItem);
-        Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts);
-
-        List<Copyright> copyrightsToUpdate = new ArrayList<>();
-        for (Map.Entry<String, String> entry : fileToCopyrightMap.entrySet()) {
-            String path = entry.getKey();
-            String copyrightText = entry.getValue();
-            CodeLocation loc = locationMap.get(path);
-            Copyright copyright = copyrightMap.get(copyrightText);
-            if (loc != null && copyright != null) {
-                copyright.getCodeLocations().add(loc);
-                copyrightsToUpdate.add(copyright);
-            }
-        }
-        copyrightRepository.saveAll(copyrightsToUpdate);
-
-        return new ArrayList<>(copyrightMap.values());
-    }
-
-    private void parseRelationships(SpdxPackage spdxPackage, List<Relationship> relationships
-            , Map<String, InventoryItem> inventoryCache) throws InvalidSPDXAnalysisException {
-
-        InventoryItem sourceItem = inventoryCache.get(spdxPackage.getId());
-
-        if (sourceItem == null) {
-            log.error("Relationship source package not found in inventory: {}", spdxPackage.getId());
-            return;
+    private SpdxDocument loadSpdxDocument(byte[] jsonBytes) throws SpdxImportException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode rootNode;
+        try {
+            rootNode = mapper.readTree(new ByteArrayInputStream(jsonBytes));
+        } catch (IOException e) {
+            throw new SpdxImportException("The provided file is not valid JSON. Please check the file format.", e);
         }
 
-        for (Relationship relationship : relationships) {
-            Optional<SpdxElement> targetOpt = relationship.getRelatedSpdxElement();
-            if (targetOpt.isEmpty()) continue;
+        log.info("cleaning json");
+        byte[] cleanedJsonBytes = sanitizer.sanitizeSpdxJson(rootNode, mapper, jsonBytes);
 
-            SpdxElement targetElement = targetOpt.get();
-
-            InventoryItem targetItem = inventoryCache.get(targetElement.getId());
-
-            if (targetItem == null) {
-                continue;
-            }
-
-            switch (relationship.getRelationshipType()) {
-                case CONTAINS, DEPENDS_ON, ANCESTOR_OF -> {
-                    if (targetElement.getType().equals("Package")) {
-                        targetItem.setParent(sourceItem);
-                        inventoryItemService.update(targetItem);
-                        log.info("identified {} as parent of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
-                    }
-                }
-                case CONTAINED_BY, DEPENDENCY_OF, DESCENDANT_OF -> {
-                    if (targetElement.getType().equals("Package")) {
-                        sourceItem.setParent(targetItem);
-                        inventoryItemService.update(sourceItem);
-                        log.info("identified {} as child of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
-                    }
-                }
-                case STATIC_LINK -> {
-                    if (targetElement.getType().equals("Package")) {
-                        targetItem.setLinking("Static");
-                        inventoryItemService.update(targetItem);
-                    }
-                }
-                case DYNAMIC_LINK -> {
-                    if (targetElement.getType().equals("Package")) {
-                        targetItem.setLinking("Dynamic");
-                        inventoryItemService.update(targetItem);
-                    }
-                }
-                case null, default -> {
-                }
-            }
+        SpdxModelFactory.init();
+        try {
+            MultiFormatStore inputStore = new MultiFormatStore(new InMemSpdxStore(), MultiFormatStore.Format.JSON);
+            return inputStore.deSerialize(new ByteArrayInputStream(cleanedJsonBytes), false);
+        } catch (InvalidSPDXAnalysisException e) {
+            log.error("SPDX Analysis failed: {}", e.getMessage());
+            throw new SpdxImportException("The SPDX file could not be deserialized. It may contain invalid fields or unsupported versions. Error detail: " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new SpdxImportException("I/O Error processing SPDX stream.", e);
+        } catch (Exception e) {
+            log.error("Unexpected error in SPDX library", e);
+            throw new SpdxImportException("The SPDX file caused an unexpected error in the parser.", e);
         }
 
     }
 
+    private Project loadProject(long projectId, SpdxDocument spdxDocument) {
+        Optional<Project> projectOptional = projectRepository.findById(projectId);
+        if (projectOptional.isEmpty()) {
+            log.error("failed to find the project");
+            return null;
+        }
+        Project project = projectOptional.get();
+        project.setDocumentID(spdxDocument.getDocumentUri());
+        projectRepository.save(project);
+        return project;
+    }
+
+    private void initDocumentDescribes(SpdxImportContext context) {
+        try {
+            context.getSpdxDocument().getDocumentDescribes().stream()
+                    .map(SpdxElement::getId)
+                    .forEach(context.getMainPackageIds()::add);
+        } catch (InvalidSPDXAnalysisException e) {
+            log.warn("Could not read DocumentDescribes: {}", e.getMessage());
+        }
+    }
+
+    private void refreshInventoryCache(SpdxImportContext context) {
+        log.debug("Refreshing inventory cache for project {}", context.getProject().getId());
+        List<InventoryItem> allItems = inventoryItemRepository.findAllByProject(context.getProject());
+
+        Map<String, InventoryItem> inventoryCache = allItems.stream()
+                .filter(item -> item.getSpdxId() != null)
+                .collect(Collectors.toMap(
+                        InventoryItem::getSpdxId,
+                        item -> item,
+                        (existing, replacement) -> existing
+                ));
+
+        context.setInventoryCache(inventoryCache);
+
+        log.debug("Inventory cache refreshed. Mapped {} items.", inventoryCache.size());
+    }
+
+    private void scheduleAnswerService(SpdxImportContext context, SpdxWorkData workData) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    answerService.prepareAnswers(
+                            context.getInventoryItems(),
+                            workData.isUseCopyrightAi(),
+                            workData.isUseLicenseMatcher(),
+                            context.getMainInventoryItems()
+                    );
+                } catch (Exception e) {
+                    log.error("Error sending answers", e);
+                }
+            }
+        });
+    }
 }

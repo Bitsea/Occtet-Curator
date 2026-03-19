@@ -21,6 +21,7 @@ package eu.occtet.bocfrontend.factory;
 
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
@@ -29,6 +30,7 @@ import io.jmix.flowui.UiComponents;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.awt.*;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -51,6 +53,11 @@ public class RendererFactory {
      */
     public Renderer<InventoryItem> statusRenderer(){
         return new ComponentRenderer<>(item -> {
+            HorizontalLayout mainLayout = uiComponents.create(HorizontalLayout.class);
+            mainLayout.setSpacing("1px");
+            mainLayout.setPadding(false);
+            mainLayout.setMargin(false);
+
             Icon circleIcon  = uiComponents.create(Icon.class);
             circleIcon.setIcon(VaadinIcon.CIRCLE);
             circleIcon.setSize("12px");
@@ -62,9 +69,37 @@ public class RendererFactory {
             } else if (TRUE.equals(item.getCurated())) {
                 circleIcon.setClassName("curated-icon");
                 status = "Curated";
-            } // more...
+            }
             circleIcon.setTooltipText(status);
-            return circleIcon;
+
+            Icon warningIcon = uiComponents.create(Icon.class);
+            warningIcon.setIcon(VaadinIcon.WARNING);
+            warningIcon.setSize("12px");
+            if (item.getHasTodos()){
+                warningIcon.setVisible(true);
+                warningIcon.setClassName("warning-icon");
+            } else {
+                warningIcon.setVisible(false);
+            }
+
+            Icon vulnerableIcon = uiComponents.create(Icon.class);
+            vulnerableIcon.setIcon(VaadinIcon.BAN);
+            vulnerableIcon.setSize("12px");
+            boolean hasUnresolvedVulnerabilities = item.getSoftwareComponent()
+                    .getVulnerabilityLinks()
+                    .stream()
+                    .anyMatch(link -> FALSE.equals(link.getResolved()));
+
+            if (hasUnresolvedVulnerabilities) {
+                vulnerableIcon.setVisible(true);
+                vulnerableIcon.setClassName("vulnerable-icon");
+                vulnerableIcon.setColor("RED");
+            } else {
+                vulnerableIcon.setVisible(false);
+            }
+
+            mainLayout.add(circleIcon, warningIcon, vulnerableIcon);
+            return mainLayout;
         });
     }
 

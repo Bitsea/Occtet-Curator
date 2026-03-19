@@ -21,7 +21,7 @@
 
 package eu.occtet.bocfrontend.dao;
 
-import eu.occtet.bocfrontend.entity.CodeLocation;
+import eu.occtet.boc.util.FileConstants;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.Project;
 import io.jmix.core.repository.JmixDataRepository;
@@ -30,16 +30,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-
+import java.util.Set;
 
 
 public interface FileRepository extends JmixDataRepository<File, Long> {
-    final static String DEPENDENCY_FOLDER_NAME = "dependencies";
+    final static String DEPENDENCY_FOLDER_NAME = FileConstants.DEPENDENCIES_FOLDER_NAME;
+    List<File> findByProject(Project project);
 
     // Root Nodes (Reviewed Filter)
     @Query("select f from File f " +
             "where f.project = :project and f.parent is null " +
             "and (:targetStatus is null or f.reviewed = :targetStatus) " +
+            "and f.physicalPath is not null and f.physicalPath <> '' " +
             "order by " +
             "   CASE WHEN lower(f.fileName) = '" + DEPENDENCY_FOLDER_NAME + "' THEN 1 ELSE 0 END ASC, " +
             "   f.isDirectory desc, " +
@@ -50,7 +52,9 @@ public interface FileRepository extends JmixDataRepository<File, Long> {
 
     @Query("select count(f) from File f " +
             "where f.project = :project and f.parent is null " +
-            "and (:targetStatus is null or f.reviewed = :targetStatus)")
+            "and (:targetStatus is null or f.reviewed = :targetStatus)"+
+            "and f.physicalPath is not null and f.physicalPath <> '' "
+    )
     long countRoots(@Param("project") Project project,
                     @Param("targetStatus") Boolean targetStatus);
 
@@ -58,6 +62,7 @@ public interface FileRepository extends JmixDataRepository<File, Long> {
     @Query("select f from File f " +
             "where f.parent = :parent " +
             "and (:targetStatus is null or f.reviewed = :targetStatus) " +
+            "and f.physicalPath is not null and f.physicalPath <> '' " +
             "order by " +
             "   CASE WHEN lower(f.fileName) = '" + DEPENDENCY_FOLDER_NAME + "' THEN 1 ELSE 0 END ASC, " +
             "   f.isDirectory desc, " +
@@ -66,14 +71,15 @@ public interface FileRepository extends JmixDataRepository<File, Long> {
                                   @Param("targetStatus") Boolean targetStatus,
                                   Pageable pageable);
 
+    Set<File> findFilesByParent(File parent);
+
     @Query("select count(f) from File f " +
             "where f.parent = :parent " +
-            "and (:targetStatus is null or f.reviewed = :targetStatus)")
+            "and (:targetStatus is null or f.reviewed = :targetStatus)"+
+            "and f.physicalPath is not null and f.physicalPath <> '' ")
     long countChildren(@Param("parent") File parent,
                        @Param("targetStatus") Boolean targetStatus);
 
-    // Methods for FileContentService & DownloadService
-    File findByCodeLocation(CodeLocation codeLocation);
 
     @Query("select f from File f where f.project = :project and f.fileName = :fileName")
     List<File> findCandidates(@Param("project") Project project, @Param("fileName") String fileName);
@@ -82,6 +88,7 @@ public interface FileRepository extends JmixDataRepository<File, Long> {
             "left join fetch f.parent " +
             "where f.project = :project " +
             "and lower(f.fileName) like lower(concat('%', :searchText, '%')) " +
+            "and f.physicalPath is not null and f.physicalPath <> '' " +
             "and (:targetStatus is null or f.reviewed = :targetStatus)")
     List<File> findCandidates(@Param("project") Project project,
                               @Param("searchText") String searchText,
@@ -90,6 +97,7 @@ public interface FileRepository extends JmixDataRepository<File, Long> {
     @Query("select count(f) from File f " +
             "where f.project = :project " +
             "and lower(f.fileName) like lower(concat('%', :searchText, '%')) " +
+            "and f.physicalPath is not null and f.physicalPath <> '' " +
             "and (:targetStatus is null or f.reviewed = :targetStatus)")
     long countCandidates(@Param("project") Project project,
                          @Param("searchText") String searchText,

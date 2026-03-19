@@ -19,11 +19,9 @@
 
 package eu.occtet.bocfrontend.dao;
 
-import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.License;
-import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.entity.*;
 import io.jmix.core.repository.JmixDataRepository;
+import io.jmix.core.repository.Query;
 
 import java.util.List;
 
@@ -41,4 +39,12 @@ public interface InventoryItemRepository extends JmixDataRepository<InventoryIte
     List<InventoryItem> findInventoryItemsByInventoryNameAndSoftwareComponent(String name,SoftwareComponent softwareComponent);
     List<InventoryItem> findInventoryItemsByParent(InventoryItem item);
     List<InventoryItem> findInventoryItemsByProjectAndParent(Project project, InventoryItem item);
+    @Query("select distinct i from InventoryItem i join i.softwareComponent sc join i.project p where sc in :softwareComponents and p = :project")
+    List<InventoryItem> findBySoftwareComponentInAndProject(List<SoftwareComponent> softwareComponents, Project project);
+    @Query("select distinct i from InventoryItem i join i.softwareComponent sc join sc.licenses l join i.project p where l = :license and p = :project")
+    List<InventoryItem> findByLicenseAndProject(License license, Project project);
+    @Query("select distinct i from InventoryItem i join i.project p join i.softwareComponent sc join sc.vulnerabilityLinks vl join vl.vulnerability v where v = :vulnerability and p = :project")
+    List<InventoryItem> findByVulnerabilityAndProject(Vulnerability vulnerability, Project project);
+    @Query("select i from InventoryItem i where i.project = :project and i.inventoryName = :name and i.curated = :curated")
+    List<InventoryItem> findByBeforeProjectAndInventoryNameAndCurated(Project project, String name, boolean curated);
 }

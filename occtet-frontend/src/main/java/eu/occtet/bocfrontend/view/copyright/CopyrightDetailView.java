@@ -20,39 +20,25 @@
 package eu.occtet.bocfrontend.view.copyright;
 
 import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.data.renderer.Renderer;
-import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.CopyrightRepository;
-import eu.occtet.bocfrontend.entity.CodeLocation;
 import eu.occtet.bocfrontend.entity.Copyright;
-import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.License;
-import eu.occtet.bocfrontend.view.dialog.AddLicenseDialog;
 import eu.occtet.bocfrontend.view.dialog.AddLicenseToCopyrightDialog;
 import eu.occtet.bocfrontend.view.main.MainView;
-import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
-import io.jmix.core.DataManager;
+import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.kit.component.button.JmixButton;
-import io.jmix.flowui.kit.component.dropdownbutton.DropdownButtonItem;
 import io.jmix.flowui.model.CollectionContainer;
-import io.jmix.flowui.model.CollectionLoader;
-import io.jmix.flowui.model.InstanceContainer;
-import io.jmix.flowui.model.InstanceLoader;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.awt.*;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Route(value = "copyrights/:id", layout = MainView.class)
 @ViewController(id = "Copyright.detail")
@@ -77,6 +63,8 @@ public class CopyrightDetailView extends StandardDetailView<Copyright> {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
+    @Autowired
+    private Messages messages;
 
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
@@ -118,7 +106,7 @@ public class CopyrightDetailView extends StandardDetailView<Copyright> {
             copyrightRepository.save(current);
             updateLicenseGrid();
 
-            notifications.create("Licenses removed.")
+            notifications.create(messages.getMessage("eu.occtet.bocfrontend.view.copyright/notification.remove"))
                     .withPosition(Notification.Position.BOTTOM_END)
                     .show();
         }

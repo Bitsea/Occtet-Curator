@@ -1,2 +1,0 @@
-INSERT INTO PROJECT (ID, PROJECT_NAME, BASEPATH)
-VALUES ('31013112-1111-4121-9181-012345678911', 'example-project', '/home/projects/example');

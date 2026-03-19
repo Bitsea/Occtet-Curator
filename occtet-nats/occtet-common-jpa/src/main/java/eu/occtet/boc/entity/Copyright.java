@@ -1,23 +1,20 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
- *
  */
 
 package eu.occtet.boc.entity;
@@ -26,7 +23,9 @@ package eu.occtet.boc.entity;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @Entity
@@ -52,20 +51,21 @@ public class Copyright {
     @Column(name= "AI_CONTROLLED")
     private Boolean aiControlled;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(
-            name = "COPYRIGHT_CODE_LOCATION_LINK",
+            name = "COPYRIGHT_FILE_LINK",
             joinColumns = @JoinColumn(name = "COPYRIGHT_ID", referencedColumnName = "ID"),
-            inverseJoinColumns = @JoinColumn(name = "CODE_LOCATION_ID", referencedColumnName = "ID"))
-    private List<CodeLocation> codeLocations;
+            inverseJoinColumns = @JoinColumn(name = "FILE_ID", referencedColumnName = "ID"))
+    private Set<File> files = new HashSet<>();;
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name= "COPYRIGHT_ID")
     private List<License> licenses;
 
-    public Copyright(String copyrightText, List<CodeLocation> cl) {
+    public Copyright(String copyrightText, Set<File> cl) {
         this.copyrightText = copyrightText;
-        this.codeLocations = cl;
+        this.files = cl;
         this.curated = false;
         this.garbage = false;
         this.aiControlled=false;
@@ -109,12 +109,12 @@ public class Copyright {
         this.curated = curated;
     }
 
-    public List<CodeLocation> getCodeLocations() {
-        return codeLocations;
+    public Set<File> getFiles() {
+        return files;
     }
 
-    public void setCodeLocations(List<CodeLocation> codeLocation) {
-        this.codeLocations = codeLocation;
+    public void setFiles(Set<File> files) {
+        this.files = files;
     }
 
     public boolean isGarbage() {

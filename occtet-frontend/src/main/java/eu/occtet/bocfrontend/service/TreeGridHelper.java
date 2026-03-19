@@ -24,6 +24,8 @@ package eu.occtet.bocfrontend.service;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
+import com.vaadin.flow.component.grid.contextmenu.GridSubMenu;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -32,11 +34,12 @@ import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
 import eu.occtet.bocfrontend.dao.FileRepository;
-import eu.occtet.bocfrontend.view.TabManager;
+import eu.occtet.bocfrontend.dao.InventoryItemRepository;
+import eu.occtet.bocfrontend.view.audit.TabManager;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.factory.UiComponentFactory;
+import eu.occtet.bocfrontend.factory.AuditViewUiComponentFactory;
 import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
 import eu.occtet.bocfrontend.view.audit.FileHierarchyProvider;
 import io.jmix.core.Messages;
@@ -67,7 +70,9 @@ public class TreeGridHelper {
     @Autowired
     private FileRepository fileRepository;
     @Autowired
-    private UiComponentFactory uiComponentFactory;
+    private InventoryItemRepository inventoryItemRepository;
+    @Autowired
+    private AuditViewUiComponentFactory uiComponentFactory;
     @Autowired
     private Messages messages;
 
@@ -103,7 +108,8 @@ public class TreeGridHelper {
 
     public void copyToClipboard(String text) {
         UiComponentUtils.copyToClipboard(text)
-                .then(success -> notifications.create(messages.getMessage("eu.occtet.bocfrontend.view.audit/notification.copySuccess"))
+                .then(success -> notifications.create(messages.getMessage("eu.occtet.bocfrontend.view.audit/notification.copySuccess")
+                                + " " + text)
                                 .withPosition(Notification.Position.BOTTOM_END)
                                 .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
                                 .show(),
@@ -132,21 +138,28 @@ public class TreeGridHelper {
                                 messages.getMessage("eu.occtet.bocfrontend.view.audit/context.openFile")),
                         event -> tabManager.openFileTab(file, true));
 
-                contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CUBE,
-                        messages.getMessage("eu.occtet.bocfrontend.view.audit/context.openInventory")), event -> {
-                    InventoryItem item = null;
-                    if (file.getCodeLocation() != null) {
-                        item = file.getCodeLocation().getInventoryItem();
+                Set<InventoryItem> items = file.getInventoryItems();
+
+                GridMenuItem<File> inventoryMenuItem = contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CUBE,
+                        messages.getMessage("eu.occtet.bocfrontend.view.audit/context.openInventory")));
+
+                if (items != null && !items.isEmpty()) {
+                    GridSubMenu<File> subMenu = inventoryMenuItem.getSubMenu();
+
+                    for (InventoryItem item : items) {
+                        subMenu.addItem(item.getInventoryName(),
+                                e -> {
+                                    inventoryItemRepository.findById(item.getId())
+                                            .ifPresent(reloadedItem -> {
+                                                log.debug("Opening inventory: {}", reloadedItem.getInventoryName());
+                                                tabManager.openInventoryItemTab(reloadedItem, true);
+                                            });
+                                });
                     }
-                    if (item != null) {
-                        log.debug("Opening inventory: {}", item.getInventoryName());
-                        tabManager.openInventoryItemTab(item, true);
-                    } else {
-                        Notification.show(messages.getMessage("eu.occtet.bocfrontend.view.audit/notification.noInventory"),
-                                        3000, Notification.Position.BOTTOM_END)
-                                .addThemeVariants(NotificationVariant.LUMO_WARNING);
-                    }
-                });
+                } else {
+                    inventoryMenuItem.setEnabled(false);
+                }
+
                 contextMenu.add(new Hr());
             }
 
@@ -168,8 +181,12 @@ public class TreeGridHelper {
                     event -> copyToClipboard(file.getFileName()));
 
             contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CLIPBOARD_TEXT,
-                            messages.getMessage("eu.occtet.bocfrontend.view.audit/context.copyPath")),
-                    event -> copyToClipboard(file.getAbsolutePath()));
+                            messages.getMessage("eu.occtet.bocfrontend.view.audit/context.projectPath")),
+                    event -> copyToClipboard(file.getProjectPath()));
+
+            contextMenu.addItem(uiComponentFactory.createContextMenuItem(VaadinIcon.CLIPBOARD_TEXT,
+                            messages.getMessage("eu.occtet.bocfrontend.view.audit/context.artifactPath")),
+                    event -> copyToClipboard(file.getArtifactPath()));
 
             boolean isReviewed = Boolean.TRUE.equals(file.getReviewed());
             if (isReviewed) {

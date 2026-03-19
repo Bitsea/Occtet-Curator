@@ -1,0 +1,7 @@
+{
+  "type": "descriptor",
+  "name": "occtet-nats-ort-run-starter-service",
+  "description": "A microservice for starting ort run",
+  "usageType": "RUNNABLE_BY_SERVICE",
+  "acceptableWorkData": "ORTStartRunWorkData"
+}

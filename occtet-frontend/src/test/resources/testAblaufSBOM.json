@@ -2257,7 +2257,7 @@
       "algorithm" : "SHA1",
       "checksumValue" : "23040a56cfdd9cde43dafdd3dc450f40253dd204"
     } ],
-    "copyrightText" : "Copyright (c) 2012 The Guava Authors",
+    "copyrightText" : "Copyright (c) The Guava Authors",
     "fileName" : "com/google/common/collect/FilteredKeyListMultimap.java",
     "licenseConcluded" : "NOASSERTION",
     "licenseInfoInFiles" : [ "Apache-2.0" ]
@@ -2497,7 +2497,7 @@
       "algorithm" : "SHA1",
       "checksumValue" : "028a17e9375aaa2445c79b9432fdfeddb115b4a9"
     } ],
-    "copyrightText" : "Copyright (c) 2012 The Guava Authors",
+    "copyrightText" : "Copyright (c) 2012",
     "fileName" : "com/google/common/collect/ForwardingNavigableSet.java",
     "licenseConcluded" : "NOASSERTION",
     "licenseInfoInFiles" : [ "Apache-2.0" ]
@@ -2717,7 +2717,7 @@
       "algorithm" : "SHA1",
       "checksumValue" : "dcdbc7bb9f910be6623761564e832323247a376d"
     } ],
-    "copyrightText" : "Copyright (c) 2008 The Guava Authors",
+    "copyrightText" : "Copyright (c) 2008 <div> caption </div>",
     "fileName" : "com/google/common/collect/ImmutableEntry.java",
     "licenseConcluded" : "NOASSERTION",
     "licenseInfoInFiles" : [ "Apache-2.0" ]
@@ -3027,7 +3027,7 @@
       "algorithm" : "SHA1",
       "checksumValue" : "c193772edf7184d791a26ff74bb9d1324e14d2e0"
     } ],
-    "copyrightText" : "Copyright (c) 2007 The Guava Authors",
+    "copyrightText" : "Copyright (c) test",
     "fileName" : "com/google/common/collect/LinkedListMultimap.java",
     "licenseConcluded" : "NOASSERTION",
     "licenseInfoInFiles" : [ "Apache-2.0" ]
@@ -3277,7 +3277,7 @@
       "algorithm" : "SHA1",
       "checksumValue" : "2affea99a82221b9c423cff0bf3f0d6d4b8a394d"
     } ],
-    "copyrightText" : "Copyright (c) 2012 The Guava Authors",
+    "copyrightText" : "2012 The Guava Authors",
     "fileName" : "com/google/common/collect/RangeMap.java",
     "licenseConcluded" : "NOASSERTION",
     "licenseInfoInFiles" : [ "Apache-2.0" ]
@@ -3377,7 +3377,7 @@
       "algorithm" : "SHA1",
       "checksumValue" : "d00c1e5876489768debfe0903b7b368f2324bfee"
     } ],
-    "copyrightText" : "Copyright (c) 2009 The Guava Authors",
+    "copyrightText" : "(c) 2009 The Guava Authors",
     "fileName" : "com/google/common/collect/RegularImmutableSortedSet.java",
     "licenseConcluded" : "NOASSERTION",
     "licenseInfoInFiles" : [ "Apache-2.0" ]
@@ -3617,7 +3617,7 @@
       "algorithm" : "SHA1",
       "checksumValue" : "bded574e13b6f17a06e1d54f9cea1e8a0412e22b"
     } ],
-    "copyrightText" : "Copyright (c) 2007 The Guava Authors",
+    "copyrightText" : "Copyright (c) 2000007 The Guava Authors",
     "fileName" : "com/google/common/collect/Synchronized.java",
     "licenseConcluded" : "NOASSERTION",
     "licenseInfoInFiles" : [ "Apache-2.0" ]
@@ -3667,7 +3667,7 @@
       "algorithm" : "SHA1",
       "checksumValue" : "73c01cbb467b0876ea3e85e3d0c45b2c1adf1b0b"
     } ],
-    "copyrightText" : "Copyright (c) 2012 The Guava Authors",
+    "copyrightText" : "Copyright (c) 12 The Guava Authors",
     "fileName" : "com/google/common/collect/TransformedListIterator.java",
     "licenseConcluded" : "NOASSERTION",
     "licenseInfoInFiles" : [ "Apache-2.0" ]
@@ -4087,7 +4087,7 @@
       "algorithm" : "SHA1",
       "checksumValue" : "6bb2f886ea42158fdc986010587666fad64482fc"
     } ],
-    "copyrightText" : "Copyright (c) 2016 The Guava Authors",
+    "copyrightText" : "Copyright (c) 2016 -xxxx The Guava Authors",
     "fileName" : "com/google/common/graph/ConfigurableMutableValueGraph.java",
     "licenseConcluded" : "NOASSERTION",
     "licenseInfoInFiles" : [ "Apache-2.0" ]
@@ -4227,7 +4227,7 @@
       "algorithm" : "SHA1",
       "checksumValue" : "64efd783598d454b12f813810ec71d689ef9d20a"
     } ],
-    "copyrightText" : "Copyright (c) 2016 The Guava Authors",
+    "copyrightText" : "Copyright (c) xxxx-2016 The Guava Authors",
     "fileName" : "com/google/common/graph/GraphConstants.java",
     "licenseConcluded" : "NOASSERTION",
     "licenseInfoInFiles" : [ "Apache-2.0" ]
@@ -4327,7 +4327,7 @@
       "algorithm" : "SHA1",
       "checksumValue" : "068ca93dfe6dc924e7114d7820f37e8fbcb50419"
     } ],
-    "copyrightText" : "Copyright (c) 2016 The Guava Authors",
+    "copyrightText" : "Copyright (c) 2016 The these the",
     "fileName" : "com/google/common/graph/MutableValueGraph.java",
     "licenseConcluded" : "NOASSERTION",
     "licenseInfoInFiles" : [ "Apache-2.0" ]
@@ -4447,7 +4447,7 @@
       "algorithm" : "SHA1",
       "checksumValue" : "800e00d31056f3310428b5db023beb4a68ef33b5"
     } ],
-    "copyrightText" : "Copyright (c) 2011 The Guava Authors",
+    "copyrightText" : "Copyright (c) 2011 and $$",
     "fileName" : "com/google/common/hash/AbstractHasher.java",
     "licenseConcluded" : "NOASSERTION",
     "licenseInfoInFiles" : [ "Apache-2.0" ]

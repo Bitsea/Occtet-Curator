@@ -23,6 +23,7 @@ import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.VexData;
 import eu.occtet.bocfrontend.entity.Vulnerability;
 import io.jmix.core.repository.JmixDataRepository;
+import io.jmix.core.repository.Query;
 
 import java.util.List;
 
@@ -32,6 +33,7 @@ import java.util.List;
 public interface VexDataRepository extends JmixDataRepository<VexData, Long> {
 
     List<VexData> findBySoftwareComponent(SoftwareComponent softwareComponent);
-
     List<VexData> findBySoftwareComponentAndVulnerability(SoftwareComponent softwareComponent, List<Vulnerability> selected);
+    @Query("select v from VexData v join v.softwareComponent sc where sc in :softwareComponents")
+    List<VexData> findBySoftwareComponents(List<SoftwareComponent> softwareComponents);
 }

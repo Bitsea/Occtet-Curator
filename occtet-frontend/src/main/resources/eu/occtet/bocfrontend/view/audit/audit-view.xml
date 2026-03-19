@@ -26,18 +26,35 @@
             <loader id="inventoryItemDl">
                 <query>
                     <![CDATA[
-                        select distinct e
-                        from InventoryItem e
-                        where e.project = :project
-                        and (
-                            :vulnerableOnly = false
-                            or (
-                                e.softwareComponent is not null
-                                and e.softwareComponent.vulnerabilities is not empty
+                            select distinct e
+                            from InventoryItem e
+                            where e.project = :project
+                            and (
+                                :vulnerableOnly = false
+                                or (e.softwareComponent is not null and e.softwareComponent.vulnerabilityLinks is not empty)
                             )
-                        )
-                        order by e.inventoryName
-                    ]]>
+                            and (
+                                :invulnerableOnly = false
+                                or (e.softwareComponent is null or e.softwareComponent.vulnerabilityLinks is empty)
+                            )
+                            and (
+                                :curatedOnly = false
+                                or e.curated = true
+                            )
+                            and (
+                                :uncuratedOnly = false
+                                or (e.curated = false or e.curated is null)
+                            )
+                            and (
+                                :hasTodos = false
+                                or e.hasTodos = true
+                            )
+                            and (
+                                :noTodos = false
+                                or (e.hasTodos = false or e.hasTodos is null)
+                            )
+                            order by e.inventoryName
+                        ]]>
                 </query>
             </loader>
             <fetchPlan extends="_local">
@@ -60,7 +77,7 @@
                 <split width="80%" themeNames="splitter-spacing">
                     <vbox classNames="border rounded-m border-contrast-20" width="20%" margin="false" padding="false"
                           spacing="false">
-                        <comboBox id="projectComboBox" label="Choose project" width="97%" alignSelf="CENTER"/>
+                        <comboBox id="projectComboBox" label="msg://eu.occtet.bocfrontend.view.audit/projectComboBox" width="97%" alignSelf="CENTER"/>
                         <vbox id="fileTreeGridLayout" width="100%" height="100%" margin="false" padding="false"
                               spacing="false">
                             <treeDataGrid classNames="occtet-grid" id="fileTreeGrid"
@@ -76,10 +93,14 @@
                             </treeDataGrid>
                         </vbox>
                     </vbox>
-                    <tabSheet id="mainTabSheet" width="84%" height="100%" themeNames="no-padding" >
-                        <tab id="overviewProjectSection" label="Overview">
+                    <tabSheet id="mainTabSheet" width="84%" height="100%" themeNames="no-padding">
+                        <tab id="overviewProjectSection" label="msg://eu.occtet.bocfrontend.view.audit/overviewProjectSection">
                             <fragment class="eu.occtet.bocfrontend.view.audit.fragment.OverviewProjectTabFragment"
                                       id="overviewProjectTabFragment"/>
+                        </tab>
+                        <tab id="ortSection" label="ORT" visible="false">
+                            <fragment class="eu.occtet.bocfrontend.view.audit.fragment.OverviewOrtTabFragment"
+                                      id="overviewOrtTabFragment"/>
                         </tab>
                         <tab id="inventoryItemSection" label="msg://inventoryItems" visible="false">
                             <tabSheet id="inventoryItemTabSheet" width="100%" height="100%"
@@ -92,12 +113,12 @@
                         </tab>
                     </tabSheet>
                 </split>
-                <vbox classNames="toolbox-audit-view" width="16%" margin="false" padding="false"
+                <vbox width="16%" margin="false" padding="false"
                       spacing="false">
                     <button id="createBtn"
                             action="inventoryItemDataGrid.create"
                             icon="PLUS"
-                            themeNames="small"
+                            themeNames="small com"
                             title="msg://createInventoryItem"
                             alignSelf="END"/>
                     <hbox id="toolbarBox"

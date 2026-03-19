@@ -71,7 +71,7 @@ public class SoftwareVexComponentServiceTest {
 
     @BeforeEach
     void setUp() {
-        project = projectFactory.create("SoftwareComponentServiceTestProject","any basepath");
+        project = projectFactory.create("SoftwareComponentServiceTestProject");
         license = licenseFactory.create("SoftwareComponentServiceTestLicenseType",
                 "SoftwareComponentServiceTestLicenseText","SoftwareComponentServiceTestLicenseName");
         List<License> licenses = new ArrayList<>(List.of(license));

@@ -1,43 +1,45 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
- *
  */
 
 package eu.occtet.boc.copyrightFilter.preprocessor;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.occtet.boc.dao.CopyrightRepository;
+import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.model.CopyrightModel;
 import eu.occtet.boc.model.CopyrightText;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Component
 public class CopyrightPreprocessor {
+
+    @Autowired
+    private CopyrightRepository copyrightRepository;
 
 
     private static final Logger log = LogManager.getLogger(CopyrightPreprocessor.class);
@@ -47,23 +49,10 @@ public class CopyrightPreprocessor {
      * Reads the garbage copyrights from a json file into a list of strings
      * @return list of garbage copyrights
      */
-    public List<String> readGarbageCopyrightsFromJson(Path path) {
-        log.debug("readGarbageCopyrightsFromJson called with path: {}", path.toFile().getAbsolutePath());
-        CopyrightText garbageCopyright= new CopyrightText();
-        List<String> copyrightTexts= new ArrayList<>();
-        File jsonFile = new File(path.toFile().getAbsolutePath());
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            InputStream is= new FileInputStream(jsonFile);
-            garbageCopyright = objectMapper.readValue(is, CopyrightText.class);
-            copyrightTexts = garbageCopyright.getCopyright();
-            for(String ct: copyrightTexts){
-                log.debug("read garbage copyright: {}", ct);
-            }
-        }catch(Exception e){
-            log.error("error reading json file: {}", e.getMessage());
-        }
-        return copyrightTexts;
+    public List<String> getGarbageCopyrights() {
+        log.debug("retrieving garbage copyrights from database");
+        List<Copyright> garbageCopyrights= copyrightRepository.findByGarbageTrue();
+        return garbageCopyrights.stream().map(Copyright::getCopyrightText).toList();
     }
 
     /**

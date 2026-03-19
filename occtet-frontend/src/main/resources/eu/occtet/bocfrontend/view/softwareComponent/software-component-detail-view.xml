@@ -25,31 +25,23 @@
         <instance id="softwareComponentDc"
                   class="eu.occtet.bocfrontend.entity.SoftwareComponent">
             <fetchPlan extends="_base">
-                <property name="vulnerabilities" fetchPlan="_base"/>
+                <property name="vulnerabilityLinks" fetchPlan="_base">
+                    <property name="vulnerability" fetchPlan="_base"/>
+                </property>
                 <property name="copyrights" fetchPlan="_base"/>
             </fetchPlan>
-            <collection id="copyrightDc" property="copyrights"/>
-            <fetchPlan extends="_base">
-                <property name="copyrights" fetchPlan="_base"/>
-            </fetchPlan>
-            <loader id="softwareComponentDl"/>
-            </instance>
-        <collection id="vulnerabilityDc" class="eu.occtet.bocfrontend.entity.Vulnerability">
-            <fetchPlan extends="_base"/>
-            <loader id="vulnerabilityDl">
-                <query>
-                    <![CDATA[select e from Vulnerability e]]>
-                </query>
 
-            </loader>
-        </collection>
+            <collection id="vulnerabilityLinksDc" property="vulnerabilityLinks"/>
+            <collection id="copyrightDc" property="copyrights"/>
+
+            <loader id="softwareComponentDl"/>
+        </instance>
+
         <collection id="licenseDc"
                     class="eu.occtet.bocfrontend.entity.License">
             <fetchPlan extends="_base"/>
             <loader id="licenseDl">
-                <query>
-                    <![CDATA[select e from License e]]>
-                </query>
+                <query><![CDATA[select e from License e]]></query>
             </loader>
         </collection>
     </data>
@@ -81,20 +73,18 @@
             </tab>
             <tab id="vulnerabilitiesTab" label="msg://VulnerabilitiesTab.label">
                 <vbox width="100%" alignItems="CENTER" alignSelf="END" height="100%">
-                    <dataGrid id="vulnerabilityDataContainer" dataContainer="vulnerabilityDc" themeNames="">
+                    <dataGrid id="vulnerabilityLinksDataGrid" dataContainer="vulnerabilityLinksDc" themeNames="" classNames="occtet-grid">
                         <columns resizable="true" sortable="true">
-                            <column property="vulnerabilityId" header="msg://Id"/>
-                            <column property="aliases" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.aliases" autoWidth="true"/>
-                            <column property="weightedSeverity" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.weightedSeverity"/>
-                            <column property="exploitability" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.exploitability"/>
-                            <column property="riskScore" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.riskScore"/>
-                            <column property="sourceUrl" header="msg://softwareComponent.sourceUrl"/>
-                            <column property="createdAt"
-                                    header="msg://eu.occtet.bocfrontend.entity/ImportTask.lastUpdate"/>
-                            <column key="actions"
-                                    sortable="false"
-                                    autoWidth="true"
-                                    flexGrow="0"/>
+                            <column property="vulnerability.vulnerabilityId" header="msg://Id"/>
+                            <column property="vulnerability.aliases" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.aliases" autoWidth="true"/>
+                            <column property="vulnerability.weightedSeverity" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.weightedSeverity"/>
+                            <column property="vulnerability.exploitability" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.exploitability"/>
+                            <column property="vulnerability.riskScore" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.riskScore"/>
+                            <column property="vulnerability.sourceUrl" header="msg://softwareComponent.sourceUrl"/>
+
+                            <column property="resolved" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.resolved"/>
+
+                            <column key="actions" sortable="false" autoWidth="true" flexGrow="0"/>
                         </columns>
                     </dataGrid>
                     <button id="updateData" text="msg://updateVulnerabilties" icon="REFRESH" />
