@@ -61,7 +61,7 @@ public class Copyright {
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name= "COPYRIGHT_ID")
-    private List<License> licenses;
+    private List<UsageLicense> licenses;
 
     public Copyright(String copyrightText, Set<File> cl) {
         this.copyrightText = copyrightText;
@@ -133,11 +133,11 @@ public class Copyright {
         this.curated = curated;
     }
 
-    public List<License> getLicenses() {
+    public List<UsageLicense> getLicenses() {
         return licenses;
     }
 
-    public void setLicenses(List<License> licenses) {
+    public void setLicenses(List<UsageLicense> licenses) {
         this.licenses = licenses;
     }
 
