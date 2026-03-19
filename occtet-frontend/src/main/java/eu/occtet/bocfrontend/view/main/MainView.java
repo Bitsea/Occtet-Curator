@@ -19,13 +19,45 @@
 
 package eu.occtet.bocfrontend.view.main;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.router.Route;
 import io.jmix.flowui.app.main.StandardMainView;
+import io.jmix.flowui.kit.action.ActionPerformedEvent;
+import io.jmix.flowui.view.Subscribe;
 import io.jmix.flowui.view.ViewController;
 import io.jmix.flowui.view.ViewDescriptor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
 @Route("")
 @ViewController(id = "MainView")
 @ViewDescriptor(path = "main-view.xml")
 public class MainView extends StandardMainView {
+
+    @Value("${spring.security.oauth2.authorizationserver.endpoint.oidc.logout-uri}")
+    private String logoutUri;
+
+    @Value("${spring.security.oauth2.client.registration.keycloak.redirect-uri}")
+    private String redirectUri;
+
+
+    /**
+     * logout action has to be connected to the keycloak logout
+     * here the address has to be adjusted according do environment
+     * @param event
+     */
+    @Subscribe("logoutAction")
+    public void onLogoutAction(ActionPerformedEvent event) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        OidcUser user = (OidcUser) authentication.getPrincipal();
+        String idToken = user.getIdToken().getTokenValue();
+        String logoutUrl = logoutUri
+                + "?id_token_hint=" + idToken
+                + "&post_logout_redirect_uri="+redirectUri;
+
+        UI.getCurrent().getPage().setLocation(logoutUrl);
+
+    }
 }

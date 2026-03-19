@@ -42,7 +42,7 @@ import java.util.List;
 @ViewController("addUserDialog")
 @ViewDescriptor("add-user-dialog.xml")
 @DialogMode(width = "1000px", height = "650px")
-public class AddUserDialog extends AbstractAddContentDialog<User>{
+public class AddUserDialog extends AbstractAddContentDialog<Organization>{
     private static final Logger log = LogManager.getLogger(AddUserDialog.class);
 
     private Organization organization;
@@ -61,17 +61,14 @@ public class AddUserDialog extends AbstractAddContentDialog<User>{
     @ViewComponent
     private DataGrid<User> userDataGrid;
 
-    @Autowired
-    private DataManager dataManager;
-
     @Subscribe("userDc")
     @Override
-    public void setAvailableContent(Organization organization){
-        this.organization = dataManager.load(Organization.class)
-                .id(organization.getId()).fetchPlan(f -> f.add("users")).one();
+    public void setAvailableContent(Organization organization) {
+        this.organization = organization;
         log.debug("setAvailableContent called with Organization: {}", organization);
         userDc.setItems(memberRepository.findAll());
     }
+
 
     @Subscribe("userDataGrid")
     public void selectAvailableContent(final ItemClickEvent<User> event){
@@ -81,10 +78,9 @@ public class AddUserDialog extends AbstractAddContentDialog<User>{
     @Subscribe(id = "addButton")
     public void addContentButton(ClickEvent<Button> event) {
 
-        List<Project> projects = new ArrayList<>(projectDataGrid.getSelectedItems());
-        if(!projects.isEmpty() && organization != null){
-            organization.getProjects().addAll(projects);
-            dataManager.save(this.organization);
+        List<User> users = new ArrayList<>(userDataGrid.getSelectedItems());
+        if(!users.isEmpty() && organization != null){
+            organization.getUsers().addAll(users);
             close(StandardOutcome.SAVE);
         }
     }
@@ -95,11 +91,12 @@ public class AddUserDialog extends AbstractAddContentDialog<User>{
 
         String searchWord = searchField.getValue();
         if(!searchWord.isEmpty() && event != null){
-            List<Project> listFindings= userRepository.findAll().stream().filter(p-> p.getProjectName().toLowerCase().contains(searchWord.toLowerCase())
-                    || p.getProjectContact().toLowerCase().contains(searchWord.toLowerCase())).toList();
-            projectDc.setItems(listFindings);
+            List<User> listFindings= memberRepository.findAll().stream().filter(u-> u.getUsername().toLowerCase().contains(searchWord.toLowerCase())
+                    || u.getLastName().toLowerCase().contains(searchWord.toLowerCase())
+                    || u.getFirstName().toLowerCase().contains(searchWord.toLowerCase())).toList();
+            userDc.setItems(listFindings);
         }else{
-            projectDc.setItems(userRepository.findAvailableProjects( organization.getProjects()));
+            userDc.setItems(memberRepository.findAvailableUsers( organization.getUsers()));
         }
     }
 

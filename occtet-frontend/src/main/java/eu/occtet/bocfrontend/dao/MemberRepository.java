@@ -21,11 +21,15 @@ package eu.occtet.bocfrontend.dao;
 
 import eu.occtet.bocfrontend.entity.User;
 import io.jmix.core.repository.JmixDataRepository;
+import io.jmix.core.repository.Query;
 
 import java.util.List;
+import java.util.Set;
 
 public interface MemberRepository  extends JmixDataRepository<User, Long> {
 
     List<User> findAll();
+    @Query("select p from User p where p not in :users")
+    List<User> findAvailableUsers(Set<User> users);
 
 }

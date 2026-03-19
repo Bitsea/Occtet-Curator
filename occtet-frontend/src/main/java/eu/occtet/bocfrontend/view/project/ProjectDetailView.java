@@ -85,7 +85,7 @@ public class ProjectDetailView extends StandardDetailView<Project> {
     private ProjectRepository projectRepository;
     @Autowired
     private CurrentAuthentication currentAuthentication;
-    @Autowired
+    @ViewComponent
     private JmixComboBox<Organization> organization;
     @Autowired
     private OrganizationRepository organizationRepository;
@@ -98,23 +98,50 @@ public class ProjectDetailView extends StandardDetailView<Project> {
     @Subscribe
     protected void onInit(InitEvent event) {
         projects = projectRepository.findAll();
-        Project project= this.getEditedEntity();
-        User user = (User) currentAuthentication.getUser();
-        if(isAdmin()){
-            List<Organization> organizations= organizationRepository.findAll();
-            organization.setItems(organizations);
-        }else {
-            project.setOrganization(user.getOrganization());
-            organization.setItems(List.of(user.getOrganization()));
-        }
+
+        organization.setItemLabelGenerator(Organization::getOrganizationName);
         initHeaderForDataGrid(searchTermsProfilesDataGrid, messages.getMessage("eu.occtet.bocfrontend.view.project/Project.h2.searchTermsProfile"));
     }
 
+    @Subscribe
+    public void onBeforeShow(final BeforeShowEvent event) {
+        User user = (User) currentAuthentication.getUser();
+        Project project= this.getEditedEntity();
+
+        if(isAdmin() && project.getOrganization()==null){
+            log.debug("is admin + orga null");
+            List<Organization> organizations= organizationRepository.findAll();
+            organization.setReadOnly(false);
+            log.debug("organization list : {}", organizations.size());
+            organization.setItems(organizations);
+        }else if(project.getOrganization()==null) {
+            log.debug("orga null");
+            organization.setItems(user.getOrganization());
+            organization.setValue(user.getOrganization());
+        }else if(isAdmin()){
+            log.debug("is admin");
+            organization.setReadOnly(false);
+            List<Organization> organizations= organizationRepository.findAll();
+            organization.setItems(organizations);
+            organization.setValue(project.getOrganization());
+        }else{
+            log.debug("normal user and project has orga");
+            organization.setItems(project.getOrganization());
+            organization.setValue(project.getOrganization());
+        }
+    }
+
+
+
     public boolean isAdmin() {
+        currentAuthentication.getAuthentication()
+                .getAuthorities()
+                .stream()
+                .forEach(a -> log.debug("authority {}", a.getAuthority()));
         return currentAuthentication.getAuthentication()
                 .getAuthorities()
                 .stream()
-                .anyMatch(a -> a.getAuthority().equals("admin")
+                .anyMatch(a -> a.getAuthority().equals("ROLE_admin")
                         || a.getAuthority().equals("system-full-access"));
     }
 
@@ -156,6 +183,7 @@ public class ProjectDetailView extends StandardDetailView<Project> {
 
     @Subscribe
     protected void onBeforeSave(BeforeSaveEvent event){
+        this.getEditedEntity().setOrganization(organization.getValue());
 
         AppConfiguration globalBasePath =
                 appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH).orElse(null);

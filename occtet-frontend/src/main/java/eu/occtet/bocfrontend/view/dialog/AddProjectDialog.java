@@ -40,7 +40,7 @@ import java.util.List;
 @ViewController("addProjectDialog")
 @ViewDescriptor("add-project-dialog.xml")
 @DialogMode(width = "1000px", height = "650px")
-public class AddProjectDialog extends AbstractAddContentDialog<Project>{
+public class AddProjectDialog extends AbstractAddContentDialog<Organization>{
     private static final Logger log = LogManager.getLogger(AddProjectDialog.class);
 
     private Organization organization;
@@ -65,15 +65,14 @@ public class AddProjectDialog extends AbstractAddContentDialog<Project>{
     @Subscribe("projectDc")
     @Override
     public void setAvailableContent(Organization organization){
-        this.organization = dataManager.load(Organization.class)
-                .id(organization.getId()).fetchPlan(f -> f.add("projects")).one();
-        log.debug("setAvailableContent called with Organization: {}", organization);
+        this.organization = organization;
         projectDc.setItems(projectRepository.findAll());
     }
 
     @Subscribe("projectDataGrid")
     public void selectAvailableContent(final ItemClickEvent<Project> event){
-        project = event.getItem();}
+        project = event.getItem();
+    }
 
     @Override
     @Subscribe(id = "addButton")

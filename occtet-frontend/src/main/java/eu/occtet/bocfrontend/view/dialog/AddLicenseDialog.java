@@ -43,7 +43,7 @@ import java.util.List;
 @ViewController("addLicenseDialog")
 @ViewDescriptor("add-license-dialog.xml")
 @DialogMode(width = "1000px", height = "650px")
-public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent> {
+public abstract class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent> {
 
     private static final Logger log = LogManager.getLogger(AddLicenseDialog.class);
 

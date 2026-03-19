@@ -23,7 +23,9 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.Organization;
 import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.entity.User;
 import eu.occtet.bocfrontend.view.dialog.AddProjectDialog;
+import eu.occtet.bocfrontend.view.dialog.AddUserDialog;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.kit.component.button.JmixButton;
@@ -49,6 +51,10 @@ public class OrganizationDetailView extends StandardDetailView<Organization> {
 
     @ViewComponent
     private CollectionContainer<Project> projectDc;
+
+
+    @ViewComponent
+    private CollectionContainer<User> userDc;
 
     @Subscribe(id = "addProjectButton", subject = "clickListener")
     public void onAddProjectButtonClick(final ClickEvent<JmixButton> event) {
@@ -78,7 +84,7 @@ public class OrganizationDetailView extends StandardDetailView<Organization> {
 
     public void updateMemberGrid(){
         log.debug("update users {}", getEditedEntity().getProjects().size());
-        userDc.setItems(getEditedEntity().getProjects());
+        userDc.setItems(getEditedEntity().getUsers());
     }
 
 

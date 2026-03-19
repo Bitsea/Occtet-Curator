@@ -22,12 +22,18 @@
 package eu.occtet.bocfrontend.security;
 
 import eu.occtet.bocfrontend.entity.User;
+import eu.occtet.bocfrontend.view.project.ProjectDetailView;
+import io.jmix.core.DataManager;
 import io.jmix.core.UnconstrainedDataManager;
+import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.core.security.UserRepository;
 import io.jmix.oidc.claimsmapper.ClaimsRolesMapper;
 import io.jmix.oidc.usermapper.SynchronizingOidcUserMapper;
 import io.jmix.security.role.RoleGrantedAuthorityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -39,6 +45,13 @@ import java.util.Collection;
 @Component
 @Profile("local") // TODO Change to live once done testing stuff locally
 public class OcctetSynchronizingOidcUserMapper extends SynchronizingOidcUserMapper<User> {
+
+    private static final Logger log = LogManager.getLogger(OcctetSynchronizingOidcUserMapper.class);
+
+
+
+    @Autowired
+    private DataManager dataManager;
 
     public OcctetSynchronizingOidcUserMapper(UnconstrainedDataManager dataManager,
                                          UserRepository userRepository,
@@ -61,6 +74,7 @@ public class OcctetSynchronizingOidcUserMapper extends SynchronizingOidcUserMapp
         jmixUser.setFirstName(oidcUser.getGivenName());
         jmixUser.setLastName(oidcUser.getFamilyName());
         jmixUser.setEmail(oidcUser.getEmail());
+        log.debug("populated attributes User {}", jmixUser.getUsername());
     }
 
     @Override
