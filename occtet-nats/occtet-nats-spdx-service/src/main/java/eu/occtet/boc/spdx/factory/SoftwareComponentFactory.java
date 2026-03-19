@@ -36,8 +36,7 @@ public class SoftwareComponentFactory {
 
     public SoftwareComponent create(String softwareName, String version,
                                     List<UsageLicense> license, String url) {
-        String purl="";
-        boolean curated=false;
+
         SoftwareComponent softwareComponent= new SoftwareComponent(softwareName, version,license, url );
         return softwareComponentRepository.save(softwareComponent);}
 

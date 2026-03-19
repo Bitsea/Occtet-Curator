@@ -56,7 +56,7 @@ import static org.mockito.ArgumentMatchers.any;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {SpdxService.class, SoftwareComponentService.class, SoftwareComponentRepository.class,
-        CopyrightService.class, InventoryItemService.class, LicenseService.class, FileService.class,
+        CopyrightService.class, InventoryItemService.class, TemplateLicenseService.class, FileService.class,
         ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class, FileRepository.class,
         CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class,
         LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class, LicenseHandler.class, PackageHandler.class, OrphanHandler.class,

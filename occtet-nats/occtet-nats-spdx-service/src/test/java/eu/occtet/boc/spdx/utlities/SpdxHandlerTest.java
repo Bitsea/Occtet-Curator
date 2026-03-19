@@ -65,7 +65,7 @@ import java.util.Optional;
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {
         SpdxService.class, SoftwareComponentService.class, SoftwareComponentRepository.class,
-        CopyrightService.class, InventoryItemService.class, LicenseService.class, FileService.class,
+        CopyrightService.class, InventoryItemService.class, TemplateLicenseService.class, FileService.class,
         ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class, FileRepository.class,
         CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class,
         LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class,
@@ -93,7 +93,7 @@ public class SpdxHandlerTest {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
-    private LicenseRepository licenseRepository;
+    private TemplateLicenseRepository templateLicenseRepository;
 
     @Autowired
     private LicenseHandler licenseHandler;
@@ -222,7 +222,7 @@ public class SpdxHandlerTest {
         Assertions.assertTrue(hasSnippetCopyright, "Component should contain snippet copyright");
 
         boolean hasSnippetLicense = component.getLicenses().stream()
-                .anyMatch(l -> l.getLicenseName().equals("GPL-2.0-only"));
+                .anyMatch(l -> l.getTemplate().getLicenseName().equals("GPL-2.0-only"));
         Assertions.assertTrue(hasSnippetLicense, "Component should contain snippet license (GPL-2.0-only)");
     }
 
@@ -259,39 +259,43 @@ public class SpdxHandlerTest {
 
     @Test
     public void testLicenseHandler_ShouldProcessExtractedAndListedLicenses() throws Exception {
-
         SpdxPackage pkg4 = getPackageById("SPDXRef-Package-Maven-pkg4-grp-pkg4-0.0.1");
         AnyLicenseInfo standardLicenseInfo = pkg4.getLicenseDeclared();
         SpdxPackage pkg6 = getPackageById("SPDXRef-Package-Maven-pkg6-grp-pkg6-0.0.1");
         AnyLicenseInfo extractedLicenseInfo = pkg6.getLicenseDeclared();
 
-        List<License> standardResult = licenseHandler.createLicenses(
+        List<UsageLicense> standardResult = licenseHandler.createUsageLicenses(
                 standardLicenseInfo,
                 context.getLicenseCache(),
                 context.getExtractedLicenseInfos()
         );
 
-        List<License> extractedResult = licenseHandler.createLicenses(
+        List<UsageLicense> extractedResult = licenseHandler.createUsageLicenses(
                 extractedLicenseInfo,
                 context.getLicenseCache(),
                 context.getExtractedLicenseInfos()
         );
 
-
+        // Standard License assertions
         Assertions.assertEquals(1, standardResult.size());
-        License mit = standardResult.getFirst();
-        Assertions.assertEquals("MIT", mit.getLicenseName());
-        Assertions.assertTrue(mit.isSpdx(), "Standard license should be marked as SPDX");
-        Assertions.assertFalse(licenseRepository.findByLicenseName("MIT").isEmpty(), "MIT should be persisted");
+        UsageLicense mitUsage = standardResult.getFirst();
+        TemplateLicense mitTemplate = mitUsage.getTemplate();
 
+        Assertions.assertEquals("MIT", mitTemplate.getLicenseName());
+        Assertions.assertTrue(mitTemplate.getIsSpdx(), "Standard license should be marked as SPDX");
+        Assertions.assertFalse(templateLicenseRepository.findByLicenseType("MIT").isEmpty(), "MIT should be persisted as a template");
+
+        // Extracted License assertions
         Assertions.assertEquals(1, extractedResult.size());
-        License asmus = extractedResult.getFirst();
-        Assertions.assertEquals("LicenseRef-scancode-asmus", asmus.getLicenseName());
-        Assertions.assertFalse(asmus.isSpdx(), "Extracted license should NOT be marked as standard SPDX");
+        UsageLicense asmusUsage = extractedResult.getFirst();
+        TemplateLicense asmusTemplate = asmusUsage.getTemplate();
 
-        Assertions.assertTrue(asmus.getLicenseText().contains("ASMUS License"), "Should contain the extracted title");
-        Assertions.assertTrue(asmus.getLicenseText().contains("This file contains bugs"), "Should contain the extracted body text");
-        Assertions.assertFalse(licenseRepository.findByLicenseName("LicenseRef-scancode-asmus").isEmpty(), "Custom license should be persisted");
+        Assertions.assertEquals("LicenseRef-scancode-asmus", asmusTemplate.getLicenseName());
+        Assertions.assertFalse(asmusTemplate.getIsSpdx(), "Extracted license should NOT be marked as standard SPDX");
+
+        Assertions.assertTrue(asmusUsage.getUsageText().contains("ASMUS License"), "Usage license should contain the extracted title");
+        Assertions.assertTrue(asmusUsage.getUsageText().contains("This file contains bugs"), "Usage license should contain the extracted body text");
+        Assertions.assertFalse(templateLicenseRepository.findByLicenseType("LicenseRef-scancode-asmus").isEmpty(), "Custom template should be persisted");
     }
 
     /**
