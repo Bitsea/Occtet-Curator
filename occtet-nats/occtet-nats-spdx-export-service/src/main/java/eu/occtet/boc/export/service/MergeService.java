@@ -55,7 +55,7 @@ public class MergeService {
     @Transactional
     public void mergeChangesToDocumentEntities(SpdxDocumentRoot spdxDocumentRoot, Project project) {
         log.info("Starting to merge curated changes for project: {}", project.getProjectName());
-        Set<License> customLicensesToExtract = new HashSet<>();
+        Set<UsageLicense> customLicensesToExtract = new HashSet<>();
 
         spdxDocumentRoot.setName(project.getProjectName());
 
@@ -168,20 +168,20 @@ public class MergeService {
      * @param spdxDocumentRoot The root document entity.
      * @param collectedLicenses The aggregate set of all licenses utilized across components and files.
      */
-    private void handleExtractedLicenses(SpdxDocumentRoot spdxDocumentRoot, Set<License> collectedLicenses) {
+    private void handleExtractedLicenses(SpdxDocumentRoot spdxDocumentRoot, Set<UsageLicense> collectedLicenses) {
         List<ExtractedLicensingInfoEntity> newExtractedLicenses = new ArrayList<>();
 
-        for (License license : collectedLicenses) {
-            if (license.getLicenseName() != null && license.getLicenseName().trim().equalsIgnoreCase("UNKNOWN")) {
+        for (UsageLicense license : collectedLicenses) {
+            if (license.getTemplate().getLicenseName() != null && license.getTemplate().getLicenseName().trim().equalsIgnoreCase("UNKNOWN")) {
                 continue;
             }
 
-            if (Boolean.FALSE.equals(license.isSpdx()) || Boolean.TRUE.equals(license.isModified())) {
+            if (Boolean.FALSE.equals(license.getTemplate().getIsSpdx()) ) {
                 ExtractedLicensingInfoEntity extractedInfo = new ExtractedLicensingInfoEntity();
                 extractedInfo.setSpdxDocument(spdxDocumentRoot);
                 extractedInfo.setLicenseId(generateLicenseRefId(license));
-                extractedInfo.setName(license.getLicenseName() != null ? license.getLicenseName() : "Custom License");
-                extractedInfo.setExtractedText(license.getLicenseText());
+                extractedInfo.setName(license.getTemplate().getLicenseName() != null ? license.getTemplate().getLicenseName() : "Custom License");
+                extractedInfo.setExtractedText(license.getUsageText());
                 newExtractedLicenses.add(extractedInfo);
             }
         }
@@ -214,15 +214,15 @@ public class MergeService {
      * @param licenses The list of applied licenses.
      * @return The formatted license expression string (e.g., "MIT AND LicenseRef-12").
      */
-    private String formatLicenseExpression(Collection<License> licenses) {
+    private String formatLicenseExpression(Collection<UsageLicense> licenses) {
         return licenses.stream()
                 .map(license -> {
-                    String name = license.getLicenseName();
+                    String name = license.getTemplate().getLicenseName();
                     // Intercept UNKNOWN and replace with SPDX standard NOASSERTION
                     if (name != null && name.trim().equalsIgnoreCase("UNKNOWN")) {
                         return "NOASSERTION";
                     }
-                    if (Boolean.FALSE.equals(license.isSpdx()) || Boolean.TRUE.equals(license.isModified())) {
+                    if (Boolean.FALSE.equals(license.getTemplate().getIsSpdx())) {
                         return generateLicenseRefId(license);
                     }
                     return name;
@@ -230,9 +230,9 @@ public class MergeService {
                 .collect(Collectors.joining(" AND "));
     }
 
-    private String generateLicenseRefId(License license) {
-        if (license.getLicenseName() != null && !license.getLicenseName().isBlank()) {
-            String sanitizedName = license.getLicenseName().replaceAll("[^A-Za-z0-9.-]", "-");
+    private String generateLicenseRefId(UsageLicense license) {
+        if (license.getTemplate().getLicenseType() != null && !license.getTemplate().getLicenseName().isBlank()) {
+            String sanitizedName = license.getTemplate().getLicenseName().replaceAll("[^A-Za-z0-9.-]", "-");
             sanitizedName = sanitizedName.replaceAll("-+", "-");
             return "LicenseRef-" + sanitizedName;
         }

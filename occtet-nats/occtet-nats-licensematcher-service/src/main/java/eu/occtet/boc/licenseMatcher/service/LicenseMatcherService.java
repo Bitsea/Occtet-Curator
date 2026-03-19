@@ -22,7 +22,6 @@ package eu.occtet.boc.licenseMatcher.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.UsageLicense;
 import eu.occtet.boc.licenseMatcher.factory.InventoryItemFactory;
 import eu.occtet.boc.licenseMatcher.tools.LicenseMatcher;

@@ -57,9 +57,9 @@ import static org.mockito.ArgumentMatchers.any;
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {SpdxService.class, SoftwareComponentService.class, SoftwareComponentRepository.class,
         CopyrightService.class, InventoryItemService.class, TemplateLicenseService.class, FileService.class,
-        ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class, FileRepository.class,
+        ProjectRepository.class, TemplateLicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class, FileRepository.class,
         CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class,
-        LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class, LicenseHandler.class, PackageHandler.class, OrphanHandler.class,
+        SpdxConverter.class, TestEclipseLinkJpaConfiguration.class, LicenseHandler.class, PackageHandler.class, OrphanHandler.class,
         RelationshipHandler.class, SnippetHandler.class, JsonSanitizer.class
 })
 @EnableJpaRepositories(basePackages = {

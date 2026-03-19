@@ -1,27 +1,27 @@
 /*
- * Copyright (C) 2025 Bitsea GmbH
+ *  Copyright (C) 2025 Bitsea GmbH
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  You may obtain a copy of the License at
  *
- *      https:www.apache.orglicensesLICENSE-2.0
+ *  https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and limitations under the License.
  *
- *  SPDX-License-Identifier: Apache-2.0
+ *   SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
  */
 
 package eu.occtet.boc.fossreport.factory;
 
 
-import eu.occtet.boc.entity.License;
-import eu.occtet.boc.dao.LicenseRepository;
+import eu.occtet.boc.dao.TemplateLicenseRepository;
+
+import eu.occtet.boc.entity.TemplateLicense;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,21 +32,25 @@ public class LicenseFactory {
 
     private static final Logger log = LoggerFactory.getLogger(LicenseFactory.class);
 
-    private final LicenseRepository licenseRepository;
+    private final TemplateLicenseRepository licenseRepository;
 
     @Autowired
-    public LicenseFactory(LicenseRepository licenseRepository) {
+    public LicenseFactory(TemplateLicenseRepository licenseRepository) {
         this.licenseRepository = licenseRepository;
     }
 
-    public License create(String licenseId, String licenseText){
+    public TemplateLicense create(String licenseId, String licenseText){
         log.debug("Creating License with licenseId: {} and licenseText: {}", licenseId, licenseText);
-        License license = new License(licenseId, licenseText);
+        TemplateLicense license = new TemplateLicense();
+        license.setLicenseName(licenseId);
+        license.setTemplateText(licenseText);
         return licenseRepository.save(license);
     }
-    public License createWithModified(String licenseId, String licenseText, Boolean modified){
+    public TemplateLicense createWithModified(String licenseId, String licenseText, Boolean modified){
         log.debug("Creating License with licenseId: {} and licenseText: {} and modified: {}", licenseId, licenseText, modified);
-        License license = new License(licenseId, licenseText, modified);
+        TemplateLicense license = new TemplateLicense();
+        license.setLicenseName(licenseId);
+        license.setTemplateText(licenseText);
         return licenseRepository.save(license);
     }
 

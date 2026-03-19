@@ -144,7 +144,7 @@ public class FossReportService extends ProgressReportingService {
             boolean wasCombined = FossReportUtilities.wasCombined(inventoryName);
             boolean isStyleBy = inventoryName.contains("Style");
             String url = rowDto.URL();
-            List<License> licenses = prepareLicenses(wasCombined, isStyleBy, rowDto);
+            List<UsageLicense> licenses = prepareLicenses(wasCombined, isStyleBy, rowDto);
             String parentComponentVersion = FossReportUtilities.extractVersion(rowDto.parentNameAndVersion());
             String parentComponentName = FossReportUtilities.extractVersionOfComponentName(rowDto.parentNameAndVersion(),
                     parentComponentVersion);
@@ -227,20 +227,20 @@ public class FossReportService extends ProgressReportingService {
      *
      * @return a list of License objects containing extracted license information.
      */
-    private List<License> prepareLicenses(boolean wasCombined, Boolean isStyleBy, RowDto rowDto) {
+    private List<UsageLicense> prepareLicenses(boolean wasCombined, Boolean isStyleBy, RowDto rowDto) {
 
         List<String> licenseNames;
-        List<License> licenses = new ArrayList<>();
+        List<UsageLicense> licenses = new ArrayList<>();
 
         if (wasCombined) {
             licenseNames = FossReportUtilities.separateCombinedLicenses(rowDto.licenseTypeId());
             for (String licenseName : licenseNames) {
                 licenses.add(licenseService.findOrCreateLicenseWithModified(licenseName, rowDto.licenseText(),
-                        isStyleBy));
+                        isStyleBy).getUsages().getFirst());
             }
         } else {
             licenses.add(licenseService.findOrCreateLicenseWithModified(rowDto.licenseTypeId(),
-                    rowDto.licenseText(), isStyleBy));
+                    rowDto.licenseText(), isStyleBy).getUsages().getFirst());
         }
         log.debug("Licenses found: {}", licenses.size());
         return licenses;

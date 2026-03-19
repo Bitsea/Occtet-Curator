@@ -66,10 +66,10 @@ import java.util.Optional;
 @ContextConfiguration(classes = {
         SpdxService.class, SoftwareComponentService.class, SoftwareComponentRepository.class,
         CopyrightService.class, InventoryItemService.class, TemplateLicenseService.class, FileService.class,
-        ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class, FileRepository.class,
-        CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class,
-        LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class,
-        LicenseHandler.class, PackageHandler.class, OrphanHandler.class, RelationshipHandler.class, SnippetHandler.class, JsonSanitizer.class
+        ProjectRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class, FileRepository.class,
+        CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class,
+        LicenseHandler.class, PackageHandler.class, OrphanHandler.class, RelationshipHandler.class, SnippetHandler.class, JsonSanitizer.class,
+        TemplateLicenseRepository.class, TemplateLicense.class
 })
 @EnableJpaRepositories(basePackages = {"eu.occtet.boc.dao"})
 @EntityScan(basePackages = {"eu.occtet.boc.entity"})

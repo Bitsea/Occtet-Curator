@@ -19,8 +19,8 @@
 
 package eu.occtet.boc.fossreport.factory;
 
-import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.SoftwareComponent;
+import eu.occtet.boc.entity.UsageLicense;
 import eu.occtet.boc.fossreport.dao.SoftwareComponentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +38,7 @@ public class SoftwareComponentFactory {
     private SoftwareComponentRepository softwareComponentRepository;
 
     public SoftwareComponent create(String softwareName, String version,
-                                              List<License> license, String url) {
+                                    List<UsageLicense> license, String url) {
         log.debug("Creating Software Component with name: {}, version: {} and more...", softwareName, version);
             return softwareComponentRepository.save(new SoftwareComponent(
                     softwareName,

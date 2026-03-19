@@ -20,8 +20,8 @@
 package eu.occtet.boc.fossreport.service;
 
 
-import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.SoftwareComponent;
+import eu.occtet.boc.entity.UsageLicense;
 import eu.occtet.boc.fossreport.dao.SoftwareComponentRepository;
 import eu.occtet.boc.fossreport.factory.SoftwareComponentFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +42,7 @@ public class SoftwareComponentService {
     public SoftwareComponent getOrCreateSoftwareComponent(
             String softwareName,
             String version,
-            List<License> license,
+            List<UsageLicense> license,
             String url){
         List<SoftwareComponent> existing = softwareComponentRepository.findByNameAndVersion(softwareName, version);
 
@@ -71,7 +71,7 @@ public class SoftwareComponentService {
 
     private void updateSoftwareComponent(
             SoftwareComponent softwareComponent,
-            List<License> license, String url) {
+            List<UsageLicense> license, String url) {
         if (!softwareComponent.isCurated()) {
             if (license != null) {
                 if (softwareComponent.getLicenses() == null) {
