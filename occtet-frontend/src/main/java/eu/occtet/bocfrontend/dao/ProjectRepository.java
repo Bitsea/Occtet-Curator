@@ -21,6 +21,7 @@ package eu.occtet.bocfrontend.dao;
 
 import eu.occtet.bocfrontend.entity.Project;
 import io.jmix.core.repository.JmixDataRepository;
+import io.jmix.core.repository.Query;
 
 import java.util.List;
 
@@ -29,4 +30,7 @@ import java.util.List;
 
 public interface ProjectRepository extends JmixDataRepository<Project, Long> {
     List<Project> findAll();
+    @Query("select p from project p where p.projectName = :name and p.version = :version")
+    List<Project> findByNameAndVersion(String name, String version);
+    List<Project> findByProjectName(String name);
 }

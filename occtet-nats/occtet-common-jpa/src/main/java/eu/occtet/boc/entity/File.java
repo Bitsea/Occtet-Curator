@@ -1,22 +1,20 @@
 /*
- *  Copyright (C) 2025 Bitsea GmbH
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
  *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- *
- *
  */
 
 package eu.occtet.boc.entity;
@@ -29,6 +27,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -48,15 +47,16 @@ public class File {
     @GeneratedValue(strategy= GenerationType.SEQUENCE)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PROJECT_ID", nullable = false)
-    private Project project;
 
     @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     @JoinColumn(name = "PARENT_ID")
     private File parent;
 
-    @ManyToMany(mappedBy = "files", cascade = CascadeType.REMOVE)
+    // The id used in the imported document, important for the export
+    @Column(name = "DOCUMENT_ID", columnDefinition = "TEXT")
+    private String documentId;
+
+    @ManyToMany(mappedBy = "files")
     private Set<Copyright> copyrights = new HashSet<>();
 
     @JoinTable(name = "FILE_INVENTORY_ITEM_LINK",
@@ -102,6 +102,10 @@ public class File {
     @Column(name = "LAST_MODIFIED_BY")
     private String lastModifiedBy;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PROJECT_ID")
+    private Project project;
+
 
     public File() {
     }
@@ -113,12 +117,13 @@ public class File {
         }
     }
 
-    public File ( InventoryItem inventoryItem, String filePath, String fileName, Project project){
+    public File ( InventoryItem inventoryItem, String filePath, String fileName, Project project) {
         if (inventoryItem != null) {
             this.inventoryItems.add(inventoryItem);
         }        this.projectPath= filePath;
         this.fileName= fileName;
         this.project= project;
+
     }
 
     public File ( InventoryItem inventoryItem, String filePath, Project project) {
@@ -151,14 +156,6 @@ public class File {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Project getProject() {
-        return project;
-    }
-
-    public void setProject(Project project) {
-        this.project = project;
     }
 
     public File getParent() {
@@ -257,6 +254,30 @@ public class File {
         this.artifactPath = artifactPath;
     }
 
+    public Set<Copyright> getCopyrights() {
+        return copyrights;
+    }
+
+    public void setCopyrights(Set<Copyright> copyrights) {
+        this.copyrights = copyrights;
+    }
+
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass())
@@ -273,14 +294,6 @@ public class File {
     @Override
     public String toString() {
         return "File{" + "id=" + id + ", fileName='" + fileName + '\'' + ", isDirectory=" + isDirectory + '}';
-    }
-
-    public Set<Copyright> getCopyrights() {
-        return copyrights;
-    }
-
-    public void setCopyrights(Set<Copyright> copyrights) {
-        this.copyrights = copyrights;
     }
 
     @PreRemove

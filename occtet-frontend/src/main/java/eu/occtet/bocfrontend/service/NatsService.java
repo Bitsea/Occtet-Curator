@@ -21,10 +21,16 @@ package eu.occtet.bocfrontend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import eu.occtet.boc.model.*;
 import eu.occtet.boc.model.BaseSystemMessage;
 import eu.occtet.boc.model.MicroserviceDescriptor;
 import eu.occtet.boc.model.ProgressSystemMessage;
 import eu.occtet.boc.model.StatusDescriptor;
+import eu.occtet.boc.service.NatsHelperService;
+import eu.occtet.boc.service.NatsStreamSender;
+import eu.occtet.bocfrontend.config.ConfigNatsProperties;
+import eu.occtet.bocfrontend.config.ConfigOrtProperties;
 import io.nats.client.*;
 import io.nats.client.api.*;
 import jakarta.annotation.PostConstruct;
@@ -40,15 +46,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Service for handling NATS messaging.
  */
 @Service
-public class NatsService {
+public class NatsService extends NatsHelperService {
 
     private static final Logger log = LogManager.getLogger(NatsService.class);
     private static final String[] MESSAGES_TO_IGNORE = {"hello","status","exit"};
@@ -56,10 +64,11 @@ public class NatsService {
     @Autowired
     private Connection natsConnection;
 
-    @Value("${nats.stream-name}")
-    private String streamName;
-    @Value("${nats.stream-subjects-config}")
-    private String streamSubjectsConfig;
+    private final ConfigNatsProperties natsProperties;
+
+    public NatsService(ConfigNatsProperties natsProperties) {
+        this.natsProperties = natsProperties;
+    }
 
     private @NonNull JetStream js;
 
@@ -86,8 +95,8 @@ public class NatsService {
         js = natsConnection.jetStream();
         JetStreamManagement jsm = natsConnection.jetStreamManagement();
         StreamConfiguration config = StreamConfiguration.builder()
-                .name(streamName)
-                .subjects(streamSubjectsConfig)
+                .name(natsProperties.stream_name())
+                .subjects(natsProperties.stream_subjects_config())
                 .retentionPolicy(RetentionPolicy.WorkQueue)
                 .build();
         stream = jsm.addStream(config);
@@ -99,14 +108,24 @@ public class NatsService {
         ObjectStoreConfiguration objectStoreConfiguration = ObjectStoreConfiguration.builder()
                 .name("file-bucket")
                 .description("bucket containing large files for other microservices")
-                .storageType(StorageType.Memory)
+                .storageType(StorageType.File)
                 .compression(true)
+                .ttl(Duration.ofHours(Long.parseLong(natsProperties.objectStoreTtl())))
                 .build();
 
-        ObjectStoreStatus objectStoreStatus = objectStoreManagement.create(objectStoreConfiguration);
+        ObjectStoreStatus objectStoreStatus;
+        try {
+             objectStoreStatus = objectStoreManagement.create(objectStoreConfiguration);
+        } catch (JetStreamApiException e) {
+            log.warn("Error while trying to create objectStore: {}, deleting old os and creating new one",
+                    e.toString());
+            objectStoreManagement.delete("file-bucket");
+            objectStoreStatus = objectStoreManagement.create(objectStoreConfiguration);
+        }
 
         objectStore = natsConnection.objectStore("file-bucket");
-
+        //setting connection for the helper methods in NatsHelperService
+        setNatsConnection(natsConnection);
         log.info("initialized objectsStore: {}", objectStore.getBucketName());
     }
 
@@ -171,6 +190,23 @@ public class NatsService {
         js.publish(streamName,message);
     }
 
+    public long getNumbOfMsgQueued(String streamSubjectName) {
+        try {
+            JetStreamManagement jsm = natsConnection.jetStreamManagement();
+
+            StreamInfoOptions options = StreamInfoOptions.builder().filterSubjects(streamSubjectName).build();
+            StreamInfo liveStreamInfo = jsm.getStreamInfo(natsProperties.stream_name(), options);
+
+            Map<String, Long> subjectMap = liveStreamInfo.getStreamState().getSubjectMap();
+            if (subjectMap.containsKey(streamSubjectName)) {
+                return subjectMap.get(streamSubjectName);
+            }
+            return 0L;
+        } catch (JetStreamApiException | IOException e) {
+            log.error("Failed to fetch queue size for subject: {}", streamSubjectName, e);
+            return 0L;
+        }
+    }
 
     /**
      * Sends a simple message to the specified subject to the NATS queue. Mostly used for system messages.
@@ -201,27 +237,52 @@ public class NatsService {
         progressListeners.add(listener);
     }
 
-    public ObjectInfo putDataIntoObjectStore(InputStream data, ObjectMeta metaInformation) {
-        try {
-            ObjectInfo oInfo = objectStore.put(metaInformation, data);
-            log.info("Successfully put {} into objectStore:{}", metaInformation.getObjectName(), objectStore.getBucketName());
-            return oInfo;
-        }catch (JetStreamApiException | IOException | NoSuchAlgorithmException e){
-            log.error("Error while trying to put {} into objectStore:{}",metaInformation.getObjectName(), e.toString());
-            return null;
-        }
-    }
 
     public byte[] getFileFromBucket(String fileId){
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             objectStore.get(fileId, out);
-            objectStore.delete(fileId);
             return out.toByteArray();
         } catch (Exception e) {
             return null;
         }
     }
 
+    public List<String> getPreviousExportOfSameProject(String objectStoreKeyTimeStampExcluded){
+        try {
+            log.debug("Getting previous export of same project with key: {}", objectStoreKeyTimeStampExcluded);
+            return objectStore.getList().stream()
+                    .map(ObjectInfo::getObjectName)
+                    .filter(Objects::nonNull)
+                    .filter(name -> name.contains(objectStoreKeyTimeStampExcluded))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error while trying to get previous export of same project: {}", e.toString());
+            return Collections.emptyList();
+        }
+    }
 
+    /**
+     * Sends a download request message to the download microservice via nats.
+     *
+     * @param projectId        The ID of the project associated with the download request.
+     * @param inventoryItemId  The ID of the inventory item associated with the software component containing the
+     *                         download URL.
+     * @param isMainPackage    Indicates whether the item to be downloaded is the main package or not.
+     * @throws IOException              If there are issues with input/output operations.
+     * @throws JetStreamApiException    If there are errors interacting with the messaging stream.
+     */
+    public void sendToDownload(Long projectId, Long inventoryItemId, Boolean isMainPackage) throws IOException,
+            JetStreamApiException{
+            DownloadServiceWorkData payload = new DownloadServiceWorkData(projectId, inventoryItemId,
+                    isMainPackage);
+            LocalDateTime now = LocalDateTime.now();
+            long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
+            WorkTask workTask = new WorkTask(UUID.randomUUID().toString(),"download-service", "information about a component to be downloaded to a specific location", actualTimestamp, payload);
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+            String message = mapper.writeValueAsString(workTask);
+            log.debug("sending message to download service: {}", message);
+            sendWorkMessageToStream(natsProperties.send_subject_download(), message.getBytes());
+    }
 }

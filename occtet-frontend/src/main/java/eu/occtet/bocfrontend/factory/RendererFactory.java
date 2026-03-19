@@ -30,6 +30,7 @@ import io.jmix.flowui.UiComponents;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.awt.*;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -80,7 +81,24 @@ public class RendererFactory {
             } else {
                 warningIcon.setVisible(false);
             }
-            mainLayout.add(circleIcon, warningIcon);
+
+            Icon vulnerableIcon = uiComponents.create(Icon.class);
+            vulnerableIcon.setIcon(VaadinIcon.BAN);
+            vulnerableIcon.setSize("12px");
+            boolean hasUnresolvedVulnerabilities = item.getSoftwareComponent()
+                    .getVulnerabilityLinks()
+                    .stream()
+                    .anyMatch(link -> FALSE.equals(link.getResolved()));
+
+            if (hasUnresolvedVulnerabilities) {
+                vulnerableIcon.setVisible(true);
+                vulnerableIcon.setClassName("vulnerable-icon");
+                vulnerableIcon.setColor("RED");
+            } else {
+                vulnerableIcon.setVisible(false);
+            }
+
+            mainLayout.add(circleIcon, warningIcon, vulnerableIcon);
             return mainLayout;
         });
     }

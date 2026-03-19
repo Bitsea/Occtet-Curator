@@ -31,14 +31,13 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.*;
 import eu.occtet.bocfrontend.component.CustomParameterFilter;
-import eu.occtet.bocfrontend.dao.FileRepository;
-import eu.occtet.bocfrontend.dao.InventoryItemRepository;
-import eu.occtet.bocfrontend.dao.ProjectRepository;
+import eu.occtet.bocfrontend.dao.*;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.factory.AuditViewUiComponentFactory;
 import eu.occtet.bocfrontend.factory.RendererFactory;
 import eu.occtet.bocfrontend.model.FileReviewedFilterMode;
 import eu.occtet.bocfrontend.service.*;
+import eu.occtet.bocfrontend.view.audit.fragment.OverviewOrtTabFragment;
 import eu.occtet.bocfrontend.view.audit.fragment.OverviewProjectTabFragment;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
@@ -92,6 +91,8 @@ public class AuditView extends StandardView{
     @Autowired private ProjectRepository projectRepository;
     @Autowired private FileRepository fileRepository;
     @Autowired private InventoryItemRepository inventoryItemRepository;
+    @Autowired private OrtIssueRepository ortIssueRepository;
+    @Autowired private OrtViolationRepository ortViolationRepository;
 
     @Autowired private Fragments fragments;
     @Autowired private Dialogs dialogs;
@@ -122,6 +123,8 @@ public class AuditView extends StandardView{
     @ViewComponent private HorizontalLayout toolbarBox;
     @ViewComponent private VerticalLayout fileTreeGridLayout;
     @ViewComponent private OverviewProjectTabFragment overviewProjectTabFragment;
+    @ViewComponent private OverviewOrtTabFragment overviewOrtTabFragment;
+    @ViewComponent private Tab ortSection;
 
     private TabManager tabManager;
     private Map<Long, Long> fileCounts = new HashMap<>();
@@ -165,6 +168,7 @@ public class AuditView extends StandardView{
         initializeFileTreeGrid();
         addTabSelectionListeners();
         overviewProjectTabFragment.setHostView(this);
+        overviewOrtTabFragment.setHostView(this);
         overviewProjectTabFragment.setDefaultAccordionValues();
     }
 
@@ -331,6 +335,14 @@ public class AuditView extends StandardView{
                 refreshAllDataForProject(project);
                 restoreTabsAndState();
                 overviewProjectTabFragment.setProjectOverview(project);
+                List<OrtIssue> issues = ortIssueRepository.findByProjectId(project.getId());
+                List<OrtViolation> violations = ortViolationRepository.findByProjectId(project.getId());
+                log.debug("Project {} has {} issues and {} violations, showing ORT overview tab", project.getProjectName(), issues.size(), violations.size());
+
+                if(!issues.isEmpty() || !violations.isEmpty()) {
+                    ortSection.setVisible(true);
+                    overviewOrtTabFragment.setProjectOrtOverview(project);
+                }
             });
         } catch (Exception e) {
             log.warn("Invalid projectId in URL: {}", projectIdStr, e);
@@ -387,7 +399,7 @@ public class AuditView extends StandardView{
 
     private void initializeProjectComboBox() {
         projectComboBox.setItems(projectRepository.findAll());
-        projectComboBox.setItemLabelGenerator(Project::getProjectName);
+        projectComboBox.setItemLabelGenerator(project -> project.getProjectName()+" - "+project.getVersion());
     }
 
     /**
@@ -640,6 +652,8 @@ public class AuditView extends StandardView{
             switchProject(event.getValue());
         }
         overviewProjectTabFragment.setProjectOverview(event.getValue());
+        setOrtInformationFragment(event.getValue());
+
     }
 
     private void switchProject(Project project) {
@@ -676,6 +690,20 @@ public class AuditView extends StandardView{
 
     public List<File> getCurrentDraggedFiles() {
         return currentDraggedFiles != null ? currentDraggedFiles : Collections.emptyList();
+    }
+
+    private void setOrtInformationFragment(Project project){
+        List<OrtIssue> issues = ortIssueRepository.findByProjectId(project.getId());
+        List<OrtViolation> violations = ortViolationRepository.findByProjectId(project.getId());
+        log.debug("2Project {} has {} issues and {} violations, showing ORT overview tab", project.getProjectName(), issues.size(), violations.size());
+        log.debug("2Project {} has {} issues and {} violations",
+                project.getProjectName(),
+                issues.size(),
+                violations.size());
+        if(!issues.isEmpty() || !violations.isEmpty()){
+            ortSection.setVisible(true);
+            overviewOrtTabFragment.setProjectOrtOverview(project);
+        }
     }
 
 }

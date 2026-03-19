@@ -207,15 +207,16 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
 
         ValueLoadContext context = new ValueLoadContext()
                 .setQuery(new ValueLoadContext.Query("""
-                            select v.id as vulnerabilityId, count(s) as countV
-                            from InventoryItem i
-                            join i.softwareComponent s
-                            join s.vulnerabilities v
-                            join i.project p
-                            where p.id = :project_id
-                            group by v.id
-                       """)
-                        .setParameter("project_id",project.getId()))
+                    select v.id as vulnerabilityId, count(s) as countV
+                    from InventoryItem i
+                    join i.softwareComponent s
+                    join s.vulnerabilityLinks vl
+                    join vl.vulnerability v
+                    join i.project p
+                    where p.id = :project_id
+                    group by v.id
+               """)
+                        .setParameter("project_id", project.getId()))
                 .addProperty("vulnerabilityId")
                 .addProperty("countV");
 
@@ -246,7 +247,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
     private JmixButton createShowButton(){
         JmixButton showButton = uiComponents.create(JmixButton.class);
         showButton.setIcon(VaadinIcon.INFO_CIRCLE.create());
-        showButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        showButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
         return showButton;
     }
 
@@ -257,14 +258,14 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
                 JmixButton showButton = createShowButton();
                 showButton.addClickListener(click -> openOverviewContentDialog(auditLicenseDTO,project));
                 return showButton;
-            }).setKey("infoButton");
+            }).setKey("infoButton").setFlexGrow(0);
         }
         if(auditVulnerabilityDataGrid.getColumnByKey("infoButton") == null){
             auditVulnerabilityDataGrid.addComponentColumn(auditVulnerabilityDTO -> {
                 JmixButton showButton = createShowButton();
                 showButton.addClickListener(click -> openOverviewContentDialog(auditVulnerabilityDTO,project));
                 return showButton;
-            }).setKey("infoButton");
+            }).setKey("infoButton").setFlexGrow(0);
         }
     }
 

@@ -60,17 +60,17 @@
                 <actions>
                     <action id="createAction" type="list_create"/>
                     <action id="editAction" type="list_edit"/>
-                    <action id="removeAction" type="list_remove"/>
                 </actions>
                 <columns resizable="true">
                     <column property="projectName" header="msg://eu.occtet.bocfrontend.view.project/projectDetailView.projectName" filterable="true" autoWidth="true"/>
+                    <column property="version" header="Version" filterable="true" autoWidth="true"/>
                     <column key="exportBtn" header="" sortable="false" autoWidth="true" flexGrow="0"/>
                 </columns>
             </dataGrid>
             <hbox id="buttonsPanel" classNames="buttons-panel">
                 <button id="createButton" action="projectsDataGrid.createAction"/>
                 <button id="editButton" action="projectsDataGrid.editAction"/>
-                <button id="removeButton" action="projectsDataGrid.removeAction"/>
+                <button id="removeButton" icon="TRASH" themeNames="tertiary error"/>
             </hbox>
         </vbox>
         <hbox id="lookupActions" visible="false">

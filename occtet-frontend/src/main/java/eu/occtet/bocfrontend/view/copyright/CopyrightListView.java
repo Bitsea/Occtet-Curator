@@ -27,6 +27,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.Route;
+import eu.occtet.bocfrontend.dao.CopyrightRepository;
+import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.view.main.MainView;
@@ -72,6 +74,9 @@ public class CopyrightListView extends StandardListView<Copyright> {
     @Autowired
     private ProjectRepository projectRepository;
 
+    @Autowired
+    private InventoryItemRepository inventoryItemRepository;
+
     @ViewComponent
     private JmixComboBox<Project> projectComboBox;
 
@@ -91,12 +96,14 @@ public class CopyrightListView extends StandardListView<Copyright> {
     private JmixButton markButton;
 
     private Project project;
+    @Autowired
+    private CopyrightRepository copyrightRepository;
 
 
     @Subscribe
     public void onInit(InitEvent event){
         projectComboBox.setItems(projectRepository.findAll());
-        projectComboBox.setItemLabelGenerator(Project::getProjectName);
+        projectComboBox.setItemLabelGenerator(project -> project.getProjectName()+" - "+project.getVersion());
         project = null;
     }
 
@@ -106,7 +113,6 @@ public class CopyrightListView extends StandardListView<Copyright> {
         if(event != null){
             project = event.getValue();
             updateDatagridForProject(project);
-            filterBox.setVisible(true);
             markButton.setVisible(true);
         }
     }
@@ -144,6 +150,13 @@ public class CopyrightListView extends StandardListView<Copyright> {
         return new ComponentRenderer<>(this::createCheckbox);
     }
 
+    @Subscribe("showAllButton")
+    public void clickOnShowAllButton(ClickEvent<Button> event){
+        List<Copyright> copyrights = copyrightRepository.findAll();
+        loadCopyrights(copyrights);
+        filterBox.setVisible(!copyrights.isEmpty());
+    }
+
     private JmixCheckbox createCheckbox(Copyright copyright){
         JmixCheckbox checkbox = uiComponents.create(JmixCheckbox.class);
         checkbox.setReadOnly(true);
@@ -152,14 +165,21 @@ public class CopyrightListView extends StandardListView<Copyright> {
     }
 
     private void updateDatagridForProject(Project project){
-        log.debug("Loading copyrights for project: " + project.getProjectName());
-        copyrightsDl.setParameter("project",project);
-        copyrightsDl.load();
+        log.debug("Loading copyrights for project: " +project.getProjectName()+" - "+project.getVersion());
+        List<InventoryItem> items = inventoryItemRepository.findByProject(project);
+        List<Copyright> copyrights = copyrightRepository.findByInventoryItems(items);
+        loadCopyrights(copyrights);
+        filterBox.setVisible(!copyrights.isEmpty());
     }
 
     private void setButtonVisible(boolean isVisible){
         saveButton.setVisible(isVisible);
         exitButton.setVisible(isVisible);
+    }
+
+    private void loadCopyrights(List<Copyright> copyrights){
+        copyrightsDl.setParameter("copyrights",copyrights);
+        copyrightsDl.load();
     }
 
 }

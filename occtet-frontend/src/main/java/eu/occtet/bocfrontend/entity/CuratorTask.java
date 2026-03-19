@@ -1,7 +1,9 @@
 package eu.occtet.bocfrontend.entity;
 
 import eu.occtet.boc.converter.ListStringConverter;
+import io.jmix.core.DeletePolicy;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
+import io.jmix.core.entity.annotation.OnDelete;
 import io.jmix.core.metamodel.annotation.InstanceName;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.annotation.Nullable;
@@ -24,7 +26,7 @@ public class CuratorTask {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PROJECT_ID", nullable = false)
+    @JoinColumn(name = "PROJECT_ID")
     private Project project;
 
     @Column(name = "TASK_NAME", nullable = false)
@@ -54,23 +56,6 @@ public class CuratorTask {
     @Column(name = "PROGRESS")
     private Integer progress=0;
 
-    public Integer getProgress() {
-        return progress;
-    }
-
-    public void setProgress(Integer progress) {
-        this.progress = progress;
-    }
-
-    @Nullable
-    public LocalDateTime getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(@Nullable LocalDateTime startDate) {
-        this.startDate = startDate;
-    }
-
     public CuratorTask() {
         status = TaskStatus.CREATING;
         progress = 0;
@@ -87,6 +72,7 @@ public class CuratorTask {
     public void notifyStarted() {
         status = TaskStatus.IN_PROGRESS;
         startDate = LocalDateTime.now();
+        lastUpdate = LocalDateTime.now();
         progress=0;
     }
 
@@ -106,6 +92,22 @@ public class CuratorTask {
         lastUpdate = LocalDateTime.now();
     }
 
+    public Integer getProgress() {
+        return progress;
+    }
+
+    public void setProgress(Integer progress) {
+        this.progress = progress;
+    }
+
+    @Nullable
+    public LocalDateTime getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(@Nullable LocalDateTime startDate) {
+        this.startDate = startDate;
+    }
 
     public Project getProject() {
         return project;
@@ -173,4 +175,6 @@ public class CuratorTask {
     public void setTaskType(String taskType) {
         this.taskType = taskType;
     }
+
+
 }

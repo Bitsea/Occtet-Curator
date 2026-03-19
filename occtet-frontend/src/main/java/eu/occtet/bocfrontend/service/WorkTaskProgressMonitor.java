@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,7 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WorkTaskProgressMonitor {
 
     @Autowired
-    NatsService natsService;
+    private NatsService natsService;
 
     private static final Logger log = LogManager.getLogger(WorkTaskProgressMonitor.class);
 
@@ -61,6 +62,10 @@ public class WorkTaskProgressMonitor {
 
     public List<WorkTaskProgress> getAllProgress() {
         return taskProgressMap.values().stream().toList();
+    }
+
+    public Map<String, WorkTaskProgress> getAllProgressMap() {
+        return new HashMap<>(taskProgressMap);
     }
 
     public WorkTaskProgress getProgressForTask(String taskId) {

@@ -47,7 +47,11 @@
     </actions>
     <layout>
         <vbox width="100%" height="100%">
-            <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
+            <hbox>
+                <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
+                <button id="showAllButton" text="msg://eu.occtet.bocfrontend.view/showAllButton" alignSelf="END"
+                        themeNames="primary"/>
+            </hbox>
             <hbox width="100%" visible="false" id="filterBox">
                 <genericFilter id="genericFilter" dataLoader="softwareComponentsDl" themeNames="small" alignSelf="START" opened="false">
                     <properties include=".*"/>
@@ -66,7 +70,7 @@
                     <action id="refreshAction" type="list_refresh"/>
                 </actions>
                 <columns resizable="true">
-                    <column property="name" header="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.name"/>
+                    <column property="name" header="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.name" filterable="true"/>
                     <column property="version" header="msg://eu.occtet.bocfrontend.entity/Project.version"/>
                     <column property="purl" header="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.purl"/>
                     <column property="licenses" header="msg://Licenses"/>

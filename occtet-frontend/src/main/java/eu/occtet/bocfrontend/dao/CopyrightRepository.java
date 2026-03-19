@@ -24,6 +24,7 @@ import eu.occtet.bocfrontend.entity.Copyright;
 import eu.occtet.bocfrontend.entity.File;
 import io.jmix.core.repository.JmixDataRepository;
 import io.jmix.core.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -39,4 +40,6 @@ public interface CopyrightRepository extends JmixDataRepository<Copyright, Long>
    List<Copyright> findByInventoryItem(InventoryItem item);
    @Query("select c from Copyright c where c not in :copyrights")
    List<Copyright> findAvailableCopyrights(List<Copyright> copyrights);
+   @Query("select distinct c from InventoryItem i join i.softwareComponent sc join sc.copyrights c where i in :items")
+   List<Copyright> findByInventoryItems(List<InventoryItem> items);
 }

@@ -64,16 +64,13 @@ border-color: var(--lumo-contrast-10pct);
     border: 1px solid var(--lumo-contrast-10pct);
     border-radius: var(--lumo-border-radius-l);
     padding: var(--lumo-space-s);
-    width: 200px;
-    height: 200px;
     object-fit: contain;
     display: block;
 }
 
 .image-no-border {
     padding: var(--lumo-space-s);
-    width: 200px;
-    height: 200px;
+    align-self: start;
     object-fit: contain;
     display: block;
 }

@@ -1,33 +1,32 @@
 /*
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Copyright (C) 2025 Bitsea GmbH
- *  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- * /
- *
  */
 
 package eu.occtet.boc.entity;
 
 
 import eu.occtet.boc.entity.appconfigurations.SearchTermsProfile;
+import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 
 
 @Entity
@@ -43,6 +42,9 @@ public class Project {
     @Column(name="PROJECT_NAME")
     private String projectName;
 
+    @Column(name = "VERSION", nullable = false)
+    private String version;
+
     @Column(name = "SPDX_DOCUMENT_ID", columnDefinition = "TEXT")
     private String documentID;
 
@@ -52,16 +54,28 @@ public class Project {
     @ManyToMany
     private List<SearchTermsProfile> searchTermsProfiles;
 
-    @Column(name = "PROJECT_CONTACT", columnDefinition = "VARCHAR(255)")
+    @Column(name = "PROJECT_CONTACT", columnDefinition = "VARCHAR(255)", nullable = false)
     private String projectContact;
 
     @Column(name = "CONTACT_EMAIL", columnDefinition = "VARCHAR(255)")
     private String contactEmail;
 
-    public Project() {
-    }
+    @Column(name = "ORGANIZATION_NAME", columnDefinition = "VARCHAR(255)", nullable = false)
+    private String organizationName;
+
+    @Column(name = "ORGANIZATION_EMAIL", columnDefinition = "VARCHAR(255)")
+    private String organizationEmail;
+
+    @Column(name = "CREATED_AT", updatable = false)
+    private @Nonnull LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "project",cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<File> files= new HashSet<>();
+
+    public Project() {this.createdAt = LocalDateTime.now();}
 
     public Project(String projectName ) {
+        this.createdAt = LocalDateTime.now();
         this.projectName = projectName;
     }
 
@@ -107,5 +121,50 @@ public class Project {
 
     public void setContactEmail(String contactEmail) {
         this.contactEmail = contactEmail;
+    }
+
+    public String getVersion() {return version;}
+
+    public void setVersion(String version) {this.version = version;}
+
+    @Nonnull
+    public LocalDateTime getCreatedAt() {return createdAt;}
+
+    public void setCreatedAt(@Nonnull LocalDateTime createdAt) {this.createdAt = createdAt;}
+
+    public String getOrganizationName() {
+        return organizationName;
+    }
+
+    public void setOrganizationName(String organizationName) {
+        this.organizationName = organizationName;
+    }
+
+    public String getOrganizationEmail() {
+        return organizationEmail;
+    }
+
+    public void setOrganizationEmail(String organizationEmail) {
+        this.organizationEmail = organizationEmail;
+    }
+
+    public Set<File> getFiles() {
+        return files;
+    }
+
+    public void addFile(File file) {
+        this.files.add(file);
+        file.setProject(this);
+    }
+
+    public void addFiles(Collection<File> files) {
+        this.files.addAll(files);
+        for(File f : files){
+            f.setProject(this);
+        }
+    }
+
+    public void removeFiles() {
+        this.files= new HashSet<>();
     }
 }

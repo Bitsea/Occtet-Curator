@@ -74,7 +74,7 @@ public class InventoryItem {
     private Boolean curated;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PROJECT_ID", nullable = false)
+    @JoinColumn(name = "PROJECT_ID", nullable = true)
     private Project project;
 
     @Column(name = "HAS_TODOS")
@@ -179,7 +179,8 @@ public class InventoryItem {
         this.curated = curated;
     }
 
-    public Project getProject() {
+    public Project getProject()
+    {
         return project;
     }
 

@@ -21,6 +21,8 @@ package eu.occtet.bocfrontend.view.softwareComponent;
 
 
 import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.Renderer;
@@ -71,16 +73,15 @@ public class SoftwareComponentListView extends StandardListView<SoftwareComponen
     @Subscribe
     public void onInit(InitEvent event){
         projectComboBox.setItems(projectRepository.findAll());
-        projectComboBox.setItemLabelGenerator(Project::getProjectName);
+        projectComboBox.setItemLabelGenerator(project -> project.getProjectName()+" - "+project.getVersion());
     }
 
     @Subscribe(id = "projectComboBox")
     public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
         if(event != null){
             List<SoftwareComponent> softwareComponents = softwareComponentRepository.findByProject(event.getValue());
-            softwareComponentsDl.setParameter("softwareComponents",softwareComponents);
-            softwareComponentsDl.load();
-            filterBox.setVisible(true);
+            loadSoftwareComponent(softwareComponents);
+            filterBox.setVisible(!softwareComponents.isEmpty());
         }
     }
 
@@ -107,5 +108,17 @@ public class SoftwareComponentListView extends StandardListView<SoftwareComponen
         window.setWidth("100%");
         window.setHeight("100%");
         window.open();
+    }
+
+    @Subscribe("showAllButton")
+    public void clickOnShowButton(ClickEvent<Button> event){
+        List<SoftwareComponent> softwareComponents = softwareComponentRepository.findAll();
+        loadSoftwareComponent(softwareComponents);
+        filterBox.setVisible(!softwareComponents.isEmpty());
+    }
+
+    private void loadSoftwareComponent(List<SoftwareComponent> softwareComponents){
+        softwareComponentsDl.setParameter("softwareComponents",softwareComponents);
+        softwareComponentsDl.load();
     }
 }

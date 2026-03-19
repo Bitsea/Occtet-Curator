@@ -28,11 +28,7 @@
             <fetchPlan extends="_base"/>
             <loader id="copyrightsDl">
                 <query>
-                    <![CDATA[select distinct c from Copyright c
-                    join c.files cl
-                    join cl.inventoryItem i
-                    join i.project p
-                    where p = :project and c.aiControlled = True]]>
+                    <![CDATA[select c from Copyright c where c in :copyrights]]>
                 </query>
             </loader>
         </collection>
@@ -45,7 +41,11 @@
     </facets>
     <layout>
         <vbox width="100%" height="100%">
-            <comboBox id="projectComboBox" property="projectName" label="msg://chooseProject"/>
+            <hbox>
+                <comboBox id="projectComboBox" property="projectName" label="msg://chooseProject"/>
+                <button id="showAllButton" text="msg://eu.occtet.bocfrontend.view/showAllButton"
+                        alignSelf="END" themeNames="primary"/>
+            </hbox>
             <hbox width="100%" visible="false" id="filterBox">
                 <genericFilter id="genericFilter" dataLoader="copyrightsDl" themeNames="small" alignSelf="START" opened="false">
                     <properties include=".*"/>
@@ -61,6 +61,8 @@
                 <columns resizable="true">
                     <column property="copyrightText" header="msg://copyrightDetailView.title" width="50%"/>
                     <column property="garbage" header="msg://eu.occtet.bocfrontend.entity/Copyright.garbage" editable="true"/>
+                    <column property="aiControlled" header="msg://eu.occtet.bocfrontend.view.copyright/aiControlled"
+                            editable="false" sortable="true"/>
                 </columns>
             </dataGrid>
             <hbox >

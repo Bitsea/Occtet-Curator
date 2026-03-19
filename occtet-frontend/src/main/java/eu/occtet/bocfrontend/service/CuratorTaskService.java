@@ -24,22 +24,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import eu.occtet.boc.model.BaseWorkData;
 import eu.occtet.boc.model.WorkTask;
+import eu.occtet.boc.service.NatsStreamSender;
+import eu.occtet.bocfrontend.config.ConfigNatsProperties;
 import eu.occtet.bocfrontend.dao.CuratorTaskRepository;
 import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.entity.TaskStatus;
+import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
 import io.jmix.core.DataManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.reflections.Reflections.log;
 
 @Service
 public class CuratorTaskService {
@@ -55,18 +61,12 @@ public class CuratorTaskService {
     @Autowired
     private NatsService natsService;
 
+    private final ConfigNatsProperties natsProperties;
 
-    @Value("${nats.send-subject-ort-run}")
-    private String sendSubjectOrtRun;
+    public CuratorTaskService(ConfigNatsProperties natsProperties) {
+        this.natsProperties = natsProperties;
+    }
 
-    @Value("${nats.send-subject-export}")
-    private String sendSubjectExportSpdx;
-
-    @Value("${nats.send-subject-vulnerabilities}")
-    private String sendSubjectVulnerabilities;
-
-    @Value("${nats.send-subject-spdx}")
-    private String sendSubjectSpdx;
 
     /**
      * Save the task and send it to the NATS work queue for processing.
@@ -81,7 +81,8 @@ public class CuratorTaskService {
         long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
         curatorTask.notifyStarted();
         dataManager.save(curatorTask);
-        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), curatorTask.getTaskName(), optDetails, actualTimestamp, workData);
+        // Use the curator task id as the work task id, so we don't lose connection to whom the work task belongs to
+        WorkTask workTask = new WorkTask(curatorTask.getId().toString(), curatorTask.getTaskName(), optDetails, actualTimestamp, workData);
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
@@ -96,16 +97,20 @@ public class CuratorTaskService {
         log.debug("sending message to service: {}", message);
         try {
             log.debug("sending to stream {}", streamName);
-            // switch doesn't work with @Value-injected values, using if/else
-            if (sendSubjectSpdx.equals(streamName)) {
-                natsService.sendWorkMessageToStream(sendSubjectSpdx, message.getBytes());
-            } else if (sendSubjectOrtRun.equals(streamName)) {
-                natsService.sendWorkMessageToStream(sendSubjectOrtRun, message.getBytes());
-            } else if (sendSubjectExportSpdx.equals(streamName)) {
-                natsService.sendWorkMessageToStream(sendSubjectExportSpdx, message.getBytes());
-            } else if (sendSubjectVulnerabilities.equals(streamName)) {
-                natsService.sendWorkMessageToStream(sendSubjectVulnerabilities, message.getBytes());
-            }
+
+                if(streamName.equals(natsProperties.send_subject_spdx())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_spdx(), message.getBytes(Charset.defaultCharset()));
+                }else if(streamName.equals(natsProperties.send_subject_ort_run())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_ort_run(), message.getBytes(Charset.defaultCharset()));
+                }
+                else if(streamName.equals(natsProperties.send_subject_export())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_export(), message.getBytes(Charset.defaultCharset()));
+                }else if(streamName.equals(natsProperties.send_subject_vulnerabilities())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_vulnerabilities(), message.getBytes(Charset.defaultCharset()));
+                }else if(streamName.equals(natsProperties.send_subject_ort_result())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_ort_result(), message.getBytes(Charset.defaultCharset()));
+                }
+
         } catch (Exception e) {
             log.error("Could not send work message", e);
             curatorTask.setStatus(TaskStatus.CANCELLED);
@@ -136,32 +141,12 @@ public class CuratorTaskService {
         dataManager.save(curatorTask);
     }
 
-    public void updateTaskProgress(CuratorTask curatorTask, int progress){
-        curatorTask.setCurrentProgress(progress);
-        dataManager.save(curatorTask);
-    }
 
     public List<CuratorTask> getCancelledTasks(){
         return curatorTaskRepository.findByStatus(TaskStatus.CANCELLED);
     }
 
-    public void removeOutdatedCompletedTasks(int updatedBeforeHours){
-        LocalDateTime before = LocalDateTime.now().minusHours(updatedBeforeHours);
-        List<CuratorTask> tasks = curatorTaskRepository.findAllByStatusAndLastUpdateAfter(TaskStatus.COMPLETED, before);
-        dataManager.remove(tasks);
-    }
 
-    public List<CuratorTask> getCurrentTasks(int updatedBeforeMinutes) {
-        LocalDateTime before = LocalDateTime.now().minusMinutes(updatedBeforeMinutes);
-        List<CuratorTask> inProgress = curatorTaskRepository.findByStatus(TaskStatus.IN_PROGRESS);
-        List<CuratorTask> cancelled = curatorTaskRepository.findAllByStatusAndLastUpdateAfter(TaskStatus.CANCELLED, before);
-        List<CuratorTask> completed = curatorTaskRepository.findAllByStatusAndLastUpdateAfter(TaskStatus.COMPLETED, before);
-        List<CuratorTask> result = new ArrayList<>();
-        result.addAll(inProgress);
-        result.addAll(cancelled);
-        result.addAll(completed);
-        return result;
-    }
 
     public CuratorTask saveWithFeedBack(CuratorTask curatorTask, List<String> feedback, TaskStatus status){
         List<String> newFeedbacks= new ArrayList<>();

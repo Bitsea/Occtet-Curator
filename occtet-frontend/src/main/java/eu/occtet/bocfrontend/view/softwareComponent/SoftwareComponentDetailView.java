@@ -85,10 +85,10 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
 
     private static final String UPDATE_VULNERS_CURATOR_TASK_TYPE = "updating_vulnerabilities";
     private static final String UPDATE_VULNERS_CURATOR_TASK_NAME = "updating_vulnerabilities_for_";
+
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
         SoftwareComponent softwareComponent = getEditedEntity();
-        softwareComponent.setCurated(false); // set default value to false
         licenseDc.setItems(softwareComponent.getLicenses());
     }
 
@@ -112,9 +112,9 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
         });
     }
 
-    @Supply(to = "vulnerabilityDataContainer.actions", subject = "renderer")
-    private Renderer<Vulnerability> actionsButtonRenderer() {
-        return new ComponentRenderer<>(vulnerability -> {
+    @Supply(to = "vulnerabilityLinksDataGrid.actions", subject = "renderer")
+    private Renderer<ComponentVulnerabilityLink> actionsButtonRenderer() {
+        return new ComponentRenderer<>(link -> {
             JmixButton infoButton = uiComponents.create(JmixButton.class);
             infoButton.setIcon(VaadinIcon.INFO_CIRCLE.create());
             infoButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -122,7 +122,7 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
 
             infoButton.addClickListener(e -> {
                 dialogWindow.view(this, VulnerabilityDetailView.class)
-                        .withViewConfigurer(v -> v.setEntityToEdit(vulnerability)).open();
+                        .withViewConfigurer(v -> v.setEntityToEdit(link.getVulnerability())).open();
             });
 
             return infoButton;

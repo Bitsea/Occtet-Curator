@@ -149,7 +149,7 @@ public class FileTreeSearchHelper {
         }
 
         if (!searchResultIds.isEmpty()) {
-            jumpToMatch(0, project, isNewSearch);
+            jumpToMatch(0, project);
         } else {
             updateLabel();
             if (!isNewSearch) treeGrid.getDataProvider().refreshAll();
@@ -162,7 +162,7 @@ public class FileTreeSearchHelper {
     public void next(Project project) {
         if (searchResultIds.isEmpty()) return;
         int nextIndex = (currentIndex + 1) % searchResultIds.size();
-        jumpToMatch(nextIndex, project, false);
+        jumpToMatch(nextIndex, project);
     }
 
     /**
@@ -171,10 +171,10 @@ public class FileTreeSearchHelper {
     public void previous(Project project) {
         if (searchResultIds.isEmpty()) return;
         int prevIndex = (currentIndex - 1 + searchResultIds.size()) % searchResultIds.size();
-        jumpToMatch(prevIndex, project, false);
+        jumpToMatch(prevIndex, project);
     }
 
-    private void jumpToMatch(int index, Project project, boolean isNewSearch) {
+    private void jumpToMatch(int index, Project project) {
         this.currentIndex = index;
         Long newId = searchResultIds.get(index);
         updateLabel();
@@ -186,7 +186,7 @@ public class FileTreeSearchHelper {
 
             treeGrid.getDataProvider().refreshAll();
 
-            int[] pathToTreeIndex = calculatePath(file);
+            int[] pathToTreeIndex = calculatePath(file, project);
             if (pathToTreeIndex.length > 0) {
                 log.debug("Jumping to path: {}", Arrays.toString(pathToTreeIndex));
                 treeGrid.scrollToIndex(pathToTreeIndex);
@@ -252,7 +252,7 @@ public class FileTreeSearchHelper {
                 .setSortable(true);
     }
 
-    private int[] calculatePath(File file) {
+    private int[] calculatePath(File file, Project project) {
         // NOTE: the following is robust but had to be done for nested scrolling
         List<Integer> pathIndices = new ArrayList<>();
 
@@ -276,7 +276,7 @@ public class FileTreeSearchHelper {
             if (parent == null) {
                 // Find roots
                 siblings = fileRepository.findRootsSorted(
-                        node.getProject(),
+                        project,
                         filterStatusSupplier.get(),
                         Pageable.unpaged()
                 );

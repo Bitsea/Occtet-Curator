@@ -1,18 +1,19 @@
 /*
- *  Copyright (C) 2025 Bitsea GmbH
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * You may obtain a copy of the License at
  *
- *  https://www.apache.org/licenses/LICENSE-2.0
+ *      https:www.apache.orglicensesLICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and limitations under the License.
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
- *   SPDX-License-Identifier: Apache-2.0
+ *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
  */
 
@@ -73,6 +74,9 @@ public class SpdxPackageEntity {
 
     @Column(columnDefinition = "TEXT")
     private String supplier;
+
+    @Column(name = "comment", columnDefinition = "TEXT")
+    private String comment;
 
     @ElementCollection
     @CollectionTable(name = "package_license_info_from_files", joinColumns = @JoinColumn(name = "package_id"))
@@ -258,6 +262,50 @@ public class SpdxPackageEntity {
 
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+
+    public Boolean getFilesAnalyzed() {
+        return filesAnalyzed;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public PackageVerificationCodeEntity getPackageVerificationCodeEntity() {
+        return packageVerificationCodeEntity;
+    }
+
+    public void setPackageVerificationCodeEntity(PackageVerificationCodeEntity packageVerificationCodeEntity) {
+        this.packageVerificationCodeEntity = packageVerificationCodeEntity;
+    }
+
+    public List<AnnotationEntity> getAnnotationEntities() {
+        return annotationEntities;
+    }
+
+    public void setAnnotationEntities(List<AnnotationEntity> annotationEntities) {
+        this.annotationEntities = annotationEntities;
+    }
+
+    public List<ExternalRefEntity> getExternalRefEntities() {
+        return externalRefEntities;
+    }
+
+    public void setExternalRefEntities(List<ExternalRefEntity> externalRefEntities) {
+        this.externalRefEntities = externalRefEntities;
+    }
+
+    public List<ChecksumEntity> getChecksumEntities() {
+        return checksumEntities;
+    }
+
+    public void setChecksumEntities(List<ChecksumEntity> checksumEntities) {
+        this.checksumEntities = checksumEntities;
     }
 }
 
