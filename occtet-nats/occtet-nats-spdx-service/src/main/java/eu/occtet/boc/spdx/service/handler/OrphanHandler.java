@@ -155,15 +155,21 @@ public class OrphanHandler {
                 }
 
                 if (fileLicense != null) {
-                    List<License> licenses = licenseHandler.createLicenses(fileLicense, context.getLicenseCache(), context.getExtractedLicenseInfos());
+                    List<UsageLicense> usageLicenses = licenseHandler.createUsageLicenses(fileLicense, context.getLicenseCache(), context.getExtractedLicenseInfos());
 
                     if (component.getLicenses() == null) {
                         component.setLicenses(new ArrayList<>());
                     }
 
-                    for (License l : licenses) {
-                        if (!component.getLicenses().contains(l)) {
-                            component.addLicense(l);
+                    for (UsageLicense newUsage : usageLicenses) {
+                        // Prevent duplicates by checking if this component already uses this Template ID
+                        boolean alreadyExists = component.getLicenses().stream()
+                                .anyMatch(existing -> existing.getTemplate().getLicenseType()
+                                        .equals(newUsage.getTemplate().getLicenseType()));
+
+                        if (!alreadyExists) {
+                            newUsage.setSoftwareComponent(component);
+                            component.getLicenses().add(newUsage);
                             componentUpdated = true;
                         }
                     }

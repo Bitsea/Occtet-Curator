@@ -136,17 +136,29 @@ public class PackageHandler {
             spdxPkgLicense = spdxPackage.getLicenseDeclared();
         }
 
-        List<License> pkgLicenses = licenseHandler.createLicenses(spdxPkgLicense, context.getLicenseCache(), context.getExtractedLicenseInfos());
-        if(component.getLicenses() != null) {
-            //make double sure there are no doubles
-            Set<License> lSet= new HashSet<>( component.getLicenses());
+        List<UsageLicense> pkgLicenses = licenseHandler.createUsageLicenses(spdxPkgLicense, context.getLicenseCache(), context.getExtractedLicenseInfos());
+
+        if (component.getLicenses() != null) {
+            // Make double sure there are no doubles in the existing list
+            Set<UsageLicense> lSet = new HashSet<>(component.getLicenses());
             component.setLicenses(new ArrayList<>(lSet));
-            SoftwareComponent finalComponent = component;
-            pkgLicenses.stream()
-                    .filter(license -> !finalComponent.getLicenses().contains(license))
-                    .forEach(component::addLicense);
+
+            for (UsageLicense newUsage : pkgLicenses) {
+                // Prevent duplicates by checking if the component already has a UsageLicense for this Template's license type
+                boolean alreadyExists = component.getLicenses().stream()
+                        .anyMatch(existing -> existing.getTemplate() != null &&
+                                existing.getTemplate().getLicenseType().equals(newUsage.getTemplate().getLicenseType()));
+
+                if (!alreadyExists) {
+                    newUsage.setSoftwareComponent(component);
+                    component.getLicenses().add(newUsage);
+                }
+            }
         } else {
-            component.setLicenses(pkgLicenses);
+            // Set the bidirectional relationship for all new usage licenses
+            SoftwareComponent finalComponent = component;
+            pkgLicenses.forEach(usage -> usage.setSoftwareComponent(finalComponent));
+            component.setLicenses(new ArrayList<>(pkgLicenses));
         }
 
         String packageLicenseString = spdxPkgLicense != null ? spdxPkgLicense.toString() : "";

@@ -19,10 +19,7 @@
 
 package eu.occtet.boc.spdx.service.handler;
 
-import eu.occtet.boc.entity.Copyright;
-import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.entity.License;
-import eu.occtet.boc.entity.SoftwareComponent;
+import eu.occtet.boc.entity.*;
 import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.service.*;
@@ -38,10 +35,7 @@ import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Service
@@ -118,7 +112,7 @@ public class SnippetHandler {
      */
     private void enrichComponentFromSnippet(SpdxSnippet snippet,
                                             Map<String, InventoryItem> fileMap,
-                                            Map<String, License> licenseCache,
+                                            Map<String, TemplateLicense> licenseCache,
                                             Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc
     ) {SpdxFile snippetFile;
         try {
@@ -159,15 +153,22 @@ public class SnippetHandler {
 
             AnyLicenseInfo concluded = snippet.getLicenseConcluded();
             if (concluded != null && !concluded.isNoAssertion(concluded) && !concluded.isNoAssertion(concluded)) {
-                List<License> licenses = licenseHandler.createLicenses(concluded, licenseCache, licenseInfosExtractedSpdxDoc);
+
+                List<UsageLicense> usageLicenses = licenseHandler.createUsageLicenses(concluded, licenseCache, licenseInfosExtractedSpdxDoc);
 
                 if (component.getLicenses() == null) {
-                    component.setLicenses(new java.util.ArrayList<>());
+                    component.setLicenses(new ArrayList<>());
                 }
 
-                for (License license : licenses) {
-                    if (!component.getLicenses().contains(license)) {
-                        component.addLicense(license);
+                for (UsageLicense newUsage : usageLicenses) {
+                    // Prevent duplicates by checking if this component already uses this Template ID
+                    boolean alreadyExists = component.getLicenses().stream()
+                            .anyMatch(existing -> existing.getTemplate().getLicenseType()
+                                    .equals(newUsage.getTemplate().getLicenseType()));
+
+                    if (!alreadyExists) {
+                        newUsage.setSoftwareComponent(component); // Bind the component
+                        component.getLicenses().add(newUsage);
                         componentUpdated = true;
                     }
                 }

@@ -19,11 +19,8 @@
 
 package eu.occtet.boc.spdx.context;
 
-import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.entity.*;
 
-import eu.occtet.boc.entity.License;
-import eu.occtet.boc.entity.Project;
-import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import lombok.Data;
@@ -43,7 +40,7 @@ public class SpdxImportContext {
     private Collection<ExtractedLicenseInfo> extractedLicenseInfos;
     private Map<String, SpdxPackageEntity> packageLookupMap = new HashMap<>();
     private Map<String, SoftwareComponent> componentCache = new HashMap<>();
-    private Map<String, License> licenseCache = new HashMap<>();
+    private Map<String, TemplateLicense> licenseCache = new HashMap<>();
     private Map<String, InventoryItem> fileToInventoryItemMap = new HashMap<>();
     private Map<String, InventoryItem> inventoryCache = new HashMap<>();
 

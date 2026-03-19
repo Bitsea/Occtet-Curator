@@ -37,7 +37,7 @@ public class TemplateLicenseService {
     public TemplateLicense findOrCreateTemplateLicense(String licenseId, String templateText, String licenseName, boolean isSpdx) {
         log.debug("Finding or creating Template License for {}", licenseId);
 
-        // We only check by ID/Type now, because variations in text belong to UsageLicense
+        // Only check by ID/Type now, variations in text belong to UsageLicense
         List<TemplateLicense> templates = templateLicenseRepository.findByLicenseType(licenseId);
 
         if (!templates.isEmpty()) {
