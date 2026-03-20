@@ -35,7 +35,7 @@ import java.util.Set;
 @JmixEntity
 @Table(name = "COPYRIGHT")
 @Entity
-public class Copyright {
+public class Copyright implements HasOrganization {
 
     @JmixGeneratedValue
     @Id
@@ -63,10 +63,13 @@ public class Copyright {
     @OnDelete(DeletePolicy.CASCADE)
     private Set<File> files = new HashSet<>();;
 
-
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name= "COPYRIGHT_ID")
     private List<License> licenses;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID")
+    private Organization organization;
 
     public Long getId() {return id;}
 
@@ -114,6 +117,14 @@ public class Copyright {
 
     public void setAiControlled(Boolean aiControlled) {
         this.aiControlled = aiControlled;
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 }
 

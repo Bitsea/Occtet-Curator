@@ -36,7 +36,7 @@ import java.util.Set;
 @JmixEntity
 @Table(name = "PROJECT")
 @Entity
-public class Project {
+public class Project implements HasOrganization {
 
     @JmixGeneratedValue
     @Id
@@ -76,12 +76,13 @@ public class Project {
     @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
     private Organization organization;
 
-    public Project() {this.createdAt = LocalDateTime.now();}
+    public Project() {
+        this.createdAt = LocalDateTime.now();
+    }
 
     public Project(String projectName, Organization organization) {
         this.createdAt = LocalDateTime.now();
         this.projectName = projectName;
-        this.organization= organization;
     }
 
     public Long getId() {return id;}

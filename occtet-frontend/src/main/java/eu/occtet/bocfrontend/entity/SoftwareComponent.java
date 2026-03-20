@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 @JmixEntity
 @Table(name = "SOFTWARE_COMPONENT")
 @Entity
-public class SoftwareComponent {
+public class SoftwareComponent implements HasOrganization {
 
     @JmixGeneratedValue
     @Id

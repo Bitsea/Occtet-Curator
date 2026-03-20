@@ -102,4 +102,80 @@
                 referencedColumnNames="ID"/>
     </changeSet>
 
+    <changeSet id="add-license-organization" author="ibrahim.albahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="LICENSE" columnName="ORGANIZATION_ID"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="LICENSE">
+            <column name="ORGANIZATION_ID" type="BIGINT"/>
+        </addColumn>
+
+        <addForeignKeyConstraint
+                baseTableName="LICENSE"
+                baseColumnNames="ORGANIZATION_ID"
+                constraintName="FK_LICENSE_ORG"
+                referencedTableName="ORGANIZATION"
+                referencedColumnNames="ID"/>
+    </changeSet>
+
+    <changeSet id="add-copyright-organization" author="ibrahim.albahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="COPYRIGHT" columnName="ORGANIZATION_ID"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="COPYRIGHT">
+            <column name="ORGANIZATION_ID" type="BIGINT"/>
+        </addColumn>
+
+        <addForeignKeyConstraint
+                baseTableName="COPYRIGHT"
+                baseColumnNames="ORGANIZATION_ID"
+                constraintName="FK_COPYRIGHT_ORG"
+                referencedTableName="ORGANIZATION"
+                referencedColumnNames="ID"/>
+    </changeSet>
+
+    <changeSet id="add-inventoryitem-organization" author="ibrahim.albahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="INVENTORY_ITEM" columnName="ORGANIZATION_ID"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="INVENTORY_ITEM">
+            <column name="ORGANIZATION_ID" type="BIGINT"/>
+        </addColumn>
+
+        <addForeignKeyConstraint
+                baseTableName="INVENTORY_ITEM"
+                baseColumnNames="ORGANIZATION_ID"
+                constraintName="FK_INVENTORY_ITEM_ORG"
+                referencedTableName="ORGANIZATION"
+                referencedColumnNames="ID"/>
+    </changeSet>
+
+    <changeSet id="add-suggestion-organization" author="ibrahim.albahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="SUGGESTION" columnName="ORGANIZATION_ID"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="SUGGESTION">
+            <column name="ORGANIZATION_ID" type="BIGINT"/>
+        </addColumn>
+
+        <addForeignKeyConstraint
+                baseTableName="SUGGESTION"
+                baseColumnNames="ORGANIZATION_ID"
+                constraintName="FK_SUGGESTION_ORG"
+                referencedTableName="ORGANIZATION"
+                referencedColumnNames="ID"/>
+    </changeSet>
+
 </databaseChangeLog>

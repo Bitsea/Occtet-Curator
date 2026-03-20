@@ -61,6 +61,21 @@ public class Organization {
     @OnDelete(DeletePolicy.CASCADE)
     private Set<User> users = new HashSet<>();
 
+    @OneToMany(mappedBy = "organization")
+    @OnDelete(DeletePolicy.CASCADE)
+    private Set<InventoryItem> inventoryItems = new HashSet<>();
+
+    @OneToMany(mappedBy = "organization")
+    @OnDelete(DeletePolicy.CASCADE)
+    private Set<License> licenses = new HashSet<>();
+
+    @OneToMany(mappedBy = "organization")
+    @OnDelete(DeletePolicy.CASCADE)
+    private Set<Copyright> copyrights = new HashSet<>();
+
+    @OneToMany(mappedBy = "organization")
+    @OnDelete(DeletePolicy.CASCADE)
+    private Set<Suggestion> suggestions = new HashSet<>();
 
     public Organization() {
     }
@@ -120,5 +135,37 @@ public class Organization {
 
     public void setUsers(Set<User> users) {
         this.users = users;
+    }
+
+    public Set<InventoryItem> getInventoryItems() {
+        return inventoryItems;
+    }
+
+    public void setInventoryItems(Set<InventoryItem> inventoryItems) {
+        this.inventoryItems = inventoryItems;
+    }
+
+    public Set<License> getLicenses() {
+        return licenses;
+    }
+
+    public void setLicenses(Set<License> licenses) {
+        this.licenses = licenses;
+    }
+
+    public Set<Copyright> getCopyrights() {
+        return copyrights;
+    }
+
+    public void setCopyrights(Set<Copyright> copyrights) {
+        this.copyrights = copyrights;
+    }
+
+    public Set<Suggestion> getSuggestions() {
+        return suggestions;
+    }
+
+    public void setSuggestions(Set<Suggestion> suggestions) {
+        this.suggestions = suggestions;
     }
 }
