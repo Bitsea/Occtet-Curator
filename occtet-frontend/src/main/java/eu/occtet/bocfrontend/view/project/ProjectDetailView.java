@@ -19,7 +19,6 @@
 
 package eu.occtet.bocfrontend.view.project;
 
-import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
@@ -86,11 +85,9 @@ public class ProjectDetailView extends StandardDetailView<Project> {
     @Autowired
     private CurrentAuthentication currentAuthentication;
     @ViewComponent
-    private JmixComboBox<Organization> organization;
+    private JmixComboBox<Organization> organizationJmixComboBox;
     @Autowired
     private OrganizationRepository organizationRepository;
-
-
 
     private static final Logger log = LogManager.getLogger(ProjectDetailView.class);
     List<Project> projects = new ArrayList<>();
@@ -99,45 +96,21 @@ public class ProjectDetailView extends StandardDetailView<Project> {
     protected void onInit(InitEvent event) {
         projects = projectRepository.findAll();
 
-        organization.setItemLabelGenerator(Organization::getOrganizationName);
+        Organization organization = getOrganization();
+        if (isAdmin()) {
+            organizationJmixComboBox.setReadOnly(false);
+            organizationJmixComboBox.setItems(organizationRepository.findAll());
+        } else {
+            organizationJmixComboBox.setReadOnly(true);
+            if (organization != null)
+               organizationJmixComboBox.setItems(organization);
+        }
+
+        organizationJmixComboBox.setItemLabelGenerator(Organization::getOrganizationName);
         initHeaderForDataGrid(searchTermsProfilesDataGrid, messages.getMessage("eu.occtet.bocfrontend.view.project/Project.h2.searchTermsProfile"));
     }
 
-    @Subscribe
-    public void onBeforeShow(final BeforeShowEvent event) {
-        User user = (User) currentAuthentication.getUser();
-        Project project= this.getEditedEntity();
-
-        if(isAdmin() && project.getOrganization()==null){
-            log.debug("is admin + orga null");
-            List<Organization> organizations= organizationRepository.findAll();
-            organization.setReadOnly(false);
-            log.debug("organization list : {}", organizations.size());
-            organization.setItems(organizations);
-        }else if(project.getOrganization()==null) {
-            log.debug("orga null");
-            organization.setItems(user.getOrganization());
-            organization.setValue(user.getOrganization());
-        }else if(isAdmin()){
-            log.debug("is admin");
-            organization.setReadOnly(false);
-            List<Organization> organizations= organizationRepository.findAll();
-            organization.setItems(organizations);
-            organization.setValue(project.getOrganization());
-        }else{
-            log.debug("normal user and project has orga");
-            organization.setItems(project.getOrganization());
-            organization.setValue(project.getOrganization());
-        }
-    }
-
-
-
     public boolean isAdmin() {
-        currentAuthentication.getAuthentication()
-                .getAuthorities()
-                .stream()
-                .forEach(a -> log.debug("authority {}", a.getAuthority()));
         return currentAuthentication.getAuthentication()
                 .getAuthorities()
                 .stream()
@@ -183,7 +156,6 @@ public class ProjectDetailView extends StandardDetailView<Project> {
 
     @Subscribe
     protected void onBeforeSave(BeforeSaveEvent event){
-        this.getEditedEntity().setOrganization(organization.getValue());
 
         AppConfiguration globalBasePath =
                 appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH).orElse(null);
@@ -220,6 +192,14 @@ public class ProjectDetailView extends StandardDetailView<Project> {
                 .show();
     }
 
+    private Organization getOrganization() {
+        if (currentAuthentication.isSet() && currentAuthentication.getUser() instanceof User currentUser) {
+            log.debug("User org: {}", currentUser.getOrganization());
 
-
+            if (currentUser.getOrganization() != null) {
+                return currentUser.getOrganization();
+            }
+        }
+        return null;
+    }
 }

@@ -54,10 +54,10 @@
                                requiredMessage="msg://product.contact.required.message"/>
                     <textField id="contactEmailField" label="msg://eu.occtet.bocfrontend.view.project/Project.contactEmail"
                                property="contactEmail" width="50%"/>
-                    <comboBox id="organization" label="msg://organizationName"
-                               readOnly="true" required="true"/>
-
-
+                    <comboBox id="organizationJmixComboBox"
+                              property="organization"
+                              label="msg://organizationName"
+                              required="true"/>
                 </vbox>
             </vbox>
             <htmlObject colspan="2" width="100%"><hr/></htmlObject>
