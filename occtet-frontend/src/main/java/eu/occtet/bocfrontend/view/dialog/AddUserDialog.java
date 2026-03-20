@@ -39,6 +39,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Provides a dialog interface for searching and selecting {@link User} entities to be associated
+ * with an {@link Organization}.
+ * <p>
+ * This view is strictly responsible for managing the user selection process. It intentionally does
+ * not modify or persist changes to the provided organization instance. To process the selected data,
+ * the invoking parent view must attach an {@code addAfterCloseListener} to this dialog.
+ * <p>
+ * Upon a successful closure triggered by a {@link StandardOutcome#SAVE} event, the parent view
+ * is required to retrieve the chosen entities via {@link #getSelection()} and handle the necessary
+ * data context merging and association logic.
+ * Meaning this view only acts a dump by showing the user the options and returning the options.
+ * @see #getSelection()
+ */
 @ViewController("addUserDialog")
 @ViewDescriptor("add-user-dialog.xml")
 @DialogMode(width = "1000px", height = "650px")
@@ -78,11 +92,14 @@ public class AddUserDialog extends AbstractAddContentDialog<Organization>{
     @Subscribe(id = "addButton")
     public void addContentButton(ClickEvent<Button> event) {
 
-        List<User> users = new ArrayList<>(userDataGrid.getSelectedItems());
+        List<User> users = getSelection();
         if(!users.isEmpty() && organization != null){
-            organization.getUsers().addAll(users);
             close(StandardOutcome.SAVE);
         }
+    }
+
+    public List<User> getSelection() {
+        return new ArrayList<>(userDataGrid.getSelectedItems());
     }
 
     @Override

@@ -32,11 +32,13 @@ import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.CollectionContainer;
+import io.jmix.flowui.model.DataContext;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
 
 
 @Route(value = "organization/:id", layout = MainView.class)
@@ -59,6 +61,8 @@ public class OrganizationDetailView extends StandardDetailView<Organization> {
     private ProjectRepository projectRepository;
     @ViewComponent
     private CollectionContainer<User> userDc;
+    @ViewComponent
+    private DataContext dataContext;
 
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
@@ -74,9 +78,22 @@ public class OrganizationDetailView extends StandardDetailView<Organization> {
         DialogWindow<AddProjectDialog> window = dialogWindow.view(this, AddProjectDialog.class).build();
         window.getView().setAvailableContent(getEditedEntity());
         window.open();
-        window.addAfterCloseListener(close ->
-                updateProjectGrid());
+        window.addAfterCloseListener(close -> {
+            if (close.closedWith(StandardOutcome.SAVE)) {
+                List<Project> selectedProjects = window.getView().getSelection();
 
+                if (selectedProjects != null && !selectedProjects.isEmpty()) {
+                    for (Project project : selectedProjects) {
+                        Project mergedProject = dataContext.merge(project);
+
+                        mergedProject.setOrganization(getEditedEntity());
+
+                        getEditedEntity().getProjects().add(mergedProject);
+                    }
+                }
+                updateProjectGrid();
+            }
+        });
     }
 
     public void updateProjectGrid(){
@@ -89,9 +106,22 @@ public class OrganizationDetailView extends StandardDetailView<Organization> {
         DialogWindow<AddUserDialog> window = dialogWindow.view(this, AddUserDialog.class).build();
         window.getView().setAvailableContent(getEditedEntity());
         window.open();
-        window.addAfterCloseListener(close ->
-                updateMemberGrid());
+        window.addAfterCloseListener(close -> {
+            if (close.closedWith(StandardOutcome.SAVE)) {
+                List<User> selectedUsers = window.getView().getSelection();
 
+                if (selectedUsers != null && !selectedUsers.isEmpty()) {
+                    for (User user : selectedUsers) {
+                        User mergedUser = dataContext.merge(user);
+
+                        mergedUser.setOrganization(getEditedEntity());
+
+                        getEditedEntity().getUsers().add(mergedUser);
+                    }
+                }
+                updateMemberGrid();
+            }
+        });
     }
 
     public void updateMemberGrid(){

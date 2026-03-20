@@ -96,8 +96,11 @@
                           columnReorderingAllowed="true"
                           classNames="occtet-grid">
                     <columns resizable="true" >
-                        <column property="lastName" header="msg://eu.occtet.bocfrontend.entity/User.lastName"/>
-                        <column property="firstName" header="msg://eu.occtet.bocfrontend.entity/User.firstName"/>
+                        <column property="username" header="msg://eu.occtet.bocfrontend.entity/User.username"
+                                autoWidth="true" filterable="true"/>
+                        <column property="lastName" header="msg://eu.occtet.bocfrontend.entity/User.lastName" filterable="true"/>
+                        <column property="firstName" header="msg://eu.occtet.bocfrontend.entity/User.firstName"
+                                filterable="true"/>
                     </columns>
                 </dataGrid>
                 <hbox>

@@ -26,74 +26,80 @@
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
 
 
-<!--    <changeSet id="add-user-organization" author="leoni">-->
+    <changeSet id="add-user-organization" author="leoni">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="USER_" columnName="ORGANIZATION_ID"/>
+            </not>
+        </preConditions>
 
-<!--        <preConditions onFail="MARK_RAN">-->
-<!--            <columnExists tableName="USER_" columnName="ORGANIZATION_ID"/>-->
-<!--        </preConditions>-->
+        <addColumn tableName="USER_">
+            <column name="ORGANIZATION_ID" type="BIGINT"/>
+        </addColumn>
 
-<!--        <addColumn tableName="USER_">-->
-<!--            <column name="ORGANIZATION_ID" type="UUID"/>-->
-<!--        </addColumn>-->
+        <addForeignKeyConstraint
+                baseTableName="USER_"
+                baseColumnNames="ORGANIZATION_ID"
+                constraintName="FK_USER_ORG"
+                referencedTableName="ORGANIZATION"
+                referencedColumnNames="ID"/>
+    </changeSet>
 
-<!--        <addForeignKeyConstraint-->
-<!--                baseTableName="USER_"-->
-<!--                baseColumnNames="ORGANIZATION_ID"-->
-<!--                constraintName="FK_USER_ORGANIZATION"-->
-<!--                referencedTableName="ORGANIZATION"-->
-<!--                referencedColumnNames="ID"/>-->
-<!--    </changeSet>-->
+    <changeSet id="add-softwarecomponent-organization" author="leoni">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="SOFTWARE_COMPONENT" columnName="ORGANIZATION_ID"/>
+            </not>
+        </preConditions>
 
-<!--    <changeSet id="add-softwarecomponent-organization" author="leoni">-->
+        <addColumn tableName="SOFTWARE_COMPONENT">
+            <column name="ORGANIZATION_ID" type="BIGINT"/>
+        </addColumn>
 
-<!--        <preConditions onFail="MARK_RAN">-->
-<!--            <columnExists tableName="SOFTWARE_COMPONENT" columnName="ORGANIZATION_ID"/>-->
-<!--        </preConditions>-->
+        <addForeignKeyConstraint
+                baseTableName="SOFTWARE_COMPONENT"
+                baseColumnNames="ORGANIZATION_ID"
+                constraintName="FK_SWCOMP_ORG"
+                referencedTableName="ORGANIZATION"
+                referencedColumnNames="ID"/>
+    </changeSet>
 
-<!--        <addColumn tableName="SOFTWARE_COMPONENT">-->
-<!--            <column name="ORGANIZATION_ID" type="UUID"/>-->
-<!--        </addColumn>-->
+    <changeSet id="add-vulnerability-organization" author="leoni">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="VULNERABILITY" columnName="ORGANIZATION_ID"/>
+            </not>
+        </preConditions>
 
-<!--        <addForeignKeyConstraint-->
-<!--                baseTableName="SOFTWARE_COMPONENT"-->
-<!--                baseColumnNames="ORGANIZATION_ID"-->
-<!--                constraintName="FK_USER_ORGANIZATION"-->
-<!--                referencedTableName="ORGANIZATION"-->
-<!--                referencedColumnNames="ID"/>-->
-<!--    </changeSet>-->
+        <addColumn tableName="VULNERABILITY">
+            <column name="ORGANIZATION_ID" type="BIGINT"/>
+        </addColumn>
 
-<!--    <changeSet id="add-vulnerability-organization" author="leoni">-->
-<!--        <preConditions onFail="MARK_RAN">-->
-<!--            <columnExists tableName="VULNERABILITY" columnName="ORGANIZATION_ID"/>-->
-<!--        </preConditions>-->
+        <addForeignKeyConstraint
+                baseTableName="VULNERABILITY"
+                baseColumnNames="ORGANIZATION_ID"
+                constraintName="FK_VULN_ORG"
+                referencedTableName="ORGANIZATION"
+                referencedColumnNames="ID"/>
+    </changeSet>
 
-<!--        <addColumn tableName="VULNERABILITY">-->
-<!--            <column name="ORGANIZATION_ID" type="UUID"/>-->
-<!--        </addColumn>-->
+    <changeSet id="add-project-organization" author="leoni">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="PROJECT" columnName="ORGANIZATION_ID"/>
+            </not>
+        </preConditions>
 
-<!--        <addForeignKeyConstraint-->
-<!--                baseTableName="VULNERABILITY"-->
-<!--                baseColumnNames="ORGANIZATION_ID"-->
-<!--                constraintName="FK_USER_ORGANIZATION"-->
-<!--                referencedTableName="ORGANIZATION"-->
-<!--                referencedColumnNames="ID"/>-->
-<!--    </changeSet>-->
+        <addColumn tableName="PROJECT">
+            <column name="ORGANIZATION_ID" type="BIGINT"/>
+        </addColumn>
 
-<!--    <changeSet id="add-project-organization" author="leoni">-->
-<!--        <preConditions onFail="MARK_RAN">-->
-<!--            <columnExists tableName="PROJECT" columnName="ORGANIZATION_ID"/>-->
-<!--        </preConditions>-->
-
-<!--        <addColumn tableName="PROJECT">-->
-<!--            <column name="ORGANIZATION_ID" type="UUID"/>-->
-<!--        </addColumn>-->
-
-<!--        <addForeignKeyConstraint-->
-<!--                baseTableName="PROJECT"-->
-<!--                baseColumnNames="ORGANIZATION_ID"-->
-<!--                constraintName="FK_USER_ORGANIZATION"-->
-<!--                referencedTableName="ORGANIZATION"-->
-<!--                referencedColumnNames="ID"/>-->
-<!--    </changeSet>-->
+        <addForeignKeyConstraint
+                baseTableName="PROJECT"
+                baseColumnNames="ORGANIZATION_ID"
+                constraintName="FK_PROJECT_ORG"
+                referencedTableName="ORGANIZATION"
+                referencedColumnNames="ID"/>
+    </changeSet>
 
 </databaseChangeLog>
