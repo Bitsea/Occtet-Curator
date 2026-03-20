@@ -24,6 +24,8 @@ package eu.occtet.bocfrontend.listener;
 import eu.occtet.bocfrontend.entity.*;
 import io.jmix.core.event.EntitySavingEvent;
 import io.jmix.core.security.CurrentAuthentication;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -39,6 +41,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class EntitySavingListener {
 
+    private static final Logger log = LogManager.getLogger(EntitySavingListener.class);
+
     @Autowired
     private CurrentAuthentication currentAuthentication;
 
@@ -52,13 +56,27 @@ public class EntitySavingListener {
      * @param event the lifecycle event containing the entity being saved
      */
     @EventListener
-    public void onEntitySaving(final EntitySavingEvent<Object> event) {
+    public void onEntitySaving(final EntitySavingEvent<?> event) {
         Object rawEntity = event.getEntity();
 
+        log.debug("EntitySavingEvent received for type: {}", rawEntity.getClass().getSimpleName());
+
         if (rawEntity instanceof HasOrganization entity) {
+            log.debug("Entity implements HasOrganization. isNew={}, org={}",
+                    event.isNewEntity(), entity.getOrganization());
+
             if (event.isNewEntity() && entity.getOrganization() == null) {
+                log.debug("Auth set: {}, user type: {}",
+                        currentAuthentication.isSet(),
+                        currentAuthentication.isSet() ? currentAuthentication.getUser().getClass().getSimpleName() : "N/A");
+
                 if (currentAuthentication.isSet() && currentAuthentication.getUser() instanceof User currentUser) {
+                    log.debug("User org: {}", currentUser.getOrganization());
+
                     if (currentUser.getOrganization() != null) {
+                        log.info("Setting organization '{}' for new entity '{}'",
+                                currentUser.getOrganization().getOrganizationName(),
+                                entity.getClass().getSimpleName());
                         entity.setOrganization(currentUser.getOrganization());
                     }
                 }
