@@ -21,6 +21,8 @@ package eu.occtet.bocfrontend.view.organization;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.router.Route;
+import eu.occtet.bocfrontend.dao.MemberRepository;
+import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.entity.Organization;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.User;
@@ -51,10 +53,20 @@ public class OrganizationDetailView extends StandardDetailView<Organization> {
 
     @ViewComponent
     private CollectionContainer<Project> projectDc;
-
-
+    @Autowired
+    private MemberRepository memberRepository;
+    @Autowired
+    private ProjectRepository projectRepository;
     @ViewComponent
     private CollectionContainer<User> userDc;
+
+    @Subscribe
+    public void onBeforeShow(final BeforeShowEvent event) {
+        userDc.setItems(memberRepository.findByOrganization(this.getEditedEntity()));
+        projectDc.setItems(projectRepository.findByOrganization(this.getEditedEntity()));
+    }
+
+
 
     @Subscribe(id = "addProjectButton", subject = "clickListener")
     public void onAddProjectButtonClick(final ClickEvent<JmixButton> event) {
@@ -83,11 +95,12 @@ public class OrganizationDetailView extends StandardDetailView<Organization> {
     }
 
     public void updateMemberGrid(){
-        log.debug("update users {}", getEditedEntity().getProjects().size());
+        log.debug("update users {}", getEditedEntity().getUsers().size());
         userDc.setItems(getEditedEntity().getUsers());
     }
 
 
+    //TODO REMOVE project and user button
 
 
 }

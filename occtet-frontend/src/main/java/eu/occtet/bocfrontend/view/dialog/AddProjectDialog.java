@@ -81,7 +81,6 @@ public class AddProjectDialog extends AbstractAddContentDialog<Organization>{
         List<Project> projects = new ArrayList<>(projectDataGrid.getSelectedItems());
         if(!projects.isEmpty() && organization != null){
             organization.getProjects().addAll(projects);
-            dataManager.save(this.organization);
             close(StandardOutcome.SAVE);
         }
     }

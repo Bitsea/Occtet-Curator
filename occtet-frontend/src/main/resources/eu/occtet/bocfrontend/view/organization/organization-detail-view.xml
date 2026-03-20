@@ -62,7 +62,7 @@
             <h3 text="msg://eu.occtet.bocfrontend.view.project/OrganizationDetails" colspan="2" classNames="occtet-dialog-title"/>
             <vbox id="projectDetailContainer" colspan="2" margin="false" padding="false">
                 <vbox colspan="2" margin="false" padding="false">
-                    <textField id="projectNameField" property="organizationName" required="true"
+                    <textField id="orgaField" property="organizationName" required="true"
                                width="50%" label="msg://organizationName" requiredMessage="msg://io.jmix.flowui.entity.filter/AbstractSingleFilterCondition.required" colspan="2"/>
                     <textField id="organizationContactField" property="organizationEmail"
                                label="msg://organizationEmail" width="50%"/>
