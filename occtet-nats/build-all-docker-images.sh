@@ -49,6 +49,9 @@ cd ..
 cd occtet-nats-ort-run-start-service
 mvn clean package dockerfile:build
 cd ..
+cd occtet-nats-process-run-service
+mvn clean package dockerfile:build
+cd ..
 cd occtet-nats-spdx-export-service
 mvn clean package dockerfile:build
 cd ..

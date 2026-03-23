@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.*;
-import eu.occtet.boc.fossreport.dao.SoftwareComponentRepository;
+import eu.occtet.boc.dao.SoftwareComponentRepository;
 import eu.occtet.boc.model.*;
 import eu.occtet.boc.service.NatsStreamSender;
 import eu.occtet.boc.service.ProgressReportingService;
