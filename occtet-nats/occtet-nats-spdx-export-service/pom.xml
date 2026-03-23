@@ -201,7 +201,7 @@
     <build>
         <resources>
             <resource>
-                <directory>${project.parent.basedir}/src/main/resources</directory>
+                <directory>../src/main/resources</directory>
                 <filtering>false</filtering>
             </resource>
             <resource>
