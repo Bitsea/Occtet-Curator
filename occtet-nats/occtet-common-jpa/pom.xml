@@ -24,9 +24,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>occtet-common-jpa</artifactId>
-    <name>occtet-Common-jpa</name>
+    <name>occtet-common-jpa</name>
     <description>Occtet Common JPA Library</description>
-    <version>0.3.13-SNAPSHOT</version>
+    <version>0.3.14-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <!-- because we have no parent declaration here, we need to redefine the properties -->
@@ -94,11 +94,29 @@
     </dependencies>
 
     <build>
-    <resources>
-        <resource>
-            <directory>src/main/resources</directory>
-            <filtering>true</filtering>
-        </resource>
-    </resources>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <configLocation>../checkstyle-min.xml</configLocation>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 </project>

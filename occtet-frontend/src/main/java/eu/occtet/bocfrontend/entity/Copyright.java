@@ -60,9 +60,8 @@ public class Copyright {
             name = "COPYRIGHT_FILE_LINK",
             joinColumns = @JoinColumn(name = "COPYRIGHT_ID", referencedColumnName = "ID"),
             inverseJoinColumns = @JoinColumn(name = "FILE_ID", referencedColumnName = "ID"))
-    @OnDelete(DeletePolicy.CASCADE)
-    private Set<File> files = new HashSet<>();;
-
+    @OnDelete(DeletePolicy.UNLINK)
+    private Set<File> files = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name= "COPYRIGHT_ID")
