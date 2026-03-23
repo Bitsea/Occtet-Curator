@@ -44,15 +44,6 @@ public interface CuratorRowLevelRole {
     @JpqlRowLevelPolicy(entityClass = InventoryItem.class, where = "{E}.organization = :current_user_organization")
     void inventoryItem();
 
-    @JpqlRowLevelPolicy(entityClass = License.class, where = "{E}.organization = :current_user_organization")
-    void license();
-
-    @JpqlRowLevelPolicy(entityClass = Copyright.class, where = "{E}.organization = :current_user_organization")
-    void copyright();
-
-    @JpqlRowLevelPolicy(entityClass = Suggestion.class, where = "{E}.organization = :current_user_organization")
-    void suggestion();
-
     // INDIRECTLY CONNECTED ENTITIES (Via Parent Hierarchy)
 
     @JpqlRowLevelPolicy(entityClass = File.class, where = "{E}.project.organization = :current_user_organization")

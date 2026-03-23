@@ -36,32 +36,72 @@ public interface CuratorRole {
     String CODE = "curator";
 
     @MenuPolicy(menuIds = {
-            "DashboardView", "AuditView", "VexData.list", "Vulnerability.list",
-            "InventoryItem.list", "Copyright.list", "License.list", "Project.list",
-            "SoftwareComponent.list", "ortIssue.list", "ortViolation.list",
-            "CuratorTask.list", "HelpView"
+            "DashboardView",
+            "AuditView",
+            "VexData.list",
+            "Vulnerability.list",
+            "InventoryItem.list",
+            "Copyright.list",
+            "License.list",
+            "Project.list",
+            "SoftwareComponent.list",
+            "ortIssue.list",
+            "ortViolation.list",
+            "CuratorTask.list",
+            "HelpView"
     })
-    void menuAccess();
+    void menuNavigationAccess();
 
     @ViewPolicy(viewIds = {
-            "DashboardView", "AuditView", "HelpView",
+            "DashboardView",
+            "AuditView",
+            "HelpView",
+            "CuratorTask.list",
+            "CuratorTask.detail",
+            "ExportProjectSbomHelperView"
+    })
+    void coreCurationViewAccess();
+
+    @ViewPolicy(viewIds = {
             "VexData.list", "VexData.detail",
             "Vulnerability.list", "Vulnerability.detail",
+            "ortIssue.list", "OrtIssue.detail",
+            "ortViolation.list", "OrtViolation.detail"
+    })
+    void securityDomainViewAccess();
+
+    @ViewPolicy(viewIds = {
             "InventoryItem.list", "InventoryItem.detail",
             "Copyright.list", "Copyright.detail",
             "License.list", "License.detail",
             "Project.list", "Project.detail",
             "SoftwareComponent.list", "SoftwareComponent.detail",
-            "ortIssue.list", "OrtIssue.detail",
-            "ortViolation.list", "OrtViolation.detail",
-            "CuratorTask.list", "CuratorTask.detail"
+            "File.list",
+            "SearchTermsProfile.list", "SearchTermsProfileDetailView",
+            "Suggestion.list", "Suggestion.detail"
     })
-    void viewAccess();
+    void inventoryDomainViewAccess();
+
+    @ViewPolicy(viewIds = {
+            "Configuration.list",
+            "Configuration.detail"
+    })
+    void configurationEntityViewAccess();
+
+    @ViewPolicy(viewIds = {
+            "addCopyrightDialog",
+            "addLicenseDialog",
+            "addLicenseToCopyrightDialog",
+            "createCopyrightDialog",
+            "createLicenseDialog",
+            "overviewContentInfoDialog",
+            "LicenseDialogWindowView"
+    })
+    void dialogAndHelperViewAccess();
 
     @EntityPolicy(entityClass = Project.class, actions = {EntityPolicyAction.READ, EntityPolicyAction.UPDATE})
     @EntityAttributePolicy(entityClass = Project.class, attributes = "*", action = EntityAttributePolicyAction.MODIFY)
-    void projectUpdate();
-
+    void projectUpdateAccess();
 
     @EntityPolicy(entityName = "*", actions = {EntityPolicyAction.CREATE, EntityPolicyAction.READ, EntityPolicyAction.UPDATE, EntityPolicyAction.DELETE})
     @EntityAttributePolicy(entityName = "*", attributes = "*", action = EntityAttributePolicyAction.MODIFY)
