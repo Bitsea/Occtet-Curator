@@ -43,13 +43,10 @@ cd ..
 cd occtet-nats-foss-report-service
 mvn clean package dockerfile:build
 cd ..
-cd occtet-nats-issue-catcher-service
-mvn clean package dockerfile:build
-cd ..
 cd occtet-nats-licensematcher-service
 mvn clean package dockerfile:build
 cd ..
-cd occtet-nats-ort-run-starter-service
+cd occtet-nats-ort-run-start-service
 mvn clean package dockerfile:build
 cd ..
 cd occtet-nats-spdx-export-service
