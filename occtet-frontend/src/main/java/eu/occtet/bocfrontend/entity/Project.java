@@ -34,7 +34,9 @@ import java.util.Set;
 
 
 @JmixEntity
-@Table(name = "PROJECT")
+@Table(name = "PROJECT", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"ORGANIZATION_ID", "PROJECT_NAME", "VERSION"})
+})
 @Entity
 public class Project implements HasOrganization {
 

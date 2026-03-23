@@ -27,11 +27,11 @@ import io.jmix.core.repository.Query;
 import java.util.List;
 import java.util.Set;
 
-public interface MemberRepository  extends JmixDataRepository<User, Long> {
+public interface UserRepository extends JmixDataRepository<User, Long> {
 
     List<User> findAll();
-    @Query("select p from User p where p not in :users")
-    List<User> findAvailableUsers(Set<User> users);
+    @Query("select u from User u where u.organization IS null")
+    List<User> findAvailableUsers();
     List<User> findByOrganization(Organization organization);
 
 }

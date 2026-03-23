@@ -33,7 +33,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @JmixEntity
-@Table(name = "SOFTWARE_COMPONENT")
+@Table(name = "SOFTWARE_COMPONENT", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"ORGANIZATION_ID", "SOFTWARE_COMPONENT_NAME", "VERSION"})
+})
 @Entity
 public class SoftwareComponent implements HasOrganization {
 

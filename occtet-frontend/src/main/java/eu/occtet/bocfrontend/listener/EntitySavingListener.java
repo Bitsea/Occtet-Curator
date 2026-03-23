@@ -22,8 +22,11 @@
 package eu.occtet.bocfrontend.listener;
 
 import eu.occtet.bocfrontend.entity.*;
+import eu.occtet.bocfrontend.service.UserService;
+import io.jmix.core.Messages;
 import io.jmix.core.event.EntitySavingEvent;
 import io.jmix.core.security.CurrentAuthentication;
+import io.jmix.flowui.exception.ValidationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +48,10 @@ public class EntitySavingListener {
 
     @Autowired
     private CurrentAuthentication currentAuthentication;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private Messages messages;
 
     /**
      * Assigns the current user's organization to the target entity before it is persisted to the database.
@@ -57,27 +64,37 @@ public class EntitySavingListener {
      */
     @EventListener
     public void onEntitySaving(final EntitySavingEvent<?> event) {
+
+        if (!event.isNewEntity()) {
+            return;
+        }
+
         Object rawEntity = event.getEntity();
 
-        log.debug("EntitySavingEvent received for type: {}", rawEntity.getClass().getSimpleName());
-
         if (rawEntity instanceof HasOrganization entity) {
-            log.debug("Entity implements HasOrganization. isNew={}, org={}",
-                    event.isNewEntity(), entity.getOrganization());
 
-            if (event.isNewEntity() && entity.getOrganization() == null) {
+            if (entity.getOrganization() == null) {
+
                 log.debug("Auth set: {}, user type: {}",
                         currentAuthentication.isSet(),
                         currentAuthentication.isSet() ? currentAuthentication.getUser().getClass().getSimpleName() : "N/A");
 
                 if (currentAuthentication.isSet() && currentAuthentication.getUser() instanceof User currentUser) {
-                    log.debug("User org: {}", currentUser.getOrganization());
 
                     if (currentUser.getOrganization() != null) {
                         log.info("Setting organization '{}' for new entity '{}'",
                                 currentUser.getOrganization().getOrganizationName(),
                                 entity.getClass().getSimpleName());
                         entity.setOrganization(currentUser.getOrganization());
+
+                    } else if (!userService.isAdmin()){
+                        throw new ValidationException(
+                                messages.getMessage("orgAssignmentError")
+                        );
+                    } else {
+                        throw new ValidationException(
+                                messages.getMessage("orgAssignmentErrorAdmin")
+                        );
                     }
                 }
             }

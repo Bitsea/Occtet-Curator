@@ -42,6 +42,7 @@ import java.util.*;
 @Table(name = "USER_", indexes = {
         @Index(name = "IDX_USER__ON_USERNAME", columnList = "USERNAME", unique = true)
 })
+
 public class User extends JmixOidcUserEntity implements JmixUserDetails, HasTimeZone {
 
     @Id

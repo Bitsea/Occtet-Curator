@@ -7,7 +7,9 @@ import jakarta.persistence.*;
 
 
 @JmixEntity
-@Table(name="SUGGESTION" )
+@Table(name="SUGGESTION", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"ORGANIZATION_ID", "CONTEXT", "SENTENCE"})
+})
 @Entity
 public class Suggestion implements HasOrganization {
 
