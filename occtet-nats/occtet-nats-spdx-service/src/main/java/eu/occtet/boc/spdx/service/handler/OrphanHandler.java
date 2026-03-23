@@ -104,7 +104,8 @@ public class OrphanHandler {
                 String filePath = file.getName().orElse("Unknown File");
                 SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(filePath, "Standalone", context.getProject().getOrganization());
 
-                InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(filePath, component, context.getProject());
+                InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(filePath, component,
+                        context.getProject(), context.getProject().getOrganization());
                 inventoryItem.setSpdxId(file.getId());
                 inventoryItem.setCurated(false);
                 inventoryItem.setSize(1);
@@ -122,7 +123,9 @@ public class OrphanHandler {
 
                 String copyrightText = file.getCopyrightText();
                 if (copyrightText != null && !"NONE".equals(copyrightText) && !"NOASSERTION".equals(copyrightText)) {
-                    Map<String, Copyright> createdCopyrights = copyrightService.findOrCreateBatch(Collections.singleton(copyrightText));
+                    Map<String, Copyright> createdCopyrights =
+                            copyrightService.findOrCreateBatch(Collections.singleton(copyrightText),
+                                    context.getProject().getOrganization());
                     Copyright copyright = createdCopyrights.get(copyrightText);
 
                     if (copyright != null) {
@@ -147,7 +150,8 @@ public class OrphanHandler {
                 }
 
                 if (fileLicense != null) {
-                    List<License> licenses = licenseHandler.createLicenses(fileLicense, context.getLicenseCache(), context.getExtractedLicenseInfos());
+                    List<License> licenses = licenseHandler.createLicenses(fileLicense, context.getLicenseCache(),
+                            context.getExtractedLicenseInfos(), context.getProject().getOrganization());
 
                     if (component.getLicenses() == null) {
                         component.setLicenses(new ArrayList<>());

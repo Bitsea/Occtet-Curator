@@ -23,6 +23,7 @@ package eu.occtet.boc.spdx.service;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.entity.File;
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.spdx.factory.CopyrightFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,11 +40,11 @@ public class CopyrightService {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public Copyright findOrCreateCopyright(String copyrightString, Set<File> files){
+    public Copyright findOrCreateCopyright(String copyrightString, Set<File> files, Organization organization){
         List<Copyright> copyrights = copyrightRepository.findByCopyrightText(copyrightString);
         Copyright copyright;
         if (copyrights.isEmpty()) {
-            copyright = copyrightFactory.create(copyrightString, files);
+            copyright = copyrightFactory.create(copyrightString, files, organization);
         }else{
             copyright= copyrights.getFirst();
             for(File cl: files) {
@@ -65,7 +66,7 @@ public class CopyrightService {
      * @return a map where the keys are the copyright text strings and the values are the corresponding {@link Copyright} entities
      */
     @Transactional
-    public Map<String, Copyright> findOrCreateBatch(Set<String> copyrightTexts){
+    public Map<String, Copyright> findOrCreateBatch(Set<String> copyrightTexts, Organization organization){
         Map<String, Copyright> cache = new HashMap<>();
         List<String> textList = new ArrayList<>(copyrightTexts);
 
@@ -79,7 +80,7 @@ public class CopyrightService {
         Set<Copyright> toSave = new HashSet<>();
         for (String text : copyrightTexts) {
             if (!cache.containsKey(text)) {
-                Copyright newCopyright = copyrightFactory.createTransient(text, new HashSet<>());
+                Copyright newCopyright = copyrightFactory.createTransient(text, new HashSet<>(), organization);
                 toSave.add(newCopyright);
                 cache.put(text, newCopyright);
             }

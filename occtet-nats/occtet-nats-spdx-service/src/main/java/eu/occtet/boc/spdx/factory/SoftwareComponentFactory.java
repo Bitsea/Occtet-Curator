@@ -35,14 +35,14 @@ public class SoftwareComponentFactory {
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
 
-    public SoftwareComponent create(String softwareName, String version,
-                                    List<License> license, String url, Organization organization) {
-        String purl="";
-        boolean curated=false;
-        SoftwareComponent softwareComponent= new SoftwareComponent(softwareName, version,license, url, organization );
-        return softwareComponentRepository.save(softwareComponent);}
+    public SoftwareComponent create(String softwareName, String version, List<License> license, String url, Organization organization) {
+        String purl = "";
+        boolean curated = false;
+        SoftwareComponent softwareComponent = new SoftwareComponent(softwareName, version, license, url, organization);
+        return softwareComponentRepository.save(softwareComponent);
+    }
 
     public SoftwareComponent create(String softwareName, String version, Organization organization) {
-        return softwareComponentRepository.save(new SoftwareComponent(softwareName,version, organization));
+        return softwareComponentRepository.save(new SoftwareComponent(softwareName, version, organization));
     }
 }

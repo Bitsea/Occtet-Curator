@@ -83,6 +83,9 @@ public class SpdxServiceTest {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
 
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
     @MockitoBean
     private PackageHandler packageHandler;
     @MockitoBean
@@ -110,6 +113,11 @@ public class SpdxServiceTest {
         project = new Project();
         project.setProjectName("Orchestration Project");
         project.setVersion("0.0.1");
+
+        Organization org = new Organization();
+        org.setOrganizationName("TestOrg");
+        organizationRepository.save(org);
+
         project = projectRepository.save(project);
 
         jsonBytes = Thread.currentThread().getContextClassLoader()

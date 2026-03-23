@@ -114,6 +114,11 @@ public class SpdxHandlerTest {
         project = new Project();
         project.setProjectName("IntegrationTestProject");
         project.setVersion("1.0.0");
+
+        Organization org = new Organization();
+        org.setOrganizationName("TestOrg");
+
+        project.setOrganization(org);
         project = projectRepository.save(project);
 
         SpdxModelFactory.init();
@@ -268,13 +273,15 @@ public class SpdxHandlerTest {
         List<License> standardResult = licenseHandler.createLicenses(
                 standardLicenseInfo,
                 context.getLicenseCache(),
-                context.getExtractedLicenseInfos()
+                context.getExtractedLicenseInfos(),
+                context.getProject().getOrganization()
         );
 
         List<License> extractedResult = licenseHandler.createLicenses(
                 extractedLicenseInfo,
                 context.getLicenseCache(),
-                context.getExtractedLicenseInfos()
+                context.getExtractedLicenseInfos(),
+                context.getProject().getOrganization()
         );
 
 

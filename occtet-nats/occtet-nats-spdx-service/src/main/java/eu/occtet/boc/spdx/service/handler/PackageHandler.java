@@ -133,7 +133,8 @@ public class PackageHandler {
             spdxPkgLicense = spdxPackage.getLicenseDeclared();
         }
 
-        List<License> pkgLicenses = licenseHandler.createLicenses(spdxPkgLicense, context.getLicenseCache(), context.getExtractedLicenseInfos());
+        List<License> pkgLicenses = licenseHandler.createLicenses(spdxPkgLicense, context.getLicenseCache(),
+                context.getExtractedLicenseInfos(), context.getProject().getOrganization());
         if(component.getLicenses() != null) {
             //make double sure there are no doubles
             Set<License> lSet= new HashSet<>( component.getLicenses());
@@ -152,7 +153,9 @@ public class PackageHandler {
         if (!inventoryName.contains(component.getVersion())) inventoryName += component.getVersion();
         inventoryName += " (" + packageLicenseString + ")";
 
-        InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, component, context.getProject());
+        InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, component,
+                context.getProject(),
+                context.getProject().getOrganization());
         inventoryItem.setSpdxId(spdxPackage.getId());
         inventoryItem.setCurated(false);
 
@@ -240,7 +243,8 @@ public class PackageHandler {
 
 
         Map<String, File> locationMap = fileService.findOrCreateBatch(fileToSpdxIdMap, inventoryItem);
-        Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts);
+        Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts,
+                context.getProject().getOrganization());
 
         List<Copyright> copyrightsToUpdate = new ArrayList<>();
         for (Map.Entry<String, String> entry : fileToCopyrightMap.entrySet()) {
