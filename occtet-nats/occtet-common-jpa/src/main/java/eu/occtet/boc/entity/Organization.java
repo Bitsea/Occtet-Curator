@@ -42,37 +42,8 @@ public class Organization {
     @Column(name = "ORGANIZATION_EMAIL", columnDefinition = "VARCHAR(255)")
     private String organizationEmail;
 
-    @OneToMany(mappedBy = "organization")
-    private Set<Project> projects = new HashSet<>();
-
-    @OneToMany(mappedBy = "organization")
-    private Set<Vulnerability> vulnerabilities = new HashSet<>();
-
-    @OneToMany(mappedBy = "organization")
-    private Set<SoftwareComponent> softwareComponents = new HashSet<>();
-
-
-
-
     public Organization() {
     }
-
-    public Set<Vulnerability> getVulnerabilities() {
-        return vulnerabilities;
-    }
-
-    public void setVulnerabilities(Set<Vulnerability> vulnerabilities) {
-        this.vulnerabilities = vulnerabilities;
-    }
-
-    public Set<SoftwareComponent> getSoftwareComponents() {
-        return softwareComponents;
-    }
-
-    public void setSoftwareComponents(Set<SoftwareComponent> softwareComponents) {
-        this.softwareComponents = softwareComponents;
-    }
-
 
     public String getOrganizationName() {
         return organizationName;
@@ -88,14 +59,6 @@ public class Organization {
 
     public void setOrganizationEmail(String organizationEmail) {
         this.organizationEmail = organizationEmail;
-    }
-
-    public Set<Project> getProjects() {
-        return projects;
-    }
-
-    public void setProjects(Set<Project> projects) {
-        this.projects = projects;
     }
 
     public Long getId() {

@@ -29,7 +29,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "INVENTORY_ITEM")
 @EntityListeners(AuditingEntityListener.class)
-public class InventoryItem {
+public class InventoryItem implements HasOrganization {
 
 
     @Id
@@ -79,6 +79,9 @@ public class InventoryItem {
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
+    private Organization organization;
 
     public InventoryItem() {
         this.createdAt = LocalDateTime.now();
@@ -93,7 +96,8 @@ public class InventoryItem {
             SoftwareComponent softwareComponent,
             boolean wasCombined,
             boolean curated,
-            Project project, String spdxId
+            Project project, String spdxId,
+            Organization organization
     ) {
         this.createdAt = LocalDateTime.now();
         this.inventoryName = inventoryName;
@@ -105,13 +109,15 @@ public class InventoryItem {
         this.curated = curated;
         this.project = project;
         this.spdxId = spdxId;
+        this.organization = organization;
     }
 
-    public InventoryItem(String inventoryName, Project project, SoftwareComponent softwareComponent) {
+    public InventoryItem(String inventoryName, Project project, SoftwareComponent softwareComponent, Organization organization) {
         this.createdAt = LocalDateTime.now();
         this.inventoryName = inventoryName;
         this.project = project;
         this.softwareComponent = softwareComponent;
+        this.organization = organization;
     }
 
     public Long getId() {
@@ -243,5 +249,15 @@ public class InventoryItem {
 
     public void setHasTodos(Boolean hasTodos) {
         this.hasTodos = hasTodos;
+    }
+
+    @Override
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    @Override
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 }

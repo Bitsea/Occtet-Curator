@@ -29,9 +29,11 @@ import java.util.stream.Collectors;
 
 
 @Entity
-@Table(name = "SOFTWARE_COMPONENT")
+@Table(name = "SOFTWARE_COMPONENT", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"ORGANIZATION_ID", "SOFTWARE_COMPONENT_NAME", "VERSION"})
+})
 @EntityListeners(AuditingEntityListener.class)
-public class SoftwareComponent {
+public class SoftwareComponent implements HasOrganization {
 
     @Id
     @Column(name="ID", nullable = false)

@@ -31,9 +31,11 @@ import java.util.Set;
 
 
 @Entity
-@Table(name = "PROJECT")
+@Table(name = "PROJECT", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"ORGANIZATION_ID", "PROJECT_NAME", "VERSION"})
+})
 @EntityListeners(AuditingEntityListener.class)
-public class Project {
+public class Project implements HasOrganization {
 
     @Id
     @Column(name="ID", nullable = false, columnDefinition = "BIGINT")
