@@ -25,6 +25,7 @@ import eu.occtet.boc.config.TestEclipseLinkJpaConfiguration;
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.SpdxDocumentRootRepository;
 import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.entity.spdxV2.CreationInfoEntity;
@@ -79,8 +80,14 @@ public class MergeServiceTest {
         Project project = new Project("Test Project");
         project.setVersion("1.0.0");
         project.setProjectContact("Jane Doe");
-        project.setOrganizationName("Acme Corp");
         project.setCreatedAt(LocalDateTime.now());
+
+        Organization org = new Organization();
+        org.setOrganizationEmail("test@test.com");
+        org.setOrganizationName("Test Org");
+
+        project.setOrganization(org);
+        org.getProjects().add(project);
 
         SpdxDocumentRoot documentRoot = getSpdxDocumentRoot();
 
@@ -97,7 +104,7 @@ public class MergeServiceTest {
 
         documentRoot.getPackages().add(documentPackage);
 
-        SoftwareComponent curatedComponent = new SoftwareComponent("updated-name", "2.0", new ArrayList<>());
+        SoftwareComponent curatedComponent = new SoftwareComponent("updated-name", "2.0", new ArrayList<>(), org);
         curatedComponent.setCurated(true);
         curatedComponent.setDetailsUrl("https://new-location.com");
 
@@ -147,7 +154,7 @@ public class MergeServiceTest {
         documentPackage.setName("original-name");
         documentRoot.getPackages().add(documentPackage);
 
-        SoftwareComponent uncuratedComponent = new SoftwareComponent("updated-name", "2.0", new ArrayList<>());
+        SoftwareComponent uncuratedComponent = new SoftwareComponent("updated-name", "2.0", new ArrayList<>(), new Organization());
         uncuratedComponent.setCurated(false); // Flag is explicitly false
 
         InventoryItem item = new InventoryItem("InventoryNode", project, uncuratedComponent);
