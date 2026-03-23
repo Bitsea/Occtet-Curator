@@ -131,9 +131,9 @@ public class ExportService  extends ProgressReportingService  {
                                    ),
                                     String.format(createAttributeTemplate,
                                             "Organization",
-                                            project.getOrganizationName(),
-                                            project.getOrganizationEmail() != null ?
-                                                    "(" + project.getOrganizationEmail() + ")" : "()"
+                                            project.getOrganization().getOrganizationName(),
+                                            project.getOrganization().getOrganizationEmail() != null ?
+                                                    "(" + project.getOrganization().getOrganizationEmail() + ")" : "()"
                                     ),
                                     String.format(createAttributeTemplate, "Tool", toolName, "")
                             ),

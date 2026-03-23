@@ -22,15 +22,8 @@
 package eu.occtet.bocfrontend.security.oidc;
 
 import eu.occtet.bocfrontend.entity.*;
-import io.jmix.core.security.CurrentAuthentication;
-import io.jmix.security.model.RowLevelBiPredicate;
-import io.jmix.security.model.RowLevelPolicyAction;
 import io.jmix.security.role.annotation.JpqlRowLevelPolicy;
-import io.jmix.security.role.annotation.PredicateRowLevelPolicy;
 import io.jmix.security.role.annotation.RowLevelRole;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.security.core.Authentication;
 
 @RowLevelRole(
         name = "Curator Data Access",

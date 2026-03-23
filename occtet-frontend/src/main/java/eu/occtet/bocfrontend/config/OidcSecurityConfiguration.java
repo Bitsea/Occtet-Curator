@@ -58,11 +58,5 @@ public class OidcSecurityConfiguration extends OidcVaadinWebSecurity {
                 )
         );
 
-        // logout TODO find a way to log the user out unless we do not want to log him out from keycloak by pressing
-        //  on logout in our curator tool...
-//        OidcClientInitiatedLogoutSuccessHandler logoutSuccessHandler =
-//                new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
-//        logoutSuccessHandler.setPostLogoutRedirectUri("{}");
-//        http.logout(logout -> logout.logoutSuccessHandler(logoutSuccessHandler));
     }
 }
