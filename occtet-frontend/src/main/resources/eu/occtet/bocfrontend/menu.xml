@@ -41,7 +41,7 @@
           icon="vaadin:shield"/>
     <item view="CuratorTask.list" title="msg://eu.occtet.bocfrontend.view.curatortask/importTaskListView.title" icon="vaadin:plus-circle"/>
     <item view="HelpView" title="msg://eu.occtet.bocfrontend.view.help/helpView.title" icon="vaadin:open-book"/>
-    <menu id="application" title="msg://eu.occtet.bocfrontend/menu.application.title">
+    <menu id="admin" title="msg://eu.occtet.bocfrontend/menu.application.title">
         <item view="ConfigurationView" title="msg://eu.occtet.bocfrontend.view.appconfiguration/configurationView.title"/>
         <item view="Organization.list" title="msg://eu.occtet.bocfrontend/organizations"/>
         <item view="ServicesView" title="msg://eu.occtet.bocfrontend.view.services/servicesView.title"/>

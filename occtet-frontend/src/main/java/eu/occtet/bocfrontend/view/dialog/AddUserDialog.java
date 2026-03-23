@@ -23,12 +23,9 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.textfield.TextField;
-import eu.occtet.bocfrontend.dao.MemberRepository;
+import eu.occtet.bocfrontend.dao.UserRepository;
 import eu.occtet.bocfrontend.entity.Organization;
-import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.User;
-import io.jmix.core.DataManager;
-import io.jmix.core.security.UserRepository;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;
@@ -64,7 +61,7 @@ public class AddUserDialog extends AbstractAddContentDialog<Organization>{
     private User user;
 
     @Autowired
-    private MemberRepository memberRepository;
+    private UserRepository userRepository;
 
     @ViewComponent
     private CollectionContainer<User> userDc;
@@ -80,7 +77,7 @@ public class AddUserDialog extends AbstractAddContentDialog<Organization>{
     public void setAvailableContent(Organization organization) {
         this.organization = organization;
         log.debug("setAvailableContent called with Organization: {}", organization);
-        userDc.setItems(memberRepository.findAll());
+        userDc.setItems(userRepository.findAll());
     }
 
 
@@ -107,13 +104,17 @@ public class AddUserDialog extends AbstractAddContentDialog<Organization>{
     public void searchContentButton(ClickEvent<Button> event) {
 
         String searchWord = searchField.getValue();
-        if(!searchWord.isEmpty() && event != null){
-            List<User> listFindings= memberRepository.findAll().stream().filter(u-> u.getUsername().toLowerCase().contains(searchWord.toLowerCase())
+
+        List<User> availableUsers = userRepository.findAvailableUsers();
+
+        if (searchWord != null && !searchWord.isEmpty() && event != null) {
+            List<User> listFindings = availableUsers.stream()
+                    .filter(u-> u.getUsername().toLowerCase().contains(searchWord.toLowerCase())
                     || u.getLastName().toLowerCase().contains(searchWord.toLowerCase())
                     || u.getFirstName().toLowerCase().contains(searchWord.toLowerCase())).toList();
             userDc.setItems(listFindings);
         }else{
-            userDc.setItems(memberRepository.findAvailableUsers( organization.getUsers()));
+            userDc.setItems(availableUsers);
         }
     }
 

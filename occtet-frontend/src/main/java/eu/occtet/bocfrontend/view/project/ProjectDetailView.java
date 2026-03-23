@@ -36,8 +36,10 @@ import eu.occtet.bocfrontend.entity.User;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfiguration;
 import eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile;
+import eu.occtet.bocfrontend.service.UserService;
 import eu.occtet.bocfrontend.service.Utilities;
 import eu.occtet.bocfrontend.view.main.MainView;
+import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
 import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.flowui.Dialogs;
@@ -88,16 +90,20 @@ public class ProjectDetailView extends StandardDetailView<Project> {
     private JmixComboBox<Organization> organizationJmixComboBox;
     @Autowired
     private OrganizationRepository organizationRepository;
+    @Autowired
+    private UserService userService;
 
     private static final Logger log = LogManager.getLogger(ProjectDetailView.class);
     List<Project> projects = new ArrayList<>();
+    @Autowired
+    private DataManager dataManager;
 
     @Subscribe
     protected void onInit(InitEvent event) {
         projects = projectRepository.findAll();
 
         Organization organization = getOrganization();
-        if (isAdmin()) {
+        if (userService.isAdmin()) {
             organizationJmixComboBox.setReadOnly(false);
             organizationJmixComboBox.setItems(organizationRepository.findAll());
         } else {
@@ -110,12 +116,12 @@ public class ProjectDetailView extends StandardDetailView<Project> {
         initHeaderForDataGrid(searchTermsProfilesDataGrid, messages.getMessage("eu.occtet.bocfrontend.view.project/Project.h2.searchTermsProfile"));
     }
 
-    public boolean isAdmin() {
-        return currentAuthentication.getAuthentication()
-                .getAuthorities()
-                .stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_admin")
-                        || a.getAuthority().equals("system-full-access"));
+    @Subscribe
+    private void onInitEntity(InitEntityEvent<Project> event) {
+        Organization organization = getOrganization();
+        if (!userService.isAdmin() && organization != null) {
+            event.getEntity().setOrganization(organization);
+        }
     }
 
     private <E> void initHeaderForDataGrid(DataGrid<E> dataGrid, String title){
@@ -155,33 +161,31 @@ public class ProjectDetailView extends StandardDetailView<Project> {
     }
 
     @Subscribe
-    protected void onBeforeSave(BeforeSaveEvent event){
+    protected void onBeforeSave(BeforeSaveEvent event) {
 
-        AppConfiguration globalBasePath =
-                appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH).orElse(null);
+        AppConfiguration globalBasePath = appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH).orElse(null);
 
-        if (globalBasePath == null ||
-                globalBasePath.getValue() == null ||
-                globalBasePath.getValue().isBlank()) {
-
-            userMessage("eu.occtet.bocfrontend.view.project/Project.globalPathNotSet.WarningMsg"
-                    ,NotificationVariant.LUMO_WARNING);
+        if (globalBasePath == null || globalBasePath.getValue() == null || globalBasePath.getValue().isBlank()) {
+            userMessage("eu.occtet.bocfrontend.view.project/Project.globalPathNotSet.WarningMsg", NotificationVariant.LUMO_WARNING);
             event.preventSave();
+            return;
+        }
 
-        }else if(checkProjectDataInput(projectNameField.getValue(),projectVersion.getValue())){
-            userMessage("eu.occtet.bocfrontend.view.project/Project.projectAlreadyExists"
-                    ,NotificationVariant.LUMO_ERROR);
+        Project currentProject = getEditedEntity();
+
+        Long ignoreId = currentProject.getId() != null ? currentProject.getId() : -1L;
+
+        long duplicateCount = projectRepository.countDuplicates(
+                projectNameField.getValue(),
+                projectVersion.getValue(),
+                currentProject.getOrganization(),
+                ignoreId
+        );
+
+        if (duplicateCount > 0) {
+            userMessage("eu.occtet.bocfrontend.view.project/Project.projectAlreadyExists", NotificationVariant.LUMO_ERROR);
             event.preventSave();
         }
-    }
-
-    private boolean checkProjectDataInput(String projectName, String projectVersion){
-        for(Project p : projects){
-            if(p.getProjectName().equals(projectName) && p.getVersion().equals(projectVersion) && !p.getId().equals(getEditedEntity().getId())){
-                return true;
-            }
-        }
-        return false;
     }
 
     private void userMessage(String message, NotificationVariant variant){

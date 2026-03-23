@@ -107,12 +107,18 @@ public class AddProjectDialog extends AbstractAddContentDialog<Organization>{
     public void searchContentButton(ClickEvent<Button> event) {
 
         String searchWord = searchField.getValue();
-        if(!searchWord.isEmpty() && event != null){
-            List<Project> listFindings= projectRepository.findAll().stream().filter(p-> p.getProjectName().toLowerCase().contains(searchWord.toLowerCase())
-                    || p.getProjectContact().toLowerCase().contains(searchWord.toLowerCase())).toList();
+
+        List<Project> availableProjects = projectRepository.findAvailableProjects();
+
+        if (searchWord != null && !searchWord.isEmpty() && event != null) {
+            List<Project> listFindings = availableProjects.stream()
+                    .filter(p -> p.getProjectName().toLowerCase().contains(searchWord.toLowerCase())
+                            || p.getProjectContact().toLowerCase().contains(searchWord.toLowerCase()))
+                    .toList();
+
             projectDc.setItems(listFindings);
-        }else{
-            projectDc.setItems(projectRepository.findAvailableProjects( organization.getProjects()));
+        } else {
+            projectDc.setItems(availableProjects);
         }
     }
 

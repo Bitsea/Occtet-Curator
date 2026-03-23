@@ -84,7 +84,6 @@
                 </dataGrid>
                 <hbox>
                     <button id="addProjectButton" text="msg://eu.occtet.bocfrontend.view.inventoryitem/button.dropdown.add" themeNames="primary"/>
-                    <button id="removeProjectButton" icon="TRASH" themeNames="error"/>
                 </hbox>
             </vbox>
 
@@ -94,7 +93,7 @@
                           width="100%"
                           dataContainer="userDc"
                           columnReorderingAllowed="true"
-                          classNames="occtet-grid">
+                          classNames="occtet-grid" selectionMode="NONE">
                     <columns resizable="true" >
                         <column property="username" header="msg://eu.occtet.bocfrontend.entity/User.username"
                                 autoWidth="true" filterable="true"/>
@@ -105,7 +104,7 @@
                 </dataGrid>
                 <hbox>
                     <button id="addMemberButton" text="msg://eu.occtet.bocfrontend.view.inventoryitem/button.dropdown.add" themeNames="primary"/>
-                    <button id="removeMemberButton" icon="TRASH" themeNames="error"/>
+                    <button id="removeMemberButton" icon="TRASH" themeNames="icon error" title="msg://remove.user"/>
                 </hbox>
             </vbox>
 
