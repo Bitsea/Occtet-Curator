@@ -29,7 +29,7 @@
           icon="vaadin:archives"/>
     <item view="Copyright.list" title="Copyrights Quick-Check"
           icon="vaadin:copyright"/>
-    <item view="License.list" title="msg://eu.occtet.bocfrontend.view.license/licenseListView.title"
+    <item view="TemplateLicense.list" title="msg://eu.occtet.bocfrontend.view.license/licenseListView.title"
           icon="vaadin:file-text-o"/>
     <item view="Project.list" title="msg://eu.occtet.bocfrontend.view.project/projectListView.title"
           icon="vaadin:toolbox"/>

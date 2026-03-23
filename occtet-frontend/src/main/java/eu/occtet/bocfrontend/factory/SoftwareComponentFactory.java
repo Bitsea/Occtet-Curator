@@ -19,8 +19,8 @@
 
 package eu.occtet.bocfrontend.factory;
 
-import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.entity.UsageLicense;
 import io.jmix.core.DataManager;
 import jakarta.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +36,7 @@ public class SoftwareComponentFactory {
     private DataManager dataManager;
 
     public SoftwareComponent create(@Nonnull String name, @Nonnull String version, @Nonnull String purl,
-                                    boolean curated, List<License> licenses){
+                                    boolean curated, List<UsageLicense> licenses){
         SoftwareComponent softwareComponent = dataManager.create(SoftwareComponent.class);
 
         softwareComponent.setName(name);

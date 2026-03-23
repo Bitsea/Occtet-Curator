@@ -19,11 +19,12 @@
 
 package eu.occtet.bocfrontend.service;
 
-import eu.occtet.bocfrontend.dao.LicenseRepository;
-import eu.occtet.bocfrontend.entity.License;
+
+import eu.occtet.bocfrontend.dao.UsageLicenseRepository;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
-import eu.occtet.bocfrontend.factory.LicenseFactory;
+import eu.occtet.bocfrontend.entity.UsageLicense;
+import eu.occtet.bocfrontend.factory.UsageLicenseFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,38 +37,29 @@ import java.util.List;
 public class LicenseService {
 
     private static final Logger log = LogManager.getLogger(LicenseService.class);
-    private final LicenseRepository licenseRepository;
+    private final UsageLicenseRepository licenseRepository;
 
     @Autowired
     private InventoryItemService inventoryItemService;
     @Autowired
     private SoftwareComponentService softwareComponentService;
     @Autowired
-    private LicenseFactory licenseFactory;
+    private UsageLicenseFactory licenseFactory;
 
-    public LicenseService(LicenseRepository licenseRepository) {
+    public LicenseService(UsageLicenseRepository licenseRepository) {
         this.licenseRepository = licenseRepository;
     }
 
-    public List<License> findLicensesByProject(Project project){
+    public List<UsageLicense> findLicensesByProject(Project project){
         List<SoftwareComponent> softwareComponents = softwareComponentService.findSoftwareComponentsByProject(project);
-        List<License> licenses = new ArrayList<>();
+        List<UsageLicense> licenses = new ArrayList<>();
         softwareComponents.forEach(sc->licenses.addAll(sc.getLicenses()));
         return licenses;
     }
 
-    public List<License> findLicenseByPriority(Integer priority){
-        return licenseRepository.findLicensesByPriority(priority);
+    public List<UsageLicense> findLicenseByCurated(Boolean isCurated){
+        return licenseRepository.findByCurated(isCurated);
     }
 
-    public List<License> findLicenseByCurated(Boolean isCurated){
-        return licenseRepository.findLicensesByCurated(isCurated);
-    }
-
-    public License createLicense(Integer priority, String licenseType,String licenseText, String licenseName,
-                                 String detailsUrl, boolean isModified, boolean curated, boolean isSpdx){
-
-        return licenseFactory.create(priority,licenseType,licenseText,licenseName,detailsUrl,isModified,curated,isSpdx);
-    }
 
 }

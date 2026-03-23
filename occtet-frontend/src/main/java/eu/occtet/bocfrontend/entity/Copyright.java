@@ -65,7 +65,7 @@ public class Copyright {
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name= "COPYRIGHT_ID")
-    private List<License> licenses;
+    private List<TemplateLicense> licenses;
 
     public Long getId() {return id;}
 
@@ -99,11 +99,11 @@ public class Copyright {
         return garbage;
     }
 
-    public List<License> getLicenses() {
+    public List<TemplateLicense> getLicenses() {
         return licenses;
     }
 
-    public void setLicenses(List<License> licenses) {
+    public void setLicenses(List<TemplateLicense> licenses) {
         this.licenses = licenses;
     }
 

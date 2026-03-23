@@ -72,15 +72,20 @@ public class OverviewContentInfoDialog extends StandardView {
     private InventoryItem inventoryItem;
 
 
-    public void setInformationContent(Object content, Project project){
+    public void setInformationContent(Object content, Project project) {
         List<InventoryItem> items = new ArrayList<>();
-        if(content instanceof License license){
-            items = inventoryItemRepository.findByLicenseAndProject(license,project);
-            title.setText(license.getLicenseName());
-        }else if(content instanceof Vulnerability vulnerability){
-            items = inventoryItemRepository.findByVulnerabilityAndProject(vulnerability,project);
+
+        // Switched from License to TemplateLicense
+        if (content instanceof TemplateLicense templateLicense) {
+            // Note: You must add this method to InventoryItemRepository!
+            items = inventoryItemRepository.findByTemplateLicenseAndProject(templateLicense, project);
+            title.setText(templateLicense.getLicenseName());
+
+        } else if (content instanceof Vulnerability vulnerability) {
+            items = inventoryItemRepository.findByVulnerabilityAndProject(vulnerability, project);
             title.setText(vulnerability.getVulnerabilityId());
         }
+
         updateDatagridForProject(items);
     }
 

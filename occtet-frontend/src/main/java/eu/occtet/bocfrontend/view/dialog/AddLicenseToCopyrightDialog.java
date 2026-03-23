@@ -24,11 +24,9 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.textfield.TextField;
 import eu.occtet.bocfrontend.dao.CopyrightRepository;
-import eu.occtet.bocfrontend.dao.LicenseRepository;
+import eu.occtet.bocfrontend.dao.TemplateLicenseRepository;
 import eu.occtet.bocfrontend.entity.Copyright;
-import eu.occtet.bocfrontend.entity.License;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
-import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
+import eu.occtet.bocfrontend.entity.TemplateLicense;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;
@@ -48,43 +46,48 @@ public class AddLicenseToCopyrightDialog extends AbstractAddContentDialog<Copyri
     private static final Logger log = LogManager.getLogger(AddLicenseToCopyrightDialog.class);
 
 
-    private License license;
+    private TemplateLicense templateLicense;
 
     private Copyright copyright;
 
     @Autowired
-    private LicenseRepository licenseRepository;
+    private TemplateLicenseRepository templateLicenseRepository;
 
     @ViewComponent
-    private CollectionContainer<License> licenseDc;
+    private CollectionContainer<TemplateLicense> licenseDc;
 
     @ViewComponent
     private TextField searchField;
+
     @Autowired
     private CopyrightRepository copyrightRepository;
-    @ViewComponent
-    private DataGrid<License> licensesDataGrid;
 
+    @ViewComponent
+    private DataGrid<TemplateLicense> licensesDataGrid;
 
     @Subscribe("licensesDataGrid")
-    public void selectAvailableContent(final ItemClickEvent<License> event){license = event.getItem();}
+    public void selectAvailableContent(final ItemClickEvent<TemplateLicense> event) {
+        templateLicense = event.getItem();
+    }
 
     @Subscribe("licenseDc")
     @Override
-    public void setAvailableContent(Copyright copyright){
-        this.copyright= copyright;
-        licenseDc.setItems(licenseRepository.findAll());
+    public void setAvailableContent(Copyright copyright) {
+        this.copyright = copyright;
+        licenseDc.setItems(templateLicenseRepository.findAll());
     }
 
     @Override
     @Subscribe(id = "addLicenseButton")
     public void addContentButton(ClickEvent<Button> event) {
 
-        List<License> licenses = new ArrayList<>(licensesDataGrid.getSelectedItems());
-        log.debug("adding licenses {}", licenses.size());
-        if(event != null & licenses != null){
-            for(License license : licenses){
-                if(!this.copyright.getLicenses().contains(license)){
+        List<TemplateLicense> selectedLicenses = new ArrayList<>(licensesDataGrid.getSelectedItems());
+        log.debug("adding licenses {}", selectedLicenses.size());
+
+        // Note: Fixed bitwise '&' to logical '&&' and checked for empty list
+        if (event != null && !selectedLicenses.isEmpty()) {
+            for (TemplateLicense license : selectedLicenses) {
+                if (!this.copyright.getLicenses().contains(license)) {
                     this.copyright.getLicenses().add(license);
                 }
             }
@@ -98,16 +101,20 @@ public class AddLicenseToCopyrightDialog extends AbstractAddContentDialog<Copyri
     public void searchContentButton(ClickEvent<Button> event) {
 
         String searchWord = searchField.getValue();
-        if(!searchWord.isEmpty() && event != null){
-            List<License> listFindings= licenseRepository.findAll().stream().filter(l-> l.getLicenseName().toLowerCase().contains(searchWord.toLowerCase())
-                    || l.getLicenseType().toLowerCase().contains(searchWord.toLowerCase())).toList();
+        if (searchWord != null && !searchWord.isEmpty() && event != null) {
+            List<TemplateLicense> listFindings = templateLicenseRepository.findAll().stream()
+                    .filter(l -> l.getLicenseName().toLowerCase().contains(searchWord.toLowerCase())
+                            || l.getLicenseType().toLowerCase().contains(searchWord.toLowerCase()))
+                    .toList();
             licenseDc.setItems(listFindings);
-        }else{
-            licenseDc.setItems(licenseRepository.findAll());
+        } else {
+            licenseDc.setItems(templateLicenseRepository.findAll());
         }
     }
 
     @Subscribe(id = "cancelButton")
-    public void cancelLicense(ClickEvent<Button> event){cancelButton(event);}
+    public void cancelLicense(ClickEvent<Button> event) {
+        cancelButton(event);
+    }
 
 }

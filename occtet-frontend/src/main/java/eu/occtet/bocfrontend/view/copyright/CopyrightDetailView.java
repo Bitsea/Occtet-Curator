@@ -24,7 +24,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.CopyrightRepository;
 import eu.occtet.bocfrontend.entity.Copyright;
-import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.TemplateLicense;
 import eu.occtet.bocfrontend.view.dialog.AddLicenseToCopyrightDialog;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.Messages;
@@ -55,10 +55,10 @@ public class CopyrightDetailView extends StandardDetailView<Copyright> {
     private Notifications notifications;
 
     @ViewComponent
-    private CollectionContainer<License> licenseDc;
+    private CollectionContainer<TemplateLicense> licenseDc;
 
     @ViewComponent
-    private DataGrid<License> licensesDataGrid;
+    private DataGrid<TemplateLicense> licensesDataGrid;
 
     @Autowired
     private CopyrightRepository copyrightRepository;
@@ -99,7 +99,7 @@ public class CopyrightDetailView extends StandardDetailView<Copyright> {
      */
     @Subscribe(id = "removeLicenseButton")
     public void removeLicenses(ClickEvent<JmixButton> event) {
-        Set<License> selectedLicenses = licensesDataGrid.getSelectedItems();
+        Set<TemplateLicense> selectedLicenses = licensesDataGrid.getSelectedItems();
         Copyright current= this.getEditedEntity();
         if (!selectedLicenses.isEmpty()) {
             current.getLicenses().removeAll(selectedLicenses);

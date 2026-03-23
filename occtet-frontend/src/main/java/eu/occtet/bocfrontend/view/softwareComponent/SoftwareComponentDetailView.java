@@ -57,7 +57,7 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
     private static final Logger log = LogManager.getLogger(SoftwareComponentDetailView.class);
 
     @ViewComponent
-    private CollectionContainer<License> licenseDc;
+    private CollectionContainer<UsageLicense> licenseDc;
 
     @Autowired
     private DialogWindows dialogWindow;

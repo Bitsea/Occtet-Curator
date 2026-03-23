@@ -19,19 +19,15 @@
 
 package eu.occtet.bocfrontend.view.audit.fragment;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.textfield.TextField;
-import eu.occtet.boc.model.DownloadServiceWorkData;
-import eu.occtet.boc.model.WorkTask;
 import eu.occtet.bocfrontend.dao.*;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.service.NatsService;
@@ -39,7 +35,7 @@ import eu.occtet.bocfrontend.view.audit.AuditView;
 import eu.occtet.bocfrontend.view.copyright.CopyrightDetailView;
 import eu.occtet.bocfrontend.view.dialog.*;
 import eu.occtet.bocfrontend.view.inventoryitem.InventoryItemDetailView;
-import eu.occtet.bocfrontend.view.license.LicenseDetailView;
+import eu.occtet.bocfrontend.view.license.TemplateLicenseDetailView;
 import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
 import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
@@ -72,9 +68,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
@@ -93,7 +87,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private boolean deleteMode = false;
 
     @ViewComponent
-    private CollectionContainer<License> licenseDc;
+    private CollectionContainer<UsageLicense> licenseDc;
     @ViewComponent
     private CollectionContainer<Copyright> copyrightDc;
     @ViewComponent
@@ -113,7 +107,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     @ViewComponent
     private DataContext dataContext;
     @ViewComponent
-    private DataGrid<License> licensesDataGrid;
+    private DataGrid<UsageLicense> licensesDataGrid;
     @ViewComponent
     private DataGrid<Copyright> copyrightsDataGrid;
     @ViewComponent
@@ -131,7 +125,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     @ViewComponent
     private JmixComboBox<InventoryItem> parentField;
     @ViewComponent
-    private CollectionLoader<License> licensesDl;
+    private CollectionLoader<UsageLicense> licensesDl;
     @ViewComponent
     private CollectionLoader<Copyright> copyrightDl;
     @ViewComponent
@@ -175,7 +169,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     @Autowired
     private CopyrightRepository copyrightRepository;
     @Autowired
-    private LicenseRepository licenseRepository;
+    private UsageLicenseRepository licenseRepository;
     @Autowired
     private DataManager dataManager;
     @Autowired
@@ -360,7 +354,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
      */
     @Subscribe(id = "removeLicenseButton")
     public void removeLicenses(ClickEvent<JmixButton> event) {
-        Set<License> selectedLicenses = licensesDataGrid.getSelectedItems();
+        Set<UsageLicense> selectedLicenses = licensesDataGrid.getSelectedItems();
 
         if (!selectedLicenses.isEmpty() && softwareComponent != null) {
             softwareComponent = dataManager.load(SoftwareComponent.class).id(softwareComponent.getId())
@@ -408,9 +402,9 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
      *              Contains the license item that was clicked.
      */
     @Subscribe("licensesDataGrid")
-    public void onLicensesDataGridItemDoubleClick(final ItemDoubleClickEvent<License> event) {
-        DialogWindow<LicenseDetailView> window = dialogWindow.view(hostView, LicenseDetailView.class).build();
-        window.getView().setEntityToEdit(event.getItem());
+    public void onLicensesDataGridItemDoubleClick(final ItemDoubleClickEvent<UsageLicense> event) {
+        DialogWindow<TemplateLicenseDetailView> window = dialogWindow.view(hostView, TemplateLicenseDetailView.class).build();
+        window.getView().setEntityToEdit(event.getItem().getTemplate());
         window.open();
     }
 
@@ -567,7 +561,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     }
 
     private void updateLicensesFromInventoryItem(InventoryItem item){
-        List<License> licenses = licenseRepository.findByInventoryItem(item);
+        List<UsageLicense> licenses = licenseRepository.findByInventoryItem(item);
         licensesDl.setParameter("licensesList",licenses);
         licensesDl.load();
     }
@@ -632,11 +626,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
     private void showReusefromInventoryItem(InventoryItem item) {
 
-        if (item.getExternalNotes() != null && !item.getExternalNotes().isEmpty()) {
-            auditReuseButton.setEnabled(true);
-        } else {
-            auditReuseButton.setEnabled(false);
-        }
+        auditReuseButton.setEnabled(item.getExternalNotes() != null && !item.getExternalNotes().isEmpty());
         if (item.getSoftwareComponent() != null) {
             softwareComponentReuseField.setValue(item.getSoftwareComponent().getName());
         }

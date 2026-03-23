@@ -30,9 +30,9 @@ import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.entity.UsageLicense;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.component.combobox.JmixComboBox;
@@ -94,7 +94,7 @@ public class InventoryItemListView extends StandardListView<InventoryItem> {
             }
 
             return softwareComponent.getLicenses().stream()
-                    .map(License::getLicenseType)
+                    .map(usage -> usage.getTemplate().getLicenseType())
                     .collect(Collectors.joining(", "));
         });
     }

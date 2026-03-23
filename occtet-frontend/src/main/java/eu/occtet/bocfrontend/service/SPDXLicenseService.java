@@ -21,12 +21,10 @@ package eu.occtet.bocfrontend.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import eu.occtet.bocfrontend.dao.LicenseRepository;
-import eu.occtet.bocfrontend.entity.License;
-import eu.occtet.bocfrontend.factory.LicenseFactory;
+import eu.occtet.bocfrontend.entity.TemplateLicense;
+import eu.occtet.bocfrontend.factory.TemplateLicenseFactory;
 import eu.occtet.bocfrontend.model.SPDXLicenseDetails;
 import eu.occtet.bocfrontend.model.SPDXLicenseInfos;
-import io.jmix.core.DataManager;
 import io.jmix.core.security.Authenticated;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +36,6 @@ import reactor.core.publisher.Mono;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
@@ -48,7 +45,7 @@ import static org.reflections.Reflections.log;
 public class SPDXLicenseService {
 
     @Autowired
-    private LicenseFactory licenseFactory;
+    private TemplateLicenseFactory licenseFactory;
 
 
     @Authenticated
@@ -71,7 +68,7 @@ public class SPDXLicenseService {
             Gson gson = gsonBuilder.create();
             SPDXLicenseInfos spdxLicenseInfos = gson.fromJson(br, SPDXLicenseInfos.class);
 
-            List<License> licenses = spdxLicenseInfos.getLicenses();
+            List<TemplateLicense> licenses = spdxLicenseInfos.getLicenses();
             log.debug("Size of spdx licenses: {}",licenses.size());
             if(!licenses.isEmpty() && licenses != null){saveLicenseInfos(licenses);}
 
@@ -80,7 +77,7 @@ public class SPDXLicenseService {
         }
     }
 
-    private void saveLicenseInfos(List<License> licenses){
+    private void saveLicenseInfos(List<TemplateLicense> licenses){
 
         licenses.forEach(license -> {
             if(license.getLicenseType() == null){
@@ -94,16 +91,16 @@ public class SPDXLicenseService {
             }else{
                 downloadLicenseText(license,license.getDetailsUrl());
             }
-            licenseFactory.create(license.getLicenseType(),license.getLicenseText(),
+            licenseFactory.create(license.getLicenseType(),license.getTemplateText(),
                     license.getLicenseName(), license.getDetailsUrl(), isSpdxLicense(license));
         });
     }
 
-    private boolean isSpdxLicense(License license) {
+    private boolean isSpdxLicense(TemplateLicense license) {
         return license.getDetailsUrl().startsWith("https://spdx.org");
     }
 
-    private void downloadLicenseText(License license, String url) {
+    private void downloadLicenseText(TemplateLicense license, String url) {
         try {
             // download the license Text from the details Url
             WebClient client = WebClient.create(url);
@@ -112,8 +109,8 @@ public class SPDXLicenseService {
             SPDXLicenseDetails details = response.block();
             if (details != null && !StringUtils.isEmpty(details.getLicenseText())) {
 
-                if (StringUtils.isEmpty(license.getLicenseText()) || !license.getLicenseText().equals(details.getLicenseText())) {
-                    license.setLicenseText(details.getLicenseText());
+                if (StringUtils.isEmpty(license.getTemplateText()) || !license.getTemplateText().equals(details.getLicenseText())) {
+                    license.setTemplateText(details.getLicenseText());
                     log.debug("downloaded license text for {} ", license.getLicenseType());
                 }
             }

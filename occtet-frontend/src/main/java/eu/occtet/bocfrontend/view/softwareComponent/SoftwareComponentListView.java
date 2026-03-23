@@ -30,7 +30,6 @@ import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
-import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.view.main.MainView;
@@ -93,7 +92,7 @@ public class SoftwareComponentListView extends StandardListView<SoftwareComponen
                 return "";
             }
             return component.getLicenses().stream()
-                    .map(License::getLicenseType)
+                    .map(usage -> usage.getTemplate().getLicenseType())
                     .collect(Collectors.joining(", "));
         });
     }

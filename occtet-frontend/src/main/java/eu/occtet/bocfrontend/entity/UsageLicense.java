@@ -23,7 +23,7 @@ import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
 
 @JmixEntity
-@Table(name = "USGAE_LICENSE")
+@Table(name = "USAGE_LICENSE")
 @Entity
 public class UsageLicense {
 
@@ -93,5 +93,7 @@ public class UsageLicense {
         return template;
     }
 
-
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

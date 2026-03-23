@@ -24,11 +24,12 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.textfield.TextField;
-import eu.occtet.bocfrontend.dao.LicenseRepository;
-import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
-import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.dao.TemplateLicenseRepository;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.entity.TemplateLicense;
+import eu.occtet.bocfrontend.entity.UsageLicense;
 import io.jmix.core.DataManager;
+import io.jmix.core.SaveContext;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;
@@ -38,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @ViewController("addLicenseDialog")
@@ -49,43 +51,76 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
 
     private SoftwareComponent softwareComponent;
 
-    private License license;
+    private TemplateLicense selectedTemplate;
 
     @Autowired
-    private LicenseRepository licenseRepository;
+    private TemplateLicenseRepository templateLicenseRepository;
 
     @ViewComponent
-    private CollectionContainer<License> licenseDc;
+    private CollectionContainer<TemplateLicense> licenseDc;
 
     @ViewComponent
     private TextField searchField;
 
     @ViewComponent
-    private DataGrid<License> licensesDataGrid;
+    private DataGrid<TemplateLicense> licensesDataGrid;
 
     @Autowired
     private DataManager dataManager;
 
     @Override
     @Subscribe("licenseDc")
-    public void setAvailableContent(SoftwareComponent softwareComponent){
+    public void setAvailableContent(SoftwareComponent softwareComponent) {
         this.softwareComponent = dataManager.load(SoftwareComponent.class)
-                .id(softwareComponent.getId()).fetchPlan(f -> f.add("licenses")).one();
+                .id(softwareComponent.getId())
+                .fetchPlan(f -> f.add("licenses", f1 -> f1.add("template")))
+                .one();
+
         log.debug("setAvailableContent called with SoftwareComponent: {}", softwareComponent);
-        licenseDc.setItems(licenseRepository.findAvailableLicenses(this.softwareComponent.getLicenses()));
+        loadAvailableLicenses();
+    }
+
+    private void loadAvailableLicenses() {
+        List<TemplateLicense> usedTemplates = this.softwareComponent.getLicenses().stream()
+                .map(UsageLicense::getTemplate)
+                .collect(Collectors.toList());
+
+        if (usedTemplates.isEmpty()) {
+            licenseDc.setItems(templateLicenseRepository.findAll());
+        } else {
+            licenseDc.setItems(templateLicenseRepository.findAvailableLicenses(usedTemplates));
+        }
     }
 
     @Subscribe("licensesDataGrid")
-    public void selectAvailableContent(final ItemClickEvent<License> event){license = event.getItem();}
+    public void selectAvailableContent(final ItemClickEvent<TemplateLicense> event) {
+        selectedTemplate = event.getItem();
+    }
 
     @Override
     @Subscribe(id = "addLicenseButton")
     public void addContentButton(ClickEvent<Button> event) {
 
-        List<License> licenses = new ArrayList<>(licensesDataGrid.getSelectedItems());
-        if(!licenses.isEmpty() && softwareComponent != null){
-            softwareComponent.getLicenses().addAll(licenses);
-            dataManager.save(this.softwareComponent);
+        List<TemplateLicense> selectedTemplates = new ArrayList<>(licensesDataGrid.getSelectedItems());
+
+        if (!selectedTemplates.isEmpty() && softwareComponent != null) {
+            SaveContext saveContext = new SaveContext();
+
+            for (TemplateLicense template : selectedTemplates) {
+                UsageLicense newUsage = dataManager.create(UsageLicense.class);
+                newUsage.setTemplate(template);
+                newUsage.setSoftwareComponent(softwareComponent);
+                newUsage.setModified(false);
+                newUsage.setCurated(false);
+                newUsage.setUsageText(template.getTemplateText());
+
+                softwareComponent.getLicenses().add(newUsage);
+                saveContext.saving(newUsage);
+            }
+
+            saveContext.saving(softwareComponent);
+            dataManager.save(saveContext);
+
             close(StandardOutcome.SAVE);
         }
     }
@@ -95,15 +130,26 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
     public void searchContentButton(ClickEvent<Button> event) {
 
         String searchWord = searchField.getValue();
-        if(!searchWord.isEmpty() && event != null){
-            List<License> listFindings= licenseRepository.findAll().stream().filter(l-> l.getLicenseName().toLowerCase().contains(searchWord.toLowerCase())
-                    || l.getLicenseType().toLowerCase().contains(searchWord.toLowerCase())).toList();
+        if (searchWord != null && !searchWord.isEmpty()) {
+            List<TemplateLicense> listFindings = templateLicenseRepository.findAll().stream()
+                    .filter(l -> l.getLicenseName().toLowerCase().contains(searchWord.toLowerCase())
+                            || l.getLicenseType().toLowerCase().contains(searchWord.toLowerCase()))
+                    .collect(Collectors.toList());
+
+            List<TemplateLicense> usedTemplates = this.softwareComponent.getLicenses().stream()
+                    .map(UsageLicense::getTemplate)
+                    .collect(Collectors.toList());
+
+            listFindings.removeIf(usedTemplates::contains);
+
             licenseDc.setItems(listFindings);
-        }else{
-            licenseDc.setItems(licenseRepository.findAvailableLicenses(softwareComponent.getLicenses()));
+        } else {
+            loadAvailableLicenses();
         }
     }
 
     @Subscribe(id = "cancelButton")
-    public void cancelLicense(ClickEvent<Button> event){cancelButton(event);}
+    public void cancelLicense(ClickEvent<Button> event) {
+        cancelButton(event);
+    }
 }

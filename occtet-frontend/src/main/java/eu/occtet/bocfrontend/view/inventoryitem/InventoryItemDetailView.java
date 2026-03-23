@@ -35,7 +35,7 @@ import eu.occtet.bocfrontend.view.audit.fragment.AutocompleteField;
 import eu.occtet.bocfrontend.view.dialog.AddCopyrightDialog;
 import eu.occtet.bocfrontend.view.dialog.AddLicenseDialog;
 import eu.occtet.bocfrontend.view.dialog.CreateLicenseDialog;
-import eu.occtet.bocfrontend.view.license.LicenseDetailView;
+import eu.occtet.bocfrontend.view.license.TemplateLicenseDetailView;
 import eu.occtet.bocfrontend.view.main.MainView;
 import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
 import io.jmix.core.Messages;
@@ -80,7 +80,7 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
     @ViewComponent
     private JmixComboBox<InventoryItem> parentField;
     @ViewComponent
-    private CollectionContainer<License> licenseDc;
+    private CollectionContainer<UsageLicense> licenseDc;
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
@@ -256,7 +256,7 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
 
     }
 
-    private void updateLicenses(SoftwareComponent softwareComponent, CollectionContainer<License> container) {
+    private void updateLicenses(SoftwareComponent softwareComponent, CollectionContainer<UsageLicense> container) {
         if (softwareComponent != null) {
             container.setItems(softwareComponent.getLicenses());
         } else {
@@ -272,9 +272,9 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
      *              Contains the license item that was clicked.
      */
     @Subscribe("licensesDataGrid")
-    public void onLicensesDataGridItemDoubleClick(final ItemDoubleClickEvent<License> event) {
-        DialogWindow<LicenseDetailView> window = dialogWindows.view(this, LicenseDetailView.class).build();
-        window.getView().setEntityToEdit(event.getItem());
+    public void onLicensesDataGridItemDoubleClick(final ItemDoubleClickEvent<UsageLicense> event) {
+        DialogWindow<TemplateLicenseDetailView> window = dialogWindows.view(this, TemplateLicenseDetailView.class).build();
+        window.getView().setEntityToEdit(event.getItem().getTemplate());
         window.open();
     }
 

@@ -22,7 +22,7 @@ import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
-@Table(name = "USGAE_LICENSE")
+@Table(name = "USAGE_LICENSE")
 @EntityListeners(AuditingEntityListener.class)
 public class UsageLicense {
 

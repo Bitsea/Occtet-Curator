@@ -26,10 +26,12 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
-import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.entity.TemplateLicense;
+import eu.occtet.bocfrontend.entity.UsageLicense;
 import eu.occtet.bocfrontend.service.LicenseService;
 import io.jmix.core.DataManager;
+import io.jmix.core.SaveContext;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
@@ -71,14 +73,10 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
     private TextArea licenseTextField;
 
     @Autowired
-    private LicenseService licenseService;
-
-    @Autowired
     private DataManager dataManager;
 
     @Autowired
     private Notifications notifications;
-
 
     @Subscribe
     public void onBeforeShow(BeforeShowEvent event){
@@ -103,17 +101,34 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
         String licenseName = licenseNameField.getValue();
         String detailsUrl = detailsUrlField.getValue();
 
-        if(checkInput(priority,licenseType,licenseText,licenseName,detailsUrl)){
+        if (checkInput(priority, licenseType, licenseText, licenseName, detailsUrl)) {
 
-            License license = licenseService.createLicense(Integer.valueOf(priority),licenseType,licenseText,
-                    licenseName,detailsUrl,isModifiedField.getValue(),isCuratedField.getValue(),isSpdxField.getValue());
+            SaveContext saveContext = new SaveContext();
 
-            this.softwareComponent.getLicenses().add(license);
-            dataManager.save(this.softwareComponent);
-            log.debug("Created and added license {} to softwareComponent",license.getLicenseName());
+            TemplateLicense templateLicense = dataManager.create(TemplateLicense.class);
+            templateLicense.setPriority(Integer.valueOf(priority));
+            templateLicense.setLicenseType(licenseType);
+            templateLicense.setTemplateText(licenseText);
+            templateLicense.setLicenseName(licenseName);
+            templateLicense.setDetailsUrl(detailsUrl);
+            templateLicense.setIsSpdx(isSpdxField.getValue());
+
+            UsageLicense usageLicense = dataManager.create(UsageLicense.class);
+            usageLicense.setUsageText(licenseText);
+            usageLicense.setModified(isModifiedField.getValue());
+            usageLicense.setCurated(isCuratedField.getValue());
+            usageLicense.setTemplate(templateLicense);
+            usageLicense.setSoftwareComponent(this.softwareComponent);
+
+            this.softwareComponent.getLicenses().add(usageLicense);
+
+            saveContext.saving(templateLicense, usageLicense, this.softwareComponent);
+            dataManager.save(saveContext);
+
+            log.debug("Created and added new license template and usage {} to softwareComponent", templateLicense.getLicenseName());
             close(StandardOutcome.SAVE);
 
-        }else{
+        } else {
             notifications.create("Something went wrong, please check your input, some fields are required")
                     .withDuration(3000)
                     .withPosition(Notification.Position.TOP_CENTER)
@@ -123,13 +138,11 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
     }
 
     @Subscribe(id = "cancelButton")
-    public void cancelLicense(ClickEvent<Button> event){cancelButton(event);}
+    public void cancelLicense(ClickEvent<Button> event) {
+        cancelButton(event);
+    }
 
-    private boolean checkInput(String priority,String licenseType,String licenseText,String licenseName,String detailsUrl ){
-
-        if(!priority.isEmpty() && !licenseType.isEmpty() && !licenseText.isEmpty() && !licenseName.isEmpty() && !detailsUrl.isEmpty()){
-            return true;
-        }
-        return false;
+    private boolean checkInput(String priority, String licenseType, String licenseText, String licenseName, String detailsUrl) {
+        return !priority.isEmpty() && !licenseType.isEmpty() && !licenseText.isEmpty() && !licenseName.isEmpty() && !detailsUrl.isEmpty();
     }
 }

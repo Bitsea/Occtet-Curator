@@ -96,7 +96,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
     private CopyrightRepository copyrightRepository;
 
     @Autowired
-    private LicenseRepository licenseRepository;
+    private UsageLicenseRepository licenseRepository;
 
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
@@ -193,9 +193,9 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
 
         List<KeyValueEntity> values = dataManager.loadValues(context);
         values.forEach(s -> {
-            License license = licenseRepository.findLicenseById(s.getValue("licenseId"));
+            UsageLicense license = licenseRepository.findLicenseById(s.getValue("licenseId"));
             Long value = s.getValue("countSC");
-            licensesDTOs.add(new AuditLicenseDTO(license.getLicenseName(),value.intValue()));
+            licensesDTOs.add(new AuditLicenseDTO(license.getTemplate().getLicenseName(),value.intValue()));
         });
         auditLicensesDc.setItems(licensesDTOs);
         licensesAccordion.setSummaryText(messages.getMessage("eu.occtet.bocfrontend.view/overvoewProjectTabFragment.licenseAccordion.summary") + " ("+licensesDTOs.size()+")");
@@ -271,7 +271,7 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
 
     private void openOverviewContentDialog(Object content, Project project){
         if(content instanceof AuditLicenseDTO auditLicenseDTO){
-            List<License> licenses = licenseRepository.findLicensesByLicenseNameAndProject(auditLicenseDTO.getLicenseName(),project);
+            List<UsageLicense> licenses = licenseRepository.findUsageLicensesByLicenseNameAndProject(auditLicenseDTO.getLicenseName(),project);
             showContentInformationDialog(licenses.getFirst());
         }
         if(content instanceof AuditVulnerabilityDTO auditVulnerabilityDTO){
