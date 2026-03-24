@@ -25,7 +25,6 @@ import eu.occtet.boc.model.MicroserviceDescriptor;
 import eu.occtet.boc.service.SystemHandler;
 import io.nats.client.Connection;
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +38,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
-import org.springframework.util.ResourceUtils;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;

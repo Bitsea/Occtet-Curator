@@ -22,7 +22,6 @@ package eu.occtet.boc.fossreport.service;
 
 import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.dao.FileRepository;
-import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
@@ -36,7 +35,6 @@ import org.springframework.stereotype.Service;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class FileService {

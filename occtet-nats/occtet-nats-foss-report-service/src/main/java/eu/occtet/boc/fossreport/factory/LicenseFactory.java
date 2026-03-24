@@ -20,8 +20,8 @@
 package eu.occtet.boc.fossreport.factory;
 
 
-import eu.occtet.boc.entity.License;
 import eu.occtet.boc.dao.LicenseRepository;
+import eu.occtet.boc.entity.License;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
