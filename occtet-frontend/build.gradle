@@ -42,7 +42,7 @@ jmix {
 }
 
 group = 'eu.occtet'
-version = '0.3.8-SNAPSHOT'
+version = '0.3.10-SNAPSHOT'
 
 repositories {
     mavenLocal()
