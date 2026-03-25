@@ -17,11 +17,21 @@
  * License-Filename: LICENSE
  */
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.liquibase:liquibase-core:4.31.1'
+    }
+}
+
 plugins {
     id 'io.jmix' version '2.7.2'
     id 'java'
     id 'org.jetbrains.gradle.plugin.idea-ext' version '1.1.9'
     id 'com.google.cloud.tools.jib' version '3.3.1'
+    id 'org.liquibase.gradle' version '3.1.0'
 }
 
 apply plugin: 'org.springframework.boot'
@@ -32,7 +42,7 @@ jmix {
 }
 
 group = 'eu.occtet'
-version = '0.3.8-SNAPSHOT'
+version = '0.3.10-SNAPSHOT'
 
 repositories {
     mavenLocal()
@@ -56,7 +66,7 @@ dependencies {
     // if Gradle fails because this does not exist, please get and build the occtet-nats project
     // and install the nats-common library into your local maven repository using 'mvn install' as explained
     // in the README of the occtet-nats project
-    implementation 'eu.occtet.boc:occtet-common:0.3.13-SNAPSHOT'
+    implementation 'eu.occtet.boc:occtet-common:0.3.14-SNAPSHOT'
     implementation 'eu.occtet.boc:occtet-ort-client:0.3.2-SNAPSHOT'
 
     implementation 'io.jmix.core:jmix-core-starter'
@@ -92,6 +102,11 @@ dependencies {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
     testImplementation 'io.jmix.flowui:jmix-flowui-test-assist'
+
+    liquibaseRuntime 'org.liquibase:liquibase-core:4.31.1'
+    liquibaseRuntime 'org.liquibase:liquibase-groovy-dsl:4.0.1'
+    liquibaseRuntime 'info.picocli:picocli:4.6.1'
+    liquibaseRuntime 'org.postgresql:postgresql:42.7.7'
 }
 
 configurations.implementation {
@@ -156,4 +171,16 @@ jib {
         }
     }
 
+}
+
+liquibase {
+    activities {
+        main {
+            driver 'org.postgresql.Driver' // Your database driver
+            url 'jdbc:postgresql://localhost:5432/occtet_boc' // Database URL
+            username 'occtetuser' // Database username
+            password 'q3ik4ul5snmzd87w34zfn5' // Database password
+            changelogFile 'src/main/resources/eu/occtet/bocfrontend/liquibase/changelog/tables.xml'
+        }
+    }
 }

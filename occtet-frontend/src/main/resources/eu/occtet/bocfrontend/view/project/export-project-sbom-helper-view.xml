@@ -38,6 +38,9 @@
             <button id="generateSbomButton"
                     text="msg://eu.occtet.bocfrontend.view.project/exportProjectSbomHelperView.generate.sbom.button"
                     icon="vaadin:plus-circle" themeNames="primary"/>
+
+            <checkbox id="enrichCopyrightCheckbox"
+                      label="msg://exportProjectSbomHelperView.enrichCopyright.label"/>
         </hbox>
 
         <vbox id="activeTasksBox" width="100%" spacing="false" padding="false"/>
@@ -50,7 +53,8 @@
         <dataGrid id="prevExportsDataGrid" dataContainer="prevExportsDc" width="100%" minHeight="200px">
             <columns>
                 <column property="fileName" header="msg://exportProjectSbomHelperView.column.fileName" autoWidth="true"/>
-                <column key="downloadButton" width="140px" flexGrow="0"/>
+                <column key="downloadButton" width="140px" flexGrow="0" sortable="false"/>
+                <column key="deleteButton" width="140px" flexGrow="0" sortable="false"/>
             </columns>
         </dataGrid>
 
