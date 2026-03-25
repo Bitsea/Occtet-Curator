@@ -356,17 +356,6 @@
             <column name="software_component_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-48">
-        <createTable tableName="logging_event">
-            <column name="event_id" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="logging_event_pkey"/>
-            </column>
-            <column name="formatted_message" type="TEXT"/>
-            <column name="level_string" type="VARCHAR(255)"/>
-            <column name="logger_name" type="VARCHAR(255)"/>
-            <column name="timestmp" type="BIGINT"/>
-        </createTable>
-    </changeSet>
     <changeSet author="uwe (generated)" id="1774355394865-49">
         <createTable tableName="package_file_names">
             <column name="package_id" type="BIGINT"/>
