@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 @ViewController(id = "License.list")
 @ViewDescriptor(path = "license-list-view.xml")
 @LookupComponent("licensesDataGrid")
-@DialogMode(width = "64em")
+@DialogMode(width = "80%", height = "80%")
 public class LicenseListView extends StandardListView<License> {
 
     private static final Logger log = LogManager.getLogger(LicenseListView.class);

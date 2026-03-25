@@ -42,17 +42,17 @@ import java.util.List;
 
 @ViewController("addLicenseToCopyrightDialog")
 @ViewDescriptor("add-license-to-copyright-dialog.xml")
-@DialogMode(width = "900px", height = "650px")
+@DialogMode(width = "70%", height = "70%")
 public class AddLicenseToCopyrightDialog extends AbstractAddContentDialog<Copyright>{
 
     private static final Logger log = LogManager.getLogger(AddLicenseToCopyrightDialog.class);
-
 
     private License license;
 
     private Copyright copyright;
 
     @Autowired
+
     private LicenseRepository licenseRepository;
 
     @ViewComponent

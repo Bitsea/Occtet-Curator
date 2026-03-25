@@ -27,7 +27,7 @@
                 <textField id="licenseTypeField" label="License Type" width="100%" required="true"/>
             </hbox>
             <textField id="detailsUrlField"  label="Detail url" width="100%" required="true"/>
-            <textField id="priorityField" label="Priority" required="true"/>
+            <textField id="priorityField" label="Priority" required="true" datatype="int"/>
             <hbox>
                 <checkbox id="isSpdxField" label="SPDX"/>
                 <checkbox id="isCuratedField"  label="Curated"/>

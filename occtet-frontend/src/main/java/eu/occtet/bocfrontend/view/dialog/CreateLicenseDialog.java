@@ -26,10 +26,12 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.theme.lumo.LumoIcon;
 import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.service.LicenseService;
 import io.jmix.core.DataManager;
+import io.jmix.core.Messages;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
@@ -39,12 +41,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @ViewController("createLicenseDialog")
 @ViewDescriptor("create-license-dialog.xml")
-@DialogMode(width = "1000px", height = "750px")
+@DialogMode(width = "70%", height = "70%")
 public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareComponent>{
 
     private static final Logger log = LogManager.getLogger(CreateLicenseDialog.class);
 
     private SoftwareComponent softwareComponent;
+    private License createdLicense;
 
     @ViewComponent
     private TextField licenseNameField;
@@ -74,10 +77,10 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
     private LicenseService licenseService;
 
     @Autowired
-    private DataManager dataManager;
+    private Notifications notifications;
 
     @Autowired
-    private Notifications notifications;
+    private Messages messages;
 
 
     @Subscribe
@@ -89,47 +92,66 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
 
     @Override
     public void setAvailableContent(SoftwareComponent content) {
-        this.softwareComponent = dataManager.load(SoftwareComponent.class).id(content.getId())
-                .fetchPlan(f -> f.add("licenses")).one();
+        this.softwareComponent = content;
     }
 
     @Override
     @Subscribe("addLicenseButton")
     public void addContentButton(ClickEvent<Button> event) {
-
         String priority = priorityField.getValue();
         String licenseType = licenseTypeField.getValue();
         String licenseText = licenseTextField.getValue();
         String licenseName = licenseNameField.getValue();
         String detailsUrl = detailsUrlField.getValue();
 
-        if(checkInput(priority,licenseType,licenseText,licenseName,detailsUrl)){
+        if (checkInput(priority, licenseType, licenseText, licenseName, detailsUrl)) {
 
-            License license = licenseService.createLicense(Integer.valueOf(priority),licenseType,licenseText,
-                    licenseName,detailsUrl,isModifiedField.getValue(),isCuratedField.getValue(),isSpdxField.getValue());
+            try {
+                this.createdLicense = licenseService.createLicense(
+                        Integer.valueOf(priority),
+                        licenseType,
+                        licenseText,
+                        licenseName,
+                        detailsUrl,
+                        isModifiedField.getValue(),
+                        isCuratedField.getValue(),
+                        isSpdxField.getValue()
+                );
 
-            this.softwareComponent.getLicenses().add(license);
-            dataManager.save(this.softwareComponent);
-            log.debug("Created and added license {} to softwareComponent",license.getLicenseName());
-            close(StandardOutcome.SAVE);
+                log.debug("Instantiated new license record: {}", createdLicense.getLicenseName());
+                close(StandardOutcome.SAVE);
 
-        }else{
-            notifications.create("Something went wrong, please check your input, some fields are required")
+            } catch (IllegalArgumentException e) {
+                notifications.create(messages.formatMessage(getClass(), "duplicate.error", licenseType))
+                        .withDuration(4000)
+                        .withPosition(Notification.Position.TOP_CENTER)
+                        .withThemeVariant(NotificationVariant.LUMO_WARNING)
+                        .show();
+            }
+
+        } else {
+            notifications.create(messages.getMessage("unknown.error"))
                     .withDuration(3000)
                     .withPosition(Notification.Position.TOP_CENTER)
-                    .withThemeVariant(NotificationVariant.LUMO_ERROR)
+                    .withThemeVariant(NotificationVariant.LUMO_WARNING)
                     .show();
         }
     }
 
     @Subscribe(id = "cancelButton")
-    public void cancelLicense(ClickEvent<Button> event){cancelButton(event);}
+    public void cancelLicense(ClickEvent<Button> event){
+        cancelButton(event);
+    }
 
-    private boolean checkInput(String priority,String licenseType,String licenseText,String licenseName,String detailsUrl ){
+    private boolean checkInput(String priority, String licenseType, String licenseText, String licenseName, String detailsUrl){
+        return priority != null && !priority.trim().isEmpty() &&
+                licenseType != null && !licenseType.trim().isEmpty() &&
+                licenseText != null && !licenseText.trim().isEmpty() &&
+                licenseName != null && !licenseName.trim().isEmpty() &&
+                detailsUrl != null && !detailsUrl.trim().isEmpty();
+    }
 
-        if(!priority.isEmpty() && !licenseType.isEmpty() && !licenseText.isEmpty() && !licenseName.isEmpty() && !detailsUrl.isEmpty()){
-            return true;
-        }
-        return false;
+    public License getCreatedLicense() {
+        return createdLicense;
     }
 }

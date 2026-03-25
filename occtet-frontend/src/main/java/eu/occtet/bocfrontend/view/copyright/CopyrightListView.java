@@ -53,7 +53,7 @@ import java.util.*;
 @ViewController(id = "Copyright.list")
 @ViewDescriptor(path = "copyright-list-view.xml")
 @LookupComponent("copyrightsDataGrid")
-@DialogMode(width = "64em")
+@DialogMode(width = "80%", height = "80%")
 public class CopyrightListView extends StandardListView<Copyright> {
 
     private static final Logger log = LogManager.getLogger(CopyrightListView.class);
