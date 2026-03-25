@@ -86,9 +86,6 @@ public class MergeServiceTest {
         org.setOrganizationEmail("test@test.com");
         org.setOrganizationName("Test Org");
 
-        project.setOrganization(org);
-        org.getProjects().add(project);
-
         SpdxDocumentRoot documentRoot = getSpdxDocumentRoot();
 
         PackageVerificationCodeEntity verificationCode = new PackageVerificationCodeEntity();
@@ -108,7 +105,7 @@ public class MergeServiceTest {
         curatedComponent.setCurated(true);
         curatedComponent.setDetailsUrl("https://new-location.com");
 
-        InventoryItem item = new InventoryItem("InventoryNode", project, curatedComponent);
+        InventoryItem item = new InventoryItem("InventoryNode", project, curatedComponent, org);
         item.setCurated(true);
         item.setSpdxId("SPDXRef-Package-1");
 
@@ -146,6 +143,10 @@ public class MergeServiceTest {
     void mergeChangesToDocumentEntities_ComponentNotCurated_SkipsUpdate() {
         Project project = new Project("Test Project");
 
+        Organization org = new Organization();
+        org.setOrganizationEmail("test@test.com");
+        org.setOrganizationName("Test Org");
+
         SpdxDocumentRoot documentRoot = new SpdxDocumentRoot();
         documentRoot.setSpdxId("SPDXRef-DOCUMENT");
 
@@ -157,7 +158,7 @@ public class MergeServiceTest {
         SoftwareComponent uncuratedComponent = new SoftwareComponent("updated-name", "2.0", new ArrayList<>(), new Organization());
         uncuratedComponent.setCurated(false); // Flag is explicitly false
 
-        InventoryItem item = new InventoryItem("InventoryNode", project, uncuratedComponent);
+        InventoryItem item = new InventoryItem("InventoryNode", project, uncuratedComponent, org);
         item.setCurated(false);
         item.setSpdxId("SPDXRef-Package-1");
 

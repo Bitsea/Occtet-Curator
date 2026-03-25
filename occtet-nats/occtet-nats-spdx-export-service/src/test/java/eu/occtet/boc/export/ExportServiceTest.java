@@ -87,7 +87,6 @@ public class ExportServiceTest {
         org.setOrganizationName("Test Org");
 
         project.setOrganization(org);
-        org.getProjects().add(project);
 
         SpdxDocumentRoot documentRoot = getSpdxDocumentRoot();
 
@@ -166,6 +165,9 @@ public class ExportServiceTest {
     void process_WithEnrichment_PrependsCopyrightsToExtractedLicense() {
         ReflectionTestUtils.setField(exportService, "toolName", "TestTool-1.0");
 
+        Organization org = new Organization();
+        org.setOrganizationName("Test Org");
+
         SpdxExportWorkData workData = new SpdxExportWorkData();
         workData.setProjectId(100L);
         workData.setSpdxDocumentId("https://test.uri/doc");
@@ -174,6 +176,7 @@ public class ExportServiceTest {
 
         Project project = new Project("Enriched Export Project");
         project.setId(100L);
+        project.setOrganization(org);
 
         SpdxDocumentRoot documentRoot = getSpdxDocumentRoot();
 

@@ -24,6 +24,7 @@ package eu.occtet.boc.export;
 import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.spdxV2.RelationshipEntity;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
@@ -59,8 +60,10 @@ public class SpdxFileSyncServiceTest {
 
     @BeforeEach
     void setUp() {
+        Organization org = new Organization();
+
         project = new Project("Test Project");
-        inventoryItem = new InventoryItem("LibNode", project, null);
+        inventoryItem = new InventoryItem("LibNode", project, null, org);
 
         packageEntity = new SpdxPackageEntity();
         packageEntity.setSpdxId("SPDXRef-Package-1");
