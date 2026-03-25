@@ -43,7 +43,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Component
-@Profile("local") // TODO Change to live once done testing stuff locally
+@Profile("profile")
 public class OcctetSynchronizingOidcUserMapper extends SynchronizingOidcUserMapper<User> {
 
     private static final Logger log = LogManager.getLogger(OcctetSynchronizingOidcUserMapper.class);

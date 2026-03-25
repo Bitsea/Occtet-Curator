@@ -44,12 +44,6 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 @ViewDescriptor(path = "main-view.xml")
 public class MainView extends StandardMainView {
 
-    @Value("${spring.security.oauth2.authorizationserver.endpoint.oidc.logout-uri}")
-    private String logoutUri;
-
-    @Value("${spring.security.oauth2.client.registration.keycloak.redirect-uri}")
-    private String redirectUri;
-
     @Autowired
     private CurrentAuthentication currentAuthentication;
     @Autowired
@@ -92,23 +86,5 @@ public class MainView extends StandardMainView {
                 UI.getCurrent().getPage().reload();
             }
         }
-    }
-
-    /**
-     * logout action has to be connected to the keycloak logout
-     * here the address has to be adjusted according do environment
-     * @param event
-     */
-    @Subscribe("logoutAction")
-    public void onLogoutAction(ActionPerformedEvent event) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        OidcUser user = (OidcUser) authentication.getPrincipal();
-        String idToken = user.getIdToken().getTokenValue();
-        String logoutUrl = logoutUri
-                + "?id_token_hint=" + idToken
-                + "&post_logout_redirect_uri="+redirectUri;
-
-        UI.getCurrent().getPage().setLocation(logoutUrl);
-
     }
 }

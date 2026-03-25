@@ -34,6 +34,7 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.keycloak.representations.AccessToken;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
@@ -56,12 +57,13 @@ import java.util.Map;
  * {@link ResourceRoleRepository} and {@link RowLevelRoleRepository} to ensure
  * only valid, application-defined roles are granted to the user context.
  */
+@Primary
 @Component("KeycloakClaimsRolesMapper")
 public class KeycloakClaimsRolesMapper implements ClaimsRolesMapper {
 
     private static final Logger log = LogManager.getLogger(KeycloakClaimsRolesMapper.class);
 
-    @Value("${spring.security.oauth2.client.registration.keycloak.client-id}")
+    @Value("${spring.security.oauth2.client.registration.keycloak.client-id:ort-server-uri}")
     private String clientName;
 
     private final ObjectMapper objectMapper;
