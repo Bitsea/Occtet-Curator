@@ -22,6 +22,7 @@ package eu.occtet.boc.fossreport.factory;
 
 import eu.occtet.boc.dao.LicenseRepository;
 import eu.occtet.boc.entity.License;
+import eu.occtet.boc.entity.Organization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,14 +40,14 @@ public class LicenseFactory {
         this.licenseRepository = licenseRepository;
     }
 
-    public License create(String licenseId, String licenseText){
+    public License create(String licenseId, String licenseText, Organization organization){
         log.debug("Creating License with licenseId: {} and licenseText: {}", licenseId, licenseText);
-        License license = new License(licenseId, licenseText);
+        License license = new License(licenseId, licenseText, organization);
         return licenseRepository.save(license);
     }
-    public License createWithModified(String licenseId, String licenseText, Boolean modified){
+    public License createWithModified(String licenseId, String licenseText, Boolean modified, Organization organization){
         log.debug("Creating License with licenseId: {} and licenseText: {} and modified: {}", licenseId, licenseText, modified);
-        License license = new License(licenseId, licenseText, modified);
+        License license = new License(licenseId, licenseText, modified, organization);
         return licenseRepository.save(license);
     }
 

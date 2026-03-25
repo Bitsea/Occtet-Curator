@@ -31,9 +31,6 @@ public abstract class AbstractAddContentDialog<T> extends StandardView {
 
     public abstract void setAvailableContent(T content);
 
-    @Subscribe("projectDc")
-    public abstract void setAvailableContent(Organization organization);
-
     public abstract void addContentButton(ClickEvent<Button> event);
 
     public void cancelButton(ClickEvent<Button> event){close(StandardOutcome.CLOSE);}

@@ -144,7 +144,7 @@ public class FossReportService extends ProgressReportingService {
             boolean wasCombined = FossReportUtilities.wasCombined(inventoryName);
             boolean isStyleBy = inventoryName.contains("Style");
             String url = rowDto.URL();
-            List<License> licenses = prepareLicenses(wasCombined, isStyleBy, rowDto);
+            List<License> licenses = prepareLicenses(wasCombined, isStyleBy, rowDto, project.getOrganization());
             String parentComponentVersion = FossReportUtilities.extractVersion(rowDto.parentNameAndVersion());
             String parentComponentName = FossReportUtilities.extractVersionOfComponentName(rowDto.parentNameAndVersion(),
                     parentComponentVersion);
@@ -180,7 +180,7 @@ public class FossReportService extends ProgressReportingService {
 
             prepareFiles(rowDto, inventoryItem, basePathFile);
             //as we have no specific file for the copyrights here, we just use the basepath
-            copyrights = prepareCopyrights(rowDto, basePathFile);
+            copyrights = prepareCopyrights(rowDto, basePathFile, project.getOrganization());
 
             inventoryItem.getSoftwareComponent().setCopyrights(copyrights);
             inventoryItemRepository.save(inventoryItem);
@@ -227,7 +227,7 @@ public class FossReportService extends ProgressReportingService {
      *
      * @return a list of License objects containing extracted license information.
      */
-    private List<License> prepareLicenses(boolean wasCombined, Boolean isStyleBy, RowDto rowDto) {
+    private List<License> prepareLicenses(boolean wasCombined, Boolean isStyleBy, RowDto rowDto, Organization organization) {
 
         List<String> licenseNames;
         List<License> licenses = new ArrayList<>();
@@ -236,11 +236,11 @@ public class FossReportService extends ProgressReportingService {
             licenseNames = FossReportUtilities.separateCombinedLicenses(rowDto.licenseTypeId());
             for (String licenseName : licenseNames) {
                 licenses.add(licenseService.findOrCreateLicenseWithModified(licenseName, rowDto.licenseText(),
-                        isStyleBy));
+                        isStyleBy, organization));
             }
         } else {
             licenses.add(licenseService.findOrCreateLicenseWithModified(rowDto.licenseTypeId(),
-                    rowDto.licenseText(), isStyleBy));
+                    rowDto.licenseText(), isStyleBy, organization));
         }
         log.debug("Licenses found: {}", licenses.size());
         return licenses;
@@ -257,7 +257,7 @@ public class FossReportService extends ProgressReportingService {
         }
     }
 
-    private List<Copyright> prepareCopyrights(RowDto rowDto, File basePathFile) {
+    private List<Copyright> prepareCopyrights(RowDto rowDto, File basePathFile, Organization organization) {
         log.debug("prepare copyrights with text: {}", rowDto.copyright());
         List<Copyright> copyrights = new ArrayList<>();
         List<String> copyrightTexts = FossReportUtilities.getCopyrights(rowDto.copyright());
@@ -265,7 +265,7 @@ public class FossReportService extends ProgressReportingService {
         if (!copyrightTexts.isEmpty()) {
             copyrightTexts.forEach(copyrightText -> {
                 // For FlexeraReport use the basepath for copyrights, as we dont have a specific path for them.
-                Copyright copyright = copyrightService.findOrCreateCopyright(copyrightText, basePathFile);
+                Copyright copyright = copyrightService.findOrCreateCopyright(copyrightText, basePathFile, organization);
                 copyrights.add(copyright);
             });
         }
