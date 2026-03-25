@@ -46,6 +46,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.core.env.Profiles; 
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -91,6 +92,10 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     public void onInit(final InitEvent event) {
         initLocales();
         initDefaultCredentials();
+
+        if (environment.acceptsProfiles(Profiles.of("live"))) {
+            UI.getCurrent().getPage().setLocation("/oauth2/authorization/keycloak");
+        }
     }
 
     @Subscribe("login")
