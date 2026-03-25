@@ -28,6 +28,7 @@ import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.core.security.UserRepository;
 import io.jmix.oidc.claimsmapper.ClaimsRolesMapper;
+import org.springframework.context.annotation.Profile
 import io.jmix.oidc.usermapper.SynchronizingOidcUserMapper;
 import io.jmix.security.role.RoleGrantedAuthorityUtils;
 import org.apache.logging.log4j.LogManager;
@@ -43,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Component
+@Profile("live")
 @Profile("profile")
 public class OcctetSynchronizingOidcUserMapper extends SynchronizingOidcUserMapper<User> {
 
