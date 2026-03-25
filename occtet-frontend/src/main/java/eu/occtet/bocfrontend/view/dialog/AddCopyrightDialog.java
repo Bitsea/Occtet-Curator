@@ -44,7 +44,7 @@ import java.util.List;
 
 @ViewController("addCopyrightDialog")
 @ViewDescriptor("add-copyright-dialog.xml")
-@DialogMode(width = "1000px", height = "650px")
+@DialogMode(width = "70%", height = "70%")
 public class AddCopyrightDialog extends AbstractAddContentDialog<SoftwareComponent> {
 
     private static final Logger log = LogManager.getLogger(AddCopyrightDialog.class);
@@ -63,28 +63,25 @@ public class AddCopyrightDialog extends AbstractAddContentDialog<SoftwareCompone
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    @Autowired
-    private DataManager dataManager;
-
     @Override
     @Subscribe("copyrightDc")
     public void setAvailableContent(SoftwareComponent softwareComponent) {
-        this.softwareComponent = dataManager.load(SoftwareComponent.class)
-                .id(softwareComponent.getId()).fetchPlan(f -> f.add("copyrights")).one();
-        log.debug("setAvailableContent");
+        this.softwareComponent = softwareComponent;
+        log.debug("Dialog context initialized with SoftwareComponent in memory.");
         copyrightDc.setItems(copyrightRepository.findAvailableCopyrights(this.softwareComponent.getCopyrights()));
     }
 
     @Override
     @Subscribe(id = "addCopyrightButton")
     public void addContentButton(ClickEvent<Button> event) {
-
-        List<Copyright> copyrights = new ArrayList<>(copyrightDataGrid.getSelectedItems());
-        if(!copyrights.isEmpty() && softwareComponent != null){
-            softwareComponent.getCopyrights().addAll(copyrights);
-            dataManager.save(softwareComponent);
+        List<Copyright> copyrights = getSelectedCopyrights();
+        if (!copyrights.isEmpty() && softwareComponent != null) {
             close(StandardOutcome.SAVE);
         }
+    }
+
+    public List<Copyright> getSelectedCopyrights() {
+        return new ArrayList<>(copyrightDataGrid.getSelectedItems());
     }
 
     @Override

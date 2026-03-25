@@ -25,7 +25,6 @@ import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 
 @JmixEntity
@@ -74,7 +73,7 @@ public class InventoryItem {
     private Boolean curated;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PROJECT_ID", nullable = false)
+    @JoinColumn(name = "PROJECT_ID", nullable = true)
     private Project project;
 
     @Column(name = "HAS_TODOS")

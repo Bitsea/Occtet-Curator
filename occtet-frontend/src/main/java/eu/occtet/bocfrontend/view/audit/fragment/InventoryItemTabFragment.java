@@ -19,19 +19,16 @@
 
 package eu.occtet.bocfrontend.view.audit.fragment;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.textfield.TextField;
-import eu.occtet.boc.model.DownloadServiceWorkData;
-import eu.occtet.boc.model.WorkTask;
 import eu.occtet.bocfrontend.dao.*;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.service.NatsService;
@@ -41,8 +38,7 @@ import eu.occtet.bocfrontend.view.dialog.*;
 import eu.occtet.bocfrontend.view.inventoryitem.InventoryItemDetailView;
 import eu.occtet.bocfrontend.view.license.LicenseDetailView;
 import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
-import io.jmix.core.DataManager;
-import io.jmix.core.Messages;
+import io.jmix.core.*;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
@@ -67,18 +63,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.awt.*;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static io.jmix.flowui.fragment.FragmentUtils.findComponent;
 
 @FragmentDescriptor("InventoryItemTabFragment.xml")
 public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
@@ -90,7 +85,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private View<?> hostView;
     private InventoryItem inventoryItem;
     private SoftwareComponent softwareComponent;
-    private boolean deleteMode = false;
+    private boolean deleteLicenseMode = false;
+    private boolean deleteCopyrightMode = false;
 
     @ViewComponent
     private CollectionContainer<License> licenseDc;
@@ -151,6 +147,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private JmixButton downloadBtn;
     @ViewComponent
     private TextField downloadUrlTextField;
+    @ViewComponent
+    private JmixButton saveButton;
 
 
     @Autowired
@@ -184,6 +182,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private Dialogs dialogs;
     @Autowired
     private NatsService natsService;
+    @Autowired
+    private EntityStates entityStates;
 
     public void activateAutocomplete() {
         log.info("on before show");
@@ -205,13 +205,11 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
     }
 
-
     /**
      * loads the suggestions strings from db
      * for autocomplete fields
      */
     private void loadSuggestions(String context){
-
         suggestions= suggestionRepository.findByContext(context).stream().map(Suggestion::getSentence)
                 .filter(Objects::nonNull).collect(Collectors.toList());
 
@@ -226,11 +224,24 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
      * @param inventoryItem the object to be set. It must not be null.
      */
     public void setInventoryItem(@Nonnull InventoryItem inventoryItem) {
+        SoftwareComponent sc = inventoryItem.getSoftwareComponent();
+
+        if (sc != null && !entityStates.isNew(sc) &&
+                (!entityStates.isLoaded(sc, "licenses") || !entityStates.isLoaded(sc, "copyrights"))) {
+
+            SoftwareComponent fullyLoadedSc = dataManager.load(SoftwareComponent.class)
+                    .id(sc.getId())
+                    .fetchPlan(f -> f.addAll("licenses", "copyrights", "vulnerabilityLinks", "vulnerabilityLinks.vulnerability"))
+                    .one();
+
+            // Swap lazy proxy for the fully loaded one
+            inventoryItem.setSoftwareComponent(fullyLoadedSc);
+        }
         // track instances !important for saving
         this.inventoryItem = dataContext.merge(inventoryItem);
-        this.softwareComponent = inventoryItem.getSoftwareComponent();
+        this.softwareComponent = this.inventoryItem.getSoftwareComponent();
+
         if (this.softwareComponent != null) {
-            this.softwareComponent = dataContext.merge(this.softwareComponent);
             softwareComponentDc.setItem(this.softwareComponent);
         }
 
@@ -284,9 +295,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
     /**
      * Handles the save action triggered by the user.
-     * This method checks if there are unsaved changes in the data context.
-     * If changes are present, it saves them and updates relevant views.
-     * If no changes are detected, it notifies the user.
+     * Bypasses the strict hasChanges() check to guarantee nested entities (like newly added
+     * licenses or copyrights) are properly evaluated and saved by the DataContext.
      *
      * @param event the event object captured when the saveAction is triggered
      */
@@ -294,30 +304,51 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     public void onSaveAction(ActionPerformedEvent event) {
         this.inventoryItem.setExternalNotes(autocompleteAuditNotes.getValue());
         this.inventoryItem.setInventoryName(autocompleteInventoryName.getValue());
+
         Linking selectedLinking = linkingComboBox.getValue();
         this.inventoryItem.setLinking(Objects.requireNonNullElse(selectedLinking, Linking.NONE).getId());
-        if (dataContext.hasChanges()) {
-            log.debug("Inventory Item {} has changes.", inventoryItem.getInventoryName());
 
-            dataContext.save();
-            notifications.create("Changes saved.").withPosition(Notification.Position.BOTTOM_END)
+        SaveContext saveContext = new SaveContext().saving(this.inventoryItem);
+        if (this.softwareComponent != null) {
+            saveContext.saving(this.softwareComponent);
+        }
+
+        EntitySet savedEntities = dataManager.save(saveContext);
+
+        for (Object savedEntity : savedEntities) {
+            dataContext.merge(savedEntity);
+        }
+
+        if (!savedEntities.isEmpty()) {
+            log.debug("Inventory Item {} had {} changes force-saved.", inventoryItem.getInventoryName(), savedEntities.size());
+
+            notifications.create(messages.formatMessage(getClass(),
+                            "inventory.save.success",
+                            inventoryItem.getInventoryName(), savedEntities.size()))
+                    .withPosition(Notification.Position.BOTTOM_END)
                     .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
+                    .withCloseable(true)
                     .show();
+
             if (hostView instanceof AuditView) {
                 ((AuditView) hostView).refreshInventoryItemDc(inventoryItem.getProject());
             }
+
+            setSaveButtonDirtyState(false);
         } else {
             log.debug("Inventory Item {} has no changes.", inventoryItem.getInventoryName());
-            notifications.create(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification")).withPosition(Notification.Position.BOTTOM_END).show();
+            notifications.create(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification"))
+                    .withPosition(Notification.Position.BOTTOM_END)
+                    .show();
         }
     }
 
     /**
-     * Handles the action of adding a license. When triggered, this method opens a dialog
-     * allowing the user to add a license to the software component. After the dialog
-     * is closed, the licenses associated with the software component are updated.
+     * Opens a dialog to select and append existing licenses to the associated software component.
+     * This method stages the additions within the view's data context, deferring database
+     * persistence until the main fragment is saved.
      *
-     * @param event the event object triggered by the click action on the dropdown button item
+     * @param event the click event triggered by selecting the add license dropdown item
      */
     @Subscribe(id = "editLicense.addLicense")
     public void addLicense(DropdownButtonItem.ClickEvent event) {
@@ -325,64 +356,31 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             DialogWindow<AddLicenseDialog> window = dialogWindow.view(hostView, AddLicenseDialog.class).build();
             window.getView().setAvailableContent(softwareComponent);
             window.open();
+
             window.addAfterCloseListener(close -> {
-                if(close.closedWith(StandardOutcome.SAVE)){
-                    updateLicensesFromInventoryItem(inventoryItem);
-                    infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseAdd"));
+                if (close.closedWith(StandardOutcome.SAVE)) {
+                    List<License> selectedLicenses = window.getView().getSelectedLicenses();
+                    if (selectedLicenses != null && !selectedLicenses.isEmpty()) {
+                        for (License license : selectedLicenses) {
+                            License trackedLicense = dataContext.merge(license);
+                            if (!softwareComponent.getLicenses().contains(trackedLicense)) {
+                                softwareComponent.getLicenses().add(trackedLicense);
+                                licenseDc.getMutableItems().add(trackedLicense);
+                            }
+                        }
+                        setSaveButtonDirtyState(true);
+                        infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseAdd"));
+                    }
                 }
             });
         }
     }
 
     /**
-     * Toggles the deletion mode for licenses and updates the UI components accordingly.
-     * When triggered, this method changes the selection mode of the licenses data grid
-     * to either single or multiple based on the current state. It also toggles the
-     * visibility of the "Remove License" button.
+     * Initializes a new license entry and links it to the active software component.
+     * The new relationship is managed strictly in memory using the local data context.
      *
-     **/
-    @Subscribe(id = "editLicense.removeLicense")
-    public void removeLicenses(DropdownButtonItem.ClickEvent event) {
-        deleteMode = !deleteMode;
-
-        licensesDataGrid.setSelectionMode(
-                deleteMode ? DataGrid.SelectionMode.MULTI : DataGrid.SelectionMode.SINGLE
-        );
-        removeLicenseButton.setVisible(deleteMode);
-    }
-
-    /**
-     * Handles the removal of selected licenses from the software component associated with the current view.
-     * Updates the software component repository, notifies the user upon successful removal, and adjusts the
-     * UI state including the data grid selection mode and button visibility.
-     *
-     * @param event the click event triggered by the user interacting with the "Remove License" button
-     */
-    @Subscribe(id = "removeLicenseButton")
-    public void removeLicenses(ClickEvent<JmixButton> event) {
-        Set<License> selectedLicenses = licensesDataGrid.getSelectedItems();
-
-        if (!selectedLicenses.isEmpty() && softwareComponent != null) {
-            softwareComponent = dataManager.load(SoftwareComponent.class).id(softwareComponent.getId())
-                    .fetchPlan(f -> f.add("licenses")).one();
-            softwareComponent.getLicenses().removeAll(selectedLicenses);
-            softwareComponentRepository.save(softwareComponent);
-            updateLicensesFromInventoryItem(inventoryItem);
-            infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseRemove"));
-        }
-
-        deleteMode = false;
-        licensesDataGrid.setSelectionMode(DataGrid.SelectionMode.SINGLE);
-        licensesDataGrid.deselectAll();
-        removeLicenseButton.setVisible(false);
-    }
-
-    /**
-     * Handles the creation and addition of a new license via a dialog window. This method
-     * opens a dialog to input license details for the associated software component. After
-     * the dialog is closed, it updates the licenses linked to the software component.
-     *
-     * @param event the click event triggered by the user interacting with the dropdown button item
+     * @param event the click event triggered by selecting the create license dropdown item
      */
     @Subscribe(id = "editLicense.createLicense")
     public void createAndAddLicense(DropdownButtonItem.ClickEvent event) {
@@ -390,14 +388,58 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             DialogWindow<CreateLicenseDialog> window = dialogWindow.view(hostView, CreateLicenseDialog.class).build();
             window.getView().setAvailableContent(softwareComponent);
             window.open();
+
             window.addAfterCloseListener(close -> {
-                if(close.closedWith(StandardOutcome.SAVE)){
-                    updateLicensesFromInventoryItem(inventoryItem);
-                    infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseCreate"));
+                if (close.closedWith(StandardOutcome.SAVE)) {
+                    License newLicense = window.getView().getCreatedLicense();
+                    if (newLicense != null) {
+                        License trackedLicense = dataContext.merge(newLicense);
+                        softwareComponent.getLicenses().add(trackedLicense);
+                        licenseDc.getMutableItems().add(trackedLicense);
+                        infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseCreate"));
+                    }
                 }
             });
         }
+    }
 
+    /**
+     * Toggles the UI state to allow multiple selection for license removal.
+     *
+     * @param event the click event triggered by selecting the remove license dropdown item
+     */
+    @Subscribe(id = "editLicense.removeLicense")
+    public void toggleRemoveLicenseMode(DropdownButtonItem.ClickEvent event) {
+        deleteLicenseMode = !deleteLicenseMode;
+
+        licensesDataGrid.setSelectionMode(
+                deleteLicenseMode ? DataGrid.SelectionMode.MULTI : DataGrid.SelectionMode.SINGLE
+        );
+        removeLicenseButton.setVisible(deleteLicenseMode);
+    }
+
+    /**
+     * Severs the link between selected licenses and the software component in memory.
+     * Modifies the underlying entity collection without immediately committing changes to the database.
+     *
+     * @param event the click event triggered by the remove license button
+     */
+    @Subscribe(id = "removeLicenseButton")
+    public void removeLicenses(ClickEvent<JmixButton> event) {
+        Set<License> selectedLicenses = licensesDataGrid.getSelectedItems();
+
+        if (!selectedLicenses.isEmpty() && softwareComponent != null) {
+            for (License license : selectedLicenses) {
+                softwareComponent.getLicenses().remove(license);
+                licenseDc.getMutableItems().remove(license);
+            }
+            infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseRemove"));
+        }
+
+        deleteLicenseMode = false;
+        licensesDataGrid.setSelectionMode(DataGrid.SelectionMode.SINGLE);
+        licensesDataGrid.deselectAll();
+        removeLicenseButton.setVisible(false);
     }
 
     /**
@@ -446,80 +488,78 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
             DialogWindow<AddCopyrightDialog> window = dialogWindow.view(hostView, AddCopyrightDialog.class).build();
             window.getView().setAvailableContent(softwareComponent);
             window.open();
+
             window.addAfterCloseListener(close -> {
                 if(close.closedWith(StandardOutcome.SAVE)){
-                    updateCopyrightsFromInventory(inventoryItem);
-                    infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.CopyrightAdd"));
+                    List<Copyright> selectedCopyrights = window.getView().getSelectedCopyrights();
+
+                    if (selectedCopyrights != null && !selectedCopyrights.isEmpty()) {
+                        for (Copyright copyright : selectedCopyrights) {
+                            Copyright trackedCopyright = dataContext.merge(copyright);
+
+                            if (!softwareComponent.getCopyrights().contains(trackedCopyright)) {
+                                softwareComponent.getCopyrights().add(trackedCopyright);
+                                copyrightDc.getMutableItems().add(trackedCopyright);
+                            }
+                        }
+                        infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.CopyrightAdd"));
+                    }
                 }
             });
         }
     }
 
-    /**
-     * Toggles the deletion mode for copyrights and updates the UI components accordingly.
-     * This method switches the selection mode of the copyrights data grid to either
-     * single or multiple depending on the current state. It also manages the visibility
-     * of the "Remove Copyright" button.
-     *
-     * @param event the click event triggered by the user interacting with the dropdown button item
-     */
-    @Subscribe(id = "editCopyright.removeCopyright")
-    public void removeCopyrights(DropdownButtonItem.ClickEvent event) {
-        deleteMode = !deleteMode;
-
-        copyrightsDataGrid.setSelectionMode(
-                deleteMode ? DataGrid.SelectionMode.MULTI : DataGrid.SelectionMode.SINGLE
-        );
-        removeCopyrightButton.setVisible(deleteMode);
-    }
-
-    /**
-     * Handles the creation and addition of a new copyright entry via a dialog window.
-     * When triggered, this method opens a dialog for the user to input copyright details
-     * associated with the current inventory item. After the dialog is closed, the method
-     * updates the list of copyrights linked to the inventory item.
-     *
-     * @param event the click event triggered by the user interacting with the dropdown button item
-     */
     @Subscribe(id = "editCopyright.createCopyright")
     public void createAndAddCopyright(DropdownButtonItem.ClickEvent event) {
-        if (inventoryItem != null) {
+        if (inventoryItem != null && softwareComponent != null) {
             DialogWindow<CreateCopyrightDialog> window = dialogWindow.view(hostView, CreateCopyrightDialog.class).build();
             window.getView().setAvailableContent(inventoryItem);
             window.open();
+
             window.addAfterCloseListener(close -> {
-                if(close.closedWith(StandardOutcome.SAVE)){
-                    updateCopyrightsFromInventory(inventoryItem);
-                    infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.CopyrightCreate"));
+                if (close.closedWith(StandardOutcome.SAVE)) {
+                    Copyright newCopyright = window.getView().getCreatedCopyright();
+
+                    if (newCopyright != null) {
+                        Copyright trackedCopyright = dataContext.merge(newCopyright);
+                        if (softwareComponent.getCopyrights() == null) {
+                            softwareComponent.setCopyrights(new ArrayList<>());
+                        }
+                        if (!softwareComponent.getCopyrights().contains(trackedCopyright)) {
+                            softwareComponent.getCopyrights().add(trackedCopyright);
+                        }
+                        copyrightDc.getMutableItems().add(trackedCopyright);
+                        setSaveButtonDirtyState(true);
+                        infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.CopyrightCreate"));
+                    }
                 }
             });
         }
-
     }
 
-    /**
-     * Handles the removal of selected copyrights from the inventory item associated with the current view.
-     * If any copyrights are selected, they are removed from the inventory item, and the changes
-     * are persisted using the inventory item repository. The method also updates the UI components,
-     * notifies the user upon successful removal, and resets the data grid selection mode and button visibility.
-     *
-     * @param event the ClickEvent triggered by the user interacting with the "Remove Copyright" button.
-     *              Contains details about the button click action.
-     */
+    @Subscribe(id = "editCopyright.removeCopyright")
+    public void toggleRemoveCopyrightMode(DropdownButtonItem.ClickEvent event) {
+        deleteCopyrightMode = !deleteCopyrightMode;
+
+        copyrightsDataGrid.setSelectionMode(
+                deleteCopyrightMode ? DataGrid.SelectionMode.MULTI : DataGrid.SelectionMode.SINGLE
+        );
+        removeCopyrightButton.setVisible(deleteCopyrightMode);
+    }
+
     @Subscribe(id = "removeCopyrightButton")
     public void removeCopyrights(ClickEvent<JmixButton> event) {
         Set<Copyright> selectedCopyrights = copyrightsDataGrid.getSelectedItems();
 
         if (!selectedCopyrights.isEmpty() && softwareComponent != null) {
-            softwareComponent = dataManager.load(SoftwareComponent.class).id(softwareComponent.getId())
-                    .fetchPlan(f -> f.add("copyrights")).one();
-            softwareComponent.getCopyrights().removeAll(selectedCopyrights);
-            dataManager.save(softwareComponent);   // or your proper repo
-            updateCopyrightsFromInventory(inventoryItem);
+            for (Copyright copyright : selectedCopyrights) {
+                softwareComponent.getCopyrights().remove(copyright);
+                copyrightDc.getMutableItems().remove(copyright);
+            }
             infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.CopyrightRemove"));
         }
 
-        deleteMode = false;
+        deleteCopyrightMode = false;
         copyrightsDataGrid.setSelectionMode(DataGrid.SelectionMode.SINGLE);
         copyrightsDataGrid.deselectAll();
         removeCopyrightButton.setVisible(false);
@@ -725,6 +765,31 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                         }
                     }
                 }).withDraggable(true).open();
+    }
+
+    @Subscribe(target = Target.DATA_CONTEXT)
+    public void onDataContextChange(final DataContext.ChangeEvent event) {
+        setSaveButtonDirtyState(dataContext.hasChanges());
+    }
+
+    private void setSaveButtonDirtyState(boolean hasChanges) {
+        // Framework bug workaround: Manually fetch the button if <suffix> broke the @ViewComponent injection
+        if (this.saveButton == null) {
+            this.saveButton = (JmixButton) findComponent(this ,"saveButton").orElse(null);
+        }
+
+        if (this.saveButton == null) {
+            log.warn("Could not locate saveButton in the UI. Skipping color update.");
+            return;
+        }
+
+        if (hasChanges) {
+            saveButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+            saveButton.setIcon(VaadinIcon.CHECK_CIRCLE.create());
+        } else {
+            saveButton.removeThemeVariants(ButtonVariant.LUMO_SUCCESS);
+            saveButton.setIcon(null);
+        }
     }
 
 }

@@ -158,7 +158,7 @@ public class ArchiveService {
     }
 
     private boolean shouldSkip(String name) {
-        // TODO determine what to skip
+        // add what to should be skipped
         return false;
     }
 }

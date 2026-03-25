@@ -1,0 +1,8 @@
+{
+  "uri": "http://localhost:8081/realms/master/protocol/openid-connect/token",
+  "method": "POST",
+  "body": "client_id\u003dort-server\ngrant_type\u003dsecret\nclient-secret\u003djCqeTP3F1kX5Ck75MuuAyzcYt500nSpx",
+  "headers": {
+    "Content-Type": "application/x-www-form-urlencoded"
+  }
+}

@@ -62,7 +62,6 @@ public class OrtViolation {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PROJECT_ID", nullable = false)
-    @OnDelete(DeletePolicy.CASCADE)
     private Project project;
 
     @ManyToOne

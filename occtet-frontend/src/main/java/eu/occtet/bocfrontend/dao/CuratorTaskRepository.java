@@ -31,6 +31,7 @@ import java.util.List;
 public interface CuratorTaskRepository extends JmixDataRepository<CuratorTask, Long> {
 
     List<CuratorTask> findByStatus(TaskStatus status);
+    List<CuratorTask> findByProject(Project project);
     long countByStatus(TaskStatus status);
     List<CuratorTask> findByTaskType(String type);
     List<CuratorTask> findAllByStatusAndLastUpdateAfter(TaskStatus status, LocalDateTime threshold);

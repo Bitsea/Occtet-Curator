@@ -19,8 +19,8 @@
 
 package eu.occtet.boc.fossreport.factory;
 
-import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.dao.CopyrightRepository;
+import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

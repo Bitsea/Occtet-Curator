@@ -24,6 +24,7 @@ import eu.occtet.bocfrontend.entity.Copyright;
 import eu.occtet.bocfrontend.entity.File;
 import io.jmix.core.repository.JmixDataRepository;
 import io.jmix.core.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
