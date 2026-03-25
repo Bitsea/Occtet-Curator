@@ -65,12 +65,9 @@
                         <checkbox id="curatedField" property="curated" label="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
                         <checkbox id="licenseAICurated" property="licenseAiControlled" label="msg://licenseAiControlled"/>
                     </formLayout>
-                    <hbox id="detailActions" justifyContent="CENTER" alignItems="CENTER" alignSelf="CENTER" height="100%">
-                        <button id="saveAndCloseButton" action="saveAction" alignSelf="END"/>
-                        <button id="closeButton" action="closeAction" alignSelf="END"/>
-                    </hbox>
                 </vbox>
             </tab>
+
             <tab id="vulnerabilitiesTab" label="msg://VulnerabilitiesTab.label">
                 <vbox width="100%" alignItems="CENTER" alignSelf="END" height="100%">
                     <dataGrid id="vulnerabilityLinksDataGrid" dataContainer="vulnerabilityLinksDc" themeNames="" classNames="occtet-grid">
@@ -81,41 +78,51 @@
                             <column property="vulnerability.exploitability" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.exploitability"/>
                             <column property="vulnerability.riskScore" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.riskScore"/>
                             <column property="vulnerability.sourceUrl" header="msg://softwareComponent.sourceUrl"/>
-
                             <column property="resolved" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.resolved"/>
-
                             <column key="actions" sortable="false" autoWidth="true" flexGrow="0"/>
                         </columns>
                     </dataGrid>
                     <button id="updateData" text="msg://updateVulnerabilties" icon="REFRESH" />
                 </vbox>
             </tab>
+
             <tab id="copyrightTab" label="msg://copyrightsTab.label">
-            <vbox width="100%" alignItems="CENTER" alignSelf="END" height="100%">
-                <dataGrid classNames="occtet-grid" id="copyrightDataContainer" dataContainer="copyrightDc" themeNames="">
-                    <columns resizable="true" sortable="true">
-                        <column property="copyrightText"/>
-                        <column property="curated"/>
-                        <column property="garbage"/>
-                    </columns>
-                    <actions>
-                        <action id="createAction" type="list_create"/>
-                        <action id="addAction" type="list_add"/>
-                    </actions>
-                </dataGrid>
-                <hbox>
-                    <button id="createButton" action="copyrightDataContainer.createAction"/>
-                    <button id="addButton" action="copyrightDataContainer.addAction"/>
-                </hbox>
-            </vbox>
+                <vbox width="100%" alignItems="CENTER" alignSelf="END" height="100%">
+                    <dataGrid classNames="occtet-grid" id="copyrightDataGrid" dataContainer="copyrightDc" width="100%" themeNames="">
+                        <columns resizable="true" sortable="true">
+                            <column property="copyrightText"/>
+                            <column property="curated"/>
+                            <column property="garbage"/>
+                        </columns>
+                    </dataGrid>
+                    <hbox>
+                        <dropdownButton id="editCopyright" text="msg://editCopyrightText" icon="lumo:edit" dropdownIndicatorVisible="false">
+                            <items>
+                                <componentItem id="createCopyright">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.create"/>
+                                    </hbox>
+                                </componentItem>
+                                <componentItem id="addCopyright">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.add"/>
+                                    </hbox>
+                                </componentItem>
+                                <componentItem id="removeCopyright">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.remove"/>
+                                    </hbox>
+                                </componentItem>
+                            </items>
+                        </dropdownButton>
+                        <button id="removeCopyrightButton" icon="TRASH" visible="false" themeNames="error small"/>
+                    </hbox>
+                </vbox>
             </tab>
+
             <tab id="licensestab" label="Licenses">
                 <vbox width="100%" alignItems="CENTER" alignSelf="END" height="100%">
-                    <dataGrid classNames="occtet-grid" id="licensesDataGrid"
-                              width="100%"
-                              height="40em"
-                              dataContainer="licenseDc"
-                              columnReorderingAllowed="true" alignSelf="CENTER">
+                    <dataGrid classNames="occtet-grid" id="licensesDataGrid" width="100%" height="40em" dataContainer="licenseDc" columnReorderingAllowed="true" alignSelf="CENTER">
                         <columns resizable="true">
                             <column property="licenseType" header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseId"/>
                             <column property="priority" header="msg://eu.occtet.bocfrontend.entity/License.priority"/>
@@ -127,9 +134,34 @@
                             <column property="isSpdx" header="msg://eu.occtet.bocfrontend.entity/License.isSpdx"/>
                         </columns>
                     </dataGrid>
-                    <button id="addLicenseButton" text="msg://eu.occtet.bocfrontend.view.copyright/addLicense" alignSelf="CENTER"/>
+                    <hbox>
+                        <dropdownButton id="editLicense" text="msg://editLicenseText" icon="lumo:edit" dropdownIndicatorVisible="false" >
+                            <items>
+                                <componentItem id="createLicense">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.create"/>
+                                    </hbox>
+                                </componentItem>
+                                <componentItem id="addLicense">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.add"/>
+                                    </hbox>
+                                </componentItem>
+                                <componentItem id="removeLicense">
+                                    <hbox padding="false">
+                                        <span text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.dropdown.remove"/>
+                                    </hbox>
+                                </componentItem>
+                            </items>
+                        </dropdownButton>
+                        <button id="removeLicenseButton" icon="TRASH" visible="false" themeNames="error small"/>
+                    </hbox>
                 </vbox>
             </tab>
         </tabSheet>
+        <hbox id="detailActions" justifyContent="CENTER" alignItems="CENTER" alignSelf="CENTER" height="100%">
+            <button id="saveAndCloseButton" action="saveAction" alignSelf="END"/>
+            <button id="closeButton" action="closeAction" alignSelf="END"/>
+        </hbox>
     </layout>
 </view>

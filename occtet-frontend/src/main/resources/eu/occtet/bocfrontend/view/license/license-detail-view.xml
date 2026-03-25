@@ -40,7 +40,8 @@
                     <textField id="licenseNameField" property="licenseName" label="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
                     <textField id="licenseTypeField" property="licenseType" label="msg://eu.occtet.bocfrontend.entity/License.licenseType"/>
                     <textField id="detailsUrlField" property="detailsUrl" label="msg://eu.occtet.bocfrontend.entity/License.detailsUrl"/>
-                    <textField id="priorityField" property="priority" label="msg://eu.occtet.bocfrontend.entity/License.priority"/>
+                    <textField id="priorityField" property="priority"
+                               label="msg://eu.occtet.bocfrontend.entity/License.priority" datatype="int"/>
             <hbox>
                 <checkbox id="isSpdxField" property="isSpdx" label="msg://eu.occtet.bocfrontend.entity/License.isSpdx"/>
                 <checkbox id="isCuratedField" property="curated" label="msg://eu.occtet.bocfrontend.entity/License.curated"/>

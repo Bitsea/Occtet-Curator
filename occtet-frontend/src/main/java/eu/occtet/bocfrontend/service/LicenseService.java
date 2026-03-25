@@ -66,8 +66,13 @@ public class LicenseService {
 
     public License createLicense(Integer priority, String licenseType,String licenseText, String licenseName,
                                  String detailsUrl, boolean isModified, boolean curated, boolean isSpdx){
+        try {
+            return licenseFactory.create(priority,licenseType,licenseText,licenseName,detailsUrl,isModified,curated,isSpdx);
+        } catch (IllegalArgumentException e) {
+            log.error("Error creating license: {}", e.getMessage());
+            throw new IllegalArgumentException("Invalid license type");
+        }
 
-        return licenseFactory.create(priority,licenseType,licenseText,licenseName,detailsUrl,isModified,curated,isSpdx);
     }
 
 }

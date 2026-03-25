@@ -47,7 +47,7 @@
                 <columns resizable="true">
                     <column property="licenseType" header="Licence type"/>
                     <column property="licenseText" header="License text"/>
-                    <column property="priority" header="Priority"/>
+                    <column property="priority" header="Priority" />
                 </columns>
             </dataGrid>
             <hbox>

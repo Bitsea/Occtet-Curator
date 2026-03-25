@@ -180,7 +180,7 @@ liquibase {
             url 'jdbc:postgresql://localhost:5432/occtet_boc' // Database URL
             username 'occtetuser' // Database username
             password 'q3ik4ul5snmzd87w34zfn5' // Database password
-            changelogFile 'src/main/resources/eu/occtet/bocfrontend/liquibase/changelog/tables.xml'
+            changelogFile 'src/main/resources/eu/occtet/bocfrontend/liquibase/changelog/000-tables.xml'
         }
     }
 }

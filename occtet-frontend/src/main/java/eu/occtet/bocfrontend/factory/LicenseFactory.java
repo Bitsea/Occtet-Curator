@@ -33,7 +33,17 @@ public class LicenseFactory {
 
     public License create(@Nonnull Integer priority, @Nonnull String licenseType, @Nonnull String licenseText,
                           @Nonnull String licenseName, @Nonnull String detailsUrl, boolean isModified,
-                          boolean curated, boolean isSpdx){
+                          boolean curated, boolean isSpdx) throws IllegalArgumentException {
+
+        long existingCount = dataManager.loadValue(
+                        "select count(l) from License l where l.licenseType = :type", Long.class)
+                .parameter("type", licenseType)
+                .one();
+
+        if (existingCount > 0) {
+            throw new IllegalArgumentException("License type '" + licenseType + "' already exists.");
+        }
+
         License license = dataManager.create(License.class);
 
         license.setPriority(priority);
@@ -52,7 +62,8 @@ public class LicenseFactory {
         return create(0, licenseType, licenseText, licenseName, "", false, false, false);
     }
 
-    public License create(@Nonnull String licenseType,@Nonnull String licenseText,@Nonnull String licenseName, @Nonnull String detailUrl, boolean isSpdx){
+    public License create(@Nonnull String licenseType,@Nonnull String licenseText,@Nonnull String licenseName,
+                          @Nonnull String detailUrl, boolean isSpdx) throws IllegalArgumentException{
         return create(0,licenseType,licenseText,licenseName,detailUrl,false,false,isSpdx);
     }
 }

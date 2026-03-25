@@ -24,15 +24,11 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.data.renderer.Renderer;
-import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.component.combobox.JmixComboBox;
@@ -41,7 +37,6 @@ import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Route(value = "inventory-items", layout = MainView.class)
@@ -82,21 +77,6 @@ public class InventoryItemListView extends StandardListView<InventoryItem> {
             loadInventoryItems(itemList);
             filterBox.setVisible(!itemList.isEmpty());
         }
-    }
-
-    @Supply(to = "inventoryItemsDataGrid.licenses", subject = "renderer")
-    private Renderer<InventoryItem> licensesRenderer() {
-        return new TextRenderer<>(inventoryItem -> {
-            SoftwareComponent softwareComponent = inventoryItem.getSoftwareComponent();
-
-            if (softwareComponent == null || softwareComponent.getLicenses() == null) {
-                return "";
-            }
-
-            return softwareComponent.getLicenses().stream()
-                    .map(License::getLicenseType)
-                    .collect(Collectors.joining(", "));
-        });
     }
 
     @Subscribe("inventoryItemsDataGrid")

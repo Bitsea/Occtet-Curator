@@ -64,7 +64,7 @@ public class SoftwareComponent {
     @JoinTable(name = "SOFTWARE_COMPONENT_LICENSE_LINK",
             joinColumns = @JoinColumn(name = "SOFTWARE_COMPONENT_ID", referencedColumnName = "ID"),
             inverseJoinColumns = @JoinColumn(name = "LICENSE_ID", referencedColumnName = "ID"))
-    private List<License> licenses;
+    private List<License> licenses = new ArrayList<>();
 
     @OneToMany(mappedBy = "softwareComponent", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OnDelete(DeletePolicy.CASCADE)
@@ -75,7 +75,7 @@ public class SoftwareComponent {
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name= "SOFTWARE_COMPONENT_ID")
-    private List<Copyright> copyrights;
+    private List<Copyright> copyrights = new ArrayList<>();
 
 
     public SoftwareComponent(){
