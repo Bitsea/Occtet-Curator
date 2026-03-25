@@ -31,6 +31,7 @@ import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.factory.*;
 import eu.occtet.boc.spdx.service.*;
 import eu.occtet.boc.spdx.service.handler.*;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,7 +95,10 @@ public class SpdxHandlerTest {
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
     private LicenseRepository licenseRepository;
-
+    @Autowired
+    private OrganizationRepository organizationRepository;
+    @Autowired
+    private EntityManager entityManager;
     @Autowired
     private LicenseHandler licenseHandler;
     @Autowired
@@ -111,13 +115,13 @@ public class SpdxHandlerTest {
 
     @BeforeEach
     public void setup() throws Exception {
+        Organization org = new Organization();
+        org.setOrganizationName("TestOrg");
+        organizationRepository.save(org);
+
         project = new Project();
         project.setProjectName("IntegrationTestProject");
         project.setVersion("1.0.0");
-
-        Organization org = new Organization();
-        org.setOrganizationName("TestOrg");
-
         project.setOrganization(org);
         project = projectRepository.save(project);
 

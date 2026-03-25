@@ -246,6 +246,11 @@ public class PackageHandler {
 
 
         Map<String, File> locationMap = fileService.findOrCreateBatch(fileToSpdxIdMap, inventoryItem);
+
+        Project project= inventoryItem.getProject();
+        project.addFiles(new HashSet<>(locationMap.values()));
+        projectRepository.save(project);
+
         Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts,
                 context.getProject().getOrganization());
 
