@@ -19,7 +19,6 @@
 
 package eu.occtet.bocfrontend.entity;
 
-
 import eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile;
 import io.jmix.core.DeletePolicy;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
@@ -29,9 +28,9 @@ import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 
 @JmixEntity
 @Table(name = "PROJECT", uniqueConstraints = {
@@ -71,8 +70,7 @@ public class Project implements HasOrganization {
     private @Nonnull LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "project")
-    @OnDelete(DeletePolicy.CASCADE)
-    private Set<File> files;
+    private Set<File> files= new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
@@ -144,10 +142,18 @@ public class Project implements HasOrganization {
         return files;
     }
 
+
+    public void removeFiles(List<File> fileList) {
+        for(File f: fileList) {
+            f.setProject(null);
+        }
+        this.files.clear();
+    }
+
     public void setFiles(Set<File> files) {
-            if(this.files!= null){
-                this.files.addAll(files);
-            }else this.files = files;
+        if(this.files!= null){
+            this.files.addAll(files);
+        }else this.files = files;
 
     }
 
@@ -158,5 +164,6 @@ public class Project implements HasOrganization {
     public void setOrganization(Organization organization) {
         this.organization = organization;
     }
+
 }
 

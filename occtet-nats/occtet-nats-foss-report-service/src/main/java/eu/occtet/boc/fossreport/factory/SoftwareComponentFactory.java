@@ -22,7 +22,7 @@ package eu.occtet.boc.fossreport.factory;
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.SoftwareComponent;
-import eu.occtet.boc.fossreport.dao.SoftwareComponentRepository;
+import eu.occtet.boc.dao.SoftwareComponentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

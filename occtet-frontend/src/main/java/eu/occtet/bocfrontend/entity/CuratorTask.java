@@ -27,7 +27,6 @@ public class CuratorTask {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PROJECT_ID")
-    @OnDelete(DeletePolicy.CASCADE)
     private Project project;
 
     @Column(name = "TASK_NAME", nullable = false)

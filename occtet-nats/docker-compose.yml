@@ -41,7 +41,7 @@ services:
         - mynet
 
     frontend:
-      image: occtet-boc-frontend:0.3.8-SNAPSHOT
+      image: occtet-boc-frontend:0.3.10-SNAPSHOT
       ports:
         - "8090:8090"
       volumes:
@@ -135,6 +135,24 @@ services:
         - nats
       networks:
         - mynet
+
+    ort-run-start-service:
+        image: occtet-nats-ort-run-start-service:0.3.8-SNAPSHOT
+        depends_on:
+            - frontend
+            - db
+            - nats
+        networks:
+            - mynet
+
+    process-run-service:
+        image: occtet-nats-process-run-service:0.3.8-SNAPSHOT
+        depends_on:
+            - frontend
+            - db
+            - nats
+        networks:
+            - mynet
 
 volumes:
   db_data:

@@ -42,7 +42,9 @@ create extension if not exists vector;
  *
  */
 
--- README: following code is created using DBeaver's "create DDL" feature, then modified to add "IF NOT EXISTS" clauses
+-- README: following code is created using DBeaver's "generate SQL -> DDL" feature, then modified to add "IF NOT EXISTS" clauses,
+--        for the relevant tables and sequence
+
 
 -- public.logging_event_id_seq definition
 

@@ -20,10 +20,10 @@
 package eu.occtet.boc.fossreport.service;
 
 
+import eu.occtet.boc.dao.SoftwareComponentRepository;
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.SoftwareComponent;
-import eu.occtet.boc.fossreport.dao.SoftwareComponentRepository;
 import eu.occtet.boc.fossreport.factory.SoftwareComponentFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

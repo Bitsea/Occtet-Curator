@@ -39,10 +39,8 @@ public class OrtIssue {
     @Column(name="ID", nullable = false)
     private Long id;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PROJECT_ID", nullable = false)
-    @OnDelete(DeletePolicy.CASCADE)
     private Project project;
 
     @Column(name= "MESSAGE",columnDefinition = "TEXT")

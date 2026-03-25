@@ -22,6 +22,7 @@ package eu.occtet.boc.spdx.service.handler;
 import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.dao.OrtIssueRepository;
 import eu.occtet.boc.dao.OrtViolationRepository;
+import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
@@ -66,6 +67,8 @@ public class PackageHandler {
     private OrtIssueRepository ortIssueRepository;
     @Autowired
     private OrtViolationRepository ortViolationRepository;
+    @Autowired
+    private ProjectRepository projectRepository;
 
     public void processAllPackages(SpdxImportContext context, Consumer<Integer> progressCallback) {
         SpdxDocument doc = context.getSpdxDocument();
@@ -129,7 +132,7 @@ public class PackageHandler {
 
         //get License from package
         AnyLicenseInfo spdxPkgLicense = spdxPackage.getLicenseConcluded();
-        if (spdxPkgLicense.isNoAssertion(spdxPkgLicense)) {
+        if (spdxPkgLicense == null || spdxPkgLicense.isNoAssertion(spdxPkgLicense)) {
             spdxPkgLicense = spdxPackage.getLicenseDeclared();
         }
 

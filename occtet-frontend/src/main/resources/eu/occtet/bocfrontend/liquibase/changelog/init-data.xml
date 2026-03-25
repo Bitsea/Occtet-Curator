@@ -5,96 +5,96 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-<changeSet id="1-insert-default-suggestion" author="occtet">
+    <changeSet id="11" author="occtet">
+
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="SUGGESTION"/>
+                <rowCount expectedRows="0" tableName="SUGGESTION"/>
 
 
-
-    <preConditions onFail="MARK_RAN">
-        <and>
-            <tableExists tableName="SUGGESTION"/>
-            <rowCount expectedRows="0" tableName="SUGGESTION"/>
+            </and>
+        </preConditions>
 
 
-        </and>
-    </preConditions>
-    <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
-        <column name="ID" value="1"/>
-        <column name="CONTEXT" value="auditNotes"/>
-        <column name="SENTENCE" value="The following information was found in the scanned file [filePath] :" />
-    </insert>
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="1"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="The following information was found in the scanned file [filePath] :" />
+        </insert>
 
-    <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
-        <column name="ID" value="2"/>
-        <column name="CONTEXT" value="auditNotes"/>
-        <column name="SENTENCE" value="No License information found in the file:"/>
-    </insert>
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="2"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="No License information found in the file:"/>
+        </insert>
 
-    <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
-        <column name="ID" value="3"/>
-        <column name="CONTEXT" value="auditNotes"/>
-        <column name="SENTENCE" value="The license text was found on [date] at [URL]." />
-    </insert>
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="3"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="The license text was found on [date] at [URL]." />
+        </insert>
 
-    <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
-        <column name="ID" value="4"/>
-        <column name="CONTEXT" value="auditNotes"/>
-        <column name="SENTENCE" value="The [licenseName] license text was found on [date] at [URL]."/>
-    </insert>
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="4"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="The [licenseName] license text was found on [date] at [URL]."/>
+        </insert>
 
-    <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
-        <column name="ID" value="5"/>
-        <column name="CONTEXT" value="auditNotes"/>
-        <column name="SENTENCE" value="The license text was found in file [filePath]."/>
-    </insert>
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="5"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="The license text was found in file [filePath]."/>
+        </insert>
 
-    <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
-        <column name="ID" value="6"/>
-        <column name="CONTEXT" value="auditNotes"/>
-        <column name="SENTENCE" value="The following files only contain copyright holder of [COPYRIGHT]:"/>
-    </insert>
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="6"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="The following files only contain copyright holder of [COPYRIGHT]:"/>
+        </insert>
 
-    <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
-        <column name="ID" value="7"/>
-        <column name="CONTEXT" value="auditNotes"/>
-        <column name="SENTENCE" value="Files in this group contain one 'diff' entry. A file referenced in that entry is licensed under [LICENSE] license."/>
-    </insert>
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="7"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="Files in this group contain one 'diff' entry. A file referenced in that entry is licensed under [LICENSE] license."/>
+        </insert>
 
-    <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
-        <column name="ID" value="8"/>
-        <column name="CONTEXT" value="auditNotes"/>
-        <column name="SENTENCE" value="Files in this group contain two 'diff' entries. A file referenced in that entry is licensed under [LICENSE] license, and a second file is licensed under [LICENSE] license."/>
-    </insert>
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="8"/>
+            <column name="CONTEXT" value="auditNotes"/>
+            <column name="SENTENCE" value="Files in this group contain two 'diff' entries. A file referenced in that entry is licensed under [LICENSE] license, and a second file is licensed under [LICENSE] license."/>
+        </insert>
 
-    <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
-        <column name="ID" value="9"/>
-        <column name="CONTEXT" value="inventoryNames"/>
-        <column name="SENTENCE" value="[componentName] [version] ([licenseID])"/>
-    </insert>
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="9"/>
+            <column name="CONTEXT" value="inventoryNames"/>
+            <column name="SENTENCE" value="[componentName] [version] ([licenseID])"/>
+        </insert>
 
-    <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
-        <column name="ID" value="10"/>
-        <column name="CONTEXT" value="inventoryNames"/>
-        <column name="SENTENCE" value="[componentName] [version] (COMBINED [licenseID1] AND [licenseID2])"/>
-    </insert>
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="10"/>
+            <column name="CONTEXT" value="inventoryNames"/>
+            <column name="SENTENCE" value="[componentName] [version] (COMBINED [licenseID1] AND [licenseID2])"/>
+        </insert>
 
-    <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
-        <column name="ID" value="11"/>
-        <column name="CONTEXT" value="inventoryNames"/>
-        <column name="SENTENCE" value="[componentName] [version] ([licenseID1] OR [licenseID2])"/>
-    </insert>
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="11"/>
+            <column name="CONTEXT" value="inventoryNames"/>
+            <column name="SENTENCE" value="[componentName] [version] ([licenseID1] OR [licenseID2])"/>
+        </insert>
 
-    <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
-        <column name="ID" value="12"/>
-        <column name="CONTEXT" value="inventoryNames"/>
-        <column name="SENTENCE" value="[componentName] [version] ([licenseID] WITH [exception])"/>
-    </insert>
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="12"/>
+            <column name="CONTEXT" value="inventoryNames"/>
+            <column name="SENTENCE" value="[componentName] [version] ([licenseID] WITH [exception])"/>
+        </insert>
 
-    <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
-        <column name="ID" value="13"/>
-        <column name="CONTEXT" value="inventoryNames"/>
-        <column name="SENTENCE" value="[componentName] [version] [Bundled with [parentComponentName] [parentVersion]] ([licenseID])"/>
-    </insert>
+        <insert tableName="SUGGESTION" dbms="postgresql, hsqldb">
+            <column name="ID" value="13"/>
+            <column name="CONTEXT" value="inventoryNames"/>
+            <column name="SENTENCE" value="[componentName] [version] [Bundled with [parentComponentName] [parentVersion]] ([licenseID])"/>
+        </insert>
 
-</changeSet>
+    </changeSet>
 
 </databaseChangeLog>

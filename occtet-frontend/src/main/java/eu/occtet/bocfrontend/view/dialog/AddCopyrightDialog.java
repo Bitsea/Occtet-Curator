@@ -28,7 +28,6 @@ import eu.occtet.bocfrontend.dao.CopyrightRepository;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.entity.Copyright;
 import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.Organization;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import io.jmix.core.DataManager;
 import io.jmix.flowui.component.grid.DataGrid;
@@ -45,8 +44,8 @@ import java.util.List;
 
 @ViewController("addCopyrightDialog")
 @ViewDescriptor("add-copyright-dialog.xml")
-@DialogMode(width = "1000px", height = "650px")
-public abstract class AddCopyrightDialog extends AbstractAddContentDialog<SoftwareComponent> {
+@DialogMode(width = "70%", height = "70%")
+public class AddCopyrightDialog extends AbstractAddContentDialog<SoftwareComponent> {
 
     private static final Logger log = LogManager.getLogger(AddCopyrightDialog.class);
 
@@ -64,26 +63,25 @@ public abstract class AddCopyrightDialog extends AbstractAddContentDialog<Softwa
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-
     @Override
     @Subscribe("copyrightDc")
     public void setAvailableContent(SoftwareComponent softwareComponent) {
         this.softwareComponent = softwareComponent;
-        log.debug("setAvailableContent");
+        log.debug("Dialog context initialized with SoftwareComponent in memory.");
         copyrightDc.setItems(copyrightRepository.findAvailableCopyrights(this.softwareComponent.getCopyrights()));
     }
-
-
 
     @Override
     @Subscribe(id = "addCopyrightButton")
     public void addContentButton(ClickEvent<Button> event) {
-
-        List<Copyright> copyrights = new ArrayList<>(copyrightDataGrid.getSelectedItems());
-        if(!copyrights.isEmpty() && softwareComponent != null){
-            softwareComponent.getCopyrights().addAll(copyrights);
+        List<Copyright> copyrights = getSelectedCopyrights();
+        if (!copyrights.isEmpty() && softwareComponent != null) {
             close(StandardOutcome.SAVE);
         }
+    }
+
+    public List<Copyright> getSelectedCopyrights() {
+        return new ArrayList<>(copyrightDataGrid.getSelectedItems());
     }
 
     @Override

@@ -22,7 +22,6 @@ package eu.occtet.boc.fossreport.service;
 
 import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.dao.FileRepository;
-import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
@@ -33,7 +32,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class FileService {
@@ -55,8 +56,10 @@ public class FileService {
         return fileFactory.createWithInventory(filePath, inventoryItem, project);
     }
 
-    public void createFilesWithInventory(List<String> filePaths, InventoryItem inventoryItem, Project project) {
-        filePaths.forEach(filePath -> fileFactory.createWithInventory(filePath, inventoryItem, project));
+    public Set<File> createFilesWithInventory(List<String> filePaths, InventoryItem inventoryItem) {
+        Set<File> files= new HashSet<>();
+        filePaths.forEach(filePath -> files.add(fileFactory.createWithInventory(filePath, inventoryItem, inventoryItem.getProject())));
+        return files;
     }
 
     public void deleteOldFilesOfInventoryItem(InventoryItem inventoryItem, File basePathFile){

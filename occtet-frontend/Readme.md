@@ -40,6 +40,18 @@ Run the jar with dev profile active:
 
 `java -Dspring.profiles.active=dev -jar build/libs/BocFrontend-(version).jar`
 
+## Liquibase
+
+We are using Liquibase to manage the database schema. The changelog file is located in `src/main/resources/eu/occtet/bocfrontend/liquibase'.
+To generate the initial 000-tables.xml file from the current DB, run:
+
+`./gradlew generateChangelog`
+
+Note that this connects to the database configured in the build.gradle (liquibase block) and that database must have the proper structure, i.e. all changelogs applied. 
+The 000-tables.xml is written to the default folder, and you should review it before committing.
+Once the 000-tables.xml file is generated, remove all updates (in the year/month subdirectories), because the tables.xml already contains the current state of the DB structure.
+Also make sure the logging-xx tables are not created by the tables.xml, because they are created by a separate file by the backend.
+Do NOT remove the init-data files, because the tables.xml only contains the structure, not the data, and the init-data files contain the default data for the application to work properly.
 
 ## Building a docker image
 
@@ -49,7 +61,7 @@ Run the jar with dev profile active:
 
 **Step 2:** build the docker image (in the same directory as the Dockerfile, replace correct version):
 
-`docker build -t occtet-boc-frontend:0.3.8-SNAPSHOT .`
+`docker build -t occtet-boc-frontend:0.3.10-SNAPSHOT .`
 
 **IMPORTANT:** Do not use gradle jibDockerBuild to build currently, because due to
 an unknown bug it does not build in production mode.

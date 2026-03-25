@@ -42,14 +42,12 @@ import java.util.List;
 
 @ViewController("addLicenseDialog")
 @ViewDescriptor("add-license-dialog.xml")
-@DialogMode(width = "1000px", height = "650px")
-public abstract class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent> {
+@DialogMode(width = "70%", height = "70%")
+public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent> {
 
     private static final Logger log = LogManager.getLogger(AddLicenseDialog.class);
 
     private SoftwareComponent softwareComponent;
-
-    private License license;
 
     @Autowired
     private LicenseRepository licenseRepository;
@@ -63,29 +61,20 @@ public abstract class AddLicenseDialog extends AbstractAddContentDialog<Software
     @ViewComponent
     private DataGrid<License> licensesDataGrid;
 
-    @Autowired
-    private DataManager dataManager;
-
     @Override
     @Subscribe("licenseDc")
     public void setAvailableContent(SoftwareComponent softwareComponent){
-        this.softwareComponent = dataManager.load(SoftwareComponent.class)
-                .id(softwareComponent.getId()).fetchPlan(f -> f.add("licenses")).one();
-        log.debug("setAvailableContent called with SoftwareComponent: {}", softwareComponent);
+        this.softwareComponent = softwareComponent;
+        log.debug("Dialog context initialized with SoftwareComponent: {}", this.softwareComponent);
         licenseDc.setItems(licenseRepository.findAvailableLicenses(this.softwareComponent.getLicenses()));
     }
-
-    @Subscribe("licensesDataGrid")
-    public void selectAvailableContent(final ItemClickEvent<License> event){license = event.getItem();}
 
     @Override
     @Subscribe(id = "addLicenseButton")
     public void addContentButton(ClickEvent<Button> event) {
+        List<License> selectedLicenses = getSelectedLicenses();
 
-        List<License> licenses = new ArrayList<>(licensesDataGrid.getSelectedItems());
-        if(!licenses.isEmpty() && softwareComponent != null){
-            softwareComponent.getLicenses().addAll(licenses);
-            dataManager.save(this.softwareComponent);
+        if (!selectedLicenses.isEmpty() && softwareComponent != null) {
             close(StandardOutcome.SAVE);
         }
     }
@@ -93,17 +82,25 @@ public abstract class AddLicenseDialog extends AbstractAddContentDialog<Software
     @Override
     @Subscribe(id = "searchButton")
     public void searchContentButton(ClickEvent<Button> event) {
-
         String searchWord = searchField.getValue();
-        if(!searchWord.isEmpty() && event != null){
-            List<License> listFindings= licenseRepository.findAll().stream().filter(l-> l.getLicenseName().toLowerCase().contains(searchWord.toLowerCase())
-                    || l.getLicenseType().toLowerCase().contains(searchWord.toLowerCase())).toList();
+
+        if (!searchWord.isEmpty() && event != null) {
+            List<License> listFindings = licenseRepository.findAll().stream()
+                    .filter(l -> l.getLicenseName().toLowerCase().contains(searchWord.toLowerCase())
+                            || l.getLicenseType().toLowerCase().contains(searchWord.toLowerCase()))
+                    .toList();
             licenseDc.setItems(listFindings);
-        }else{
+        } else {
             licenseDc.setItems(licenseRepository.findAvailableLicenses(softwareComponent.getLicenses()));
         }
     }
 
     @Subscribe(id = "cancelButton")
-    public void cancelLicense(ClickEvent<Button> event){cancelButton(event);}
+    public void cancelLicense(ClickEvent<Button> event){
+        cancelButton(event);
+    }
+
+    public List<License> getSelectedLicenses() {
+        return new ArrayList<>(licensesDataGrid.getSelectedItems());
+    }
 }

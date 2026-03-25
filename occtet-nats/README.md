@@ -43,6 +43,10 @@ Model classes, tools (common), Dao and Entity (common-jpa) classes belong here. 
 
 To create a new module, you can copy the template module and adjust the pom.xml file (mainly artifactId, name, description).
 
+### DB Schema
+
+The init-postgresql-db.sql file contains the SQL commands to create the required logging tables.
+
 ### DB Logging
 
 The microservices are using logback to log into the postgres database.
