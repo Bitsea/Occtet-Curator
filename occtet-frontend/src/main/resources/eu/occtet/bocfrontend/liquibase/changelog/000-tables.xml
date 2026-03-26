@@ -1,35 +1,6 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
-    <changeSet author="uwe (generated)" id="1774355394865-8">
-        <createTable tableName="file">
-            <column name="id" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="file_pkey"/>
-            </column>
-            <column name="artifact_path" type="TEXT"/>
-            <column name="created_by" type="VARCHAR(255)"/>
-            <column name="created_date" type="TIMESTAMP WITHOUT TIME ZONE"/>
-            <column name="filename" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="is_directory" type="BOOLEAN">
-                <constraints nullable="false"/>
-            </column>
-            <column name="last_modified_by" type="VARCHAR(255)"/>
-            <column name="last_modified_date" type="TIMESTAMP WITHOUT TIME ZONE"/>
-            <column name="physical_path" type="TEXT"/>
-            <column name="project_path" type="TEXT"/>
-            <column name="reviewed" type="BOOLEAN">
-                <constraints nullable="false"/>
-            </column>
-            <column name="code_location_id" type="BIGINT"/>
-            <column name="inventory_item_id" type="BIGINT"/>
-            <column name="parent_id" type="BIGINT"/>
-            <column name="project_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-    </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-9">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-1">
         <createTable tableName="curator_task">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="curator_task_pkey"/>
@@ -52,7 +23,27 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-10">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-9">
+        <createTable tableName="file">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="file_pkey"/>
+            </column>
+            <column name="artifact_path" type="TEXT"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="created_date" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="document_id" type="TEXT"/>
+            <column name="filename" type="VARCHAR(255)"/>
+            <column name="is_directory" type="BOOLEAN"/>
+            <column name="last_modified_by" type="VARCHAR(255)"/>
+            <column name="last_modified_date" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="physical_path" type="TEXT"/>
+            <column name="project_path" type="TEXT"/>
+            <column name="reviewed" type="BOOLEAN"/>
+            <column name="parent_id" type="BIGINT"/>
+            <column name="project_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-10">
         <createTable tableName="app_configuration">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="app_configuration_pkey"/>
@@ -60,14 +51,15 @@
             <column name="config_key" type="TEXT"/>
             <column name="data_type" type="TEXT"/>
             <column name="description" type="TEXT"/>
-            <column name="value" type="TEXT"/>
+            <column name="config_value" type="TEXT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-11">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-11">
         <createTable tableName="spdx_package_entity">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="spdx_package_entity_pkey"/>
             </column>
+            <column name="comment" type="TEXT"/>
             <column name="copyright_text" type="TEXT"/>
             <column name="description" type="TEXT"/>
             <column name="download_location" type="VARCHAR(255)">
@@ -93,7 +85,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-12">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-12">
         <createTable tableName="information_file">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="information_file_pkey"/>
@@ -104,7 +96,7 @@
             <column name="file_path" type="TEXT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-13">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-13">
         <createTable tableName="license">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="license_pkey"/>
@@ -120,44 +112,98 @@
             <column name="copyright_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-20">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-14">
         <createIndex indexName="index_curator_task_task_name" tableName="curator_task">
             <column name="task_name"/>
         </createIndex>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-21">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-15">
         <createIndex indexName="index_curator_task_status" tableName="curator_task">
             <column name="status"/>
         </createIndex>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-22">
-        <addUniqueConstraint columnNames="config_key" constraintName="idx_app_config_unq_key" tableName="app_configuration"/>
-    </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-23">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-23">
         <addUniqueConstraint columnNames="package_verification_code_id" constraintName="spdx_package_entity_package_verification_code_id_key" tableName="spdx_package_entity"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-24">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-24">
         <addUniqueConstraint columnNames="file_name" constraintName="unq_information_file_0" tableName="information_file"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-25">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-25">
         <addUniqueConstraint columnNames="license_type" constraintName="unq_license_0" tableName="license"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-26">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-26">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="50" maxValue="9223372036854775807" minValue="1" sequenceName="annotation_entity_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-27">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="50" maxValue="9223372036854775807" minValue="1" sequenceName="checksum_entity_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-28">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="1" maxValue="9223372036854775807" minValue="1" sequenceName="creation_info_entity_id_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-29">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="50" maxValue="9223372036854775807" minValue="1" sequenceName="external_document_ref_entity_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-30">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="50" maxValue="9223372036854775807" minValue="1" sequenceName="external_ref_entity_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-31">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="50" maxValue="9223372036854775807" minValue="1" sequenceName="extracted_licensing_info_entity_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-32">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="50" maxValue="9223372036854775807" minValue="1" sequenceName="relationship_entity_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-33">
         <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="50" maxValue="9223372036854775807" minValue="1" sequenceName="seq_gen_sequence" startValue="50"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-27">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-34">
         <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="100" maxValue="9223372036854775807" minValue="0" sequenceName="seq_id_appconfiguration" startValue="0"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-28">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-35">
         <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="100" maxValue="9223372036854775807" minValue="0" sequenceName="seq_id_configuration" startValue="0"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-29">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-36">
         <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="100" maxValue="9223372036854775807" minValue="0" sequenceName="seq_id_curatortask" startValue="0"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-30">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-37">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="100" maxValue="9223372036854775807" minValue="0" sequenceName="seq_id_file" startValue="0"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-38">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="100" maxValue="9223372036854775807" minValue="0" sequenceName="seq_id_importtask" startValue="0"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-39">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="100" maxValue="9223372036854775807" minValue="0" sequenceName="seq_id_inventoryitem" startValue="0"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-40">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="100" maxValue="9223372036854775807" minValue="0" sequenceName="seq_id_license" startValue="0"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-41">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="100" maxValue="9223372036854775807" minValue="0" sequenceName="seq_id_organization" startValue="0"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-42">
         <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="100" maxValue="9223372036854775807" minValue="0" sequenceName="seq_id_project" startValue="0"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-31">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-43">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="100" maxValue="9223372036854775807" minValue="0" sequenceName="seq_id_scannerinitializer" startValue="0"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-44">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="100" maxValue="9223372036854775807" minValue="0" sequenceName="seq_id_softwarecomponent" startValue="0"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-45">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="100" maxValue="9223372036854775807" minValue="0" sequenceName="seq_id_suggestion" startValue="0"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-46">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="50" maxValue="9223372036854775807" minValue="1" sequenceName="snippet_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-47">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="50" maxValue="9223372036854775807" minValue="1" sequenceName="spdx_document_root_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-48">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="50" maxValue="9223372036854775807" minValue="1" sequenceName="spdx_file_entity_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-49">
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="50" maxValue="9223372036854775807" minValue="1" sequenceName="spdx_package_entity_seq" startValue="1"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-50">
         <createTable tableName="annotation_entity">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="annotation_entity_pkey"/>
@@ -178,7 +224,7 @@
             <column name="spdx_package_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-32">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-51">
         <createTable tableName="checksum_entity">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="checksum_entity_pkey"/>
@@ -193,7 +239,7 @@
             <column name="file_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-33">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-52">
         <createTable tableName="code_location">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="code_location_pkey"/>
@@ -204,7 +250,7 @@
             <column name="inventory_item_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-34">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-53">
         <createTable tableName="configuration">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="configuration_pkey"/>
@@ -215,7 +261,7 @@
             <column name="task_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-35">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-54">
         <createTable tableName="copyright">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="copyright_pkey"/>
@@ -225,10 +271,9 @@
             <column name="curated" type="BOOLEAN"/>
             <column name="garbage" type="BOOLEAN"/>
             <column name="software_component_id" type="BIGINT"/>
-            <column name="code_location_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-36">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-55">
         <createTable tableName="copyright_code_location_link">
             <column name="copyright_id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="copyright_code_location_link_pkey"/>
@@ -238,7 +283,17 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-37">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-56">
+        <createTable tableName="copyright_file_link">
+            <column name="file_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="copyright_file_link_pkey"/>
+            </column>
+            <column name="copyright_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="copyright_file_link_pkey"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-57">
         <createTable tableName="creation_info_entity">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="creation_info_entity_pkey"/>
@@ -253,7 +308,7 @@
             <column name="license_list_version" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-38">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-58">
         <createTable tableName="dblog">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="dblog_pkey"/>
@@ -265,7 +320,7 @@
             <column name="message" type="TEXT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-39">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-59">
         <createTable tableName="external_ref_document_entity">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="external_ref_document_entity_pkey"/>
@@ -280,7 +335,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-40">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-60">
         <createTable tableName="external_ref_entity">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="external_ref_entity_pkey"/>
@@ -300,13 +355,13 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-41">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-61">
         <createTable tableName="extracted_license_see_also">
             <column name="license_id" type="BIGINT"/>
             <column name="seealsos" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-42">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-62">
         <createTable tableName="extracted_licensing_info_entity">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="extracted_licensing_info_entity_pkey"/>
@@ -322,19 +377,29 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-43">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-63">
+        <createTable tableName="file_inventory_item_link">
+            <column name="file_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="file_inventory_item_link_pkey"/>
+            </column>
+            <column name="inventory_item_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="file_inventory_item_link_pkey"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-64">
         <createTable tableName="file_license_info">
             <column name="spdx_file_id" type="BIGINT"/>
             <column name="license_info_in_files" type="TEXT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-44">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-65">
         <createTable tableName="file_types">
             <column name="spdx_file_id" type="BIGINT"/>
             <column name="file_type" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-47">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-68">
         <createTable tableName="inventory_item">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="inventory_item_pkey"/>
@@ -343,6 +408,7 @@
             <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE"/>
             <column name="curated" type="BOOLEAN"/>
             <column name="external_notes" type="TEXT"/>
+            <column name="has_todos" type="BOOLEAN"/>
             <column name="inventory_name" type="TEXT"/>
             <column name="linking" type="TEXT"/>
             <column name="priority" type="INTEGER"/>
@@ -350,25 +416,74 @@
             <column name="spdx_id" type="TEXT"/>
             <column name="was_combined" type="BOOLEAN"/>
             <column name="parent_inventory_item_id" type="BIGINT"/>
-            <column name="project_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
+            <column name="project_id" type="BIGINT"/>
             <column name="software_component_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-49">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-69">
+        <createTable tableName="logging_event">
+            <column name="event_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="logging_event_pkey"/>
+            </column>
+            <column name="formatted_message" type="TEXT"/>
+            <column name="level_string" type="VARCHAR(255)"/>
+            <column name="logger_name" type="VARCHAR(255)"/>
+            <column name="timestmp" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-70">
+        <createTable tableName="ort_issue">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="ort_issue_pkey"/>
+            </column>
+            <column name="affected_path" type="TEXT"/>
+            <column name="identifier" type="VARCHAR(255)"/>
+            <column name="message" type="TEXT"/>
+            <column name="purl" type="VARCHAR(255)"/>
+            <column name="resolution" type="TEXT"/>
+            <column name="resolved" type="BOOLEAN"/>
+            <column name="severity" type="VARCHAR(255)"/>
+            <column name="source" type="VARCHAR(255)"/>
+            <column name="timestamp" type="VARCHAR(255)"/>
+            <column name="worker" type="VARCHAR(255)"/>
+            <column name="inventory_item_id" type="BIGINT"/>
+            <column name="project_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-71">
+        <createTable tableName="ort_violation">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="ort_violation_pkey"/>
+            </column>
+            <column name="how_to_fix" type="TEXT"/>
+            <column name="license" type="VARCHAR(255)"/>
+            <column name="license_source" type="VARCHAR(255)"/>
+            <column name="message" type="TEXT"/>
+            <column name="purl" type="VARCHAR(255)"/>
+            <column name="resolved" type="BOOLEAN"/>
+            <column name="rule" type="TEXT"/>
+            <column name="severity" type="VARCHAR(255)"/>
+            <column name="inventory_item_id" type="BIGINT"/>
+            <column name="project_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-72">
         <createTable tableName="package_file_names">
             <column name="package_id" type="BIGINT"/>
             <column name="file_name" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-50">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-73">
         <createTable tableName="package_license_info_from_files">
             <column name="package_id" type="BIGINT"/>
             <column name="licenseinfofromfiles" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-51">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-74">
         <createTable tableName="package_verification_code_entity">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="package_verification_code_entity_pkey"/>
@@ -376,24 +491,30 @@
             <column name="package_verification_code_value" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-52">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-75">
         <createTable tableName="package_verification_excluded_files">
             <column name="package_id" type="BIGINT"/>
             <column name="excluded_file_name" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-54">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-77">
         <createTable tableName="project">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="project_pkey"/>
             </column>
             <column name="contact_email" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE"/>
             <column name="spdx_document_id" type="TEXT"/>
+            <column name="organization_email" type="VARCHAR(255)"/>
+            <column name="organization_name" type="VARCHAR(255)"/>
             <column name="project_contact" type="VARCHAR(255)"/>
             <column name="project_name" type="VARCHAR(255)"/>
+            <column name="version" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-55">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-78">
         <createTable tableName="project_search_terms_profiles_link">
             <column name="project_id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="project_search_terms_profiles_link_pkey"/>
@@ -403,7 +524,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-56">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-79">
         <createTable tableName="relationship_entity">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="relationship_entity_pkey"/>
@@ -421,7 +542,7 @@
             <column name="spdx_document_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-57">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-80">
         <createTable tableName="search_terms_profile">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="search_terms_profile_pkey"/>
@@ -432,7 +553,7 @@
             <column name="search_terms" type="JSONB"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-58">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-81">
         <createTable tableName="snippet">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="snippet_pkey"/>
@@ -453,13 +574,13 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-59">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-82">
         <createTable tableName="snippet_licenses">
             <column name="snippet_id" type="BIGINT"/>
             <column name="licenseinfoinsnippets" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-60">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-83">
         <createTable tableName="snippet_ranges">
             <column name="end_line_number" type="INTEGER"/>
             <column name="end_offset" type="INTEGER"/>
@@ -474,7 +595,7 @@
             <column name="snippet_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-61">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-84">
         <createTable tableName="software_component">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="software_component_pkey"/>
@@ -491,7 +612,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-62">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-85">
         <createTable tableName="software_component_license_link">
             <column name="software_component_id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="software_component_license_link_pkey"/>
@@ -501,17 +622,27 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-63">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-86">
         <createTable tableName="software_component_vulnerability_link">
-            <column name="software_component_id" type="BIGINT">
+            <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="software_component_vulnerability_link_pkey"/>
             </column>
+            <column name="resolved" type="BOOLEAN"/>
+            <column name="software_component_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
             <column name="vulnerability_id" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="software_component_vulnerability_link_pkey"/>
+                <constraints nullable="false"/>
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-64">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-87">
+        <createTable tableName="spdx_document_describes">
+            <column name="spdx_document_id" type="BIGINT"/>
+            <column name="described_element_id" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-88">
         <createTable tableName="spdx_document_root">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="spdx_document_root_pkey"/>
@@ -535,7 +666,7 @@
             <column name="creation_info_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-65">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-89">
         <createTable tableName="spdx_file_entity">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="spdx_file_entity_pkey"/>
@@ -551,16 +682,16 @@
             <column name="spdx_document_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-66">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-90">
         <createTable tableName="suggestion">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="suggestion_pkey"/>
             </column>
             <column name="context" type="VARCHAR(255)"/>
-            <column name="sentence" type="VARCHAR(255)"/>
+            <column name="sentence" type="TEXT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-67">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-92">
         <createTable tableName="vex_data">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="vex_data_pkey"/>
@@ -577,26 +708,28 @@
             <column name="software_component_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-68">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-93">
         <createTable tableName="vulnerability">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="vulnerability_pkey"/>
             </column>
             <column name="aliases" type="TEXT"/>
+            <column name="comment" type="TEXT"/>
             <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE"/>
             <column name="exploitability" type="FLOAT8"/>
             <column name="fixed_packages" type="TEXT"/>
+            <column name="manually_created" type="BOOLEAN"/>
             <column name="refrence_urls" type="TEXT"/>
             <column name="risk_score" type="FLOAT8"/>
+            <column name="severity" type="VARCHAR(255)"/>
             <column name="source_url" type="VARCHAR(255)"/>
             <column name="summary" type="TEXT"/>
             <column name="vulnerability_id" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="weighted_severity" type="FLOAT8"/>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-69">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-94">
         <createTable tableName="vulnerability_vex_link">
             <column name="vex_data_id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="vulnerability_vex_link_pkey"/>
@@ -606,139 +739,148 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-70">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-96">
         <addForeignKeyConstraint baseColumnNames="spdx_package_id" baseTableName="annotation_entity" constraintName="fk_annotation_entity_spdx_package_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_package_entity" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-71">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-97">
         <addForeignKeyConstraint baseColumnNames="file_id" baseTableName="checksum_entity" constraintName="fk_checksum_entity_file_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_file_entity" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-72">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-98">
         <addForeignKeyConstraint baseColumnNames="package_id" baseTableName="checksum_entity" constraintName="fk_checksum_entity_package_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_package_entity" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-73">
-        <addForeignKeyConstraint baseColumnNames="inventory_item_id" baseTableName="code_location" constraintName="fk_code_location_inventory_item_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="inventory_item" validate="true"/>
-    </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-74">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-99">
         <addForeignKeyConstraint baseColumnNames="task_id" baseTableName="configuration" constraintName="fk_configuration_task_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="curator_task" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-75">
-        <addForeignKeyConstraint baseColumnNames="code_location_id" baseTableName="copyright" constraintName="fk_copyright_code_location_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="code_location" validate="true"/>
-    </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-76">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-100">
         <addForeignKeyConstraint baseColumnNames="code_location_id" baseTableName="copyright_code_location_link" constraintName="fk_copyright_code_location_link_code_location_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="code_location" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-77">
-        <addForeignKeyConstraint baseColumnNames="copyright_id" baseTableName="copyright_code_location_link" constraintName="fk_copyright_code_location_link_copyright_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="copyright" validate="true"/>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-101">
+        <addForeignKeyConstraint baseColumnNames="copyright_id" baseTableName="copyright_file_link" constraintName="fk_copyright_file_link_copyright_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="copyright" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-78">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-102">
+        <addForeignKeyConstraint baseColumnNames="file_id" baseTableName="copyright_file_link" constraintName="fk_copyright_file_link_file_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-103">
         <addForeignKeyConstraint baseColumnNames="software_component_id" baseTableName="copyright" constraintName="fk_copyright_software_component_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="software_component" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-79">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-104">
         <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="curator_task" constraintName="fk_curator_task_project_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="project" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-80">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-105">
         <addForeignKeyConstraint baseColumnNames="checksum_id" baseTableName="external_ref_document_entity" constraintName="fk_external_ref_document_entity_checksum_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="checksum_entity" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-81">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-106">
         <addForeignKeyConstraint baseColumnNames="spdx_document_id" baseTableName="external_ref_document_entity" constraintName="fk_external_ref_document_entity_spdx_document_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_document_root" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-82">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-107">
         <addForeignKeyConstraint baseColumnNames="package_id" baseTableName="external_ref_entity" constraintName="fk_external_ref_entity_package_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_package_entity" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-83">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-108">
         <addForeignKeyConstraint baseColumnNames="license_id" baseTableName="extracted_license_see_also" constraintName="fk_extracted_license_see_also_license_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="extracted_licensing_info_entity" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-84">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-109">
         <addForeignKeyConstraint baseColumnNames="spdx_document_id" baseTableName="extracted_licensing_info_entity" constraintName="fk_extracted_licensing_info_entity_spdx_document_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_document_root" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-85">
-        <addForeignKeyConstraint baseColumnNames="code_location_id" baseTableName="file" constraintName="fk_file_code_location_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="code_location" validate="true"/>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-110">
+        <addForeignKeyConstraint baseColumnNames="file_id" baseTableName="file_inventory_item_link" constraintName="fk_file_inventory_item_link_file_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-86">
-        <addForeignKeyConstraint baseColumnNames="inventory_item_id" baseTableName="file" constraintName="fk_file_inventory_item_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="inventory_item" validate="true"/>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-111">
+        <addForeignKeyConstraint baseColumnNames="inventory_item_id" baseTableName="file_inventory_item_link" constraintName="fk_file_inventory_item_link_inventory_item_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="inventory_item" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-87">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-112">
         <addForeignKeyConstraint baseColumnNames="spdx_file_id" baseTableName="file_license_info" constraintName="fk_file_license_info_spdx_file_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_file_entity" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-88">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-113">
         <addForeignKeyConstraint baseColumnNames="parent_id" baseTableName="file" constraintName="fk_file_parent_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-89">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-114">
         <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="file" constraintName="fk_file_project_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="project" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-90">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-115">
         <addForeignKeyConstraint baseColumnNames="spdx_file_id" baseTableName="file_types" constraintName="fk_file_types_spdx_file_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_file_entity" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-91">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-116">
         <addForeignKeyConstraint baseColumnNames="parent_inventory_item_id" baseTableName="inventory_item" constraintName="fk_inventory_item_parent_inventory_item_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="inventory_item" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-92">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-117">
         <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="inventory_item" constraintName="fk_inventory_item_project_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="project" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-93">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-118">
         <addForeignKeyConstraint baseColumnNames="software_component_id" baseTableName="inventory_item" constraintName="fk_inventory_item_software_component_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="software_component" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-94">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-119">
         <addForeignKeyConstraint baseColumnNames="copyright_id" baseTableName="license" constraintName="fk_license_copyright_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="copyright" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-95">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-120">
+        <addForeignKeyConstraint baseColumnNames="inventory_item_id" baseTableName="ort_issue" constraintName="fk_ort_issue_inventory_item_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="inventory_item" validate="true"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-121">
+        <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="ort_issue" constraintName="fk_ort_issue_project_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="project" validate="true"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-122">
+        <addForeignKeyConstraint baseColumnNames="inventory_item_id" baseTableName="ort_violation" constraintName="fk_ort_violation_inventory_item_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="inventory_item" validate="true"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-123">
+        <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="ort_violation" constraintName="fk_ort_violation_project_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="project" validate="true"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-124">
         <addForeignKeyConstraint baseColumnNames="package_id" baseTableName="package_file_names" constraintName="fk_package_file_names_package_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_package_entity" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-96">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-125">
         <addForeignKeyConstraint baseColumnNames="package_id" baseTableName="package_license_info_from_files" constraintName="fk_package_license_info_from_files_package_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_package_entity" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-97">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-126">
         <addForeignKeyConstraint baseColumnNames="package_id" baseTableName="package_verification_excluded_files" constraintName="fk_package_verification_excluded_files_package_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="package_verification_code_entity" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-98">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-127">
         <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="project_search_terms_profiles_link" constraintName="fk_project_search_terms_profiles_link_project_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="project" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-99">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-128">
         <addForeignKeyConstraint baseColumnNames="search_terms_profile_id" baseTableName="project_search_terms_profiles_link" constraintName="fk_project_search_terms_profiles_link_search_terms_profile_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="search_terms_profile" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-100">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-129">
         <addForeignKeyConstraint baseColumnNames="spdx_document_id" baseTableName="relationship_entity" constraintName="fk_relationship_entity_spdx_document_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_document_root" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-105">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-134">
         <addForeignKeyConstraint baseColumnNames="snippet_id" baseTableName="snippet_licenses" constraintName="fk_snippet_licenses_snippet_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="snippet" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-106">
-        <addForeignKeyConstraint baseColumnNames="snippet_id" baseTableName="snippet_ranges" constraintName="fk_snippet_ranges_snippet_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="snippet" validate="true"/>
-    </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-107">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-135">
         <addForeignKeyConstraint baseColumnNames="spdx_document_id" baseTableName="snippet" constraintName="fk_snippet_spdx_document_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_document_root" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-108">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-136">
         <addForeignKeyConstraint baseColumnNames="license_id" baseTableName="software_component_license_link" constraintName="fk_software_component_license_link_license_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="license" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-109">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-137">
         <addForeignKeyConstraint baseColumnNames="software_component_id" baseTableName="software_component_license_link" constraintName="fk_software_component_license_link_software_component_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="software_component" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-110">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-138">
         <addForeignKeyConstraint baseColumnNames="software_component_id" baseTableName="software_component_vulnerability_link" constraintName="fk_software_component_vulnerability_link_software_component_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="software_component" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-111">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-139">
         <addForeignKeyConstraint baseColumnNames="vulnerability_id" baseTableName="software_component_vulnerability_link" constraintName="fk_software_component_vulnerability_link_vulnerability_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="vulnerability" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-112">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-140">
+        <addForeignKeyConstraint baseColumnNames="spdx_document_id" baseTableName="spdx_document_describes" constraintName="fk_spdx_document_describes_spdx_document_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_document_root" validate="true"/>
+    </changeSet>
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-141">
         <addForeignKeyConstraint baseColumnNames="creation_info_id" baseTableName="spdx_document_root" constraintName="fk_spdx_document_root_creation_info_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="creation_info_entity" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-113">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-142">
         <addForeignKeyConstraint baseColumnNames="spdx_document_id" baseTableName="spdx_file_entity" constraintName="fk_spdx_file_entity_spdx_document_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_document_root" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-114">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-143">
         <addForeignKeyConstraint baseColumnNames="package_verification_code_id" baseTableName="spdx_package_entity" constraintName="fk_spdx_package_entity_package_verification_code_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="package_verification_code_entity" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-115">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-144">
         <addForeignKeyConstraint baseColumnNames="spdx_document_id" baseTableName="spdx_package_entity" constraintName="fk_spdx_package_entity_spdx_document_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_document_root" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-116">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-145">
         <addForeignKeyConstraint baseColumnNames="software_component_id" baseTableName="vex_data" constraintName="fk_vex_data_software_component_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="software_component" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-117">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-146">
         <addForeignKeyConstraint baseColumnNames="vex_data_id" baseTableName="vulnerability_vex_link" constraintName="fk_vulnerability_vex_link_vex_data_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="vex_data" validate="true"/>
     </changeSet>
-    <changeSet author="uwe (generated)" id="1774355394865-118">
+    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-147">
         <addForeignKeyConstraint baseColumnNames="vulnerability_id" baseTableName="vulnerability_vex_link" constraintName="fk_vulnerability_vex_link_vulnerability_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="vulnerability" validate="true"/>
     </changeSet>
 </databaseChangeLog>
