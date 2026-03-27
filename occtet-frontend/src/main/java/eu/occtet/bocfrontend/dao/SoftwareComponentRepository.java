@@ -41,7 +41,8 @@ public interface SoftwareComponentRepository extends JmixDataRepository<Software
     List<SoftwareComponent> findByVulnerability(Vulnerability vuln);
     @Query("select distinct sc from InventoryItem i join i.project p join i.softwareComponent sc where p = :project")
     List<SoftwareComponent> findByProject(Project project);
-
+    @Query("SELECT sc FROM SoftwareComponent sc WHERE NOT EXISTS (SELECT cvl FROM ComponentVulnerabilityLink cvl WHERE cvl.softwareComponent = sc AND cvl.vulnerability = :vulnerability)")
+    List<SoftwareComponent> getAvailableComponents(Vulnerability vulnerability);
 
 
 }

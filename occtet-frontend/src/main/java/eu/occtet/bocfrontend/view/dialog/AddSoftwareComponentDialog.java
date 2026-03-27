@@ -28,6 +28,7 @@ import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.Vulnerability;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
+import io.jmix.flowui.model.DataContext;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -59,20 +60,39 @@ public class AddSoftwareComponentDialog extends AbstractAddContentDialog<Vulnera
     @ViewComponent
     private DataGrid<SoftwareComponent> softwareComponentDataGrid;
 
+    @ViewComponent
+    private DataContext dataContext;
+
+
+    @Subscribe
+    public void onBeforeShow(final BeforeShowEvent event) {
+        softwareComponentRepository.getAvailableComponents(vulnerability).stream()
+                .forEach(s-> log.debug("available SC : {}", s.getName()));
+        softwareComponentDc.setItems(softwareComponentRepository.getAvailableComponents(vulnerability));
+    }
+
+
+
     @Override
     @Subscribe("softwareComponentDc")
     public void setAvailableContent(Vulnerability vulnerability){
+        log.debug("set content");
         this.vulnerability = vulnerability;
-        log.debug("Dialog context initialized with SoftwareComponent: {}", this.vulnerability);
-        softwareComponentDc.setItems(softwareComponentRepository.findAll());
+
+        List<SoftwareComponent> available =
+                softwareComponentRepository.getAvailableComponents(vulnerability);
+
+        available.forEach(s -> log.debug("set content: available SC : {}", s.getName()));
+
+        softwareComponentDc.setItems(available);
     }
 
     @Override
     @Subscribe(id = "addComponentButton")
     public void addContentButton(ClickEvent<Button> event) {
-        List<SoftwareComponent> selectedLicenses = getSelectedComponents();
+        List<SoftwareComponent> selectedComponents = getSelectedComponents();
 
-        if (!selectedLicenses.isEmpty() && vulnerability != null) {
+        if (!selectedComponents.isEmpty() && vulnerability != null) {
             close(StandardOutcome.SAVE);
         }
     }
@@ -83,13 +103,13 @@ public class AddSoftwareComponentDialog extends AbstractAddContentDialog<Vulnera
         String searchWord = searchField.getValue();
 
         if (!searchWord.isEmpty() && event != null) {
-            List<SoftwareComponent> listFindings = softwareComponentRepository.findAll().stream()
+            List<SoftwareComponent> listFindings = softwareComponentRepository.getAvailableComponents(vulnerability).stream()
                     .filter(s -> s.getName().toLowerCase().contains(searchWord.toLowerCase())
                             || s.getPurl().toLowerCase().contains(searchWord.toLowerCase()))
                     .toList();
             softwareComponentDc.setItems(listFindings);
         } else {
-            softwareComponentDc.setItems(softwareComponentRepository.findAll());
+            softwareComponentDc.setItems(softwareComponentRepository.getAvailableComponents(vulnerability));
         }
     }
 
