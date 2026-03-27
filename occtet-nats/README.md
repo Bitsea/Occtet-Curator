@@ -13,6 +13,10 @@ You can skip tests with `-DskipTests=true`.
 
 **Create docker images:**
 
+run the script `.\build-all-docker-images.sh`
+
+or do it manually: 
+
 Enter the module directory which includes a Dockerfile, for example occtet-nats-ai-service, and execute
 `mvn clean package dockerfile:build`
 
