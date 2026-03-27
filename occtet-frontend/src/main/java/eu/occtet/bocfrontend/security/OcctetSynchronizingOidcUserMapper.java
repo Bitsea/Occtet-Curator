@@ -22,20 +22,17 @@
 package eu.occtet.bocfrontend.security;
 
 import eu.occtet.bocfrontend.entity.User;
-import eu.occtet.bocfrontend.view.project.ProjectDetailView;
 import io.jmix.core.DataManager;
 import io.jmix.core.UnconstrainedDataManager;
-import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.core.security.UserRepository;
 import io.jmix.oidc.claimsmapper.ClaimsRolesMapper;
-import org.springframework.context.annotation.Profile
+import org.springframework.context.annotation.Profile;
 import io.jmix.oidc.usermapper.SynchronizingOidcUserMapper;
 import io.jmix.security.role.RoleGrantedAuthorityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
@@ -45,7 +42,6 @@ import java.util.Collection;
 
 @Component
 @Profile("live")
-@Profile("profile")
 public class OcctetSynchronizingOidcUserMapper extends SynchronizingOidcUserMapper<User> {
 
     private static final Logger log = LogManager.getLogger(OcctetSynchronizingOidcUserMapper.class);

@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.keycloak.representations.AccessToken;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
@@ -57,6 +58,7 @@ import java.util.Map;
  * {@link ResourceRoleRepository} and {@link RowLevelRoleRepository} to ensure
  * only valid, application-defined roles are granted to the user context.
  */
+@Profile("live")
 @Primary
 @Component("KeycloakClaimsRolesMapper")
 public class KeycloakClaimsRolesMapper implements ClaimsRolesMapper {
