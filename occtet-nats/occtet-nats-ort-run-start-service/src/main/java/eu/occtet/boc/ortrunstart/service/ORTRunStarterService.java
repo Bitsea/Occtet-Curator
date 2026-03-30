@@ -64,6 +64,7 @@ public class ORTRunStarterService {
     boolean startOrtRun(long projectId, String repoName, String repoURL, String repoType, String repoVersion) throws IOException, InterruptedException, ApiException {
         Project project= projectRepository.findById(projectId).get();
         String orgaName= project.getProjectContact();
+        log.trace("connection with ORT on {}", ortProperties.baseUrl());
         OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
         AuthService authService = new AuthService(ortProperties.tokenUrl());
 

@@ -78,12 +78,12 @@ public class ProcessOrtRunTask  {
                 log.debug("Got {} finished runs", pagedSearch.getData().size());
 
                 sendRuns(pagedSearch);
-            } else log.debug("No finished runs found");
+            } else log.trace("No finished runs found");
 
             if (!pagedSearchWithIssues.getData().isEmpty()) {
-                log.debug("Got {} finished_with_issues runs", pagedSearch.getData().size());
+                log.trace("Got {} finished_with_issues runs", pagedSearch.getData().size());
                 sendRuns(pagedSearchWithIssues);
-            } else log.debug("No finished_with_issues runs found");
+            } else log.trace("No finished_with_issues runs found");
             } catch (Exception e){
                 log.error("ORT API not reachable, could not fetch runs", e.getMessage());
             }
