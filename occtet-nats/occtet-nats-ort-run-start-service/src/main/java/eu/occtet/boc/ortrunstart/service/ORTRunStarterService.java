@@ -67,6 +67,7 @@ public class ORTRunStarterService {
 
         Project project= projectRepository.findById(projectId).get();
         String orgaName= project.getProjectContact();
+        log.trace("connection with ORT on {}", ortProperties.baseUrl());
         OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
         AuthService authService = new AuthService(ortProperties.tokenUrl());
 
