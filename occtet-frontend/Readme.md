@@ -12,15 +12,24 @@ If your Keycloak server uses internal certificates, the java runtime inside Dock
 
 Build the application in production mode. Ensure you clean old jars to prevent Docker from picking up the wrong version.
 
-```./gradlew -Pvaadin.productionMode=true bootJar```
+```
+./gradlew -Pvaadin.productionMode=true bootJar
+```
 if this fails try:
-```./gradlew bootJar "-Pvaadin.productionMode=true"```
+```
+./gradlew bootJar "-Pvaadin.productionMode=true"
+```
 
 **Step 2: Build the Image**<small> (make sure the package `occtet-common` is installed first)</small>
 ```
 docker build -t occtet-boc-frontend:0.3.10-SNAPSHOT .
 ```
 <small>Note: change the version if needed</small>
+
+## Keycloak
+Only 2 roles must be provided to the frontend: 
+- `curator`: basic user (read and write)
+- `admin`: full-access
 
 ## Profiles
 - **local:** For development on your host machine (uses localhost).
