@@ -7,10 +7,15 @@ This repository contains two project trees:
 
 The whole project is meant to be run docker-based.
 
-The docker-compose.yml file is in the occtet-nats directory. About how to build the components, please see the readme files in the occtet-frontend and occtet-nats directories. 
+## Deployment Overview 
+To get the system running in a live/dockerized enviroment:
+1. Configure your enviroment in the `.env` file (see `occtet-nats/.env.example`)
+2. Build the common libraries in occtet-nats (mvn install).
+3. Build the frontend Docker image in occtet-frontend.
+4. Build the microservice Docker images in occtet-nats.
+5. Deploy using docker-compose up -d from the occtet-nats directory.
 
-Basically you have to build occtet-common 
-and occtet-common-jpa first, `mvn install` into your local m2 repo, then build the docker images for each microservice and the frontend. Note that you need to pull an llm with ollama before you can fire up everything with `docker compose up`.
+<small>Detailed instructions are available in the respective subdirectories.</small>
 
 # Funding
 

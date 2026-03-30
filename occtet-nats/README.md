@@ -1,7 +1,14 @@
-Occtet Curator NATS Backend
--
+# Occtet Curator NATS Backend
+This directory contains the microservice and shared libraries for the Occtet-backend 
 
-### Building
+## 1. Configuration (.env)
+We use a `.env` file to manage environment-specific variables (DB credentials, Keycloak URIs, etc.)
+1. Copy `.env.example` to `.env`
+2. Adjust the values (e.g., `DB_PASSWORD`, `KEYCLOAK_CLIENT_SECRET`)
+3. **Important**: These variables are injected into the containers at runtime; no rebuild is required when values 
+   in `.env`, simply just restart the images.
+
+## 2. Building
 
 To build everything, in the root directory, execute
 
@@ -13,9 +20,12 @@ You can skip tests with `-DskipTests=true`.
 
 **Create docker images:**
 
-run the script `.\build-all-docker-images.sh`
+To **build all** microservice images using the provided script:
+run 
 
-or do it manually: 
+```.\build-all-docker-images.sh```
+
+or do it manually:
 
 Enter the module directory which includes a Dockerfile, for example occtet-nats-ai-service, and execute
 `mvn clean package dockerfile:build`
@@ -26,16 +36,41 @@ Export Docker image as file for remote deployment:
 Import Docker image on remote machine:
 `gunzip -c occtet-nats-ai-service.tar.gz | docker load`
 
+## 3. Installing 
 
-### Installing the Common Library
+**Install Common Libraries**
 
-Install the occtet-nats-parent first, afterward the common library and the common-jpa into your local Maven repository, in directories (occtet-nats(occtet-nats-parent), occtet-common and occtet-common-jpa), execute
-`mvn install`
-This is required to build the frontend project.
+In `occtet-nats` run:
+```
+mvn clean install 
+```
 
-### Running
+<small>Note: the occtet-common library is required for the frontend</small>
 
-The template module is a standalone Spring Boot application. To run it, just execute the created jar file in the target directory.
+## 3. Running the Stack - Docker Setup
+**Prerequisites**
+1. **Volumes**: Create the persistent storage volumes: 
+```
+docker volume create nats_data
+docker volume create db_data
+docker volume create ollama_data
+```
+2. **AI Models**: The AI services will crash if the model is missing. Start Ollama and pull the model manually:
+```
+docker-compose up -d ollama
+docker exec -it <ollama_container_id> 
+ollama pull qwen3:30b
+```
+**Launching**
+```
+docker-compose up -d
+
+docker-compose up -d <service-name>
+```
+<small>(Without -d if you want to see the log output in the console. Press Ctrl-C to stop.)</small>
+
+The startup order is orchestrated: db & nats -> frontend (Initializes DB) -> backend-services.
+
 
 ### Common modules
 
@@ -55,33 +90,6 @@ The init-postgresql-db.sql file contains the SQL commands to create the required
 
 The microservices are using logback to log into the postgres database.
 To create the required tables, use create-logback-tables-postgresql.sql
-
-### Docker setup
-
-We provide a docker-compose.yml file to start a NATS server and a Postgres database init script (init-postgresql-db.sql,
-this includes the logback tables creation script) to create and initialize a Postgres database
-with the required tables.
-
-Create the required Docker volumes:
-
-`docker volume create nats_data`
-
-`docker volume create db_data`
-
-`docker volume create ollama_data`
-
-You need to get a model for ollama (use the current container id, see docker ps):
-`docker exec -it b5946a233546 sh`
-`ollama pull qwen3:30b`
-
-Note that the ai based services will not start correctly without a model, so download it first.
-
-Once you have built and installed all docker images locally (see above), you can start everything with
-`docker-compose up -d`
-
-To start up just a single service, use
-`docker-compose up -d <service-name>`
-(Without -d if you want to see the log output in the console. Press Ctrl-C to stop.)
 
 # Funding
 
