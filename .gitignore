@@ -2,3 +2,4 @@ target/
 bin/
 .env
 .certs
+docker-compose.yml

@@ -1,12 +1,21 @@
 #version: '0.3.8'
 
-# ENVIRONMENT ANCHOR (DRY Configuration)
+# ODER: db | nats -> Frontend -> Backend-microservices
+
 x-common-env: &common-env
   SPRING_PROFILES_ACTIVE: live
-  DB_URL: jdbc:postgresql://db:5432/occtet_boc
+  DB_URL: ${DB_URL}
   DB_USERNAME: ${DB_USERNAME}
   DB_PASSWORD: ${DB_PASSWORD}
   NATS_URL: nats://nats:4222
+
+x-microservice-depends: &microservice-depends
+  frontend:
+    condition: service_healthy
+  db:
+    condition: service_healthy
+  nats:
+    condition: service_started
 
 services:
   db:
@@ -14,7 +23,7 @@ services:
     command: -c 'max_connections=200'
     container_name: db
     ports:
-      - "5433:5432"
+      - "5432:5432"
     environment:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -42,17 +51,27 @@ services:
     networks:
       - mynet
 
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - mynet
+
   frontend:
+    image: occtet-boc-frontend:0.3.10-SNAPSHOT
     depends_on:
       db:
         condition: service_healthy
       nats:
         condition: service_started
-    image: occtet-boc-frontend:0.3.10-SNAPSHOT
     ports:
       - "8090:8090"
     volumes:
       - /home/occtet/project_data:/project_data
+      - ../occtet-frontend/.certs:/certs:ro
     networks:
       - mynet
     environment:
@@ -64,83 +83,89 @@ services:
       KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
-  # ONLY UNCOMMENT if Keycloak client authentication is set to "Enabled"
-#      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
-
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    networks:
-      - mynet
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:8090/boc/ > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
 
   licensematcher-service:
     image: occtet-nats-licensematcher-service:0.3.8-SNAPSHOT
-    depends_on: [frontend, db, nats]
+    depends_on: *microservice-depends
     networks: [mynet]
     environment:
       <<: *common-env
 
+  ai-copyrightfilter-service:
+    image: occtet-nats-ai-copyrightfilter-service:0.3.8-SNAPSHOT
+    depends_on:
+      <<: *microservice-depends
+      ollama:
+        condition: service_started
+    networks: [mynet]
+    environment:
+      <<: *common-env
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+
   copyrightfilter-service:
     image: occtet-nats-copyrightfilter-service:0.3.8-SNAPSHOT
-    depends_on: [frontend, db, nats]
+    depends_on: *microservice-depends
+    networks: [mynet]
+    environment:
+      <<: *common-env
+
+  foss-report-service:
+    image: occtet-nats-foss-report-service:0.3.8-SNAPSHOT
+    depends_on: *microservice-depends
     networks: [mynet]
     environment:
       <<: *common-env
 
   vulnerability-service:
     image: occtet-nats-vulnerability-service:0.3.8-SNAPSHOT
-    depends_on: [frontend, db, nats]
+    depends_on: *microservice-depends
     networks: [mynet]
     environment:
       <<: *common-env
+
+  ai-licensematcher-service:
+    image: occtet-nats-ai-licensematcher-service:0.3.8-SNAPSHOT
+    depends_on:
+      <<: *microservice-depends
+      ollama:
+        condition: service_started
+    networks: [mynet]
+    environment:
+      <<: *common-env
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
 
   spdx-service:
     image: occtet-nats-spdx-service:0.3.10-SNAPSHOT
-    depends_on: [frontend, db, nats]
-    networks: [mynet]
-    environment:
-      <<: *common-env
-
-  spdx-export-service:
-    image: occtet-nats-spdx-export-service:0.3.10-SNAPSHOT
-    depends_on: [frontend, db, nats]
+    depends_on: *microservice-depends
     networks: [mynet]
     environment:
       <<: *common-env
 
   download-service:
     image: occtet-nats-download-service:0.3.9-SNAPSHOT
-    depends_on: [frontend, db, nats]
+    depends_on: *microservice-depends
     volumes:
       - /home/occtet/project_data:/project_data
     networks: [mynet]
     environment:
       <<: *common-env
 
-  # AI MICROSERVICES
-  ai-copyrightfilter-service:
-    image: occtet-nats-ai-copyrightfilter-service:0.3.8-SNAPSHOT
-    depends_on: [frontend, ollama, db, nats]
+  spdx-export-service:
+    image: occtet-nats-spdx-export-service:0.3.10-SNAPSHOT
+    depends_on: *microservice-depends
     networks: [mynet]
     environment:
       <<: *common-env
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
 
-  ai-licensematcher-service:
-    image: occtet-nats-ai-licensematcher-service:0.3.8-SNAPSHOT
-    depends_on: [ollama, frontend, nats]
-    networks: [mynet]
-    environment:
-      <<: *common-env
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
-
-  # ORT MICROSERVICES
   ort-run-start-service:
     image: occtet-nats-ort-run-start-service:0.3.8-SNAPSHOT
-    depends_on: [frontend, db, nats]
+    depends_on: *microservice-depends
     networks: [mynet]
     environment:
       <<: *common-env
@@ -151,7 +176,7 @@ services:
 
   process-run-service:
     image: occtet-nats-process-run-service:0.3.8-SNAPSHOT
-    depends_on: [frontend, db, nats]
+    depends_on: *microservice-depends
     networks: [mynet]
     environment:
       <<: *common-env
@@ -160,7 +185,6 @@ services:
       ORT_USERNAME: ${ORT_USERNAME}
       ORT_PASSWORD: ${ORT_PASSWORD}
 
-# VOLUMES & NETWORKS (Root Level)
 volumes:
   db_data:
     external: true
