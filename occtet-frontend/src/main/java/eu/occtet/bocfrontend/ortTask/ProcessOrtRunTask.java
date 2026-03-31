@@ -78,12 +78,12 @@ public class ProcessOrtRunTask  {
                 log.debug("Got {} finished runs", pagedSearch.getData().size());
 
                 sendRuns(pagedSearch);
-            } else log.trace("No finished runs found");
+            } else log.debug("No finished runs found");
 
             if (!pagedSearchWithIssues.getData().isEmpty()) {
-                log.trace("Got {} finished_with_issues runs", pagedSearch.getData().size());
+                log.debug("Got {} finished_with_issues runs", pagedSearch.getData().size());
                 sendRuns(pagedSearchWithIssues);
-            } else log.trace("No finished_with_issues runs found");
+            } else log.debug("No finished_with_issues runs found");
             } catch (Exception e){
                 log.error("ORT API not reachable, could not fetch runs", e.getMessage());
             }
@@ -115,8 +115,9 @@ public class ProcessOrtRunTask  {
         try {
             OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
             AuthService authService = new AuthService(ortProperties.tokenUrl());
-
+            log.debug("connection with ORT on {}", ortProperties.baseUrl());
             TokenResponse tokenResponse = null;
+            log.debug("authcall on keycloak with clientId {} username {} password {}", ortProperties.clientId(), ortProperties.username(), ortProperties.password() );
 
             tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
 
