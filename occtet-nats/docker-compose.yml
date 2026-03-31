@@ -48,7 +48,7 @@ services:
         - /home/occtet/project_data:/project_data
         - type: bind
           source: ./cacerts
-          target: /opt/java/openjdk/lib/security/cacerts
+          target: /certificates
       depends_on:
         - db
         - nats
