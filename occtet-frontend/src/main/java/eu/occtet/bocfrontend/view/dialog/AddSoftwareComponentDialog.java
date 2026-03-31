@@ -93,7 +93,7 @@ public class AddSoftwareComponentDialog extends AbstractAddContentDialog<Vulnera
         List<SoftwareComponent> selectedComponents = getSelectedComponents();
 
         if (!selectedComponents.isEmpty() && vulnerability != null) {
-            close(StandardOutcome.SAVE);
+            close(StandardOutcome.CLOSE);
         }
     }
 
