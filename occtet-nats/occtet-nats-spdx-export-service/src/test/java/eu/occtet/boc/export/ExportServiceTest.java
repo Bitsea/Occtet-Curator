@@ -23,6 +23,7 @@ package eu.occtet.boc.export;
 
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.dao.SpdxDocumentRootRepository;
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.spdxV2.CreationInfoEntity;
 import eu.occtet.boc.entity.spdxV2.ExtractedLicensingInfoEntity;
@@ -79,8 +80,13 @@ public class ExportServiceTest {
         project.setId(100L);
         project.setVersion("1.0.0");
         project.setProjectContact("Jane Doe");
-        project.setOrganizationName("Acme Corp");
         project.setCreatedAt(LocalDateTime.now());
+
+        Organization org = new Organization();
+        org.setOrganizationEmail("test@test.com");
+        org.setOrganizationName("Test Org");
+
+        project.setOrganization(org);
 
         SpdxDocumentRoot documentRoot = getSpdxDocumentRoot();
 
@@ -104,7 +110,7 @@ public class ExportServiceTest {
 
         String jsonString = new String(generatedPayload);
         assertTrue(jsonString.contains("SPDXRef-DOCUMENT"), "JSON should contain the document SPDX reference");
-        assertTrue(jsonString.contains("Acme Corp"), "JSON should contain project organization");
+        assertTrue(jsonString.contains("Test Org"), "JSON should contain project organization");
     }
 
     @NotNull
@@ -159,6 +165,9 @@ public class ExportServiceTest {
     void process_WithEnrichment_PrependsCopyrightsToExtractedLicense() {
         ReflectionTestUtils.setField(exportService, "toolName", "TestTool-1.0");
 
+        Organization org = new Organization();
+        org.setOrganizationName("Test Org");
+
         SpdxExportWorkData workData = new SpdxExportWorkData();
         workData.setProjectId(100L);
         workData.setSpdxDocumentId("https://test.uri/doc");
@@ -167,6 +176,7 @@ public class ExportServiceTest {
 
         Project project = new Project("Enriched Export Project");
         project.setId(100L);
+        project.setOrganization(org);
 
         SpdxDocumentRoot documentRoot = getSpdxDocumentRoot();
 

@@ -21,6 +21,7 @@ package eu.occtet.boc.spdx.factory;
 
 
 import eu.occtet.boc.entity.License;
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.dao.SoftwareComponentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,14 +35,14 @@ public class SoftwareComponentFactory {
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
 
-    public SoftwareComponent create(String softwareName, String version,
-                                    List<License> license,  String url) {
-        String purl="";
-        boolean curated=false;
-        SoftwareComponent softwareComponent= new SoftwareComponent(softwareName, version,license, url );
-        return softwareComponentRepository.save(softwareComponent);}
+    public SoftwareComponent create(String softwareName, String version, List<License> license, String url, Organization organization) {
+        String purl = "";
+        boolean curated = false;
+        SoftwareComponent softwareComponent = new SoftwareComponent(softwareName, version, license, url, organization);
+        return softwareComponentRepository.save(softwareComponent);
+    }
 
-    public SoftwareComponent create(String softwareName, String version) {
-        return softwareComponentRepository.save(new SoftwareComponent(softwareName,version));
+    public SoftwareComponent create(String softwareName, String version, Organization organization) {
+        return softwareComponentRepository.save(new SoftwareComponent(softwareName, version, organization));
     }
 }

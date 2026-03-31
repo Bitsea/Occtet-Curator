@@ -21,12 +21,14 @@ package eu.occtet.bocfrontend.service;
 
 
 import eu.occtet.bocfrontend.entity.InventoryItem;
+import eu.occtet.bocfrontend.entity.Organization;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.factory.InventoryItemFactory;
 import eu.occtet.bocfrontend.factory.ProjectFactory;
 import eu.occtet.bocfrontend.factory.SoftwareComponentFactory;
 import eu.occtet.bocfrontend.test_support.AuthenticatedAsAdmin;
+import io.jmix.core.DataManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,6 +55,9 @@ public class InventoryItemServiceTest {
     @Autowired
     private ProjectFactory projectFactory;
 
+    @Autowired
+    private DataManager dataManager;
+
     InventoryItem item1;
     InventoryItem item2;
     Project project1;
@@ -60,7 +65,7 @@ public class InventoryItemServiceTest {
 
     @BeforeEach
     void setUp() {
-        project1 = projectFactory.create("InventoryItemServiceTestProject");
+        project1 = projectFactory.create("InventoryItemServiceTestProject", dataManager.create(Organization.class));
         softwareComponent1 = softwareComponentFactory.create("InventoryItemServiceTestSc1", "1.0",
                 "purl-123",true,null);
         item1 = inventoryItemFactory.create("InventoryItemServiceTestItem1", softwareComponent1, project1);

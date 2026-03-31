@@ -19,6 +19,8 @@
 
 package eu.occtet.bocfrontend.view.user;
 
+import eu.occtet.bocfrontend.dao.OrganizationRepository;
+import eu.occtet.bocfrontend.entity.Organization;
 import eu.occtet.bocfrontend.entity.User;
 import eu.occtet.bocfrontend.view.main.MainView;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -27,6 +29,7 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.router.Route;
 import io.jmix.core.EntityStates;
 import io.jmix.flowui.Notifications;
+import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,9 +62,17 @@ public class UserDetailView extends StandardDetailView<User> {
     private EntityStates entityStates;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JmixComboBox<Organization> organization;
+    @Autowired
+    private OrganizationRepository organizationRepository;
 
     @Subscribe
     public void onInit(final InitEvent event) {
+        organization.setItems(organizationRepository.findAll());
+        if(this.getEditedEntity().getOrganization()!= null){
+            organization.setValue(this.getEditedEntity().getOrganization());
+        }
         timeZoneField.setItems(List.of(TimeZone.getAvailableIDs()));
     }
 

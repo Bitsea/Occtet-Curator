@@ -62,11 +62,15 @@ public class ORTRunStarterService {
     }
 
     boolean startOrtRun(long projectId, String repoName, String repoURL, String repoType, String repoVersion) throws IOException, InterruptedException, ApiException {
-       log.debug("connecting with base: {} / and token: {}", ortProperties.baseUrl(), ortProperties.tokenUrl());
+
+        log.debug("connecting with base: {} / and token: {}", ortProperties.baseUrl(), ortProperties.tokenUrl());
+
         Project project= projectRepository.findById(projectId).get();
         String orgaName= project.getProjectContact();
+        log.debug("connection with ORT on {}", ortProperties.baseUrl());
         OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
         AuthService authService = new AuthService(ortProperties.tokenUrl());
+        log.debug("authcall on keycloak with clientId {} username {} password {}", ortProperties.clientId(), ortProperties.username(), ortProperties.password() );
 
         TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);

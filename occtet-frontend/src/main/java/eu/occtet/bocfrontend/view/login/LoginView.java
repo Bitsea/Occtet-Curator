@@ -20,7 +20,7 @@
 package eu.occtet.bocfrontend.view.login;
 
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.login.AbstractLogin.LoginEvent;
 import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
@@ -29,6 +29,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import io.jmix.core.CoreProperties;
 import io.jmix.core.MessageTools;
+import io.jmix.core.Messages;
 import io.jmix.core.security.AccessDeniedException;
 import io.jmix.flowui.component.loginform.JmixLoginForm;
 import io.jmix.flowui.kit.component.ComponentUtils;
@@ -41,10 +42,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.core.env.Profiles; 
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.function.Function;
@@ -66,6 +70,12 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     @Autowired
     private MessageTools messageTools;
 
+    @Autowired
+    private Environment environment;
+
+    @Autowired
+    private Messages messages;
+
     @ViewComponent
     private JmixLoginForm login;
 
@@ -82,8 +92,25 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     public void onInit(final InitEvent event) {
         initLocales();
         initDefaultCredentials();
+
+        if (environment.acceptsProfiles(Profiles.of("live"))) {
+            UI.getCurrent().getPage().setLocation("/oauth2/authorization/keycloak");
+        }
     }
 
+    @Subscribe("login")
+    public void onLogin(final LoginEvent event) {
+        try {
+            loginViewSupport.authenticate(
+                    AuthDetails.of(event.getUsername(), event.getPassword())
+                            .withLocale(login.getSelectedLocale())
+                            .withRememberMe(login.isRememberMe())
+            );
+        } catch (final BadCredentialsException | DisabledException | LockedException | AccessDeniedException e) {
+            log.warn("Login failed for user '{}': {}", event.getUsername(), e.toString());
+            event.getSource().setError(true);
+        }
+    }
 
     private void initLocales() {
         LinkedHashMap<Locale, String> locales = coreProperties.getAvailableLocales().stream()
@@ -102,20 +129,6 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
 
         if (StringUtils.isNotBlank(defaultPassword)) {
             login.setPassword(defaultPassword);
-        }
-    }
-
-    @Subscribe("login")
-    public void onLogin(final LoginEvent event) {
-        try {
-            loginViewSupport.authenticate(
-                    AuthDetails.of(event.getUsername(), event.getPassword())
-                            .withLocale(login.getSelectedLocale())
-                            .withRememberMe(login.isRememberMe())
-            );
-        } catch (final BadCredentialsException | DisabledException | LockedException | AccessDeniedException e) {
-            log.warn("Login failed for user '{}': {}", event.getUsername(), e.toString());
-            event.getSource().setError(true);
         }
     }
 

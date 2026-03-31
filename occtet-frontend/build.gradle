@@ -83,6 +83,7 @@ dependencies {
     implementation 'io.jmix.rest:jmix-rest-starter'
     implementation 'io.jmix.gridexport:jmix-gridexport-flowui-starter'
     implementation 'io.jmix.charts:jmix-charts-flowui-starter'
+    implementation 'io.jmix.oidc:jmix-oidc-starter'
     implementation("org.apache.poi:poi-ooxml:5.4.1")
     implementation("org.springframework.ai:spring-ai-core:1.0.0-M6")
 
@@ -96,7 +97,15 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.19.0'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.2'
 
+
+    implementation 'org.springframework.security:spring-security-oauth2-client'
+    implementation 'org.springframework.security:spring-security-oauth2-jose'
+    implementation 'org.springframework.security:spring-security-oauth2-resource-server'
+
     implementation 'io.nats:jnats:2.22.0'
+
+    //  shou preferably match the keycloak server version
+    implementation 'org.keycloak:keycloak-core:26.5.5'
 
     implementation 'us.springett:cvss-calculator:1.5.1'
 

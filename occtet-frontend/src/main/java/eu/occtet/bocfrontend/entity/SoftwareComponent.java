@@ -33,9 +33,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @JmixEntity
-@Table(name = "SOFTWARE_COMPONENT")
+@Table(name = "SOFTWARE_COMPONENT", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"ORGANIZATION_ID", "SOFTWARE_COMPONENT_NAME", "VERSION"})
+})
 @Entity
-public class SoftwareComponent {
+public class SoftwareComponent implements HasOrganization {
 
     @JmixGeneratedValue
     @Id
@@ -76,6 +78,10 @@ public class SoftwareComponent {
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name= "SOFTWARE_COMPONENT_ID")
     private List<Copyright> copyrights = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
+    private Organization organization;
 
 
     public SoftwareComponent(){
@@ -216,5 +222,13 @@ public class SoftwareComponent {
 
     public void setCopyrights(List<Copyright> copyrights) {
         this.copyrights = copyrights;
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 }

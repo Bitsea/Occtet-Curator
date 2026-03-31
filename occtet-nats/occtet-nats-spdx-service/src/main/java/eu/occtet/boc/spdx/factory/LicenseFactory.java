@@ -23,6 +23,7 @@ package eu.occtet.boc.spdx.factory;
 
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.dao.LicenseRepository;
+import eu.occtet.boc.entity.Organization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,13 +37,13 @@ public class LicenseFactory {
         this.licenseRepository = licenseRepository;
     }
 
-    public License create(String licenseId, String licenseText){
-        License license = new License(licenseId, licenseText);
+    public License create(String licenseId, String licenseText, Organization organization){
+        License license = new License(licenseId, licenseText, organization);
         return licenseRepository.save(license);
     }
 
-    public License createWithName(String licenseId, String licenseText, String licenseName){
-        License license = new License(licenseId, licenseText, licenseName);
+    public License createWithName(String licenseId, String licenseText, String licenseName, Organization organization){
+        License license = new License(licenseId, licenseText, licenseName, organization);
         return licenseRepository.save(license);
     }
 }

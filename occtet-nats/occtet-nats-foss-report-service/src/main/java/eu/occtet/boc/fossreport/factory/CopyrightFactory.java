@@ -22,6 +22,7 @@ package eu.occtet.boc.fossreport.factory;
 import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.File;
+import eu.occtet.boc.entity.Organization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,9 +38,9 @@ public class CopyrightFactory {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public Copyright create(String copyrightString, Set<File> files){
+    public Copyright create(String copyrightString, Set<File> files, Organization organization){
         log.debug("Creating Copyright with copyright text: {} and file: {}", copyrightString, files);
-        return copyrightRepository.save(new Copyright(copyrightString, files));
+        return copyrightRepository.save(new Copyright(copyrightString, files, organization));
     }
 
 

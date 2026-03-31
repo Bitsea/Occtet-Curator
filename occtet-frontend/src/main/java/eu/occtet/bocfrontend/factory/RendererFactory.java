@@ -85,10 +85,13 @@ public class RendererFactory {
             Icon vulnerableIcon = uiComponents.create(Icon.class);
             vulnerableIcon.setIcon(VaadinIcon.BAN);
             vulnerableIcon.setSize("12px");
-            boolean hasUnresolvedVulnerabilities = item.getSoftwareComponent()
-                    .getVulnerabilityLinks()
-                    .stream()
-                    .anyMatch(link -> FALSE.equals(link.getResolved()));
+            boolean hasUnresolvedVulnerabilities = false;
+            if (item.getSoftwareComponent() != null) {
+                hasUnresolvedVulnerabilities = item.getSoftwareComponent()
+                        .getVulnerabilityLinks()
+                        .stream()
+                        .anyMatch(link -> FALSE.equals(link.getResolved()));
+            }
 
             if (hasUnresolvedVulnerabilities) {
                 vulnerableIcon.setVisible(true);
