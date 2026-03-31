@@ -420,17 +420,6 @@
             <column name="software_component_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-69">
-        <createTable tableName="logging_event">
-            <column name="event_id" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="logging_event_pkey"/>
-            </column>
-            <column name="formatted_message" type="TEXT"/>
-            <column name="level_string" type="VARCHAR(255)"/>
-            <column name="logger_name" type="VARCHAR(255)"/>
-            <column name="timestmp" type="BIGINT"/>
-        </createTable>
-    </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-70">
         <createTable tableName="ort_issue">
             <column name="id" type="BIGINT">

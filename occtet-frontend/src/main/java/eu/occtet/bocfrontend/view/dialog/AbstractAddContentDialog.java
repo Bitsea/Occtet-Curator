@@ -22,6 +22,7 @@ package eu.occtet.bocfrontend.view.dialog;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import eu.occtet.bocfrontend.entity.Copyright;
+import eu.occtet.bocfrontend.entity.Organization;
 import io.jmix.flowui.view.StandardOutcome;
 import io.jmix.flowui.view.StandardView;
 import io.jmix.flowui.view.Subscribe;

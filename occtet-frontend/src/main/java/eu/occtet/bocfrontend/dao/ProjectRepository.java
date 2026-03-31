@@ -19,13 +19,15 @@
 
 package eu.occtet.bocfrontend.dao;
 
+import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.Organization;
 import eu.occtet.bocfrontend.entity.Project;
 import io.jmix.core.repository.JmixDataRepository;
 import io.jmix.core.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-
-
+import java.util.Set;
 
 
 public interface ProjectRepository extends JmixDataRepository<Project, Long> {
@@ -33,4 +35,13 @@ public interface ProjectRepository extends JmixDataRepository<Project, Long> {
     @Query("select p from project p where p.projectName = :name and p.version = :version")
     List<Project> findByNameAndVersion(String name, String version);
     List<Project> findByProjectName(String name);
+    @Query("select p from Project p where p.organization IS null")
+    List<Project> findAvailableProjects();
+    List<Project> findByOrganization(Organization organization);
+
+    @Query("select count(p) from Project p where p.projectName = :name and p.version = :version and p.organization = :organization and p.id <> :ignoreId")
+    long countDuplicates(@Param("name") String name,
+                         @Param("version") String version,
+                         @Param("organization") Organization organization,
+                         @Param("ignoreId") Long ignoreId);
 }

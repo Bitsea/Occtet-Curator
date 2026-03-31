@@ -21,6 +21,7 @@ package eu.occtet.bocfrontend.engine;
 
 import eu.occtet.bocfrontend.dao.CuratorTaskRepository;
 import eu.occtet.bocfrontend.entity.CuratorTask;
+import eu.occtet.bocfrontend.entity.Organization;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.factory.InventoryItemFactory;
 import eu.occtet.bocfrontend.factory.ProjectFactory;
@@ -78,7 +79,7 @@ public class TaskManagerTest {
     @Authenticated
     private Project prepare() {
 
-        Project project = projectFactory.create("project1");
+        Project project = projectFactory.create("project1", dataManager.create(Organization.class));
         dataManager.save(project);
         return project;
     }

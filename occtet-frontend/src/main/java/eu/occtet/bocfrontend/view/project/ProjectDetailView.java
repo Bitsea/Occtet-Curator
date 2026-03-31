@@ -28,17 +28,24 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.AppConfigurationRepository;
+import eu.occtet.bocfrontend.dao.OrganizationRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
+import eu.occtet.bocfrontend.entity.Organization;
 import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.entity.User;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfiguration;
 import eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile;
+import eu.occtet.bocfrontend.service.UserService;
 import eu.occtet.bocfrontend.service.Utilities;
 import eu.occtet.bocfrontend.view.main.MainView;
+import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
+import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.kit.action.ActionPerformedEvent;
 import io.jmix.flowui.view.*;
@@ -77,15 +84,44 @@ public class ProjectDetailView extends StandardDetailView<Project> {
     private Notifications notifications;
     @Autowired
     private ProjectRepository projectRepository;
-
+    @Autowired
+    private CurrentAuthentication currentAuthentication;
+    @ViewComponent
+    private JmixComboBox<Organization> organizationJmixComboBox;
+    @Autowired
+    private OrganizationRepository organizationRepository;
+    @Autowired
+    private UserService userService;
 
     private static final Logger log = LogManager.getLogger(ProjectDetailView.class);
     List<Project> projects = new ArrayList<>();
+    @Autowired
+    private DataManager dataManager;
 
     @Subscribe
     protected void onInit(InitEvent event) {
         projects = projectRepository.findAll();
+
+        Organization organization = getOrganization();
+        if (userService.isAdmin()) {
+            organizationJmixComboBox.setReadOnly(false);
+            organizationJmixComboBox.setItems(organizationRepository.findAll());
+        } else {
+            organizationJmixComboBox.setReadOnly(true);
+            if (organization != null)
+               organizationJmixComboBox.setItems(organization);
+        }
+
+        organizationJmixComboBox.setItemLabelGenerator(Organization::getOrganizationName);
         initHeaderForDataGrid(searchTermsProfilesDataGrid, messages.getMessage("eu.occtet.bocfrontend.view.project/Project.h2.searchTermsProfile"));
+    }
+
+    @Subscribe
+    private void onInitEntity(InitEntityEvent<Project> event) {
+        Organization organization = getOrganization();
+        if (!userService.isAdmin() && organization != null) {
+            event.getEntity().setOrganization(organization);
+        }
     }
 
     private <E> void initHeaderForDataGrid(DataGrid<E> dataGrid, String title){
@@ -125,34 +161,31 @@ public class ProjectDetailView extends StandardDetailView<Project> {
     }
 
     @Subscribe
-    protected void onBeforeSave(BeforeSaveEvent event){
-        AppConfiguration globalBasePath =
-                appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH).orElse(null);
+    protected void onBeforeSave(BeforeSaveEvent event) {
 
-        if (globalBasePath == null ||
-                globalBasePath.getValue() == null ||
-                globalBasePath.getValue().isBlank()) {
+        AppConfiguration globalBasePath = appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH).orElse(null);
 
-            userMessage("eu.occtet.bocfrontend.view.project/Project.globalPathNotSet.WarningMsg"
-                    ,NotificationVariant.LUMO_WARNING);
-            event.preventSave();
-            return;
-            //
-        }else if(checkProjectDataInput(projectNameField.getValue(),projectVersion.getValue())){
-            userMessage("eu.occtet.bocfrontend.view.project/Project.projectAlreadyExists"
-                    ,NotificationVariant.LUMO_ERROR);
+        if (globalBasePath == null || globalBasePath.getValue() == null || globalBasePath.getValue().isBlank()) {
+            userMessage("eu.occtet.bocfrontend.view.project/Project.globalPathNotSet.WarningMsg", NotificationVariant.LUMO_WARNING);
             event.preventSave();
             return;
         }
-    }
 
-    private boolean checkProjectDataInput(String projectName, String projectVersion){
-        for(Project p : projects){
-            if(p.getProjectName().equals(projectName) && p.getVersion().equals(projectVersion) && !p.getId().equals(getEditedEntity().getId())){
-                return true;
-            }
+        Project currentProject = getEditedEntity();
+
+        Long ignoreId = currentProject.getId() != null ? currentProject.getId() : -1L;
+
+        long duplicateCount = projectRepository.countDuplicates(
+                projectNameField.getValue(),
+                projectVersion.getValue(),
+                currentProject.getOrganization(),
+                ignoreId
+        );
+
+        if (duplicateCount > 0) {
+            userMessage("eu.occtet.bocfrontend.view.project/Project.projectAlreadyExists", NotificationVariant.LUMO_ERROR);
+            event.preventSave();
         }
-        return false;
     }
 
     private void userMessage(String message, NotificationVariant variant){
@@ -161,5 +194,16 @@ public class ProjectDetailView extends StandardDetailView<Project> {
                 .withPosition(Notification.Position.TOP_CENTER)
                 .withThemeVariant(variant)
                 .show();
+    }
+
+    private Organization getOrganization() {
+        if (currentAuthentication.isSet() && currentAuthentication.getUser() instanceof User currentUser) {
+            log.debug("User org: {}", currentUser.getOrganization());
+
+            if (currentUser.getOrganization() != null) {
+                return currentUser.getOrganization();
+            }
+        }
+        return null;
     }
 }

@@ -28,8 +28,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @Table(name = "LICENSE")
 @EntityListeners(AuditingEntityListener.class)
-public class License {
-
+public class License implements HasOrganization {
 
     @Id
     @Column(name="ID", nullable = false)
@@ -60,24 +59,31 @@ public class License {
     @Column(name= "IS_SPDX")
     private Boolean isSpdx = false;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
+    private Organization organization;
+
     public License() {
     }
 
-    public License(String licenseType, String licenseText, String licenseName) {
+    public License(String licenseType, String licenseText, String licenseName, Organization organization) {
         this.licenseType = licenseType;
         this.licenseText = licenseText;
         this.licenseName = licenseName;
+        this.organization = organization;
     }
 
-    public License(String licenseType, String licenseText) {
+    public License(String licenseType, String licenseText, Organization organization) {
         this.licenseType = licenseType;
         this.licenseText = licenseText;
+        this.organization = organization;
     }
 
 
-    public License(String licenseType, String licenseText, Boolean modified) {
+    public License(String licenseType, String licenseText, Boolean modified, Organization organization) {
         this.licenseType = licenseType;
         this.licenseText = licenseText;
+        this.organization = organization;
         this.isModified= modified;
     }
 
@@ -161,4 +167,29 @@ public class License {
         isSpdx = spdx;
     }
 
+    public void setPriority(Integer priority) {
+        this.priority = priority;
+    }
+
+    public Boolean getModified() {
+        return isModified;
+    }
+
+    public Boolean getCurated() {
+        return curated;
+    }
+
+    public Boolean getSpdx() {
+        return isSpdx;
+    }
+
+    @Override
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    @Override
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
+    }
 }

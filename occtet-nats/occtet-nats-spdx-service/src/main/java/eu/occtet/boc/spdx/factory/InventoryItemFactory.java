@@ -21,6 +21,7 @@ package eu.occtet.boc.spdx.factory;
 
 
 import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.dao.InventoryItemRepository;
@@ -36,19 +37,19 @@ public class InventoryItemFactory {
 
     public InventoryItem create(String inventoryName, int size, String linking, String externalNotes, InventoryItem parent,
                                 SoftwareComponent component, boolean wasCombined,
-                                Project project, String spdxId
+                                Project project, String spdxId, Organization organization
     ) {
 
         InventoryItem inventoryItem = new InventoryItem(
                 inventoryName, size, linking, externalNotes,
-                parent, component, wasCombined, false, project, spdxId);
+                parent, component, wasCombined, false, project, spdxId,
+                organization);
 
         return inventoryItemRepository.save(inventoryItem);
     }
 
-
-    public InventoryItem create(String inventoryName, Project project, SoftwareComponent sc) {
-        InventoryItem inventoryItem = new InventoryItem(inventoryName, project, sc);
+    public InventoryItem create(String inventoryName, Project project, SoftwareComponent sc, Organization organization) {
+        InventoryItem inventoryItem = new InventoryItem(inventoryName, project, sc, organization);
         return inventoryItemRepository.save(inventoryItem);
     }
 }

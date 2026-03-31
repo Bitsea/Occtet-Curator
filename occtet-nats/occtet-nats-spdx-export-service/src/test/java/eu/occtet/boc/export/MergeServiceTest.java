@@ -25,6 +25,7 @@ import eu.occtet.boc.config.TestEclipseLinkJpaConfiguration;
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.SpdxDocumentRootRepository;
 import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.entity.spdxV2.CreationInfoEntity;
@@ -79,8 +80,11 @@ public class MergeServiceTest {
         Project project = new Project("Test Project");
         project.setVersion("1.0.0");
         project.setProjectContact("Jane Doe");
-        project.setOrganizationName("Acme Corp");
         project.setCreatedAt(LocalDateTime.now());
+
+        Organization org = new Organization();
+        org.setOrganizationEmail("test@test.com");
+        org.setOrganizationName("Test Org");
 
         SpdxDocumentRoot documentRoot = getSpdxDocumentRoot();
 
@@ -97,11 +101,11 @@ public class MergeServiceTest {
 
         documentRoot.getPackages().add(documentPackage);
 
-        SoftwareComponent curatedComponent = new SoftwareComponent("updated-name", "2.0", new ArrayList<>());
+        SoftwareComponent curatedComponent = new SoftwareComponent("updated-name", "2.0", new ArrayList<>(), org);
         curatedComponent.setCurated(true);
         curatedComponent.setDetailsUrl("https://new-location.com");
 
-        InventoryItem item = new InventoryItem("InventoryNode", project, curatedComponent);
+        InventoryItem item = new InventoryItem("InventoryNode", project, curatedComponent, org);
         item.setCurated(true);
         item.setSpdxId("SPDXRef-Package-1");
 
@@ -139,6 +143,10 @@ public class MergeServiceTest {
     void mergeChangesToDocumentEntities_ComponentNotCurated_SkipsUpdate() {
         Project project = new Project("Test Project");
 
+        Organization org = new Organization();
+        org.setOrganizationEmail("test@test.com");
+        org.setOrganizationName("Test Org");
+
         SpdxDocumentRoot documentRoot = new SpdxDocumentRoot();
         documentRoot.setSpdxId("SPDXRef-DOCUMENT");
 
@@ -147,10 +155,10 @@ public class MergeServiceTest {
         documentPackage.setName("original-name");
         documentRoot.getPackages().add(documentPackage);
 
-        SoftwareComponent uncuratedComponent = new SoftwareComponent("updated-name", "2.0", new ArrayList<>());
+        SoftwareComponent uncuratedComponent = new SoftwareComponent("updated-name", "2.0", new ArrayList<>(), new Organization());
         uncuratedComponent.setCurated(false); // Flag is explicitly false
 
-        InventoryItem item = new InventoryItem("InventoryNode", project, uncuratedComponent);
+        InventoryItem item = new InventoryItem("InventoryNode", project, uncuratedComponent, org);
         item.setCurated(false);
         item.setSpdxId("SPDXRef-Package-1");
 

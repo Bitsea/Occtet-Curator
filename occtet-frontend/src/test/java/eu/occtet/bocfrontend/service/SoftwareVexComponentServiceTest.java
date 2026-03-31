@@ -19,15 +19,14 @@
 
 package eu.occtet.bocfrontend.service;
 
-import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.License;
-import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.factory.InventoryItemFactory;
 import eu.occtet.bocfrontend.factory.LicenseFactory;
 import eu.occtet.bocfrontend.factory.ProjectFactory;
 import eu.occtet.bocfrontend.factory.SoftwareComponentFactory;
 import eu.occtet.bocfrontend.test_support.AuthenticatedAsAdmin;
+import io.jmix.chartsflowui.kit.component.model.series.mark.MarkLine;
+import io.jmix.core.DataManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,6 +59,8 @@ public class SoftwareVexComponentServiceTest {
     private ProjectFactory projectFactory;
     @Autowired
     private LicenseFactory licenseFactory;
+    @Autowired
+    private DataManager dataManager;
 
     Project project;
     License license;
@@ -71,7 +72,7 @@ public class SoftwareVexComponentServiceTest {
 
     @BeforeEach
     void setUp() {
-        project = projectFactory.create("SoftwareComponentServiceTestProject");
+        project = projectFactory.create("SoftwareComponentServiceTestProject", dataManager.create(Organization.class));
         license = licenseFactory.create("SoftwareComponentServiceTestLicenseType",
                 "SoftwareComponentServiceTestLicenseText","SoftwareComponentServiceTestLicenseName");
         List<License> licenses = new ArrayList<>(List.of(license));
