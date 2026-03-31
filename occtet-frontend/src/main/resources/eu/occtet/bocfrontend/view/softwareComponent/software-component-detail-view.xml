@@ -74,7 +74,7 @@
                         <columns resizable="true" sortable="true">
                             <column property="vulnerability.vulnerabilityId" header="msg://Id"/>
                             <column property="vulnerability.aliases" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.aliases" autoWidth="true"/>
-                            <column property="vulnerability.weightedSeverity" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.weightedSeverity"/>
+                            <column property="vulnerability.severity" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.weightedSeverity"/>
                             <column property="vulnerability.exploitability" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.exploitability"/>
                             <column property="vulnerability.riskScore" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.riskScore"/>
                             <column property="vulnerability.sourceUrl" header="msg://softwareComponent.sourceUrl"/>

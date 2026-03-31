@@ -5,7 +5,8 @@
     <h2>1. Einführung</h2>
 
     <h3>1.1 Was ist Occtet Curator?</h3>
-    Occtet Curator ist eine professionelle Plattform zur Analyse, Kuration und Bewertung von SBOMs (Software Bill of Materials).
+    Occtet Curator ist eine professionelle Plattform zur Analyse,
+    Kuration und Bewertung von SBOMs (Software Bill of Materials) und Erstellung von VEX Berichten.
 
     Eine SBOM beschreibt, aus welchen Softwarekomponenten ein Projekt besteht. Diese Informationen bilden die Grundlage für:
     - Sicherheitsbewertungen (CVEs, Schwachstellen)
@@ -29,61 +30,99 @@
         <tbody>
         <tr>
             <td>SBOM</td>
-            <td>Liste aller Softwarekomponenten eines Projekts (z. B. CycloneDX oder SPDX)</td>
+            <td>Liste aller Softwarekomponenten eines Projekts (z.B. SPDX).</td>
         </tr>
         <tr>
             <td>InventoryItem</td>
-            <td>Eine logisch zusammengehörige Softwarekomponente inklusive Dateien, Lizenzen, Copyrights und CVEs</td>
+            <td>Eine Abbildung der Softwarekomponente inklusive Dateien, Lizenzen, Copyrights und CVEs.</td>
         </tr>
         <tr>
             <td>SoftwareComponent</td>
-            <td>Die eigentliche Software (z. B. OpenSSL 3.0.2)</td>
+            <td>Die eigentliche Software Komponente (z.B. OpenSSL 3.0.2).</td>
         </tr>
         <tr>
             <td>Vulnerability / CVE</td>
-            <td>Eine bekannte Sicherheitslücke</td>
+            <td>Sicherheitsformat, das bestätigt, ob ein Softwareprodukt von einer Schwachstelle (CVE) betroffen ist oder nicht.</td>
         </tr>
         <tr>
             <td>VEX</td>
-            <td>Aussage, ob eine CVE für dieses Projekt relevant ist</td>
+            <td>Aussage, ob eine CVE für dieses Projekt relevant ist.</td>
         </tr>
         <tr>
             <td>AuditNote</td>
-            <td>Dokumentation deiner Entscheidung</td>
+            <td>Dokumentation deiner Entscheidungen.</td>
         </tr>
         </tbody>
     </table>
 
     <h2>2. Grundprinzip: Wie arbeitet man mit Occtet?</h2>
-    Occtet Curator arbeitet projektbasiert:
-    1. Projekt anlegen
-    2. SBOM importieren
-    3. Projekt analysieren
-    4. InventoryItems prüfen
-    5. Dateien, Lizenzen und Copyrights validieren
-    6. Schwachstellen bewerten (VEX)
-    7. Ergebnisse exportieren
+    Occtet Curator arbeitet projektbasiert. Eine Organisation kann mehrere Projekte und User enthalten. :
+    Der Admin legt Organisationen an und weist User der Organisation zu. Auch legt er in der Configuration den Pfad an,
+    in dem der Source Code gespeichert wird.
+
+    Der Curator geht nun wie folgt vor:
+
+    1. Projekt anlegen (Projekte)
+    2. SBOM importieren (Import -> SPDX Import oder wenn ORT Instanz verfügbar über den ORT Starter)
+    3. Im SBOMmgmt wird nun das Projekt ausgewählt und mit Hilfe der InventoryItems auf der rechten Seite und
+        dem Filetree auf der linken Seite kuratiert.
+    4. Die Overview zeigt Schwachstellen, Lizenzen und Copyrights des Projektes
+    5. Die InventoryItems enthalten Daten zur SoftwareKomponente, nicht nur Name und Version, auch Schwachstellen, Copyrights und Lizenzen.
+        Zusätzlich enthalten sie Files, zugehörig zur SoftwareKomponente oder alleinstehend mit geteilten Merkmalen (z.B. die gleiche Lizenz),
+        und Audit Notes in denen Nachweise zu den Daten festgehalten werden.
+    6. Hier im Kontext zur SoftwareKomponente des InventoryItems können zu deren Schwachstellen VEX Berichte erstellt
+        und heruntergeladen werden
+    7. Die kuratierte SBOM kann auf der Projektseite zum jeweiligen Projekt heruntergeladen werden
 
     Das System ist darauf ausgelegt, aus einer rohen SBOM ein geprüftes, auditfähiges Softwareinventar zu erzeugen.
 
-    <h2>3. Projekte</h2>
+    Im Folgenden werden die einzelnen Seiten detaillierter beschrieben.
 
-    <h3>3.1 Projekt anlegen</h3>
-    Beim Anlegen eines Projekts gibst du an:
+    <h2>3. Configuration (Admin)</h2>
+
+    <h3>3.1 Systempfad anlegen </h3>
+    Der Systempfad bestimmt, wo der Source Code zu den Projekten gespeichert wird.
+    Dies wird benötigt, um später im SBOMmgmt die Inhalte der Files anzuzeigen.
+    Ohne Systempfad kann kein Projekt angelegt werden.
+
+    <h3>3.2 Textvervollständigung (Vorschläge)</h3>
+    By Default sind einige Vorschläge zur Textvervollständigung angelegt.
+    Diese können in den AuditNotes oder für den InventoryItem Name benutzt werden.
+    Nur der Admin kann neue Anlegen, zurzeit existieren nur zwei Kontexte, die zwingend so übernommen
+    werden sollten und nur für diese zwei Anwendungen implementiert sind.
+
+    <h3>3.3 Suchbegriffe</h3>
+
+    Hier können Profile für Suchbegriffe erstellt werden, die dann in den File Inhalten hervorgehoben werden.
+    Beliebte Suchbegriffe sind beispielsweise: itext, gpl, lgpl, stackoverflow.
+    Die Suchbegriffe werden nacheinander mit Komma getrennt angegeben.
+
+    <h2>4. Organisation (Admin)</h2>
+
+    Der Admin erstellt Organisationen und weist diesen User zu. Auch Projekte kann der Admin den Organisationen zuordnen.
+    Wenn der Admin ein Projekt erstellt, kann dieser auswählen welche Organisation dem Projekt zugewiesen ist.
+    Wenn ein Curator ein Projekt erstellt, ist die Organisation des Projekts automatisch die des Users.
+
+
+
+    <h2>5. Projekte</h2>
+
+    <h3>5.1 Projekt anlegen</h3>
+    Beim Anlegen eines Projekts sind diese Angaben zwingend:
     - Name
-    - Arbeitsverzeichnis
-    - Optional: Metadaten wie Version, Kunde, Produkt
+    - Version
+    - Produktverantwortlicher
 
-    In das Projektverzeichnis werden:
-    - der Quellcode
-    - und die Abhängigkeiten
-    kopiert oder referenziert. Dieses Verzeichnis bildet die Basis für:
-    - Dateianalyse
-    - Copyright-Scanning
-    - Lizenzprüfung
+    Zusätzlich können noch eine Kontaktemail und ein Suchprofil hinzugefügt werden.
 
-    <h3>3.2 SBOM importieren</h3>
-    Du kannst eine SBOM (z. B. SPDX oder CycloneDX) importieren. Beim Import kannst du konfigurieren, ob KI-Workflows für Folgendes genutzt werden:
+    Wenn der Admin ein Projekt erstellt, kann dieser auswählen welche Organisation dem Projekt zugewiesen ist.
+    Wenn ein Curator ein Projekt erstellt, ist die Organisation des Projekts automatisch die des Users.
+
+    Die ganzen Daten, die den Projekten einer Organisation angehören, können innerhalb einer Organisation wiederverwendet werden.
+    Lizenzen und Copyrights sind von Organisationen unabhängig und können global über alle Organisationen genutzt werden.
+
+    <h3>5.2 SBOM importieren</h3>
+    Du kannst eine SBOM (momentan SPDX) importieren. Beim Import kannst du konfigurieren, ob KI-Workflows für Folgendes genutzt werden:
     - Copyright-Erkennung
     - Lizenzzuordnung
     - Dateizuweisung
@@ -94,7 +133,7 @@
     - Dateizuordnungen
     - erste Schwachstelleninformationen
 
-    <h2>4. Dashboard</h2>
+    <h2>6. Dashboard</h2>
     Das Dashboard ist deine Sicherheitsampel. Es zeigt u. a.:
     - Anzahl kritischer CVEs
     - offene Schwachstellen
