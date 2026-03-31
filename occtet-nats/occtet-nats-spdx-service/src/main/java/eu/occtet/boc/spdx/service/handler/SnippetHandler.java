@@ -19,15 +19,13 @@
 
 package eu.occtet.boc.spdx.service.handler;
 
-import eu.occtet.boc.entity.Copyright;
-import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.entity.License;
-import eu.occtet.boc.entity.SoftwareComponent;
+import eu.occtet.boc.entity.*;
 import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.service.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.persistence.core.queries.CoreAttributeGroup;
 import org.spdx.core.InvalidSPDXAnalysisException;
 import org.spdx.library.SpdxModelFactory;
 import org.spdx.library.model.v2.SpdxConstantsCompatV2;
@@ -108,7 +106,8 @@ public class SnippetHandler {
                 snippet,
                 context.getFileToInventoryItemMap(),
                 context.getLicenseCache(),
-                context.getExtractedLicenseInfos()
+                context.getExtractedLicenseInfos(),
+                context.getProject().getOrganization()
         );
     }
 
@@ -119,7 +118,8 @@ public class SnippetHandler {
     private void enrichComponentFromSnippet(SpdxSnippet snippet,
                                             Map<String, InventoryItem> fileMap,
                                             Map<String, License> licenseCache,
-                                            Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc
+                                            Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc,
+                                            Organization organization
     ) {SpdxFile snippetFile;
         try {
             snippetFile = snippet.getSnippetFromFile();
@@ -146,7 +146,9 @@ public class SnippetHandler {
                         .anyMatch(c -> c.getCopyrightText().equals(snippetCopyright));
 
                 if (!exists) {
-                    Copyright copyright = copyrightService.findOrCreateBatch(Set.of(snippetCopyright)).get(snippetCopyright);
+                    Copyright copyright =
+                            copyrightService.findOrCreateBatch(Set.of(snippetCopyright),
+                                    organization).get(snippetCopyright);
                     if (copyright != null) {
                         if (component.getCopyrights() == null) {
                             component.setCopyrights(new java.util.ArrayList<>());
@@ -159,7 +161,8 @@ public class SnippetHandler {
 
             AnyLicenseInfo concluded = snippet.getLicenseConcluded();
             if (concluded != null && !concluded.isNoAssertion(concluded) && !concluded.isNoAssertion(concluded)) {
-                List<License> licenses = licenseHandler.createLicenses(concluded, licenseCache, licenseInfosExtractedSpdxDoc);
+                List<License> licenses = licenseHandler.createLicenses(concluded, licenseCache,
+                        licenseInfosExtractedSpdxDoc, organization);
 
                 if (component.getLicenses() == null) {
                     component.setLicenses(new java.util.ArrayList<>());

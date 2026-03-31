@@ -3,17 +3,15 @@ package eu.occtet.bocfrontend.entity;
 
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.metamodel.annotation.JmixEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
+import jakarta.persistence.*;
 
 
 @JmixEntity
-@Table(name="SUGGESTION" )
+@Table(name="SUGGESTION", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"ORGANIZATION_ID", "CONTEXT", "SENTENCE"})
+})
 @Entity
-public class Suggestion {
+public class Suggestion implements HasOrganization {
 
     @JmixGeneratedValue
     @Id
@@ -25,6 +23,10 @@ public class Suggestion {
 
     @Column(name= "SENTENCE")
     private String sentence;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID")
+    private Organization organization;
 
     public Suggestion() {
     }
@@ -56,5 +58,13 @@ public class Suggestion {
 
     public void setSentence(String sentence) {
         this.sentence = sentence;
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 }

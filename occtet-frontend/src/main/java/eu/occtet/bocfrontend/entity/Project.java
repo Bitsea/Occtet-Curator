@@ -33,9 +33,11 @@ import java.util.List;
 import java.util.Set;
 
 @JmixEntity
-@Table(name = "PROJECT")
+@Table(name = "PROJECT", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"ORGANIZATION_ID", "PROJECT_NAME", "VERSION"})
+})
 @Entity
-public class Project {
+public class Project implements HasOrganization {
 
     @JmixGeneratedValue
     @Id
@@ -63,11 +65,6 @@ public class Project {
     @Column(name = "CONTACT_EMAIL", columnDefinition = "VARCHAR(255)")
     private String contactEmail;
 
-    @Column(name = "ORGANIZATION_NAME", columnDefinition = "VARCHAR(255)", nullable = false)
-    private String organizationName;
-
-    @Column(name = "ORGANIZATION_EMAIL", columnDefinition = "VARCHAR(255)")
-    private String organizationEmail;
 
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
@@ -75,9 +72,15 @@ public class Project {
     @OneToMany(mappedBy = "project")
     private Set<File> files= new HashSet<>();
 
-    public Project() {this.createdAt = LocalDateTime.now();}
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
+    private Organization organization;
 
-    public Project(String projectName) {
+    public Project() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public Project(String projectName, Organization organization) {
         this.createdAt = LocalDateTime.now();
         this.projectName = projectName;
     }
@@ -134,21 +137,6 @@ public class Project {
         this.createdAt = createdAt;
     }
 
-    public String getOrganizationName() {
-        return organizationName;
-    }
-
-    public void setOrganizationName(String organizationName) {
-        this.organizationName = organizationName;
-    }
-
-    public String getOrganizationEmail() {
-        return organizationEmail;
-    }
-
-    public void setOrganizationEmail(String organizationEmail) {
-        this.organizationEmail = organizationEmail;
-    }
 
     public Set<File> getFiles() {
         return files;
@@ -167,6 +155,14 @@ public class Project {
             this.files.addAll(files);
         }else this.files = files;
 
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 
 }

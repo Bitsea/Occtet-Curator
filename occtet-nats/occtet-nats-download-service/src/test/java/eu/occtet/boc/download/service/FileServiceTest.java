@@ -22,8 +22,10 @@ package eu.occtet.boc.download.service;
 
 import eu.occtet.boc.config.TestEclipseLinkJpaConfiguration;
 import eu.occtet.boc.dao.FileRepository;
+import eu.occtet.boc.dao.OrganizationRepository;
 import eu.occtet.boc.download.factory.FileFactory;
 import eu.occtet.boc.entity.File;
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.Project;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,16 +62,22 @@ class FileServiceTest {
     private FileService fileService;
     @Autowired
     private FileRepository fileRepository;
+    @Autowired
+    private OrganizationRepository organizationRepository;
 
     private Project testProject;
 
     @BeforeEach
     void setup() {
+        Organization organization = new Organization();
+        organization.setOrganizationName("TestOrg");
+        organizationRepository.save(organization);
+
         testProject = new Project();
         testProject.setProjectName("TestProject");
         testProject.setVersion("1.0.0");
         testProject.setProjectContact("test");
-        testProject.setOrganizationName("test");
+        testProject.setOrganization(organization);
         testProject = entityManager.persistAndFlush(testProject);
     }
 

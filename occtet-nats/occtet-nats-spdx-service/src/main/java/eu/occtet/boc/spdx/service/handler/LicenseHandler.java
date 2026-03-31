@@ -21,6 +21,7 @@ package eu.occtet.boc.spdx.service.handler;
 
 import eu.occtet.boc.dao.LicenseRepository;
 import eu.occtet.boc.entity.License;
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.spdx.service.LicenseService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,7 +47,8 @@ public class LicenseHandler {
 
     public List<License> createLicenses(AnyLicenseInfo spdxLicenseInfo,
                                         Map<String, License> licenseCache,
-                                        Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc)
+                                        Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc,
+                                        Organization organization)
             throws InvalidSPDXAnalysisException {
 
         Set<License> allLicenses = new HashSet<>();
@@ -77,7 +79,7 @@ public class LicenseHandler {
             License licenseEntity = licenseCache.get(licenseId);
 
             if (licenseEntity == null) {
-                licenseEntity = licenseService.findOrCreateLicense(licenseId, licenseText, licenseId);
+                licenseEntity = licenseService.findOrCreateLicense(licenseId, licenseText, licenseId, organization);
 
                 if (isListed) {
                     licenseEntity.setSpdx(true);

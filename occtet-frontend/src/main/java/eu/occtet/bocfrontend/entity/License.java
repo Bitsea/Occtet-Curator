@@ -31,7 +31,7 @@ import jakarta.persistence.*;
 @JmixEntity
 @Table(name = "LICENSE",uniqueConstraints = { @UniqueConstraint(columnNames = { "LICENSE_TYPE"})})
 @Entity
-public class License {
+public class License implements HasOrganization {
 
     @JmixGeneratedValue
     @Id
@@ -64,6 +64,10 @@ public class License {
 
     @Column(name= "IS_SPDX")
     private Boolean isSpdx;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID")
+    private Organization organization;
 
     public License(){}
 
@@ -175,6 +179,14 @@ public class License {
 
     public Boolean getSpdx() {
         return isSpdx;
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 }
 

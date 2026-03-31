@@ -19,6 +19,7 @@
 
 package eu.occtet.bocfrontend.factory;
 
+import eu.occtet.bocfrontend.entity.Organization;
 import eu.occtet.bocfrontend.entity.Project;
 import io.jmix.core.DataManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,9 +38,10 @@ public class ProjectFactory {
      * @param name
      * @return
      */
-    public Project create(@Nonnull String name) {
+    public Project create(@Nonnull String name, Organization organization) {
         Project project = dataManager.create(Project.class);
         project.setProjectName(name);
+        project.setOrganization(organization);
         return dataManager.save(project);
     }
 
