@@ -46,6 +46,9 @@ services:
         - "8090:8090"
       volumes:
         - /home/occtet/project_data:/project_data
+        - type: bind
+          source: ./cacerts
+          target: /opt/java/openjdk/lib/security/cacerts
       depends_on:
         - db
         - nats
