@@ -53,6 +53,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -71,50 +72,61 @@ public class LicenseListView extends StandardListView<License> {
 
     @ViewComponent
     private CollectionLoader<License> licensesDl;
-
-    @Autowired
-    private SPDXLicenseService spdxLicenseService;
-
-    @Autowired
-    private DialogWindows dialogWindows;
-
-    @Autowired
-    private LicenseTextService licenseTextService;
     @ViewComponent
     private DataGrid<License> licensesDataGrid;
-
-    @Autowired
-    private Messages messages;
-
     @ViewComponent
     private CollectionContainer<License> licensesDc;
-
-    @Autowired
-    private LicenseRepository licenseRepository;
-
     @ViewComponent
     private JmixComboBox<Project> projectComboBox;
-
-    @Autowired
-    private ProjectRepository projectRepository;
-
     @ViewComponent
     private HorizontalLayout filterBox;
 
-
+    @Autowired
+    private SPDXLicenseService spdxLicenseService;
+    @Autowired
+    private DialogWindows dialogWindows;
+    @Autowired
+    private LicenseTextService licenseTextService;
+    @Autowired
+    private Messages messages;
+    @Autowired
+    private LicenseRepository licenseRepository;
+    @Autowired
+    private ProjectRepository projectRepository;
 
     @Subscribe
     public void onInit(InitEvent event){
-        projectComboBox.setItems(projectRepository.findAll());
-        projectComboBox.setItemLabelGenerator(project -> project.getProjectName()+" - "+project.getVersion());
+        Project showAllProject = new Project();
+        showAllProject.setProjectName(messages.getMessage("Showall"));
+        showAllProject.setVersion("");
+        showAllProject.setId(new Random().nextLong());
+
+        List<Project> allProjects = new java.util.ArrayList<>();
+        allProjects.add(showAllProject);
+        allProjects.addAll(projectRepository.findAll());
+
+        projectComboBox.setItems(allProjects);
+        projectComboBox.setItemLabelGenerator(project -> {
+            if (messages.getMessage("Showall").equals(project.getProjectName())) {
+                return project.getProjectName();
+            }
+            return project.getProjectName() + " - " + project.getVersion();
+        });
     }
 
     @Subscribe(id = "projectComboBox")
     public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
         if(event != null){
-            List<License> licensesProject = licenseRepository.findLicensesByProject(event.getValue());
-            loadLicenses(licensesProject);
-            filterBox.setVisible(!licensesProject.isEmpty());
+            Project selectedProject = event.getValue();
+            if (selectedProject == null || messages.getMessage("Showall").equals(selectedProject.getProjectName())) {
+                List<License> licenses = licenseRepository.findAll();
+                loadLicenses(licenses);
+                filterBox.setVisible(!licenses.isEmpty());
+            }else {
+                List<License> licensesProject = licenseRepository.findLicensesByProject(event.getValue());
+                loadLicenses(licensesProject);
+                filterBox.setVisible(!licensesProject.isEmpty());
+            }
         }
     }
 
@@ -181,13 +193,6 @@ public class LicenseListView extends StandardListView<License> {
         window.setWidth("100%");
         window.setHeight("100%");
         window.open();
-    }
-
-    @Subscribe("showAllButton")
-    public void clickOnShowAllButton(ClickEvent<Button> event){
-        List<License> licenses = licenseRepository.findAll();
-        loadLicenses(licenses);
-        filterBox.setVisible(!licenses.isEmpty());
     }
 
     private void loadLicenses(List<License> licenses){
