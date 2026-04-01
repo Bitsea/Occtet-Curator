@@ -27,17 +27,6 @@
     <!-- DO NOT REMOVE. This changelog is required for user management. -->
 
     <changeSet id="1" author="OcctetFrontend" context="!cuba">
-
-        <preConditions onFail="MARK_RAN">
-            <and>
-                <tableExists tableName="USER_"/>
-                <rowCount expectedRows="0" tableName="USER_"/>
-
-
-            </and>
-        </preConditions>
-
-
         <createTable tableName="USER_">
             <column name="ID" type="${uuid.type}">
                 <constraints primaryKey="true" nullable="false"/>
@@ -55,7 +44,6 @@
             <column name="ACTIVE" type="boolean"/>
             <column name="TIME_ZONE_ID" type="VARCHAR(255)"/>
         </createTable>
-
     </changeSet>
 
     <changeSet id="2" author="OcctetFrontend" context="!cuba">
