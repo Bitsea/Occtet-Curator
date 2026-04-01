@@ -1,6 +1,6 @@
 #version: '0.3.8'
 
-# ODER: db | nats -> Frontend -> Backend-microservices
+# ORDER: db | nats -> Frontend -> Backend-microservices
 
 x-common-env: &common-env
   SPRING_PROFILES_ACTIVE: live
@@ -84,6 +84,7 @@ services:
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+#      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:8090/boc/ > /dev/null || exit 1"]
       interval: 10s
