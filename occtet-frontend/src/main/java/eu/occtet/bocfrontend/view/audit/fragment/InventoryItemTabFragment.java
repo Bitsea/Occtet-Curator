@@ -365,9 +365,12 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                             License trackedLicense = dataContext.merge(license);
                             if (!softwareComponent.getLicenses().contains(trackedLicense)) {
                                 softwareComponent.getLicenses().add(trackedLicense);
+
                                 licenseDc.getMutableItems().add(trackedLicense);
                             }
+
                         }
+                        dataContext.merge(softwareComponent);
                         setSaveButtonDirtyState(true);
                         infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseAdd"));
                     }
@@ -502,6 +505,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                                 copyrightDc.getMutableItems().add(trackedCopyright);
                             }
                         }
+                        dataContext.merge(softwareComponent);
                         infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.CopyrightAdd"));
                     }
                 }

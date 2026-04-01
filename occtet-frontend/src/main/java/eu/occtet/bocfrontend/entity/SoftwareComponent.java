@@ -171,14 +171,21 @@ public class SoftwareComponent implements HasOrganization {
                 .collect(Collectors.toList());
     }
 
-    public void setVulnerabilities(List<Vulnerability> vulnerabilities) {
+    /**
+     * realtion between vulnerabilites and softwarecomponent is set with this link table, this new entity of link table
+     * must be saved after the usage of this method, that is why this setter gives something back
+     * better to implement this logic in the code his is used
+     * @param vulnerabilities
+     * @return
+     */
+    public List<ComponentVulnerabilityLink> setVulnerabilities(List<Vulnerability> vulnerabilities) {
         if (this.vulnerabilityLinks == null) {
             this.vulnerabilityLinks = new ArrayList<>();
         }
 
         if (vulnerabilities == null || vulnerabilities.isEmpty()) {
             this.vulnerabilityLinks.clear();
-            return;
+            return null;
         }
 
         this.vulnerabilityLinks.removeIf(link -> !vulnerabilities.contains(link.getVulnerability()));
@@ -195,7 +202,10 @@ public class SoftwareComponent implements HasOrganization {
                 newLink.setResolved(false);
                 this.vulnerabilityLinks.add(newLink);
             }
+
         }
+        //this must be saved in dataManager afterward
+        return vulnerabilityLinks;
     }
 
     public List<ComponentVulnerabilityLink> getVulnerabilityLinks() {

@@ -107,6 +107,8 @@ dependencies {
     //  shou preferably match the keycloak server version
     implementation 'org.keycloak:keycloak-core:26.5.5'
 
+    implementation 'us.springett:cvss-calculator:1.5.1'
+
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
