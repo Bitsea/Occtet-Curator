@@ -33,7 +33,7 @@ public class Organization {
     @Column(name = "ID", nullable = false)
     private Long id;
 
-    @Column(name = "ORGANIZATION_NAME", columnDefinition = "VARCHAR(255)", nullable = false)
+    @Column(name = "ORGANIZATION_NAME", columnDefinition = "VARCHAR(255)", nullable = false, unique = true)
     private String organizationName;
 
     @Column(name = "ORGANIZATION_EMAIL", columnDefinition = "VARCHAR(255)")
