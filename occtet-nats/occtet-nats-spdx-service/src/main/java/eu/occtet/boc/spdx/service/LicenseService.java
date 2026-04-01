@@ -23,6 +23,7 @@ package eu.occtet.boc.spdx.service;
 
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.dao.LicenseRepository;
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.spdx.factory.LicenseFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,7 +46,7 @@ public class LicenseService {
 
 
 
-    public License findOrCreateLicense(String licenseId, String licenseText, String licenseName ) {
+    public License findOrCreateLicense(String licenseId, String licenseText, String licenseName, Organization organization) {
         log.debug("before getting licenses");
         List<License> license = licenseRepository.findByLicenseTypeAndLicenseText(licenseId, licenseText);
         log.debug("after getting licenses {}", license.size());
@@ -55,10 +56,10 @@ public class LicenseService {
             List<License> licenses = licenseRepository.findByLicenseType(licenseId);
             if(!licenses.isEmpty()){
                 if(!license.getFirst().getLicenseText().equals(licenseText)){
-                    return licenseFactory.createWithName(licenseId, licenseText, licenseName+"-variant");
+                    return licenseFactory.createWithName(licenseId, licenseText, licenseName+"-variant", organization);
                 }
             }
-            return licenseFactory.createWithName(licenseId, licenseText, licenseName);
+            return licenseFactory.createWithName(licenseId, licenseText, licenseName, organization);
         }
     }
 

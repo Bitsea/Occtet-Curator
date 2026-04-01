@@ -31,8 +31,7 @@ import java.util.Set;
 @Entity
 @Table(name = "COPYRIGHT")
 @EntityListeners(AuditingEntityListener.class)
-public class Copyright {
-
+public class Copyright implements HasOrganization {
 
     @Id
     @Column(name = "ID", nullable = false)
@@ -51,7 +50,6 @@ public class Copyright {
     @Column(name= "AI_CONTROLLED")
     private Boolean aiControlled;
 
-
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(
             name = "COPYRIGHT_FILE_LINK",
@@ -63,12 +61,17 @@ public class Copyright {
     @JoinColumn(name= "COPYRIGHT_ID")
     private List<License> licenses;
 
-    public Copyright(String copyrightText, Set<File> cl) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
+    private Organization organization;
+
+    public Copyright(String copyrightText, Set<File> cl, Organization organization) {
         this.copyrightText = copyrightText;
         this.files = cl;
         this.curated = false;
         this.garbage = false;
         this.aiControlled=false;
+        this.organization= organization;
     }
 
     public Boolean getAiControlled() {
@@ -147,5 +150,15 @@ public class Copyright {
 
     public void setGarbage(Boolean garbage) {
         this.garbage = garbage;
+    }
+
+    @Override
+    public Organization getOrganization() {
+        return this.organization;
+    }
+
+    @Override
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 }

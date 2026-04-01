@@ -44,8 +44,13 @@ services:
       image: occtet-boc-frontend:0.3.10-SNAPSHOT
       ports:
         - "8090:8090"
+      environment:
+        USE_SYSTEM_CA_CERTS: 1
       volumes:
         - /home/occtet/project_data:/project_data
+        - type: bind
+          source: ./cacerts
+          target: /certificates
       depends_on:
         - db
         - nats

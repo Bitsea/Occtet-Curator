@@ -19,6 +19,7 @@
 
 package eu.occtet.boc.spdx.service;
 
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.dao.SoftwareComponentRepository;
 import eu.occtet.boc.spdx.factory.SoftwareComponentFactory;
@@ -43,11 +44,11 @@ public class SoftwareComponentService {
 
 
 
-    public SoftwareComponent getOrCreateSoftwareComponent(String softwareName, String version){
+    public SoftwareComponent getOrCreateSoftwareComponent(String softwareName, String version, Organization organization){
         List<SoftwareComponent> softwareComponent = softwareComponentRepository.findByNameAndVersion(
                 softwareName, version);
         if(softwareComponent.isEmpty()) {
-            return softwareComponentFactory.create(softwareName, version);
+            return softwareComponentFactory.create(softwareName, version, organization);
         } else {
             return softwareComponent.getFirst();
         }

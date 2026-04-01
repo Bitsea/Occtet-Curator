@@ -115,8 +115,9 @@ public class ProcessOrtRunTask  {
         try {
             OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
             AuthService authService = new AuthService(ortProperties.tokenUrl());
-
+            log.debug("connection with ORT on {}", ortProperties.baseUrl());
             TokenResponse tokenResponse = null;
+            log.debug("authcall on keycloak with clientId {} username {} password {}", ortProperties.clientId(), ortProperties.username(), ortProperties.password() );
 
             tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
 

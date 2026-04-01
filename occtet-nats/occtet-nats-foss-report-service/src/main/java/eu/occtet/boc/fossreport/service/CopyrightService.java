@@ -23,6 +23,7 @@ package eu.occtet.boc.fossreport.service;
 import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.entity.File;
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.fossreport.factory.CopyrightFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,7 @@ public class CopyrightService {
     private CopyrightRepository copyrightRepository;
 
 
-    public Copyright findOrCreateCopyright(String copyrightString, File file) {
+    public Copyright findOrCreateCopyright(String copyrightString, File file, Organization organization) {
         List<Copyright> copyright = copyrightRepository.findByCopyrightText(copyrightString);
         if (!copyright.isEmpty() && copyright.getFirst() != null) {
             if(copyright.getFirst().getFiles()==null){
@@ -57,7 +58,7 @@ public class CopyrightService {
             return copyright.getFirst();
         }
 
-        return copyrightFactory.create(copyrightString, Set.of(file));
+        return copyrightFactory.create(copyrightString, Set.of(file), organization);
     }
 
 
