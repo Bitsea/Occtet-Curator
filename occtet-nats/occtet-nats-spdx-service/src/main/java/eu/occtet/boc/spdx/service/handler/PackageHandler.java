@@ -19,10 +19,7 @@
 
 package eu.occtet.boc.spdx.service.handler;
 
-import eu.occtet.boc.dao.CopyrightRepository;
-import eu.occtet.boc.dao.OrtIssueRepository;
-import eu.occtet.boc.dao.OrtViolationRepository;
-import eu.occtet.boc.dao.ProjectRepository;
+import eu.occtet.boc.dao.*;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
@@ -69,6 +66,8 @@ public class PackageHandler {
     private OrtViolationRepository ortViolationRepository;
     @Autowired
     private ProjectRepository projectRepository;
+    @Autowired
+    private InventoryItemRepository inventoryItemRepository;
 
     public void processAllPackages(SpdxImportContext context, Consumer<Integer> progressCallback) {
         SpdxDocument doc = context.getSpdxDocument();
@@ -81,6 +80,8 @@ public class PackageHandler {
 
             int count = 0;
             Set<String> seenPackages = new HashSet<>();
+            Set<InventoryItem> inventoryItemsToSave = new HashSet<>();
+            Set<Copyright> copyrightsToSave = new HashSet<>();
 
             for (TypedValue uri : packageUris) {
                 try {
@@ -88,8 +89,9 @@ public class PackageHandler {
                             .forEach(obj -> {
                                 if (obj instanceof SpdxPackage pkg && !seenPackages.contains(pkg.getId())) {
                                     try {
-                                        InventoryItem item = parseSinglePackage(pkg, context);
+                                        InventoryItem item = parseSinglePackage(pkg, context, copyrightsToSave);
                                         context.getInventoryItems().add(item);
+                                        inventoryItemsToSave.add(item);
                                         seenPackages.add(pkg.getId());
                                     } catch (Exception e) {
                                         log.error("Failed to import package {}: {}. Skipping...", pkg.getId(), e.getMessage());
@@ -104,12 +106,21 @@ public class PackageHandler {
                 int percent = (int) ((40.0 * count) / packageUris.size());
                 if (percent % 5 == 0) progressCallback.accept(percent);
             }
+
+            projectRepository.save(context.getProject());
+            if (!copyrightsToSave.isEmpty()) {
+                copyrightRepository.saveAll(copyrightsToSave);
+            }
+            if (!inventoryItemsToSave.isEmpty()) {
+                inventoryItemRepository.saveAll(inventoryItemsToSave);
+            }
+
         } catch (InvalidSPDXAnalysisException e) {
             log.error("Error retrieving SPDX object for URI: {}", e.getMessage(), e);
         }
     }
 
-    public InventoryItem parseSinglePackage(SpdxPackage spdxPackage, SpdxImportContext context)
+    public InventoryItem parseSinglePackage(SpdxPackage spdxPackage, SpdxImportContext context, Set<Copyright> copyrightsToSave)
             throws Exception {
 
         List<OrtIssue> ortIssues= ortIssueRepository.findByProject(context.getProject());
@@ -188,7 +199,7 @@ public class PackageHandler {
         });
 
         try {
-            copyrights = parseFiles(packageFiles, inventoryItem, context);
+            copyrights = parseFiles(packageFiles, inventoryItem, context, copyrightsToSave);
         } catch (InvalidSPDXAnalysisException e) {
             log.error("Error batch processing files", e);
         }
@@ -225,7 +236,7 @@ public class PackageHandler {
         return inventoryItem;
     }
 
-    private List<Copyright> parseFiles(Set<SpdxFile> packageFiles, InventoryItem inventoryItem, SpdxImportContext context) throws InvalidSPDXAnalysisException {
+    private List<Copyright> parseFiles(Set<SpdxFile> packageFiles, InventoryItem inventoryItem, SpdxImportContext context, Set<Copyright> copyrightsToSave) throws InvalidSPDXAnalysisException {
         Set<String> allCopyrightsTexts = new HashSet<>();
         Map<String, String> fileToCopyrightMap = new HashMap<>();
         Map<String, String> fileToSpdxIdMap = new HashMap<>();
@@ -249,12 +260,10 @@ public class PackageHandler {
 
         Project project= inventoryItem.getProject();
         project.addFiles(new HashSet<>(locationMap.values()));
-        projectRepository.save(project);
 
         Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts,
                 context.getProject().getOrganization());
 
-        List<Copyright> copyrightsToUpdate = new ArrayList<>();
         for (Map.Entry<String, String> entry : fileToCopyrightMap.entrySet()) {
             String path = entry.getKey();
             String copyrightText = entry.getValue();
@@ -263,10 +272,9 @@ public class PackageHandler {
             if (loc != null && copyright != null) {
                 log.debug("Associating copyright '{}' with file '{}'", copyrightText, path);
                 copyright.getFiles().add(loc);
-                copyrightsToUpdate.add(copyright);
+                copyrightsToSave.add(copyright);
             }
         }
-        copyrightRepository.saveAll(copyrightsToUpdate);
 
         return new ArrayList<>(copyrightMap.values());
     }

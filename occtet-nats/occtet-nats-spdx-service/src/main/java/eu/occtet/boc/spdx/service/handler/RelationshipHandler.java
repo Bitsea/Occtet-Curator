@@ -19,10 +19,10 @@
 
 package eu.occtet.boc.spdx.service.handler;
 
+import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
-import eu.occtet.boc.spdx.service.InventoryItemService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
@@ -43,7 +43,7 @@ public class RelationshipHandler {
     private static final Logger log = LogManager.getLogger(RelationshipHandler.class);
 
     @Autowired
-    private InventoryItemService inventoryItemService;
+    private InventoryItemRepository inventoryItemRepository;
     @Autowired
     SpdxConverter spdxConverter;
 
@@ -116,6 +116,8 @@ public class RelationshipHandler {
             return;
         }
 
+        Set<InventoryItem> itemsToUpdate = new HashSet<>();
+
         for (Relationship relationship : relationships) {
             try {
                 Optional<SpdxElement> targetOpt = relationship.getRelatedSpdxElement();
@@ -130,27 +132,27 @@ public class RelationshipHandler {
                     case CONTAINS, DEPENDS_ON, ANCESTOR_OF -> {
                         if (targetElement instanceof SpdxPackage) {
                             targetItem.setParent(sourceItem);
-                            inventoryItemService.update(targetItem);
+                            itemsToUpdate.add(targetItem);
                             log.info("identified {} as parent of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
                         }
                     }
                     case CONTAINED_BY, DEPENDENCY_OF, DESCENDANT_OF -> {
                         if (targetElement instanceof SpdxPackage) {
                             sourceItem.setParent(targetItem);
-                            inventoryItemService.update(sourceItem);
+                            itemsToUpdate.add(sourceItem);
                             log.info("identified {} as child of {}", sourceItem.getInventoryName(), targetItem.getInventoryName());
                         }
                     }
                     case STATIC_LINK -> {
                         if (targetElement instanceof SpdxPackage) {
                             targetItem.setLinking("Static");
-                            inventoryItemService.update(targetItem);
+                            itemsToUpdate.add(targetItem);
                         }
                     }
                     case DYNAMIC_LINK -> {
                         if (targetElement instanceof SpdxPackage) {
                             targetItem.setLinking("Dynamic");
-                            inventoryItemService.update(targetItem);
+                            itemsToUpdate.add(targetItem);
                         }
                     }
                     case null, default -> {
@@ -159,6 +161,10 @@ public class RelationshipHandler {
             }catch (InvalidSPDXAnalysisException e) {
                 log.warn("Malformed relationship in package {}. Skipping.", spdxPackage.getId());
             }
+        }
+
+        if (!itemsToUpdate.isEmpty()) {
+            inventoryItemRepository.saveAll(itemsToUpdate);
         }
     }
 }
