@@ -28,9 +28,13 @@
 
             <loader id="ortIssueDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from OrtIssue e
-                      join e.project p
-                      where p = :project]]>
+                    <![CDATA[select e from OrtIssue e]]>
+                    <condition>
+                        <c:jpql>
+                            <c:join>join e.project p</c:join>
+                            <c:where>p = :project</c:where>
+                        </c:jpql>
+                    </condition>
                 </query>
             </loader>
         </collection>
