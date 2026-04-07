@@ -1,0 +1,305 @@
+<!--
+  ~ Copyright (C) 2025 Bitsea GmbH
+  ~
+  ~   Licensed under the Apache License, Version 2.0 (the "License");
+  ~   you may not use this file except in compliance with the License.
+  ~   You may obtain a copy of the License at
+  ~
+  ~       https:www.apache.orglicensesLICENSE-2.0
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  ~
+  ~   SPDX-License-Identifier: Apache-2.0
+  ~   License-Filename: LICENSE
+  -->
+
+<div style="white-space: pre-wrap; font-family: Arial, sans-serif;">
+    <h1>Occtet Curator – Guide utilisateur</h1>
+
+    <h2>1. Introduction</h2>
+
+    <h3>1.1 Qu’est-ce que Occtet Curator ?</h3>
+    Occtet Curator est une plateforme professionnelle dédiée à l’analyse, à la curation et à l’évaluation des SBOM (Software Bill of Materials), ainsi qu’à la création de rapports VEX.
+
+    Une SBOM décrit l’ensemble des composants logiciels qui constituent un projet. Ces informations servent de base pour :
+    - l’analyse de sécurité (CVE, vulnérabilités)
+    - la conformité des licences
+    - l’analyse des copyrights
+    - l’évaluation des risques dans la chaîne d’approvisionnement logicielle
+
+    Occtet Curator transforme une SBOM brute en unités structurées et vérifiables, facilitant ainsi leur analyse par des utilisateurs.
+    L’élément central de ce processus est l’<b>InventoryItem</b>.
+
+    <h3>1.2 Concepts clés</h3>
+
+    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead>
+        <tr>
+            <th>Terme</th>
+            <th>Description</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>SBOM</td>
+            <td>Liste de tous les composants logiciels d’un projet (par exemple SPDX).</td>
+        </tr>
+        <tr>
+            <td>InventoryItem</td>
+            <td>Représentation structurée d’un composant logiciel, incluant les fichiers, licences, copyrights et CVE associés.</td>
+        </tr>
+        <tr>
+            <td>SoftwareComponent</td>
+            <td>Le composant logiciel lui-même (par exemple OpenSSL 3.0.2).</td>
+        </tr>
+        <tr>
+            <td>Vulnerability / CVE</td>
+            <td>Identifiant standard indiquant si un composant logiciel est affecté par une vulnérabilité connue.</td>
+        </tr>
+        <tr>
+            <td>VEX</td>
+            <td>Indique si une vulnérabilité (CVE) est pertinente pour le projet.</td>
+        </tr>
+        <tr>
+            <td>AuditNote</td>
+            <td>Documentation permettant de justifier et tracer les décisions prises.</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h2>2. Principe de fonctionnement : travailler avec Occtet</h2>
+    Occtet Curator repose sur une organisation par projets. Une organisation peut contenir plusieurs projets et utilisateurs.
+
+    L’administrateur est responsable de :
+    - la création des organisations
+    - l’attribution des utilisateurs aux organisations
+    - la définition du chemin système où le code source est stocké
+
+    Le curator suit généralement les étapes suivantes :
+
+    1. Créer un projet (Projects)
+    2. Importer une SBOM (Import → SPDX Import ou via ORT Starter si une instance ORT est disponible)
+    3. Accéder à la gestion SBOM (SBOMmgmt), sélectionner le projet et commencer la curation :
+    - InventoryItems à droite
+    - arborescence des fichiers à gauche
+    4. Utiliser la vue Overview pour examiner les vulnérabilités, licences et copyrights
+    5. Travailler avec les InventoryItems :
+    - ils contiennent des informations détaillées sur les SoftwareComponents
+    - incluent les vulnérabilités, licences et copyrights
+    - regroupent les fichiers associés ou des fichiers indépendants partageant des caractéristiques communes (par exemple une même licence)
+    - permettent d’ajouter des AuditNotes pour documenter les preuves et décisions
+    6. Créer et télécharger des rapports VEX pour les vulnérabilités dans le contexte d’un InventoryItem
+    7. Télécharger la SBOM enrichie depuis la page du projet
+
+    Le système est conçu pour transformer une SBOM brute en un inventaire logiciel vérifié et prêt pour audit.
+
+    Les sections suivantes décrivent en détail les différentes parties du système.
+
+    <h2>3. Configuration (Admin)</h2>
+
+    <h3>3.1 Définir le chemin système</h3>
+    Le chemin système détermine l’emplacement où le code source des projets est stocké.
+    Il est nécessaire pour afficher le contenu des fichiers dans la gestion SBOM.
+    Sans chemin système, aucun projet ne peut être créé.
+
+    <h3>3.2 Autocomplétion de texte (suggestions)</h3>
+    Par défaut, certaines suggestions d’autocomplétion sont déjà disponibles.
+    Elles peuvent être utilisées dans les AuditNotes ou comme nom d’InventoryItem.
+
+    Seul l’administrateur peut en ajouter de nouvelles.
+    Actuellement, deux contextes spécifiques sont pris en charge et doivent être utilisés tels quels, car ils sont implémentés uniquement pour ces cas d’usage.
+
+    <h3>3.3 Termes de recherche</h3>
+
+    Des profils de termes de recherche peuvent être définis afin de mettre en évidence certains mots-clés dans le contenu des fichiers.
+
+    Exemples courants : itext, gpl, lgpl, stackoverflow.
+    Les termes doivent être saisis sous forme de liste séparée par des virgules.
+
+    <h2>4. Organisation (Admin)</h2>
+
+    L’administrateur crée des organisations et y associe des utilisateurs.
+    Il peut également attribuer des projets aux organisations.
+
+    - Lorsqu’un administrateur crée un projet, il peut choisir l’organisation associée
+    - Lorsqu’un curator crée un projet, celui-ci est automatiquement rattaché à son organisation
+
+    <h2>5. Projets</h2>
+
+    <h3>5.1 Création d’un projet</h3>
+    Les informations suivantes sont obligatoires :
+    - Nom
+    - Version
+    - Responsable produit
+
+    Champs optionnels :
+    - Adresse e-mail de contact
+    - Profil de recherche
+
+    Règles d’attribution :
+    - Projet créé par un administrateur : choix de l’organisation
+    - Projet créé par un curator : attribution automatique
+
+    Les données des projets au sein d’une même organisation peuvent être réutilisées.
+    Les licences et copyrights ne sont pas liés à une organisation spécifique et peuvent être utilisés globalement.
+
+
+<h2>6. Importer une SBOM</h2>
+Vous pouvez importer une SBOM (actuellement au format SPDX) via la fonction de téléversement de fichier. Lors de l’import, vous pouvez également configurer l’utilisation de workflows basés sur l’IA pour :
+- la détection des copyrights
+- la classification des licences
+
+Après l’import, Occtet génère automatiquement :
+- les SoftwareComponents
+- les InventoryItems
+- les vulnérabilités (CVE)
+- les fichiers
+- les licences
+- les copyrights
+
+<h2>7. Lancer un ORT Run</h2>
+
+La page d’import propose également un bouton permettant de lancer un ORT run. Pour utiliser cette fonctionnalité, une instance ORT (Docker) en cours d’exécution doit être connectée au système. Les paramètres de connexion peuvent être définis dans le fichier <code>application.properties</code> ou dynamiquement via un fichier <code>.env</code>.
+
+Lors de la configuration d’un ORT run, vous devez définir :
+- le type de dépôt à analyser
+- l’URL du dépôt
+- la version à analyser
+
+<h2>8. Tableau de bord</h2>
+Le tableau de bord agit comme un indicateur de sécurité de votre projet. Il affiche notamment :
+- le nombre de CVE classées par niveau de criticité (Critical, High, Medium, Low)
+- le nombre de composants logiciels affectés par des vulnérabilités
+
+Cela vous permet d’évaluer rapidement si un projet est prêt pour une mise en production ou s’il présente un risque.
+
+<h2>9. Gestion de la SBOM</h2>
+Il s’agit de votre espace de travail principal. L’interface est organisée comme suit :
+- à gauche : l’arborescence des fichiers
+- à droite : les InventoryItems
+- au centre : une vue d’ensemble (vulnérabilités, licences, copyrights)
+
+Idéalement, chaque fichier doit être associé à un seul InventoryItem.
+
+<h2>10. InventoryItems – Élément central</h2>
+Un InventoryItem représente un composant logiciel et contient :
+- le SoftwareComponent (nom, version, URL d’origine)
+- les fichiers associés
+- les vulnérabilités (CVE) (avec possibilité de créer des entrées VEX)
+- les licences
+- les copyrights
+- les AuditNotes pour documenter les décisions
+
+Les InventoryItems constituent la base de votre analyse. Ils permettent de structurer la SBOM en unités exploitables et vérifiables.
+
+<h2>11. Travailler avec les fichiers</h2>
+
+<h3>11.1 Visualiseur de code</h3>
+Pour chaque fichier, vous pouvez :
+- l’ouvrir
+- le lire
+- effectuer des recherches
+- l’associer à un InventoryItem
+
+Lors de l’analyse, vous pouvez identifier des informations juridiques importantes telles que :
+- des en-têtes de licence
+- des mentions de copyright
+- des références à du code tiers
+
+Ces éléments doivent être documentés dans les AuditNotes afin d’assurer la traçabilité de vos décisions.
+Par exemple, vous pouvez expliquer pourquoi un fichier a été associé à un InventoryItem spécifique ou pourquoi une licence est jugée acceptable.
+
+Les restrictions d’exportation ou autres mentions légales identifiées dans le contenu des fichiers doivent également être consignées dans les AuditNotes.
+Les termes de recherche définis dans votre profil sont mis en évidence dans le contenu des fichiers.
+
+<h3>11.2 Statut « Reviewed »</h3>
+Un fichier est considéré comme vérifié lorsque :
+- il est associé au bon InventoryItem
+- sa licence a été validée
+- ses copyrights ont été examinés
+- toutes les conclusions ont été documentées
+
+Une fois ces étapes réalisées, le fichier peut être marqué comme <b>reviewed</b>.
+
+<h2>12. AuditNotes</h2>
+Les AuditNotes constituent votre documentation et votre preuve. Elles permettent notamment d’expliquer :
+- pourquoi une licence est jugée acceptable
+- pourquoi une CVE est considérée comme non pertinente
+- pourquoi un copyright peut être ignoré
+
+Elles sont essentielles pour :
+- les audits de conformité (par exemple ISO)
+- les demandes clients et la transparence
+- la documentation juridique
+
+<h2>13. Vulnérabilités & VEX</h2>
+Occtet identifie automatiquement les CVE associées à chaque SoftwareComponent. Vous évaluez ensuite leur pertinence via les statuts VEX :
+- Affected
+- Not Affected
+- Under Investigation
+- Fixed
+
+Ces évaluations peuvent être exportées au format VEX (Vulnerability Exploitability Exchange), lisible par machine.
+
+Dans la vue détaillée d’un InventoryItem (dans la gestion SBOM), vous pouvez créer des déclarations VEX individuellement pour chaque CVE ou de manière groupée.
+
+<h2>14. Vues & Aperçus</h2>
+Occtet propose plusieurs vues globales :
+
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+    <thead>
+    <tr>
+        <th>Vue</th>
+        <th>Objectif</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Inventory</td>
+        <td>Tous les InventoryItems</td>
+    </tr>
+    <tr>
+        <td>VEX Listing</td>
+        <td>Toutes les décisions VEX</td>
+    </tr>
+    <tr>
+        <td>Licenses</td>
+        <td>Toutes les licences du projet</td>
+    </tr>
+    <tr>
+        <td>SoftwareComponents</td>
+        <td>Composants techniques</td>
+    </tr>
+    <tr>
+        <td>Projects</td>
+        <td>Tous les projets</td>
+    </tr>
+    </tbody>
+</table>
+
+Toutes les listes peuvent être filtrées, triées et recherchées.
+
+<h2>15. Export</h2>
+Vous pouvez exporter :
+- des SBOM nettoyées (incluant les informations juridiques pertinentes telles que CVE, licences et copyrights)
+- des documents VEX
+
+Ces exports peuvent être utilisés pour :
+- fournir des livrables aux clients
+- répondre aux exigences des autorités ou des auditeurs
+
+<h2>16. Intégration</h2>
+
+Grâce à son API et à son intégration avec ORT, Occtet Curator peut être intégré dans une pipeline de build. Cela permet :
+- de lancer automatiquement des ORT runs
+- d’importer directement les résultats dans Occtet Curator
+
+Les ORT runs lancés en externe sont également détectés par le Curator et peuvent être importés facilement.
+
+Vous pouvez ainsi maintenir vos SBOM à jour en continu et évaluer les vulnérabilités de manière systématique.
+
+</div>
