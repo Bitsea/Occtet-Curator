@@ -48,8 +48,6 @@
     <layout>
         <hbox>
             <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
-            <button id="showAllButton" text="msg://eu.occtet.bocfrontend.view/showAllButton"
-                    alignSelf="END" themeNames="primary"/>
         </hbox>
         <hbox width="100%" visible="false" id="filterBox">
             <genericFilter id="genericFilter" dataLoader="inventoryItemsDl" themeNames="small" alignSelf="START" opened="false">

@@ -43,8 +43,6 @@
         <vbox width="100%" height="100%">
             <hbox>
                 <comboBox id="projectComboBox" property="projectName" label="msg://chooseProject"/>
-                <button id="showAllButton" text="msg://eu.occtet.bocfrontend.view/showAllButton"
-                        alignSelf="END" themeNames="primary"/>
             </hbox>
             <hbox width="100%" visible="false" id="filterBox">
                 <genericFilter id="genericFilter" dataLoader="copyrightsDl" themeNames="small" alignSelf="START" opened="false">
