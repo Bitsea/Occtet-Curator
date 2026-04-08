@@ -53,7 +53,7 @@
         </createIndex>
     </changeSet>
 
-    <changeSet id="3" author="OcctetFrontend" context="!cuba" runAlways="true">
+    <changeSet id="3" author="OcctetFrontend" context="local">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 SELECT COUNT(id) FROM USER_ WHERE USERNAME = 'admin'
@@ -70,7 +70,7 @@
 
     </changeSet>
 
-    <changeSet id="4" author="OcctetFrontend" context="!cuba" runAlways="true">
+    <changeSet id="4" author="OcctetFrontend" context="local">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 SELECT COUNT(id) FROM SEC_ROLE_ASSIGNMENT WHERE USERNAME = 'admin' AND ROLE_CODE = 'system-full-access'

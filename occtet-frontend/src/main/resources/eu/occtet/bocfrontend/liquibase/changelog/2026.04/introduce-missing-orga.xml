@@ -67,6 +67,7 @@
                 <rowCount expectedRows="0" tableName="copyright"/>
             </not>
         </preConditions>
+
         <insert tableName="organization">
             <column name="id" valueComputed="next('seq_id_organization')"/>
             <column name="organization_name" value="Default Organization"/>
@@ -125,7 +126,7 @@
 
     <changeSet id="populate-organization-id-existing-data" author="Ibrahim.AlBahra">
 
-        <preConditions onFail="HALT">
+        <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="1">
                 SELECT COUNT(*) FROM organization WHERE organization_name = 'Default Organization'
             </sqlCheck>
