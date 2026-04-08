@@ -20,14 +20,17 @@
 package eu.occtet.bocfrontend.view.dashboard;
 
 import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.boc.model.WorkTaskProgress;
+import eu.occtet.bocfrontend.dao.VulnerabilityRepository;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.service.WorkTaskProgressMonitor;
 import eu.occtet.bocfrontend.service.CuratorTaskService;
@@ -48,6 +51,7 @@ import io.jmix.flowui.component.combobox.EntityComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.listbox.JmixListBox;
 import io.jmix.flowui.facet.Timer;
+import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
@@ -69,6 +73,9 @@ public class DashboardView extends StandardView {
     
     @ViewComponent
     private CollectionLoader<Project> projectsDl;
+
+    @ViewComponent
+    private CollectionLoader<Vulnerability> vulnerabilitiesDl;
 
     @ViewComponent
     private DataGrid<Vulnerability> vulnerabilitiesGrid;
@@ -96,6 +103,9 @@ public class DashboardView extends StandardView {
 
     @Autowired
     private Messages messages;
+
+    @Autowired
+    private VulnerabilityRepository vulnerabilityRepository;
 
     private final static String sumRiskScore = "sumRiskScore";
     private final static String sumRiskValue = "value";
@@ -138,19 +148,22 @@ public class DashboardView extends StandardView {
                 .setTooltipGenerator(v -> v.getSeverity() != null ?
                         messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.severity") + ": " + v.getSeverity() :
                         messages.getMessage("eu.occtet.bocfrontend.view.dashboard/dashboardView.tooltip.NoSeverity"));
-    }
 
-    @Subscribe("vulnerabilitiesGrid")
-    public void clickOnVulnerabilitiesDataGrid(ItemDoubleClickEvent<Vulnerability> event) {
-        if (event.getClickCount() == 2) {
-            openDetailView(event.getItem());
+        vulnerabilitiesGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+        if(vulnerabilitiesGrid.getColumnByKey("infoBtn") == null){
+            vulnerabilitiesGrid.addComponentColumn(vulnerability -> {
+                JmixButton showButton = createShowButton();
+                showButton.addClickListener(e -> openDetailView(vulnerability));
+                return showButton;
+            }).setKey("infoBtn").setFlexGrow(0);
         }
     }
 
     @Subscribe("projectSelector")
-    public void chooseProject(AbstractField.ComponentValueChangeEvent event) {
+    public void chooseProject(AbstractField.ComponentValueChangeEvent<EntityComboBox<Project>, Project> event) {
         if (event != null) {
-            Project project = (Project) event.getValue();
+            Project project = event.getValue();
+            loadVulnerabilities(vulnerabilityRepository.findByProject(project));
             setValuesForPieCharts(project);
         }
     }
@@ -173,9 +186,7 @@ public class DashboardView extends StandardView {
         if (selectedProject != null) {
             dialog.getView().setProject(selectedProject);
         }
-
-        dialog.setWidth("100%");
-        dialog.setHeight("100%");
+        dialog.setSizeFull();
         dialog.open();
     }
 
@@ -323,6 +334,18 @@ public class DashboardView extends StandardView {
                 return null;
             }
         }
+    }
+
+    private JmixButton createShowButton(){
+        JmixButton showButton = uiComponents.create(JmixButton.class);
+        showButton.setIcon(VaadinIcon.INFO_CIRCLE.create());
+        showButton.addThemeVariants(ButtonVariant.LUMO_SMALL,ButtonVariant.LUMO_TERTIARY);
+        return showButton;
+    }
+
+    private void loadVulnerabilities(List<Vulnerability> vulnerabilities){
+        vulnerabilitiesDl.setParameter("vulnerabilitiesProject",vulnerabilities);
+        vulnerabilitiesDl.load();
     }
 
     @Supply(to = "runningTasksList", subject = "renderer")
