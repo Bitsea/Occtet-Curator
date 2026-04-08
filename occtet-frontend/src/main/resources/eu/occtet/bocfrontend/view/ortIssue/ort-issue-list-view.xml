@@ -40,7 +40,7 @@
         </collection>
     </data>
     <facets>
-        <dataLoadCoordinator auto="true"/>
+        <dataLoadCoordinator auto="false"/>
         <urlQueryParameters>
             <pagination component="pagination"/>
         </urlQueryParameters>
@@ -52,7 +52,10 @@
     <layout>
         <comboBox id="projectComboBox" property="projectName" label="msg://eu.occtet.bocfrontend.view.copyright/chooseProject"/>
         <hbox width="100%" visible="false" id="filterBox">
-            <simplePagination id="pagination" dataLoader="ortIssueDl" itemsPerPageItems="100"  alignSelf="END"/>
+            <genericFilter id="genericFilter" dataLoader="ortIssueDl" themeNames="small" alignSelf="START" opened="false">
+                <properties include=".*"/>
+            </genericFilter>
+            <simplePagination id="pagination" dataLoader="ortIssueDl" itemsPerPageItems="100" alignSelf="END" />
         </hbox>
         <dataGrid classNames="occtet-grid" id="ortIssueDataGrid"
                   width="100%"
