@@ -333,8 +333,9 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
             infoButton.setTooltipText(messages.getMessage("eu.occtet.bocfrontend.view.softwareComponent/softwareComponent.tooltip.detailButton"));
 
             infoButton.addClickListener(e -> {
-                dialogWindow.view(this, VulnerabilityDetailView.class)
+                DialogWindow<VulnerabilityDetailView> windows = dialogWindow.view(this, VulnerabilityDetailView.class)
                         .withViewConfigurer(v -> v.setEntityToEdit(link.getVulnerability())).open();
+                windows.setSizeFull();
             });
 
             return infoButton;

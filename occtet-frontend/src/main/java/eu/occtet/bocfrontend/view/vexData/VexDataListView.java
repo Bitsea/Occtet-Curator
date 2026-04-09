@@ -20,8 +20,6 @@
 package eu.occtet.bocfrontend.view.vexData;
 
 import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.Route;
@@ -32,6 +30,7 @@ import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.VexData;
 import eu.occtet.bocfrontend.view.main.MainView;
+import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.model.CollectionLoader;
@@ -39,6 +38,7 @@ import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Random;
 
 
 @Route(value = "vex-data", layout = MainView.class)
@@ -50,38 +50,56 @@ public class VexDataListView extends StandardListView<VexData> {
 
     @ViewComponent
     private JmixComboBox<Project> projectComboBox;
-
     @ViewComponent
     private HorizontalLayout filterBox;
-
     @ViewComponent
     private CollectionLoader<VexData> vexDataDl;
 
     @Autowired
     private VexDataRepository vexDataRepository;
-
     @Autowired
     private ProjectRepository projectRepository;
-
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
-
     @Autowired
     private DialogWindows dialogWindows;
+    @Autowired
+    private Messages messages;
 
     @Subscribe
     public void onInit(InitEvent event){
-        projectComboBox.setItems(projectRepository.findAll());
-        projectComboBox.setItemLabelGenerator(project -> project.getProjectName()+" - "+project.getVersion());
+        Project showAllProject = new Project();
+        showAllProject.setProjectName(messages.getMessage("Showall"));
+        showAllProject.setVersion("");
+        showAllProject.setId(new Random().nextLong());
+
+        List<Project> allProjects = new java.util.ArrayList<>();
+        allProjects.add(showAllProject);
+        allProjects.addAll(projectRepository.findAll());
+
+        projectComboBox.setItems(allProjects);
+        projectComboBox.setItemLabelGenerator(project -> {
+            if (messages.getMessage("Showall").equals(project.getProjectName())) {
+                return project.getProjectName();
+            }
+            return project.getProjectName() + " - " + project.getVersion();
+        });
     }
 
     @Subscribe(id = "projectComboBox")
     public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
         if(event != null){
-            List<SoftwareComponent> softwareComponents = softwareComponentRepository.findByProject(event.getValue());
-            List<VexData> vexDataList = vexDataRepository.findBySoftwareComponents(softwareComponents);
-            loadVexData(vexDataList);
-            filterBox.setVisible(!vexDataList.isEmpty());
+            Project selectedProject = event.getValue();
+            if (selectedProject == null || messages.getMessage("Showall").equals(selectedProject.getProjectName())) {
+                List<VexData> vexData = vexDataRepository.findAll();
+                loadVexData(vexData);
+                filterBox.setVisible(!vexData.isEmpty());
+            } else {
+                List<SoftwareComponent> softwareComponents = softwareComponentRepository.findByProject(event.getValue());
+                List<VexData> vexDataList = vexDataRepository.findBySoftwareComponents(softwareComponents);
+                loadVexData(vexDataList);
+                filterBox.setVisible(!vexDataList.isEmpty());
+            }
         }
     }
 
@@ -97,12 +115,6 @@ public class VexDataListView extends StandardListView<VexData> {
         window.open();
     }
 
-    @Subscribe("showAllButton")
-    public void clickOnShowAllButton(ClickEvent<Button> event){
-        List<VexData> vexData = vexDataRepository.findAll();
-        loadVexData(vexData);
-        filterBox.setVisible(!vexData.isEmpty());
-    }
 
     private void loadVexData(List<VexData> vexDataList){
         vexDataDl.setParameter("vexDataList",vexDataList);
