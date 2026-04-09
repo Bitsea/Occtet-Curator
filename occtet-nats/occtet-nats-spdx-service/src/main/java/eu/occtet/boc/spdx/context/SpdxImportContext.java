@@ -27,6 +27,7 @@ import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import lombok.Data;
+import org.spdx.library.model.v2.Relationship;
 import org.spdx.library.model.v2.SpdxDocument;
 import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
 
@@ -52,6 +53,7 @@ public class SpdxImportContext {
     private Set<Long> mainInventoryItems = new HashSet<>();
     private Set<String> mainPackageIds = new HashSet<>();
     private Set<String> processedFileIds = new HashSet<>();
+    private Map<String, List<Relationship>> packageRelationships = new HashMap<>();
 
     public SpdxImportContext(Project project, SpdxDocument spdxDocument, SpdxDocumentRoot root) {
         this.project = project;

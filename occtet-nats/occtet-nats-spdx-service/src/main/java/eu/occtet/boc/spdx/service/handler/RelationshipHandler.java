@@ -26,8 +26,6 @@ import eu.occtet.boc.spdx.converter.SpdxConverter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
-import org.spdx.core.TypedValue;
-import org.spdx.library.SpdxModelFactory;
 import org.spdx.library.model.v2.Relationship;
 import org.spdx.library.model.v2.SpdxElement;
 import org.spdx.library.model.v2.SpdxPackage;
@@ -56,22 +54,17 @@ public class RelationshipHandler {
      */
     public void processAllRelationships(SpdxImportContext context, Consumer<Integer> progressCallback) {
         try {
-            List<TypedValue> packageUris = context.getSpdxDocument().getModelStore()
-                    .getAllItems(null, "Package").toList();
+            Map<String, List<Relationship>> packageRelationships = context.getPackageRelationships();
 
-            int total = packageUris.size();
+            int total = packageRelationships.size();
+            if (total == 0) return;
             int count = 0;
 
-            Set<String> seenPackages = new HashSet<>();
+            for (Map.Entry<String, List<Relationship>> entry : packageRelationships.entrySet()) {
+                String sourcePackageId = entry.getKey();
+                List<Relationship> relationships = entry.getValue();
 
-            for (TypedValue uri : packageUris) {
-                SpdxModelFactory.getSpdxObjects(context.getSpdxDocument().getModelStore(), null, "Package", uri.getObjectUri(), null)
-                        .forEach(obj -> {
-                            if (obj instanceof SpdxPackage spdxPackage && !seenPackages.contains(spdxPackage.getId())) {
-                                processSinglePackageRelationships(spdxPackage, context);
-                                seenPackages.add(spdxPackage.getId());
-                            }
-                        });
+                processSinglePackageRelationships(sourcePackageId, relationships, context);
 
                 count++;
                 int currentProgress = (int) (((double) count / total) * 39);
@@ -79,7 +72,9 @@ public class RelationshipHandler {
                     progressCallback.accept(currentProgress);
                 }
             }
-        } catch (InvalidSPDXAnalysisException e) {
+
+            context.getPackageRelationships().clear();
+        } catch (Exception e) {
             log.error("Error retrieving packages for relationship processing", e);
         }
     }
@@ -87,32 +82,30 @@ public class RelationshipHandler {
     /**
      * Processes relationships for a single package.
      */
-    private void processSinglePackageRelationships(SpdxPackage spdxPackage, SpdxImportContext context)  {
+    private void processSinglePackageRelationships(String sourcePackageId, List<Relationship> relationships, SpdxImportContext context)  {
         try {
-            List<Relationship> relationships = spdxPackage.getRelationships().stream().toList();
-            parseRelationshipsLogic(spdxPackage, relationships, context.getInventoryCache());
-
+            parseRelationshipsLogic(sourcePackageId, relationships, context.getInventoryCache());
 
             for (Relationship relationship : relationships) {
-                spdxConverter.convertRelationShip(relationship, context.getSpdxDocumentRoot(), spdxPackage);
+                spdxConverter.convertRelationShip(relationship, context.getSpdxDocumentRoot(), sourcePackageId);
             }
 
-            log.debug("Converted {} relationships for package {}", relationships.size(), spdxPackage.getId());
-        }catch (InvalidSPDXAnalysisException e) {
-            log.debug("Failed to process relationships from package {}", spdxPackage.getId(), e);
+            log.debug("Converted {} relationships for package {}", relationships.size(), sourcePackageId);
+        } catch (Exception e) {
+            log.debug("Failed to process relationships from package {}", sourcePackageId, e);
         }
     }
 
     /**
      * Core logic to interpret relationships and update InventoryItems.
      */
-    private void parseRelationshipsLogic(SpdxPackage spdxPackage, List<Relationship> relationships,
+    private void parseRelationshipsLogic(String sourcePackageId, List<Relationship> relationships,
                                          Map<String, InventoryItem> inventoryCache) {
 
-        InventoryItem sourceItem = inventoryCache.get(spdxPackage.getId());
+        InventoryItem sourceItem = inventoryCache.get(sourcePackageId);
 
         if (sourceItem == null) {
-            log.debug("Relationship source package not found in inventory: {}. Skipping...", spdxPackage.getId());
+            log.debug("Relationship source package not found in inventory: {}. Skipping...", sourcePackageId);
             return;
         }
 
@@ -158,8 +151,12 @@ public class RelationshipHandler {
                     case null, default -> {
                     }
                 }
+
+                if (!itemsToUpdate.isEmpty()) {
+                    inventoryItemRepository.saveAll(itemsToUpdate);
+                }
             }catch (InvalidSPDXAnalysisException e) {
-                log.warn("Malformed relationship in package {}. Skipping.", spdxPackage.getId());
+                log.warn("Malformed relationship in package {}. Skipping...",  sourcePackageId);
             }
         }
 

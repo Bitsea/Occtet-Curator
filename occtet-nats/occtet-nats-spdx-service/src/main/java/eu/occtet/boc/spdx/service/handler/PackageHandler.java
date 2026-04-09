@@ -93,6 +93,9 @@ public class PackageHandler {
                                         context.getInventoryItems().add(item);
                                         inventoryItemsToSave.add(item);
                                         seenPackages.add(pkg.getId());
+
+                                        List<Relationship> relationships = pkg.getRelationships().stream().toList();
+                                        context.getPackageRelationships().put(pkg.getId(), relationships);
                                     } catch (Exception e) {
                                         log.error("Failed to import package {}: {}. Skipping...", pkg.getId(), e.getMessage());
                                     }
