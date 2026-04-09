@@ -23,12 +23,9 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.textfield.TextField;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
-import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
-import eu.occtet.bocfrontend.entity.Vulnerability;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
-import io.jmix.flowui.model.DataContext;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,17 +33,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 @ViewController("addSoftwareComponentDialog")
 @ViewDescriptor("add-software-component-dialog.xml")
 @DialogMode(width = "70%", height = "70%")
-public class AddSoftwareComponentDialog extends AbstractAddContentDialog<Vulnerability>{
+public class AddSoftwareComponentDialog extends AbstractAddContentDialog<List<SoftwareComponent>>{
 
 
     private static final Logger log = LogManager.getLogger(AddSoftwareComponentDialog.class);
 
-    private Vulnerability vulnerability;
+    private List<SoftwareComponent> softwareComponents;
 
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
@@ -60,30 +58,23 @@ public class AddSoftwareComponentDialog extends AbstractAddContentDialog<Vulnera
     @ViewComponent
     private DataGrid<SoftwareComponent> softwareComponentDataGrid;
 
-    @ViewComponent
-    private DataContext dataContext;
-
 
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
-        softwareComponentRepository.getAvailableComponents(vulnerability).stream()
+        softwareComponentRepository.findAvailableComponents(softwareComponents).stream()
                 .forEach(s-> log.debug("available SC : {}", s.getName()));
-        softwareComponentDc.setItems(softwareComponentRepository.getAvailableComponents(vulnerability));
+        softwareComponentDc.setItems(softwareComponentRepository.findAvailableComponents(softwareComponents));
     }
 
 
 
     @Override
     @Subscribe("softwareComponentDc")
-    public void setAvailableContent(Vulnerability vulnerability){
+    public void setAvailableContent(List<SoftwareComponent> softwareComponents){
         log.debug("set content");
-        this.vulnerability = vulnerability;
-
-        List<SoftwareComponent> available =
-                softwareComponentRepository.getAvailableComponents(vulnerability);
-
+        this.softwareComponents = Objects.requireNonNullElseGet(softwareComponents, ArrayList::new);
+        List<SoftwareComponent> available = softwareComponentRepository.findAvailableComponents(softwareComponents);
         available.forEach(s -> log.debug("set content: available SC : {}", s.getName()));
-
         softwareComponentDc.setItems(available);
     }
 
@@ -92,8 +83,8 @@ public class AddSoftwareComponentDialog extends AbstractAddContentDialog<Vulnera
     public void addContentButton(ClickEvent<Button> event) {
         List<SoftwareComponent> selectedComponents = getSelectedComponents();
 
-        if (!selectedComponents.isEmpty() && vulnerability != null) {
-            close(StandardOutcome.CLOSE);
+        if (!selectedComponents.isEmpty()) {
+            close(StandardOutcome.SAVE);
         }
     }
 
@@ -103,13 +94,13 @@ public class AddSoftwareComponentDialog extends AbstractAddContentDialog<Vulnera
         String searchWord = searchField.getValue();
 
         if (!searchWord.isEmpty() && event != null) {
-            List<SoftwareComponent> listFindings = softwareComponentRepository.getAvailableComponents(vulnerability).stream()
-                    .filter(s -> s.getName().toLowerCase().contains(searchWord.toLowerCase())
+            List<SoftwareComponent> listFindings = softwareComponentRepository.findAvailableComponents(softwareComponents)
+                    .stream().filter(s -> s.getName().toLowerCase().contains(searchWord.toLowerCase())
                             || s.getPurl().toLowerCase().contains(searchWord.toLowerCase()))
                     .toList();
             softwareComponentDc.setItems(listFindings);
         } else {
-            softwareComponentDc.setItems(softwareComponentRepository.getAvailableComponents(vulnerability));
+            softwareComponentDc.setItems(softwareComponentRepository.findAvailableComponents(softwareComponents));
         }
     }
 
