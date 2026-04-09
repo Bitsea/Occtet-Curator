@@ -70,85 +70,77 @@ public class OrphanHandler {
     public void processOrphanFiles(SpdxImportContext context) {
         log.info("Processing orphan files");
         SpdxDocument spdxDocument = context.getSpdxDocument();
-        List<OrtIssue> ortIssues= ortIssueRepository.findByProject(context.getProject());
+        List<OrtIssue> ortIssues = ortIssueRepository.findByProject(context.getProject());
         List<OrtViolation> ortViolations = ortViolationRepository.findByProject(context.getProject());
+
         try {
             List<TypedValue> allFileUris = spdxDocument.getModelStore().getAllItems(null, "File").toList();
             Map<String, SpdxFile> uniqueOrphans = new HashMap<>();
-
-            Set<String> seenFileUris = new HashSet<>();
+            Set<String> processedIds = context.getProcessedFileIds();
 
             for (TypedValue uri : allFileUris) {
-                if (seenFileUris.contains(uri.getObjectUri())) continue;
-                seenFileUris.add(uri.getObjectUri());
+                String objectUri = uri.getObjectUri();
+                boolean alreadyProcessed = processedIds.stream().anyMatch(objectUri::endsWith);
+                if (alreadyProcessed) continue;
 
                 SpdxModelFactory.getSpdxObjects(
-                        spdxDocument.getModelStore(),
-                        spdxDocument.getCopyManager(),
-                        "File",
-                        uri.getObjectUri(),
-                        null
+                        spdxDocument.getModelStore(), spdxDocument.getCopyManager(), "File", objectUri, null
                 ).forEach(obj -> {
-                    if (obj instanceof SpdxFile file) {
-                        if (!context.getProcessedFileIds().contains(file.getId()) && !uniqueOrphans.containsKey(file.getId())) {
-                            uniqueOrphans.put(file.getId(), file);
-                        }
+                    if (obj instanceof SpdxFile file && !processedIds.contains(file.getId())) {
+                        uniqueOrphans.putIfAbsent(file.getId(), file);
                     }
                 });
             }
 
-            if (uniqueOrphans.isEmpty()) {
-                return;
+            if (uniqueOrphans.isEmpty()) return;
+            log.info("Found {} orphan files. Processing...", uniqueOrphans.size());
+
+            Set<String> allCopyrightTexts = new HashSet<>();
+            for (SpdxFile file : uniqueOrphans.values()) {
+                String copyrightText = file.getCopyrightText();
+                if (copyrightText != null && !"NONE".equals(copyrightText) && !"NOASSERTION".equals(copyrightText)) {
+                    allCopyrightTexts.add(copyrightText);
+                }
             }
 
-            log.info("Found {} orphan files. Creating individual inventory items for each.", uniqueOrphans.size());
+            Map<String, Copyright> bulkCopyrights = allCopyrightTexts.isEmpty() ? new HashMap<>() :
+                    copyrightService.findOrCreateBatch(allCopyrightTexts, context.getProject().getOrganization());
+
+            Set<Copyright> copyrightsToSave = new HashSet<>();
 
             for (SpdxFile file : uniqueOrphans.values()) {
                 String filePath = file.getName().orElse("Unknown File");
-                SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(filePath, "Standalone", context.getProject().getOrganization());
 
-                InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(filePath, component,
-                        context.getProject(), context.getProject().getOrganization());
+                SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(filePath, "Standalone", context.getProject().getOrganization());
+                InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(filePath, component, context.getProject(), context.getProject().getOrganization());
+
                 inventoryItem.setSpdxId(file.getId());
                 inventoryItem.setCurated(false);
                 inventoryItem.setSize(1);
 
                 inventoryItemService.sortViolationsAndIssues(ortIssues, ortViolations, inventoryItem);
-
                 spdxConverter.convertFile(file, context.getSpdxDocumentRoot());
                 context.getFileToInventoryItemMap().put(file.getId(), inventoryItem);
 
-                Map<String, File> locationMap = fileService.findOrCreateBatch(Collections.singletonMap(filePath, file.getId()),
-                        inventoryItem);
+                Map<String, File> locationMap = fileService.findOrCreateBatch(Collections.singletonMap(filePath, file.getId()), inventoryItem);
 
                 Project project = inventoryItem.getProject();
                 project.addFiles(locationMap.values());
-                projectRepository.save(project);
 
                 File dbFile = locationMap.get(filePath);
 
-                boolean componentUpdated = false;
-
                 String copyrightText = file.getCopyrightText();
-                if (copyrightText != null && !"NONE".equals(copyrightText) && !"NOASSERTION".equals(copyrightText)) {
-                    Map<String, Copyright> createdCopyrights =
-                            copyrightService.findOrCreateBatch(Collections.singleton(copyrightText),
-                                    context.getProject().getOrganization());
-                    Copyright copyright = createdCopyrights.get(copyrightText);
+                if (copyrightText != null && bulkCopyrights.containsKey(copyrightText)) {
+                    Copyright copyright = bulkCopyrights.get(copyrightText);
+                    if (dbFile != null) {
+                        copyright.getFiles().add(dbFile);
+                        copyrightsToSave.add(copyright);
+                    }
 
-                    if (copyright != null) {
-                        if (dbFile != null) {
-                            copyright.getFiles().add(dbFile);
-                            copyrightRepository.save(copyright);
-                        }
+                    if (component.getCopyrights() == null) component.setCopyrights(new ArrayList<>());
 
-                        if (component.getCopyrights() == null) {
-                            component.setCopyrights(new ArrayList<>());
-                        }
-                        if (!component.getCopyrights().contains(copyright)) {
-                            component.getCopyrights().add(copyright);
-                            componentUpdated = true;
-                        }
+                    if (!component.getCopyrights().contains(copyright)) {
+                        component.getCopyrights().add(copyright);
                     }
                 }
 
@@ -161,26 +153,23 @@ public class OrphanHandler {
                     List<License> licenses = licenseHandler.createLicenses(fileLicense, context.getLicenseCache(),
                             context.getExtractedLicenseInfos(), context.getProject().getOrganization());
 
-                    if (component.getLicenses() == null) {
-                        component.setLicenses(new ArrayList<>());
-                    }
+                    if (component.getLicenses() == null) component.setLicenses(new ArrayList<>());
 
                     for (License l : licenses) {
                         if (!component.getLicenses().contains(l)) {
                             component.addLicense(l);
-                            componentUpdated = true;
                         }
                     }
                 }
-
-                if (componentUpdated) {
-                    softwareComponentService.update(component);
-                }
-
-                inventoryItemService.update(inventoryItem);
                 context.getInventoryItems().add(inventoryItem);
             }
-        } catch (InvalidSPDXAnalysisException e){
+
+            if (!copyrightsToSave.isEmpty()) copyrightRepository.saveAll(copyrightsToSave);
+            projectRepository.save(context.getProject());
+
+            log.info("Finished processing orphan files.");
+
+        } catch (InvalidSPDXAnalysisException e) {
             log.error("Error when trying to handle orphaned files. Skipping...", e);
         }
     }
