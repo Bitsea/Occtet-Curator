@@ -39,6 +39,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: always
 
   nats:
     image: nats:latest
@@ -59,6 +60,7 @@ services:
       - ollama_data:/root/.ollama
     networks:
       - mynet
+    restart: always
 
   frontend:
     image: occtet-boc-frontend:0.3.10-SNAPSHOT
@@ -90,11 +92,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 15
+    restart: always
 
   licensematcher-service:
     image: occtet-nats-licensematcher-service:0.3.8-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
 
@@ -105,6 +109,7 @@ services:
       ollama:
         condition: service_started
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
@@ -113,6 +118,7 @@ services:
     image: occtet-nats-copyrightfilter-service:0.3.8-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
 
@@ -120,6 +126,7 @@ services:
     image: occtet-nats-foss-report-service:0.3.8-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
 
@@ -127,6 +134,7 @@ services:
     image: occtet-nats-vulnerability-service:0.3.8-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
 
@@ -137,6 +145,7 @@ services:
       ollama:
         condition: service_started
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
@@ -145,6 +154,7 @@ services:
     image: occtet-nats-spdx-service:0.3.10-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
 
@@ -154,6 +164,7 @@ services:
     volumes:
       - /home/occtet/project_data:/project_data
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
 
@@ -161,6 +172,7 @@ services:
     image: occtet-nats-spdx-export-service:0.3.10-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
 
@@ -168,6 +180,7 @@ services:
     image: occtet-nats-ort-run-start-service:0.3.8-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
       ORT_TOKEN_URL: ${ORT_TOKEN_URL}
@@ -179,6 +192,7 @@ services:
     image: occtet-nats-process-run-service:0.3.8-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
       ORT_TOKEN_URL: ${ORT_TOKEN_URL}
