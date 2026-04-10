@@ -53,7 +53,7 @@
         </createIndex>
     </changeSet>
 
-    <changeSet id="3" author="OcctetFrontend" context="local">
+    <changeSet id="3" author="OcctetFrontend" context="!cuba">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 SELECT COUNT(id) FROM USER_ WHERE USERNAME = 'admin'
