@@ -69,7 +69,7 @@
         </preConditions>
 
         <insert tableName="organization">
-            <column name="id" valueComputed="next('seq_id_organization')"/>
+            <column name="id" value="1"/>
             <column name="organization_name" value="Default Organization"/>
         </insert>
     </changeSet>
