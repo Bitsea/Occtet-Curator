@@ -1,6 +1,6 @@
 #version: '0.3.8'
 
-# ODER: db | nats -> Frontend -> Backend-microservices
+# ORDER: db | nats -> Frontend -> Backend-microservices
 
 x-common-env: &common-env
   SPRING_PROFILES_ACTIVE: live
@@ -72,7 +72,7 @@ services:
     ports:
       - "8090:8090"
     volumes:
-      - /home/occtet/project_data:/project_data
+      - ${PROJECT_DATA_PATH}:/project_data
       - ../occtet-frontend/.certs:/certs:ro
     networks:
       - mynet
@@ -86,6 +86,7 @@ services:
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+#      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:8090/boc/ > /dev/null || exit 1"]
       interval: 10s
@@ -161,7 +162,7 @@ services:
     image: occtet-nats-download-service:0.3.9-SNAPSHOT
     depends_on: *microservice-depends
     volumes:
-      - /home/occtet/project_data:/project_data
+      - ${PROJECT_DATA_PATH}:/project_data
     networks: [mynet]
     restart: always
     environment:

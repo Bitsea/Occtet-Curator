@@ -25,6 +25,7 @@ import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.download.factory.DownloadStrategyFactory;
 import eu.occtet.boc.download.strategies.DownloadStrategy;
+import eu.occtet.boc.download.utils.StoragePathResolver;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.SoftwareComponent;
@@ -60,6 +61,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
     @Autowired private DownloadStrategyFactory downloadStrategyFactory;
     @Autowired private ArchiveService archiveService;
     @Autowired private FileService fileService;
+    @Autowired private StoragePathResolver storagePathResolver;
 
     private static final String SAFE_FILENAME_REGEX = "[^a-zA-Z0-9.\\-_]";
 
@@ -78,6 +80,9 @@ public class DownloadManager extends BaseWorkDataProcessor {
             if (globalBasePath.getValue() == null || globalBasePath.getValue().isBlank())
                 throw new RuntimeException("System base path is not set in the configuration");
 
+            Path baseResolvedPath = storagePathResolver.resolveSystemPath(globalBasePath.getValue());
+            log.debug("UI path '{}' resolved to '{}' for current profile", globalBasePath.getValue(), baseResolvedPath);
+
             Project project = projectRepository.findById(data.getProjectId())
                     .orElseThrow(() -> new RuntimeException("Project with id " + data.getProjectId() + " not found"));
             InventoryItem inventoryItem = inventoryItemRepository.findById(data.getInventoryItemId())
@@ -88,7 +93,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
             boolean isMainPkg = Boolean.TRUE.equals(data.getIsMainPackage());
 
             // calc base project path (e.g., /data/Project_101)
-            projectBaseDir = calculateTargetPath(globalBasePath.getValue(), project.getProjectName(), project.getId());
+            projectBaseDir = calculateTargetPath(baseResolvedPath, project.getProjectName(), project.getId());
 
             // Structure: [project] / [dependencies?] / [component_name] / [version]
             Path workingPath = projectBaseDir;
@@ -210,9 +215,9 @@ public class DownloadManager extends BaseWorkDataProcessor {
         }
     }
 
-    private Path calculateTargetPath(String globalBasePath,String projectName, Long projectId) throws RuntimeException{
-        String folderName =  projectName + "_" + projectId;
-        return Paths.get(globalBasePath).resolve(folderName);
+    private Path calculateTargetPath(Path baseResolvedPath, String projectName, Long projectId) {
+        String folderName = projectName + "_" + projectId;
+        return baseResolvedPath.resolve(folderName);
     }
 
     private String sanitizeFilename(String input, String fallback) {
