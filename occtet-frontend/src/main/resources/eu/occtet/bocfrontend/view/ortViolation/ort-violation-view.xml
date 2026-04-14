@@ -36,38 +36,35 @@
         <action id="closeAction" type="detail_close"/>
     </actions>
     <layout>
-
         <vbox alignItems="CENTER" justifyContent="START" alignSelf="START" height="100%" width="100%">
                 <vbox width="100%" id="form">
                     <hbox width="100%">
-                        <textField id="projectField" property="project.projectName" dataContainer="ortViolationDc" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.project" />
-                        <textField id="inventoryItem" property="inventoryItem.inventoryName" dataContainer="ortViolationDc" label="msg://eu.occtet.bocfrontend.view.audit.fragment/inventoryName" width="60%"/>
-
+                        <comboBox id="projectField" property="project" dataContainer="ortViolationDc" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.project"
+                                  required="true"/>
+                        <comboBox id="inventoryItemField" property="inventoryItem" dataContainer="ortViolationDc"
+                                  label="msg://eu.occtet.bocfrontend.view.audit.fragment/inventoryName" width="60%" required="true"/>
                     </hbox>
                     <hbox width="100%">
                         <textField id="rule" property="rule" dataContainer="ortViolationDc" label="msg://rule" />
                         <textField id="purl" property="purl" dataContainer="ortViolationDc" label="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.purl" width="40%"/>
                         <textField id="severity" property="severity" dataContainer="ortViolationDc" label="msg://eu.occtet.bocfrontend.entity/Vulnerability.weightedSeverity"/>
                     </hbox>
-                    <hbox>
-
-
-                        <checkbox id="resolved" property="resolved" dataContainer="ortViolationDc" label="msg://eu.occtet.bocfrontend.view.ortViolation/resolved" alignSelf="END"/>
-
-                    </hbox>
                     <hbox width="100%">
                         <textField id="license" property="license" dataContainer="ortViolationDc" label="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.license" />
-                        <textField id="licenseSource" property="licenseSource" dataContainer="ortViolationDc" label="msg://licenseSource" />
-
+                        <textField id="licenseSource" property="licenseSource" dataContainer="ortViolationDc" label="msg://licenseSource"
+                        width="70%"/>
                     </hbox>
                     <hbox width="100%">
-                        <textField id="message" property="message" dataContainer="ortViolationDc" label="msg://eu.occtet.bocfrontend.view.ortViolation/message" width="100%"/>
-
+                        <textArea id="message" property="message" dataContainer="ortViolationDc" label="msg://eu.occtet.bocfrontend.view.ortViolation/message"
+                                  width="60%" minHeight="10em"/>
                     </hbox>
                     <hbox width="100%">
-                        <textField id="howToFix" property="howToFix" dataContainer="ortViolationDc" label="msg://howToFix" width="100%"/>
+                        <textArea id="howToFix" property="howToFix" dataContainer="ortViolationDc" label="msg://howToFix"
+                                  width="70%" minHeight="10em"/>
                     </hbox>
-
+                    <hbox>
+                        <checkbox id="resolved" property="resolved" dataContainer="ortViolationDc" label="msg://eu.occtet.bocfrontend.view.ortViolation/resolved" alignSelf="END"/>
+                    </hbox>
                 </vbox>
 
             <hbox id="detailActions" justifyContent="CENTER" alignItems="CENTER" alignSelf="CENTER" height="100%">

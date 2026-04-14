@@ -88,7 +88,7 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
     @Subscribe
     public void onInit(InitEvent event) {
         projectField.setItems(projectRepository.findAll());
-        projectField.setItemLabelGenerator(Project::getProjectName);
+        projectField.setItemLabelGenerator(p -> p.getProjectName() + " - " + p.getVersion());
         parentField.setItems(inventoryItemRepository.findAll());
         parentField.setItemLabelGenerator(InventoryItem::getInventoryName);
         softwareComponentField.setItems(softwareComponentRepository.findAll());
@@ -103,8 +103,12 @@ public class InventoryItemDetailView extends StandardDetailView<InventoryItem> {
         projectField.setValue(inventoryItem.getProject());
         if(inventoryItem.getParent() != null) {
             parentField.setValue(inventoryItem.getParent());
+            parentField.setReadOnly(true);
         }
-
+        if(inventoryItem.getSoftwareComponent() != null){
+            softwareComponentField.setValue(inventoryItem.getSoftwareComponent());
+            softwareComponentField.setReadOnly(true);
+        }
         loadSuggestions("auditNotes");
         autocompleteAuditNotes = new AutocompleteField( messages.getMessage(getClass(), "auditNotes"));
         autocompleteAuditNotes.setOptions(suggestions);
