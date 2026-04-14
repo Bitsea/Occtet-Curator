@@ -360,6 +360,4 @@ public class DashboardView extends StandardView {
             return row;
         }); 
     }
-    
-    
 }
