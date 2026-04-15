@@ -48,7 +48,7 @@
             <hbox width="45%" alignItems="STRETCH" classNames="box-layout" css="background-color:var(--lumo-contrast-5pct)">
                 <vbox alignSelf="END">
                     <h5 text="msg://dashboardView.runningTasks"/>
-                    <listBox id="runningTasksList" width="700px" height="100px" readOnly="true" css="background-color:var(--lumo-contrast-5pct)"/>
+                    <listBox id="runningTasksList" width="100%" height="100px" readOnly="true" css="background-color:var(--lumo-contrast-5pct)"/>
                 </vbox>
             </hbox>
             <hbox width="100%" justifyContent="BETWEEN">
