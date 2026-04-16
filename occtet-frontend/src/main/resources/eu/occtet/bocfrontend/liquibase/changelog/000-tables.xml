@@ -1,6 +1,9 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-1">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="curator_task"/>
+        </preConditions>
         <createTable tableName="curator_task">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="curator_task_pkey"/>
@@ -24,6 +27,9 @@
         </createTable>
     </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-9">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="file"/>
+        </preConditions>
         <createTable tableName="file">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="file_pkey"/>
@@ -44,6 +50,9 @@
         </createTable>
     </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-10">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="app_configuration"/>
+        </preConditions>
         <createTable tableName="app_configuration">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="app_configuration_pkey"/>
