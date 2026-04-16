@@ -1,6 +1,6 @@
 #version: '0.3.8'
 
-# ODER: db | nats -> Frontend -> Backend-microservices
+# ORDER: db | nats -> Frontend -> Backend-microservices
 
 x-common-env: &common-env
   SPRING_PROFILES_ACTIVE: live
@@ -39,6 +39,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: always
 
   nats:
     image: nats:latest
@@ -59,6 +60,7 @@ services:
       - ollama_data:/root/.ollama
     networks:
       - mynet
+    restart: always
 
   frontend:
     image: occtet-boc-frontend:0.3.10-SNAPSHOT
@@ -70,7 +72,7 @@ services:
     ports:
       - "8090:8090"
     volumes:
-      - /home/occtet/project_data:/project_data
+      - ${PROJECT_DATA_PATH}:/project_data
       - ../occtet-frontend/.certs:/certs:ro
     networks:
       - mynet
@@ -84,16 +86,19 @@ services:
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+#      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:8090/boc/ > /dev/null || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 15
+    restart: always
 
   licensematcher-service:
     image: occtet-nats-licensematcher-service:0.3.8-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
 
@@ -104,6 +109,7 @@ services:
       ollama:
         condition: service_started
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
@@ -112,6 +118,7 @@ services:
     image: occtet-nats-copyrightfilter-service:0.3.8-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
 
@@ -119,6 +126,7 @@ services:
     image: occtet-nats-foss-report-service:0.3.8-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
 
@@ -126,6 +134,7 @@ services:
     image: occtet-nats-vulnerability-service:0.3.8-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
 
@@ -136,6 +145,7 @@ services:
       ollama:
         condition: service_started
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
@@ -144,6 +154,7 @@ services:
     image: occtet-nats-spdx-service:0.3.10-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
 
@@ -151,8 +162,9 @@ services:
     image: occtet-nats-download-service:0.3.9-SNAPSHOT
     depends_on: *microservice-depends
     volumes:
-      - /home/occtet/project_data:/project_data
+      - ${PROJECT_DATA_PATH}:/project_data
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
 
@@ -160,6 +172,7 @@ services:
     image: occtet-nats-spdx-export-service:0.3.10-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
 
@@ -167,6 +180,7 @@ services:
     image: occtet-nats-ort-run-start-service:0.3.8-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
       ORT_TOKEN_URL: ${ORT_TOKEN_URL}
@@ -178,6 +192,7 @@ services:
     image: occtet-nats-process-run-service:0.3.8-SNAPSHOT
     depends_on: *microservice-depends
     networks: [mynet]
+    restart: always
     environment:
       <<: *common-env
       ORT_TOKEN_URL: ${ORT_TOKEN_URL}

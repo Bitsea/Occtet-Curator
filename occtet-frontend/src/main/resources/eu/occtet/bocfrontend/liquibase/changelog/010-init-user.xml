@@ -26,18 +26,7 @@
 
     <!-- DO NOT REMOVE. This changelog is required for user management. -->
 
-    <changeSet id="1" author="OcctetFrontend" context="!cuba">
-
-        <preConditions onFail="MARK_RAN">
-            <and>
-                <tableExists tableName="USER_"/>
-                <rowCount expectedRows="0" tableName="USER_"/>
-
-
-            </and>
-        </preConditions>
-
-
+    <changeSet id="1-UPDATED-10.04.2026" author="OcctetFrontend" context="!cuba">
         <createTable tableName="USER_">
             <column name="ID" type="${uuid.type}">
                 <constraints primaryKey="true" nullable="false"/>
@@ -55,7 +44,6 @@
             <column name="ACTIVE" type="boolean"/>
             <column name="TIME_ZONE_ID" type="VARCHAR(255)"/>
         </createTable>
-
     </changeSet>
 
     <changeSet id="2" author="OcctetFrontend" context="!cuba">
@@ -65,7 +53,7 @@
         </createIndex>
     </changeSet>
 
-    <changeSet id="3" author="OcctetFrontend" context="!cuba" runAlways="true">
+    <changeSet id="3-UPDATED-10.04.2026" author="OcctetFrontend" context="!cuba">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 SELECT COUNT(id) FROM USER_ WHERE USERNAME = 'admin'
@@ -82,7 +70,7 @@
 
     </changeSet>
 
-    <changeSet id="4" author="OcctetFrontend" context="!cuba" runAlways="true">
+    <changeSet id="4-UPDATED-10.04.2026" author="OcctetFrontend" context="!cuba">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 SELECT COUNT(id) FROM SEC_ROLE_ASSIGNMENT WHERE USERNAME = 'admin' AND ROLE_CODE = 'system-full-access'
