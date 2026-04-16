@@ -23,7 +23,7 @@ services:
     command: -c 'max_connections=200'
     container_name: db
     ports:
-      - "5432:5432"
+      - "5439:5432"
     environment:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
