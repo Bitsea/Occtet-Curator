@@ -1,9 +1,6 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-1">
-        <preConditions onFail="MARK_RAN">
-            <tableExists tableName="curator_task"/>
-        </preConditions>
         <createTable tableName="curator_task">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="curator_task_pkey"/>
@@ -27,9 +24,6 @@
         </createTable>
     </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-9">
-        <preConditions onFail="MARK_RAN">
-            <tableExists tableName="file"/>
-        </preConditions>
         <createTable tableName="file">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="file_pkey"/>
@@ -50,9 +44,6 @@
         </createTable>
     </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-10">
-        <preConditions onFail="MARK_RAN">
-            <tableExists tableName="app_configuration"/>
-        </preConditions>
         <createTable tableName="app_configuration">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="app_configuration_pkey"/>
@@ -248,17 +239,6 @@
             <column name="file_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-52">
-        <createTable tableName="code_location">
-            <column name="id" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="code_location_pkey"/>
-            </column>
-            <column name="file_path" type="TEXT"/>
-            <column name="line_number" type="INTEGER"/>
-            <column name="line_number_to" type="INTEGER"/>
-            <column name="inventory_item_id" type="BIGINT"/>
-        </createTable>
-    </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-53">
         <createTable tableName="configuration">
             <column name="id" type="BIGINT">
@@ -280,16 +260,6 @@
             <column name="curated" type="BOOLEAN"/>
             <column name="garbage" type="BOOLEAN"/>
             <column name="software_component_id" type="BIGINT"/>
-        </createTable>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-55">
-        <createTable tableName="copyright_code_location_link">
-            <column name="copyright_id" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="copyright_code_location_link_pkey"/>
-            </column>
-            <column name="code_location_id" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="copyright_code_location_link_pkey"/>
-            </column>
         </createTable>
     </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-56">
@@ -748,9 +718,6 @@
     </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-99">
         <addForeignKeyConstraint baseColumnNames="task_id" baseTableName="configuration" constraintName="fk_configuration_task_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="curator_task" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-100">
-        <addForeignKeyConstraint baseColumnNames="code_location_id" baseTableName="copyright_code_location_link" constraintName="fk_copyright_code_location_link_code_location_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="code_location" validate="true"/>
     </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-101">
         <addForeignKeyConstraint baseColumnNames="copyright_id" baseTableName="copyright_file_link" constraintName="fk_copyright_file_link_copyright_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="copyright" validate="true"/>

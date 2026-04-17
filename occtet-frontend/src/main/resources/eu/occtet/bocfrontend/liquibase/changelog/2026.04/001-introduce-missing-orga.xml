@@ -31,6 +31,12 @@
 
 
     <changeSet id="create-organization-table" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="organization" schemaName="public"/>
+            </not>
+        </preConditions>
+
         <createTable tableName="organization">
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="organization_pkey"/>
@@ -76,48 +82,97 @@
 
 
     <changeSet id="add-organization-id-to-project" author="Ibrahim.AlBahra">
+
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="project" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
         <addColumn tableName="project">
             <column name="organization_id" type="BIGINT"/>
         </addColumn>
     </changeSet>
 
     <changeSet id="add-organization-id-to-software-component" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="software_component" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
         <addColumn tableName="software_component">
             <column name="organization_id" type="BIGINT"/>
         </addColumn>
     </changeSet>
 
     <changeSet id="add-organization-id-to-vulnerability" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="vulnerability" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
         <addColumn tableName="vulnerability">
             <column name="organization_id" type="BIGINT"/>
         </addColumn>
     </changeSet>
 
     <changeSet id="add-organization-id-to-inventory-item" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="inventory_item" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
         <addColumn tableName="inventory_item">
             <column name="organization_id" type="BIGINT"/>
         </addColumn>
     </changeSet>
 
     <changeSet id="add-organization-id-to-license" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="license" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
         <addColumn tableName="license">
             <column name="organization_id" type="BIGINT"/>
         </addColumn>
     </changeSet>
 
     <changeSet id="add-organization-id-to-copyright" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="copyright" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
         <addColumn tableName="copyright">
             <column name="organization_id" type="BIGINT"/>
         </addColumn>
     </changeSet>
 
     <changeSet id="add-organization-id-to-suggestion" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="suggestion" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
         <addColumn tableName="suggestion">
             <column name="organization_id" type="BIGINT"/>
         </addColumn>
     </changeSet>
 
     <changeSet id="add-organization-id-to-user" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="user_" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
         <addColumn tableName="user_">
             <column name="organization_id" type="BIGINT"/>
         </addColumn>
