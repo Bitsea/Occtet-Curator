@@ -20,6 +20,7 @@
 package eu.occtet.boc.ortclient;
 
 import junit.framework.TestCase;
+import org.junit.Test;
 import org.openapitools.client.ApiClient;
 import org.openapitools.client.api.*;
 import org.openapitools.client.model.*;

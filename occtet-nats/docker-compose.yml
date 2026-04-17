@@ -23,7 +23,7 @@ services:
     command: -c 'max_connections=200'
     container_name: db
     ports:
-      - "5432:5432"
+      - "5439:5432"
     environment:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -187,6 +187,8 @@ services:
       ORT_BASE_URL: ${ORT_BASE_URL}
       ORT_USERNAME: ${ORT_USERNAME}
       ORT_PASSWORD: ${ORT_PASSWORD}
+    volumes:
+      - ../cacerts:/tmp/cacerts:ro
 
   process-run-service:
     image: occtet-nats-process-run-service:0.3.8-SNAPSHOT
@@ -199,6 +201,8 @@ services:
       ORT_BASE_URL: ${ORT_BASE_URL}
       ORT_USERNAME: ${ORT_USERNAME}
       ORT_PASSWORD: ${ORT_PASSWORD}
+    volumes:
+      - ../cacerts:/tmp/cacerts:ro
 
 volumes:
   db_data:
