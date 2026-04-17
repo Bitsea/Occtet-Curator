@@ -27,7 +27,14 @@
     <!-- DO NOT REMOVE. This changelog is required for user management. -->
 
     <changeSet id="1-UPDATED-10.04.2026" author="OcctetFrontend" context="!cuba">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="USER_" schemaName="public"/>
+            </not>
+        </preConditions>
+
         <createTable tableName="USER_">
+
             <column name="ID" type="${uuid.type}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
