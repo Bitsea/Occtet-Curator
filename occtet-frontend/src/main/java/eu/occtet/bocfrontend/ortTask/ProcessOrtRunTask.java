@@ -68,6 +68,7 @@ public class ProcessOrtRunTask  {
     public void fetchRun()  {
 
         systemAuthenticator.withSystem(() -> {
+            log.debug("trying to fetch finished runs from ORT API...");
             try {
                 RunsApi runsApi = getRunsApi();
                 PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch = runsApi.getRuns("FINISHED", 1, null, "-createdAt");
