@@ -37,19 +37,21 @@ public final class CertificateHelper {
 
 
     public static Collection<? extends Certificate> loadCertificates(String path) {
-
+        log.debug("loading certificate from path {}", path);
         try {
             Path filePath = Paths.get(path);
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             Collection<Certificate> allCertificates = new ArrayList<>();
 
             if (Files.isRegularFile(filePath)) {
+                log.debug("file");
                 try (InputStream inputStream = Files.newInputStream(filePath)) {
                     allCertificates.addAll(
                             certificateFactory.generateCertificates(inputStream)
                     );
                 }
             } else if (Files.isDirectory(filePath)) {
+                log.debug("directory");
                 Files.list(filePath)
                         .filter(Files::isRegularFile)
                         .filter(p -> {
@@ -68,10 +70,11 @@ public final class CertificateHelper {
                             }
                         });
             }
+            log.debug("return {} certificates", allCertificates.size());
             return allCertificates;
         } catch (Exception e) {
             log.debug("Failed to load certificates from path {}, error: {}", path, e.getMessage());
-            return new ArrayList<>();
+            return null;
         }
     }
 }

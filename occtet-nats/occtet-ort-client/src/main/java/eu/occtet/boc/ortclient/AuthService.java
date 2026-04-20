@@ -20,10 +20,13 @@ package eu.occtet.boc.ortclient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.internal.tls.OkHostnameVerifier;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
 import java.net.URI;
@@ -32,6 +35,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
+import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.util.Collection;
@@ -45,6 +49,9 @@ public class AuthService {
 
     @Value("${https.cacert.path}")
     private String cacertPath;
+
+    private static final Logger log = LogManager.getLogger(AuthService.class);
+
 
     /**
      *
@@ -70,8 +77,20 @@ public class AuthService {
             @Nonnull String password,
             @Nullable  String scope
     ) throws IOException,InterruptedException {
-        //TODO here we must make certain with certificate, erstmal nimm leeren trustmanager
-        HttpClient client = HttpClient.newHttpClient();
+
+        Collection<? extends Certificate> certificates = CertificateHelper.loadCertificates(cacertPath);
+        log.debug("got {} certificates from path {}", certificates != null ? certificates.size() : 0, cacertPath);
+        HttpClient client;
+        if (certificates == null || certificates.isEmpty()) {
+            // 👉 Standard-Verhalten (System Truststore)
+            client = HttpClient.newHttpClient();
+        } else {
+            SSLContext sslContext = buildSslContext(certificates);
+
+            client = HttpClient.newBuilder()
+                    .sslContext(sslContext)
+                    .build();
+        }
 
 
         String form = buildForm(
@@ -87,7 +106,9 @@ public class AuthService {
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .POST(HttpRequest.BodyPublishers.ofString(form));
 
+
         HttpRequest request = reqBuilder.build();
+        log.info("Request: {} {}", request.method(), request.uri());
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         int status = response.statusCode();
@@ -101,6 +122,32 @@ public class AuthService {
         TokenResponse tokenResponse = mapper.readValue(body, TokenResponse.class);
         tokenResponse.expirationDate = System.currentTimeMillis() + (tokenResponse.expiresIn != null ? tokenResponse.expiresIn * 1000L : 0L);
         return tokenResponse;
+    }
+
+    private SSLContext buildSslContext(Collection<? extends Certificate> certificates) {
+
+        try {
+            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+
+            keyStore.load(null, null);
+
+            int i = 0;
+            for (Certificate cert : certificates) {
+                keyStore.setCertificateEntry("ca-" + i++, cert);
+            }
+
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(
+                    TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(keyStore);
+
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, tmf.getTrustManagers(), new SecureRandom());
+
+            return sslContext;
+        }catch (Exception e){
+            log.error("Failed to build SSL context with provided certificates, error: {}, falling back to default SSL context", e.getMessage());
+            return null;
+        }
     }
 
 

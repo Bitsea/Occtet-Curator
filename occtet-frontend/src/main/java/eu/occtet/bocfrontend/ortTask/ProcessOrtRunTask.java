@@ -8,10 +8,12 @@ import eu.occtet.bocfrontend.config.ConfigOrtProperties;
 import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.factory.CuratorTaskFactory;
 import eu.occtet.bocfrontend.service.CuratorTaskService;
+import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.core.security.SystemAuthenticator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openapitools.client.ApiClient;
+import org.openapitools.client.ApiException;
 import org.openapitools.client.api.OrganizationsApi;
 import org.openapitools.client.api.RunsApi;
 import org.openapitools.client.model.*;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProcessOrtRunTask  {
@@ -37,6 +40,9 @@ public class ProcessOrtRunTask  {
 
     @Value("${nats.send-subject-ort-result}")
     private String sendSubjectOrtResult;
+
+    @Autowired
+    private CurrentAuthentication currentAuthentication;
 
     @Autowired
     private SystemAuthenticator systemAuthenticator;
@@ -58,40 +64,73 @@ public class ProcessOrtRunTask  {
         systemAuthenticator.withSystem(() -> {
             try {
 
-                ApiClient apiClient= getApiClient();
+                ApiClient apiClient = getApiClient();
 
-                OrganizationsApi organizationsApi = new OrganizationsApi(apiClient);
-                Organization orga= createOrganization(orgaName, organizationsApi);
+                eu.occtet.bocfrontend.entity.User user = (eu.occtet.bocfrontend.entity.User) currentAuthentication.getUser();
+//                OrganizationsApi organizationsApi = new OrganizationsApi(apiClient);
+//                eu.occtet.bocfrontend.entity.Organization orga= user.getOrganization();
+//
+//                Organization organization = createOrganization(orga.getOrganizationName(), organizationsApi);
+
 
                 RunsApi runsApi = new RunsApi(apiClient);
+                log.info("Fetching runs from ORT API: {} basepath api: {}", runsApi.getCustomBaseUrl(), runsApi.getApiClient().getBasePath());
                 PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch = runsApi.getRuns("FINISHED", 1, null, "-createdAt");
 
-            PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearchWithIssues = runsApi.getRuns("FINISHED_WITH_ISSUES", 1, null, "-createdAt");
+                PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearchWithIssues = runsApi.getRuns("FINISHED_WITH_ISSUES", 1, null, "-createdAt");
+                log.info("Runs fetched {}", pagedSearch.getData().size() + pagedSearchWithIssues.getData().size());
 
-            if (!pagedSearch.getData().isEmpty()) {
-                log.debug("Got {} finished runs", pagedSearch.getData().size());
+                if (!pagedSearch.getData().isEmpty()) {
+                    log.debug("Got {} finished runs", pagedSearch.getData().size());
 
-                sendRuns(pagedSearch);
-            } else log.debug("No finished runs found");
+                    sendRuns(pagedSearch);
+                } else log.debug("No finished runs found");
 
-            if (!pagedSearchWithIssues.getData().isEmpty()) {
-                log.debug("Got {} finished_with_issues runs", pagedSearch.getData().size());
-                sendRuns(pagedSearchWithIssues);
-            } else log.debug("No finished_with_issues runs found");
-            } catch (Exception e){
-                log.error("ORT API not reachable, could not fetch runs", e.getMessage());
+                if (!pagedSearchWithIssues.getData().isEmpty()) {
+                    log.debug("Got {} finished_with_issues runs", pagedSearch.getData().size());
+                    sendRuns(pagedSearchWithIssues);
+                } else log.debug("No finished_with_issues runs found");
+            } catch (Exception e) {
+                log.error("ORT API not reachable, could not fetch runs", e);
             }
-        return null;
+            return null;
         });
+
+    }
+
+    private Organization createOrganization(String orgaName, OrganizationsApi organizationsApi) throws ApiException {
+        try {
+            //First check if orga is already existing
+            PagedResponseOrganization organisation = organizationsApi.getOrganizations(null, null, null, orgaName);
+            List<Organization> data = organisation.getData();
+            Optional<Organization> organization = data.stream().filter(o -> o.getName().equals(orgaName)).findFirst();
+
+            Organization orga = null;
+            if (data.isEmpty() || organization.isEmpty()) {
+                // nothing there? create an organization
+                log.info("Organization {} not found, creating it", orgaName);
+                PostOrganization po = new PostOrganization();
+                po.setName(orgaName);
+                orga = organizationsApi.postOrganization(po);
+            } else {
+                log.info("Organization {} found", orgaName);
+                orga = organization.get();
+            }
+            return orga;
+        } catch (Exception e) {
+            log.error("Error while cretating organization: {} with error: {}", orgaName, e.getMessage());
+            throw e;
+        }
 
     }
 
     private void sendRuns(PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch){
         OrtRunSummary ortRunSummary = pagedSearch.getData().getFirst();
         if (ortRunSummary != null && !processedRuns.contains(ortRunSummary.getId())) {
+            //TODO ask for organization id here
             Long summaryId = ortRunSummary.getId();
             processedRuns.add(summaryId);
-            log.debug("Found new finished ORT run with id {}", summaryId);
+            log.info("Found new finished ORT run with id {}", summaryId);
             CuratorTask task = curatorTaskFactory.create(null, "OrtResultTask", "processing_ort_run");
 
             ORTProcessWorkData ortProcessWorkData = new ORTProcessWorkData(summaryId);
@@ -99,7 +138,7 @@ public class ProcessOrtRunTask  {
             boolean res = curatorTaskService.saveAndRunTask(task, ortProcessWorkData, "sending message and ort-runId to process-run-microservice", sendSubjectOrtResult);
 
             if (res) processedRuns.add(summaryId);
-            else log.debug("Failed to start task for ORT run {}", summaryId);
+            else log.info("Failed to start task for ORT run {}", summaryId);
         }
     }
 
@@ -109,16 +148,17 @@ public class ProcessOrtRunTask  {
         try {
             OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
             AuthService authService = new AuthService(ortProperties.tokenUrl());
-            log.debug("connection with ORT on {}", ortProperties.baseUrl());
+            log.info("connection with ORT on {}", ortProperties.baseUrl());
+            log.info("connection URL {}", ortProperties.tokenUrl());
             TokenResponse tokenResponse = null;
-            log.debug("authcall on keycloak with clientId {} username {} password {}", ortProperties.clientId(), ortProperties.username(), ortProperties.password() );
+            log.info("authcall on keycloak with clientId {} username {} password {}", ortProperties.clientId(), ortProperties.username(), ortProperties.password() );
 
             tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
 
 
             return ortClientService.createApiClient(tokenResponse);
         }catch(Exception e){
-            log.error("Error creating RunsApi client, ORT possibly not reachable/activated {}", e.getMessage());
+            log.info("Error creating RunsApi client, ORT possibly not reachable/activated {}", e.getMessage());
             return null;
         }
     }
