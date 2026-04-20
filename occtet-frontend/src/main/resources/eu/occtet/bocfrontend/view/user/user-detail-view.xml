@@ -24,7 +24,9 @@
     <data>
         <instance id="userDc"
                   class="eu.occtet.bocfrontend.entity.User">
-            <fetchPlan extends="_base"/>
+            <fetchPlan extends="_base">
+                <property name="organization" fetchPlan="_base"/>
+            </fetchPlan>
             <loader/>
         </instance>
     </data>
@@ -51,6 +53,7 @@
             <textField id="emailField" property="email"/>
             <comboBox id="timeZoneField" property="timeZoneId" clearButtonVisible="true"/>
             <checkbox id="activeField" property="active"/>
+            <comboBox id="organization" property="organization"/>
         </formLayout>
         <hbox id="detailActions">
             <button id="saveAndCloseButton" action="saveAction"/>

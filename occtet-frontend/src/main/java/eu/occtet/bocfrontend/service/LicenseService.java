@@ -61,5 +61,4 @@ public class LicenseService {
         return licenseRepository.findByCurated(isCurated);
     }
 
-
 }

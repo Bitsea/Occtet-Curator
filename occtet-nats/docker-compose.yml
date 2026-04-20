@@ -1,140 +1,208 @@
 #version: '0.3.8'
+
+# ORDER: db | nats -> Frontend -> Backend-microservices
+
+x-common-env: &common-env
+  SPRING_PROFILES_ACTIVE: live
+  DB_URL: ${DB_URL}
+  DB_USERNAME: ${DB_USERNAME}
+  DB_PASSWORD: ${DB_PASSWORD}
+  NATS_URL: nats://nats:4222
+
+x-microservice-depends: &microservice-depends
+  frontend:
+    condition: service_healthy
+  db:
+    condition: service_healthy
+  nats:
+    condition: service_started
+
 services:
-    db:
-        image: pgvector/pgvector:pg17-trixie
-        command: -c 'max_connections=200'
-        container_name: db
-        ports:
-        - "5439:5432"
-        environment:
-        - POSTGRES_USER=occtetuser
-        - POSTGRES_PASSWORD=vrcn4xerj8u3n587niuhrfwe87zgf345osidhfoiesrf4dtdz3e85u9
-        - POSTGRES_DB=occtet_boc
-        - PGDATA=/data/postgresql
-        volumes:
-        - db_data:/data/postgresql
-        - ./init-postgresql-db.sql:/docker-entrypoint-initdb.d/init-postgresql-db.sql
-        networks:
-        - mynet
+  db:
+    image: pgvector/pgvector:pg17-trixie
+    command: -c 'max_connections=200'
+    container_name: db
+    ports:
+      - "5439:5432"
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=occtet_boc
+      - PGDATA=/data/postgresql
+    volumes:
+      - db_data:/data/postgresql
+      - ./init-postgresql-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - mynet
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d occtet_boc" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: always
 
-    nats:
-        image: nats:latest
-        container_name: nats
-        restart: always
-        #ports:
-        #- "4222:4222"
-        #- "8222:8222"
-        volumes:
-          - nats_data:/data/jetstream
-          - ./nats.conf:/etc/nats/nats.conf
-        command: [ "-c", "/etc/nats/nats.conf" ]
-        networks:
-        - mynet
+  nats:
+    image: nats:latest
+    container_name: nats
+    restart: always
+    volumes:
+      - nats_data:/data/jetstream
+      - ./nats.conf:/etc/nats/nats.conf
+    command: [ "-c", "/etc/nats/nats.conf" ]
+    networks:
+      - mynet
 
-    ollama:
-        image: ollama/ollama:latest
-        ports:
-        - "11434:11434"
-        volumes:
-        - ollama_data:/root/.ollama
-        networks:
-        - mynet
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - mynet
+    restart: always
 
-    frontend:
-      image: occtet-boc-frontend:0.3.8-SNAPSHOT
-      ports:
-        - "8090:8090"
-      volumes:
-        - /home/occtet/project_data:/project_data
-      depends_on:
-        - db
-        - nats
-      networks:
-        - mynet
+  frontend:
+    image: occtet-boc-frontend:0.3.10-SNAPSHOT
+    depends_on:
+      db:
+        condition: service_healthy
+      nats:
+        condition: service_started
+    ports:
+      - "8090:8090"
+    volumes:
+      - ${PROJECT_DATA_PATH}:/project_data
+      - ../occtet-frontend/.certs:/certs:ro
+    networks:
+      - mynet
+    environment:
+      <<: *common-env
+      ORT_TOKEN_URL: ${ORT_TOKEN_URL}
+      ORT_BASE_URL: ${ORT_BASE_URL}
+      ORT_USERNAME: ${ORT_USERNAME}
+      ORT_PASSWORD: ${ORT_PASSWORD}
+      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+#      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:8090/boc/ > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    restart: always
 
-    licensematcher-service:
-      image: occtet-nats-licensematcher-service:0.3.8-SNAPSHOT
-      depends_on:
-        - frontend
-        - db
-        - nats
-      networks:
-        - mynet
+  licensematcher-service:
+    image: occtet-nats-licensematcher-service:0.3.8-SNAPSHOT
+    depends_on: *microservice-depends
+    networks: [mynet]
+    restart: always
+    environment:
+      <<: *common-env
 
-    ai-copyrightfilter-service:
-      image: occtet-nats-ai-copyrightfilter-service:0.3.8-SNAPSHOT
-      depends_on:
-        - frontend
-        - ollama
-        - db
-        - nats
-      networks:
-        - mynet
+  ai-copyrightfilter-service:
+    image: occtet-nats-ai-copyrightfilter-service:0.3.8-SNAPSHOT
+    depends_on:
+      <<: *microservice-depends
+      ollama:
+        condition: service_started
+    networks: [mynet]
+    restart: always
+    environment:
+      <<: *common-env
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
 
-    copyrightfilter-service:
-      image: occtet-nats-copyrightfilter-service:0.3.8-SNAPSHOT
-      depends_on:
-        - frontend
-        - db
-        - nats
-      networks:
-        - mynet
+  copyrightfilter-service:
+    image: occtet-nats-copyrightfilter-service:0.3.8-SNAPSHOT
+    depends_on: *microservice-depends
+    networks: [mynet]
+    restart: always
+    environment:
+      <<: *common-env
 
-    foss-report-service:
-      image: occtet-nats-foss-report-service:0.3.8-SNAPSHOT
-      depends_on:
-        - frontend
-        - db
-        - nats
-      networks:
-        - mynet
+  foss-report-service:
+    image: occtet-nats-foss-report-service:0.3.8-SNAPSHOT
+    depends_on: *microservice-depends
+    networks: [mynet]
+    restart: always
+    environment:
+      <<: *common-env
 
-    vulnerability-service:
-      image: occtet-nats-vulnerability-service:0.3.8-SNAPSHOT
-      depends_on:
-        - frontend
-        - db
-        - nats
-      networks:
-        - mynet
+  vulnerability-service:
+    image: occtet-nats-vulnerability-service:0.3.8-SNAPSHOT
+    depends_on: *microservice-depends
+    networks: [mynet]
+    restart: always
+    environment:
+      <<: *common-env
 
-    ai-licensematcher-service:
-      image: occtet-nats-ai-licensematcher-service:0.3.8-SNAPSHOT
-      depends_on:
-        - ollama
-        - frontend
-        - nats
-      networks:
-        - mynet
+  ai-licensematcher-service:
+    image: occtet-nats-ai-licensematcher-service:0.3.8-SNAPSHOT
+    depends_on:
+      <<: *microservice-depends
+      ollama:
+        condition: service_started
+    networks: [mynet]
+    restart: always
+    environment:
+      <<: *common-env
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
 
-    spdx-service:
-      image: occtet-nats-spdx-service:0.3.10-SNAPSHOT
-      depends_on:
-        - frontend
-        - db
-        - nats
-      networks:
-        - mynet
+  spdx-service:
+    image: occtet-nats-spdx-service:0.3.10-SNAPSHOT
+    depends_on: *microservice-depends
+    networks: [mynet]
+    restart: always
+    environment:
+      <<: *common-env
 
-    download-service:
-      image: occtet-nats-download-service:0.3.9-SNAPSHOT
-      depends_on:
-        - frontend
-        - db
-        - nats
-      volumes:
-        - /home/occtet/project_data:/project_data
-      networks:
-        - mynet
+  download-service:
+    image: occtet-nats-download-service:0.3.9-SNAPSHOT
+    depends_on: *microservice-depends
+    volumes:
+      - ${PROJECT_DATA_PATH}:/project_data
+    networks: [mynet]
+    restart: always
+    environment:
+      <<: *common-env
 
-    spdx-export-service:
-      image: occtet-nats-spdx-export-service:0.3.10-SNAPSHOT
-      depends_on:
-        - frontend
-        - db
-        - nats
-      networks:
-        - mynet
+  spdx-export-service:
+    image: occtet-nats-spdx-export-service:0.3.10-SNAPSHOT
+    depends_on: *microservice-depends
+    networks: [mynet]
+    restart: always
+    environment:
+      <<: *common-env
+
+  ort-run-start-service:
+    image: occtet-nats-ort-run-start-service:0.3.8-SNAPSHOT
+    depends_on: *microservice-depends
+    networks: [mynet]
+    restart: always
+    environment:
+      <<: *common-env
+      ORT_TOKEN_URL: ${ORT_TOKEN_URL}
+      ORT_BASE_URL: ${ORT_BASE_URL}
+      ORT_USERNAME: ${ORT_USERNAME}
+      ORT_PASSWORD: ${ORT_PASSWORD}
+    volumes:
+      - ../cacerts:/tmp/cacerts:ro
+
+  process-run-service:
+    image: occtet-nats-process-run-service:0.3.8-SNAPSHOT
+    depends_on: *microservice-depends
+    networks: [mynet]
+    restart: always
+    environment:
+      <<: *common-env
+      ORT_TOKEN_URL: ${ORT_TOKEN_URL}
+      ORT_BASE_URL: ${ORT_BASE_URL}
+      ORT_USERNAME: ${ORT_USERNAME}
+      ORT_PASSWORD: ${ORT_PASSWORD}
+    volumes:
+      - ../cacerts:/tmp/cacerts:ro
 
 volumes:
   db_data:
@@ -144,8 +212,6 @@ volumes:
   ollama_data:
     external: true
 
-
 networks:
   mynet:
     driver: bridge
-

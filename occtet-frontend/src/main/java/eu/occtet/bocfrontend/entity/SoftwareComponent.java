@@ -33,9 +33,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @JmixEntity
-@Table(name = "SOFTWARE_COMPONENT")
+@Table(name = "SOFTWARE_COMPONENT", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"ORGANIZATION_ID", "SOFTWARE_COMPONENT_NAME", "VERSION"})
+})
 @Entity
-public class SoftwareComponent {
+public class SoftwareComponent implements HasOrganization {
 
     @JmixGeneratedValue
     @Id
@@ -73,7 +75,11 @@ public class SoftwareComponent {
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name= "SOFTWARE_COMPONENT_ID")
-    private List<Copyright> copyrights;
+    private List<Copyright> copyrights = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
+    private Organization organization;
 
 
     public SoftwareComponent(){
@@ -163,14 +169,21 @@ public class SoftwareComponent {
                 .collect(Collectors.toList());
     }
 
-    public void setVulnerabilities(List<Vulnerability> vulnerabilities) {
+    /**
+     * realtion between vulnerabilites and softwarecomponent is set with this link table, this new entity of link table
+     * must be saved after the usage of this method, that is why this setter gives something back
+     * better to implement this logic in the code his is used
+     * @param vulnerabilities
+     * @return
+     */
+    public List<ComponentVulnerabilityLink> setVulnerabilities(List<Vulnerability> vulnerabilities) {
         if (this.vulnerabilityLinks == null) {
             this.vulnerabilityLinks = new ArrayList<>();
         }
 
         if (vulnerabilities == null || vulnerabilities.isEmpty()) {
             this.vulnerabilityLinks.clear();
-            return;
+            return null;
         }
 
         this.vulnerabilityLinks.removeIf(link -> !vulnerabilities.contains(link.getVulnerability()));
@@ -187,7 +200,10 @@ public class SoftwareComponent {
                 newLink.setResolved(false);
                 this.vulnerabilityLinks.add(newLink);
             }
+
         }
+        //this must be saved in dataManager afterward
+        return vulnerabilityLinks;
     }
 
     public List<ComponentVulnerabilityLink> getVulnerabilityLinks() {
@@ -204,6 +220,14 @@ public class SoftwareComponent {
 
     public void setCopyrights(List<Copyright> copyrights) {
         this.copyrights = copyrights;
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 
     public void addLicense(UsageLicense license) {

@@ -26,7 +26,7 @@
             <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} -%kvp- %msg%n</pattern>
         </encoder>
     </appender>
-    <property resource="application-live.properties" />
+    <property resource="application-common-live.properties" />
     <appender name="DB" class="ch.qos.logback.classic.db.DBAppender">
         <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
             <driverClass>org.postgresql.Driver</driverClass>

@@ -48,8 +48,6 @@
     <layout>
         <hbox>
             <comboBox id="projectComboBox" property="projectName" label="Choose project"/>
-            <button id="showAllButton" text="msg://eu.occtet.bocfrontend.view/showAllButton"
-                    alignSelf="END" themeNames="primary"/>
         </hbox>
         <hbox width="100%" visible="false" id="filterBox">
             <genericFilter id="genericFilter" dataLoader="inventoryItemsDl" themeNames="small" alignSelf="START" opened="false">
@@ -69,12 +67,13 @@
                 <action id="refreshAction" type="list_refresh"/>
             </actions>
             <columns resizable="true">
-                <column property="inventoryName" header="msg://inventoryName"/>
-                <column property="softwareComponent" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.softwareComponent"/>
-                <column property="softwareComponent.licenses" header="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.licenses" key="licenses"/>
-                <column property="size" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.size"/>
-                <column property="linking" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.linking"/>
-                <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
+                <column property="inventoryName" header="msg://inventoryName" filterable="true"/>
+                <column property="softwareComponent"
+                        header="msg://eu.occtet.bocfrontend.entity/InventoryItem.softwareComponent" filterable="true"/>
+                <column property="size" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.size"
+                        filterable="true"/>
+                <column property="linking" header="msg://eu.occtet.bocfrontend.entity/InventoryItem.linking" filterable="true"/>
+                <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated" filterable="true"/>
             </columns>
         </dataGrid>
         <hbox id="buttonsPanel" classNames="buttons-panel">

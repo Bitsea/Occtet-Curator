@@ -23,8 +23,10 @@ package eu.occtet.boc.export;
 
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.dao.SpdxDocumentRootRepository;
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.spdxV2.CreationInfoEntity;
+import eu.occtet.boc.entity.spdxV2.ExtractedLicensingInfoEntity;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.export.service.AnswerService;
 import eu.occtet.boc.export.service.ExportService;
@@ -78,8 +80,13 @@ public class ExportServiceTest {
         project.setId(100L);
         project.setVersion("1.0.0");
         project.setProjectContact("Jane Doe");
-        project.setOrganizationName("Acme Corp");
         project.setCreatedAt(LocalDateTime.now());
+
+        Organization org = new Organization();
+        org.setOrganizationEmail("test@test.com");
+        org.setOrganizationName("Test Org");
+
+        project.setOrganization(org);
 
         SpdxDocumentRoot documentRoot = getSpdxDocumentRoot();
 
@@ -103,7 +110,7 @@ public class ExportServiceTest {
 
         String jsonString = new String(generatedPayload);
         assertTrue(jsonString.contains("SPDXRef-DOCUMENT"), "JSON should contain the document SPDX reference");
-        assertTrue(jsonString.contains("Acme Corp"), "JSON should contain project organization");
+        assertTrue(jsonString.contains("Test Org"), "JSON should contain project organization");
     }
 
     @NotNull
@@ -152,5 +159,82 @@ public class ExportServiceTest {
 
         assertFalse(result, "Export process should return false if the document root is missing.");
         verify(mergeService, never()).mergeChangesToDocumentEntities(any(), any());
+    }
+
+    @Test
+    void process_WithEnrichment_PrependsCopyrightsToExtractedLicense() {
+        ReflectionTestUtils.setField(exportService, "toolName", "TestTool-1.0");
+
+        Organization org = new Organization();
+        org.setOrganizationName("Test Org");
+
+        SpdxExportWorkData workData = new SpdxExportWorkData();
+        workData.setProjectId(100L);
+        workData.setSpdxDocumentId("https://test.uri/doc");
+        workData.setObjectStoreKey("sbom-enriched-export.json");
+        workData.setEnrichment(true);
+
+        Project project = new Project("Enriched Export Project");
+        project.setId(100L);
+        project.setOrganization(org);
+
+        SpdxDocumentRoot documentRoot = getSpdxDocumentRoot();
+
+        ExtractedLicensingInfoEntity extractedLicense = new ExtractedLicensingInfoEntity();
+        extractedLicense.setLicenseId("LicenseRef-Custom1");
+        extractedLicense.setExtractedText("Original License Text");
+        documentRoot.setHasExtractedLicensingInfos(java.util.List.of(extractedLicense));
+
+        eu.occtet.boc.entity.spdxV2.SpdxPackageEntity pkg = new eu.occtet.boc.entity.spdxV2.SpdxPackageEntity();
+        pkg.setSpdxId("SPDXRef-Package-1");
+        pkg.setName("Test-Package");
+        pkg.setLicenseConcluded("LicenseRef-Custom1");
+        pkg.setFilesAnalyzed(true);
+        pkg.setDownloadLocation("https://test.uri/doc");
+        pkg.setLicenseDeclared("NOASSERTION");
+        pkg.setCopyrightText("Copyright (C) 2026 Alice");
+        pkg.setChecksums(java.util.Collections.emptyList());
+        pkg.setExternalRefs(java.util.Collections.emptyList());
+        pkg.setVersionInfo("");
+        pkg.setHomepage("");
+        pkg.setSummary("");
+        pkg.setDescription("");
+        pkg.setOriginator("");
+        pkg.setSupplier("");
+
+        eu.occtet.boc.entity.spdxV2.PackageVerificationCodeEntity pkgCode = new eu.occtet.boc.entity.spdxV2.PackageVerificationCodeEntity();
+        pkgCode.setPackageVerificationCodeValue("");
+        pkg.setPackageVerificationCode(pkgCode);
+
+        documentRoot.setPackages(java.util.List.of(pkg));
+
+        eu.occtet.boc.entity.spdxV2.SpdxFileEntity file = new eu.occtet.boc.entity.spdxV2.SpdxFileEntity();
+        file.setSpdxId("SPDXRef-File-1");
+        file.setFileName("test-file.java");
+        file.setLicenseConcluded("LicenseRef-Custom1");
+        file.setCopyrightText("Copyright (C) 2026 Bob");
+        file.setLicenseInfoInFiles(java.util.Collections.emptyList());
+
+        eu.occtet.boc.entity.spdxV2.ChecksumEntity checksum = new eu.occtet.boc.entity.spdxV2.ChecksumEntity();
+        checksum.setAlgorithm("SHA1");
+        checksum.setChecksumValue("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+        file.setChecksums(java.util.List.of(checksum));
+        documentRoot.setFiles(java.util.List.of(file));
+
+        when(projectRepository.findById(100L)).thenReturn(Optional.of(project));
+        when(spdxDocumentRootRepository.findByDocumentUri("https://test.uri/doc")).thenReturn(Optional.of(documentRoot));
+        doNothing().when(mergeService).mergeChangesToDocumentEntities(any(), any());
+
+        boolean result = exportService.process(workData);
+        assertTrue(result, "Export process should return true on success");
+
+        ArgumentCaptor<byte[]> byteCaptor = ArgumentCaptor.forClass(byte[].class);
+        verify(answerService, times(1)).putIntoBucket(eq("sbom-enriched-export.json"), byteCaptor.capture());
+
+        String jsonString = new String(byteCaptor.getValue());
+
+        assertTrue(jsonString.contains("Copyright (C) 2026 Alice"), "JSON should contain Alice's copyright");
+        assertTrue(jsonString.contains("Copyright (C) 2026 Bob"), "JSON should contain Bob's copyright");
+        assertTrue(jsonString.contains("Original License Text"), "JSON should contain the original extracted text");
     }
 }

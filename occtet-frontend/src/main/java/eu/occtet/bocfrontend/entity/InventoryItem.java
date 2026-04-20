@@ -25,13 +25,12 @@ import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 
 @JmixEntity
 @Table(name = "INVENTORY_ITEM")
 @Entity
-public class InventoryItem {
+public class InventoryItem implements HasOrganization {
 
     @JmixGeneratedValue
     @Id
@@ -82,6 +81,10 @@ public class InventoryItem {
 
     @Column(name = "CREATED_AT", updatable = false)
     private @Nonnull LocalDateTime createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID")
+    private Organization organization;
 
     public InventoryItem(){
         this.createdAt = LocalDateTime.now();
@@ -237,5 +240,11 @@ public class InventoryItem {
         return curated;
     }
 
+    public Organization getOrganization() {
+        return organization;
+    }
 
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
+    }
 }

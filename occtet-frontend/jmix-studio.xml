@@ -35,6 +35,9 @@
       </entry>
     </moduleSettings>
   </component>
+  <component name="TranslationAddonsNotifySettings">
+    <option name="dontShowInstallSuggest" value="true" />
+  </component>
   <component name="VersionUpdateSettings">
     <option name="ignoredVersions">
       <set>

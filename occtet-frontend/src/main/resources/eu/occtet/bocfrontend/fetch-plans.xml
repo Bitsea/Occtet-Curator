@@ -34,7 +34,7 @@
         </property>
         <property name="vulnerability">
             <property name="vulnerabilityId"/>
-            <property name="weightedSeverity"/>
+            <property name="severity"/>
         </property>
     </fetchPlan>
 

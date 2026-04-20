@@ -83,6 +83,9 @@ public class SpdxServiceTest {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
 
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
     @MockitoBean
     private PackageHandler packageHandler;
     @MockitoBean
@@ -102,14 +105,20 @@ public class SpdxServiceTest {
     @MockitoBean
     private JsonSanitizer  jsonSanitizer;
 
+    private Organization org;
     private Project project;
     private byte[] jsonBytes;
 
     @BeforeEach
     public void setup() throws IOException {
+        org = new Organization();
+        org.setOrganizationName("TestOrg");
+        organizationRepository.save(org);
+
         project = new Project();
         project.setProjectName("Orchestration Project");
         project.setVersion("0.0.1");
+        project.setOrganization(org);
         project = projectRepository.save(project);
 
         jsonBytes = Thread.currentThread().getContextClassLoader()
@@ -136,6 +145,7 @@ public class SpdxServiceTest {
         simulatedItem.setProject(project);
         simulatedItem.setSpdxId("SPDXRef-Package-Maven-pkg7-grp-pkg7-0.0.1-source-artifact");
         simulatedItem.setInventoryName("Simulated Item");
+        simulatedItem.setOrganization(org);
         inventoryItemRepository.save(simulatedItem);
 
         boolean result = spdxService.process(workData);
@@ -170,6 +180,8 @@ public class SpdxServiceTest {
         dbItem.setProject(project);
         dbItem.setSpdxId("SPDXRef-Existing-Item");
         dbItem.setInventoryName("Existing Item");
+        dbItem.setOrganization(org);
+
         inventoryItemRepository.save(dbItem);
 
         spdxService.process(workData);

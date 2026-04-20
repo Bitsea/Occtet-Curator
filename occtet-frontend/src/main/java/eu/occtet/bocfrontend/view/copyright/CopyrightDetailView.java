@@ -44,6 +44,7 @@ import java.util.Set;
 @ViewController(id = "Copyright.detail")
 @ViewDescriptor(path = "copyright-detail-view.xml")
 @EditedEntityContainer("copyrightDc")
+@DialogMode(width = "80%", height = "80%")
 public class CopyrightDetailView extends StandardDetailView<Copyright> {
 
     private static final Logger log = LogManager.getLogger(CopyrightDetailView.class);

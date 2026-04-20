@@ -29,9 +29,11 @@ import java.util.stream.Collectors;
 
 
 @Entity
-@Table(name = "SOFTWARE_COMPONENT")
+@Table(name = "SOFTWARE_COMPONENT", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"ORGANIZATION_ID", "SOFTWARE_COMPONENT_NAME", "VERSION"})
+})
 @EntityListeners(AuditingEntityListener.class)
-public class SoftwareComponent {
+public class SoftwareComponent implements HasOrganization {
 
     @Id
     @Column(name="ID", nullable = false)
@@ -66,31 +68,38 @@ public class SoftwareComponent {
     @OneToMany(mappedBy = "softwareComponent", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ComponentVulnerabilityLink> vulnerabilityLinks = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
+    private Organization organization;
+
     public SoftwareComponent() {
     }
 
     public SoftwareComponent(String softwareName, String version,
-                             List<UsageLicense> license) {
+                             List<UsageLicense> license, Organization organization) {
         this.name = softwareName;
         this.version = version;
         this.licenses = license;
         this.curated = false;
+        this.organization= organization;
     }
 
     public SoftwareComponent(String softwareName, String version,
-                             List<UsageLicense> license, String url) {
+                             List<UsageLicense> license, String url, Organization organization) {
         this.name = softwareName;
         this.version = version;
         this.licenses = license;
         this.curated = false;
         this.detailsUrl= url;
+        this.organization= organization;
     }
 
-    public SoftwareComponent(String softwareName, String version){
+    public SoftwareComponent(String softwareName, String version, Organization organization){
         this.name = softwareName;
         this.version = version;
         this.curated = false;
         this.licenses = new ArrayList<>();
+        this.organization= organization;
     }
     public SoftwareComponent(
             String name,
@@ -230,6 +239,14 @@ public class SoftwareComponent {
 
     public void setCopyrights(List<Copyright> copyrights) {
         this.copyrights = copyrights;
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 
     public void addLicense(UsageLicense license) {

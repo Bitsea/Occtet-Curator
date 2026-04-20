@@ -25,6 +25,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.*;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.factory.CopyrightFactory;
+import io.jmix.core.DataManager;
+import io.jmix.core.SaveContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.jmix.core.FileRef;
@@ -40,7 +42,6 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class CopyrightService {
@@ -58,6 +59,8 @@ public class CopyrightService {
 
     @Autowired
     private TemporaryStorage temporaryStorage;
+    @Autowired
+    private DataManager dataManager;
 
 
 
@@ -149,8 +152,34 @@ public class CopyrightService {
         }
     }
 
-    public Copyright createCopyright(String name, Set<eu.occtet.bocfrontend.entity.File> files, boolean isCurated, boolean isGarbage){
-        return copyrightFactory.create(name,files,isCurated,isGarbage);
+    public Copyright createAndSaveCopyright(String name, Set<eu.occtet.bocfrontend.entity.File> files, boolean isCurated, boolean isGarbage) {
+
+        Copyright newCopyright = dataManager.create(Copyright.class);
+        newCopyright.setCopyrightText(name);
+        newCopyright.setCurated(isCurated);
+        newCopyright.setGarbage(isGarbage);
+
+        Copyright savedCopyright = dataManager.save(newCopyright);
+
+        if (files != null && !files.isEmpty()) {
+            SaveContext saveContext = new SaveContext();
+
+            for (eu.occtet.bocfrontend.entity.File detachedFile : files) {
+                eu.occtet.bocfrontend.entity.File fullyLoadedFile = dataManager.load(eu.occtet.bocfrontend.entity.File.class)
+                        .id(detachedFile.getId())
+                        .fetchPlan(f -> f.add("copyrights"))
+                        .one();
+
+                if (fullyLoadedFile.getCopyrights() == null) {
+                    fullyLoadedFile.setCopyrights(new HashSet<>());
+                }
+                saveContext.saving(fullyLoadedFile);
+            }
+
+            dataManager.save(saveContext);
+        }
+
+        return savedCopyright;
     }
 }
 

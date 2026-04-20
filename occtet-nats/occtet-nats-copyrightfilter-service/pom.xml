@@ -182,6 +182,10 @@
     <build>
         <resources>
             <resource>
+                <directory>../src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+            <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
@@ -214,6 +218,23 @@
                     </buildArgs>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <configLocation>../checkstyle-min.xml</configLocation>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
@@ -239,5 +260,4 @@
             <activation><activeByDefault>true</activeByDefault></activation>
         </profile>
     </profiles>
-
 </project>

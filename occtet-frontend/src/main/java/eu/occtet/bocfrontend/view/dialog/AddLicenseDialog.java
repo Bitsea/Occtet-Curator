@@ -28,6 +28,7 @@ import eu.occtet.bocfrontend.dao.TemplateLicenseRepository;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.TemplateLicense;
 import eu.occtet.bocfrontend.entity.UsageLicense;
+import eu.occtet.bocfrontend.entity.TemplateLicense;
 import io.jmix.core.DataManager;
 import io.jmix.core.SaveContext;
 import io.jmix.flowui.component.grid.DataGrid;
@@ -44,7 +45,7 @@ import java.util.stream.Collectors;
 
 @ViewController("addLicenseDialog")
 @ViewDescriptor("add-license-dialog.xml")
-@DialogMode(width = "1000px", height = "650px")
+@DialogMode(width = "70%", height = "70%")
 public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent> {
 
     private static final Logger log = LogManager.getLogger(AddLicenseDialog.class);
@@ -64,9 +65,6 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
 
     @ViewComponent
     private DataGrid<TemplateLicense> licensesDataGrid;
-
-    @Autowired
-    private DataManager dataManager;
 
     @Override
     @Subscribe("licenseDc")
@@ -100,7 +98,9 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
     @Override
     @Subscribe(id = "addLicenseButton")
     public void addContentButton(ClickEvent<Button> event) {
+        List<TemplateLicense> selectedLicenses = getSelectedLicenses();
 
+        if (!selectedLicenses.isEmpty() && softwareComponent != null) {
         List<TemplateLicense> selectedTemplates = new ArrayList<>(licensesDataGrid.getSelectedItems());
 
         if (!selectedTemplates.isEmpty() && softwareComponent != null) {
@@ -124,11 +124,11 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
             close(StandardOutcome.SAVE);
         }
     }
+        }
 
     @Override
     @Subscribe(id = "searchButton")
     public void searchContentButton(ClickEvent<Button> event) {
-
         String searchWord = searchField.getValue();
         if (searchWord != null && !searchWord.isEmpty()) {
             List<TemplateLicense> listFindings = templateLicenseRepository.findAll().stream()
@@ -143,13 +143,17 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
             listFindings.removeIf(usedTemplates::contains);
 
             licenseDc.setItems(listFindings);
-        } else {
-            loadAvailableLicenses();
+        }else{
+            licenseDc.setItems(licenseRepository.findAvailableLicenses(softwareComponent.getLicenses()));
         }
-    }
+        }
 
-    @Subscribe(id = "cancelButton")
-    public void cancelLicense(ClickEvent<Button> event) {
-        cancelButton(event);
+        @Subscribe(id = "cancelButton")
+        public void cancelLicense(ClickEvent<Button> event) {
+            cancelButton(event);
+        }
+
+    public List<TemplateLicense> getSelectedLicenses() {
+        return new ArrayList<>(licensesDataGrid.getSelectedItems());
     }
 }

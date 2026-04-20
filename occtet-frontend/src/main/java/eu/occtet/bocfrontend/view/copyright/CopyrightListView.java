@@ -33,6 +33,7 @@ import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
+import io.jmix.core.Messages;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.checkbox.JmixCheckbox;
 import io.jmix.flowui.component.combobox.JmixComboBox;
@@ -53,30 +54,15 @@ import java.util.*;
 @ViewController(id = "Copyright.list")
 @ViewDescriptor(path = "copyright-list-view.xml")
 @LookupComponent("copyrightsDataGrid")
-@DialogMode(width = "64em")
+@DialogMode(width = "80%", height = "80%")
 public class CopyrightListView extends StandardListView<Copyright> {
 
     private static final Logger log = LogManager.getLogger(CopyrightListView.class);
 
     @ViewComponent
     private CollectionContainer<Copyright> copyrightsDc;
-
     @ViewComponent
     private CollectionLoader<Copyright> copyrightsDl;
-
-
-    @Autowired
-    protected UiComponents uiComponents;
-
-    @Autowired
-    private DataManager dataManager;
-
-    @Autowired
-    private ProjectRepository projectRepository;
-
-    @Autowired
-    private InventoryItemRepository inventoryItemRepository;
-
     @ViewComponent
     private JmixComboBox<Project> projectComboBox;
 
@@ -95,25 +81,59 @@ public class CopyrightListView extends StandardListView<Copyright> {
     @ViewComponent
     private JmixButton markButton;
 
-    private Project project;
+
+    @Autowired
+    protected UiComponents uiComponents;
+    @Autowired
+    private DataManager dataManager;
+    @Autowired
+    private ProjectRepository projectRepository;
+    @Autowired
+    private InventoryItemRepository inventoryItemRepository;
     @Autowired
     private CopyrightRepository copyrightRepository;
+    @Autowired
+    private Messages messages;
+
+    private Project project;
 
 
     @Subscribe
     public void onInit(InitEvent event){
-        projectComboBox.setItems(projectRepository.findAll());
-        projectComboBox.setItemLabelGenerator(project -> project.getProjectName()+" - "+project.getVersion());
-        project = null;
+        Project showAllProject = new Project();
+        showAllProject.setProjectName(messages.getMessage("Showall"));
+        showAllProject.setVersion("");
+        showAllProject.setId(new Random().nextLong());
+
+        List<Project> allProjects = new java.util.ArrayList<>();
+        allProjects.add(showAllProject);
+        allProjects.addAll(projectRepository.findAll());
+
+        projectComboBox.setItems(allProjects);
+        projectComboBox.setItemLabelGenerator(project -> {
+            if (messages.getMessage("Showall").equals(project.getProjectName())) {
+                return project.getProjectName();
+            }
+            return project.getProjectName() + " - " + project.getVersion();
+        });
     }
 
 
     @Subscribe(id = "projectComboBox")
     public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
         if(event != null){
-            project = event.getValue();
-            updateDatagridForProject(project);
-            markButton.setVisible(true);
+            Project selectedProject = event.getValue();
+            if (selectedProject == null || messages.getMessage("Showall").equals(selectedProject.getProjectName())) {
+                List<Copyright> copyrights = copyrightRepository.findAll();
+                loadCopyrights(copyrights);
+                filterBox.setVisible(!copyrights.isEmpty());
+            }
+            else {
+                project = event.getValue();
+                updateDatagridForProject(project);
+                markButton.setVisible(true);
+            }
+
         }
     }
 
@@ -150,13 +170,6 @@ public class CopyrightListView extends StandardListView<Copyright> {
         return new ComponentRenderer<>(this::createCheckbox);
     }
 
-    @Subscribe("showAllButton")
-    public void clickOnShowAllButton(ClickEvent<Button> event){
-        List<Copyright> copyrights = copyrightRepository.findAll();
-        loadCopyrights(copyrights);
-        filterBox.setVisible(!copyrights.isEmpty());
-    }
-
     private JmixCheckbox createCheckbox(Copyright copyright){
         JmixCheckbox checkbox = uiComponents.create(JmixCheckbox.class);
         checkbox.setReadOnly(true);
@@ -165,7 +178,7 @@ public class CopyrightListView extends StandardListView<Copyright> {
     }
 
     private void updateDatagridForProject(Project project){
-        log.debug("Loading copyrights for project: " +project.getProjectName()+" - "+project.getVersion());
+        log.debug("Loading copyrights for project: {} - {}", project.getProjectName(), project.getVersion());
         List<InventoryItem> items = inventoryItemRepository.findByProject(project);
         List<Copyright> copyrights = copyrightRepository.findByInventoryItems(items);
         loadCopyrights(copyrights);

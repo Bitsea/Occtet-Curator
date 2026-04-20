@@ -21,8 +21,6 @@
 <menu-config xmlns="http://jmix.io/schema/flowui/menu">
     <item view="DashboardView" title="msg://eu.occtet.bocfrontend.view.dashboard/dashboardView.title" icon="vaadin:dashboard"/>
     <item view="AuditView" title="msg://eu.occtet.bocfrontend.view.audit/auditView.title" icon="vaadin:compile"/>
-    <item view="VexData.list" title="msg://eu.occtet.bocfrontend/eu.occtet.bocfrontend.view.vexData"
-          icon="vaadin:clipboard-text"/>
     <item view="Vulnerability.list" title="msg://eu.occtet.bocfrontend/eu.occtet.bocfrontend.view.vulnerabilities"
           icon="vaadin:doctor-briefcase"/>
     <item view="InventoryItem.list" title="msg://eu.occtet.bocfrontend.view.inventoryitem/inventoryItemListView.title"
@@ -31,18 +29,28 @@
           icon="vaadin:copyright"/>
     <item view="TemplateLicense.list" title="msg://eu.occtet.bocfrontend.view.license/licenseListView.title"
           icon="vaadin:file-text-o"/>
+    <item view="VexData.list" title="msg://eu.occtet.bocfrontend/eu.occtet.bocfrontend.view.vexData"
+          icon="vaadin:clipboard-text"/>
     <item view="Project.list" title="msg://eu.occtet.bocfrontend.view.project/projectListView.title"
           icon="vaadin:toolbox"/>
     <item view="SoftwareComponent.list" title="msg://eu.occtet.bocfrontend.view.softwareComponent/softwareComponentListView.title"
           icon="vaadin:browser"/>
+    <item view="InventoryItem.list" title="msg://eu.occtet.bocfrontend.view.inventoryitem/inventoryItemListView.title"
+          icon="vaadin:archives"/>
+    <item view="License.list" title="msg://eu.occtet.bocfrontend.view.license/licenseListView.title"
+          icon="vaadin:file-text-o"/>
+    <item view="Copyright.list" title="msg://eu.occtet.bocfrontend/copyrights"
+          icon="vaadin:copyright"/>
     <item view="ortIssue.list" title="msg://eu.occtet.bocfrontend.view.ortIssue/title"
           icon="vaadin:exclamation"/>
     <item view="ortViolation.list" title="msg://eu.occtet.bocfrontend.view.ortViolation/caption"
           icon="vaadin:shield"/>
     <item view="CuratorTask.list" title="msg://eu.occtet.bocfrontend.view.curatortask/importTaskListView.title" icon="vaadin:plus-circle"/>
     <item view="HelpView" title="msg://eu.occtet.bocfrontend.view.help/helpView.title" icon="vaadin:open-book"/>
-    <menu id="application" title="msg://eu.occtet.bocfrontend/menu.application.title">
+
+    <menu id="admin" title="msg://eu.occtet.bocfrontend/menu.application.title">
         <item view="ConfigurationView" title="msg://eu.occtet.bocfrontend.view.appconfiguration/configurationView.title"/>
+        <item view="Organization.list" title="msg://eu.occtet.bocfrontend/organizations"/>
         <item view="ServicesView" title="msg://eu.occtet.bocfrontend.view.services/servicesView.title"/>
         <item view="User.list" title="msg://eu.occtet.bocfrontend.view.user/UserListView.title"/>
         <item view="DBLog.list" title="msg://eu.occtet.bocfrontend.view.DBLog/DBLogListView.title"/>

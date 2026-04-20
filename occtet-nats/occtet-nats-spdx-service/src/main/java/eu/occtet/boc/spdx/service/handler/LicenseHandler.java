@@ -22,6 +22,10 @@ package eu.occtet.boc.spdx.service.handler;
 import eu.occtet.boc.entity.TemplateLicense;
 import eu.occtet.boc.entity.UsageLicense;
 import eu.occtet.boc.spdx.service.TemplateLicenseService;
+import eu.occtet.boc.dao.LicenseRepository;
+import eu.occtet.boc.entity.License;
+import eu.occtet.boc.entity.Organization;
+import eu.occtet.boc.spdx.service.LicenseService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
@@ -72,6 +76,10 @@ public class LicenseHandler {
 
             if (licenseId.isEmpty()) licenseId = "Unknown";
 
+            License licenseEntity = licenseCache.get(licenseId);
+
+            if (licenseEntity == null) {
+                licenseEntity = licenseService.findOrCreateLicense(licenseId, licenseText, licenseId, organization);
             TemplateLicense templateEntity = licenseCache.get(licenseId);
 
             if (templateEntity == null) {

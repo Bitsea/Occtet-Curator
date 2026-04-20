@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+        <!--
+          ~ Copyright (C) 2025 Bitsea GmbH
+          ~
+          ~ Licensed under the Apache License, Version 2.0 (the "License");
+          ~ you may not use this file except in compliance with the License.
+          ~ You may obtain a copy of the License at
+          ~
+          ~     https:www.apache.orglicensesLICENSE-2.0
+          ~
+          ~ Unless required by applicable law or agreed to in writing, software
+          ~ distributed under the License is distributed on an "AS IS" BASIS,
+          ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+          ~ See the License for the specific language governing permissions and
+          ~ limitations under the License.
+          ~
+          ~ SPDX-License-Identifier: Apache-2.0
+          ~ License-Filename: LICENSE
+          -->
+
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://eu.occtet.bocfrontend.view.softwareComponent/softwareComponentListView.title">
+<data>
+    <collection id="softwareComponentDc"
+                class="eu.occtet.bocfrontend.entity.SoftwareComponent">
+        <fetchPlan extends="_base"/>
+        <loader id="softwareComponentDl">
+            <query>
+                <![CDATA[select e from SoftwareComponent e]]>
+            </query>
+        </loader>
+    </collection>
+</data>
+<layout>
+    <vbox width="100%" height="100%">
+        <hbox width="100%">
+            <textField id="searchField" placeholder="Name..."/>
+            <button id="searchButton" text="Search"/>
+        </hbox>
+        <dataGrid id="softwareComponentDataGrid"
+                  width="100%"
+                  height="30em"
+                  dataContainer="softwareComponentDc"
+                  columnReorderingAllowed="true"
+                  classNames="occtet-grid"
+                  selectionMode="MULTI">
+            <columns resizable="true">
+                <column property="name" header="msg://eu.occtet.bocfrontend.view.softwareComponent/softwareComponent.name"/>
+                <column property="version" header="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.version"/>
+                <column property="purl" header="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.purl"/>
+            </columns>
+        </dataGrid>
+        <hbox alignItems="CENTER" alignSelf="CENTER" justifySelf="CENTER" justifyContent="CENTER" width="100%">
+            <button id="addComponentButton" text="Add" themeNames="primary"/>
+            <button id="cancelButton" text="Cancel"/>
+        </hbox>
+    </vbox>
+</layout>
+</view>

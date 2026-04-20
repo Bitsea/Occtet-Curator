@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.*;
-import eu.occtet.boc.fossreport.dao.SoftwareComponentRepository;
+import eu.occtet.boc.dao.SoftwareComponentRepository;
 import eu.occtet.boc.model.*;
 import eu.occtet.boc.service.NatsStreamSender;
 import eu.occtet.boc.service.ProgressReportingService;
@@ -154,11 +154,11 @@ public class FossReportService extends ProgressReportingService {
             log.debug("project: {}", project);
 
             SoftwareComponent softwareComponent = softwareComponentService.getOrCreateSoftwareComponent(
-                    componentName, componentVersion, licenses, url);
+                    componentName, componentVersion, licenses, url, project.getOrganization());
 
             // Ensure that the parent inventory has a software Component
             SoftwareComponent parentSoftwareComponent =
-                    softwareComponentService.getOrCreateSoftwareComponent(parentComponentName, parentComponentVersion);
+                    softwareComponentService.getOrCreateSoftwareComponent(parentComponentName, parentComponentVersion, project.getOrganization());
 
             InventoryItem parentInventory = inventoryItemService.getOrCreateInventoryItem(parentInventoryName, parentSoftwareComponent, project);
 
@@ -180,7 +180,7 @@ public class FossReportService extends ProgressReportingService {
 
             prepareFiles(rowDto, inventoryItem, basePathFile);
             //as we have no specific file for the copyrights here, we just use the basepath
-            copyrights = prepareCopyrights(rowDto, basePathFile);
+            copyrights = prepareCopyrights(rowDto, basePathFile, project.getOrganization());
 
             inventoryItem.getSoftwareComponent().setCopyrights(copyrights);
             inventoryItemRepository.save(inventoryItem);
@@ -227,7 +227,7 @@ public class FossReportService extends ProgressReportingService {
      *
      * @return a list of License objects containing extracted license information.
      */
-    private List<UsageLicense> prepareLicenses(boolean wasCombined, Boolean isStyleBy, RowDto rowDto) {
+    private List<UsageLicense> prepareLicenses(boolean wasCombined, Boolean isStyleBy, RowDto rowDto, Organization organization) {
 
         List<String> licenseNames;
         List<UsageLicense> licenses = new ArrayList<>();
@@ -236,11 +236,11 @@ public class FossReportService extends ProgressReportingService {
             licenseNames = FossReportUtilities.separateCombinedLicenses(rowDto.licenseTypeId());
             for (String licenseName : licenseNames) {
                 licenses.add(licenseService.findOrCreateLicenseWithModified(licenseName, rowDto.licenseText(),
-                        isStyleBy).getUsages().getFirst());
+                        isStyleBy, organization).getUsages().getFirst());
             }
         } else {
             licenses.add(licenseService.findOrCreateLicenseWithModified(rowDto.licenseTypeId(),
-                    rowDto.licenseText(), isStyleBy).getUsages().getFirst());
+                    rowDto.licenseText(), isStyleBy, organization).getUsages().getFirst());
         }
         log.debug("Licenses found: {}", licenses.size());
         return licenses;
@@ -257,7 +257,7 @@ public class FossReportService extends ProgressReportingService {
         }
     }
 
-    private List<Copyright> prepareCopyrights(RowDto rowDto, File basePathFile) {
+    private List<Copyright> prepareCopyrights(RowDto rowDto, File basePathFile, Organization organization) {
         log.debug("prepare copyrights with text: {}", rowDto.copyright());
         List<Copyright> copyrights = new ArrayList<>();
         List<String> copyrightTexts = FossReportUtilities.getCopyrights(rowDto.copyright());
@@ -265,7 +265,7 @@ public class FossReportService extends ProgressReportingService {
         if (!copyrightTexts.isEmpty()) {
             copyrightTexts.forEach(copyrightText -> {
                 // For FlexeraReport use the basepath for copyrights, as we dont have a specific path for them.
-                Copyright copyright = copyrightService.findOrCreateCopyright(copyrightText, basePathFile);
+                Copyright copyright = copyrightService.findOrCreateCopyright(copyrightText, basePathFile, organization);
                 copyrights.add(copyright);
             });
         }

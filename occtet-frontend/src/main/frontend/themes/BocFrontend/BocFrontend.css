@@ -177,3 +177,15 @@ vaadin-menu-bar-button[theme~="primary"]{
     border: none;
     padding-left: 0 !important;
 }
+
+.box-layout{
+    border: 1px solid;
+    border-radius: 5px ;
+    border-color: darkGray;
+}
+
+.dashboard-list-layout{
+    border: 0px solid;
+    border-radius: 5px ;
+    border-color: darkGray;
+}

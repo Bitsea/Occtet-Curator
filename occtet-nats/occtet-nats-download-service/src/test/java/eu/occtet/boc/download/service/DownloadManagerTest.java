@@ -25,6 +25,7 @@ import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.download.factory.DownloadStrategyFactory;
 import eu.occtet.boc.download.strategies.DownloadStrategy;
+import eu.occtet.boc.download.utils.StoragePathResolver;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.SoftwareComponent;
@@ -66,6 +67,7 @@ class DownloadManagerTest {
     @Mock private DownloadStrategyFactory downloadStrategyFactory;
     @Mock private ArchiveService archiveService;
     @Mock private FileService fileService;
+    @Mock private StoragePathResolver storagePathResolver;
 
     @Mock private DownloadStrategy strategyA;
     @Mock private DownloadStrategy strategyB;
@@ -87,12 +89,12 @@ class DownloadManagerTest {
         config.setValue(tempDir.toString());
         lenient().when(appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH))
                 .thenReturn(Optional.of(config));
+        lenient().when(storagePathResolver.resolveSystemPath(anyString())).thenReturn(tempDir);
 
         project = new Project();
         project.setId(101L);
         project.setProjectName("TestProject");
         project.setProjectContact("test");
-        project.setOrganizationName("test");
 
         softwareComponent = new SoftwareComponent();
         softwareComponent.setId(1L);

@@ -285,4 +285,12 @@ public class NatsService extends NatsHelperService {
             log.debug("sending message to download service: {}", message);
             sendWorkMessageToStream(natsProperties.send_subject_download(), message.getBytes());
     }
+
+    public void deleteFileFromBucket(String key){
+        try {
+            objectStore.delete(key);
+        } catch (IOException | JetStreamApiException e) {
+            log.error("Failed to delete file from bucket: {}", key, e);
+        }
+    }
 }

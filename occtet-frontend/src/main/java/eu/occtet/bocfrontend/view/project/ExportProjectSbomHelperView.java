@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -39,8 +38,11 @@ import eu.occtet.bocfrontend.service.WorkTaskProgressMonitor;
 import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
 import io.jmix.core.entity.KeyValueEntity;
+import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.action.DialogAction;
+import io.jmix.flowui.component.checkbox.JmixCheckbox;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.download.Downloader;
@@ -97,6 +99,7 @@ public class ExportProjectSbomHelperView extends StandardView {
     @Autowired private Messages messages;
     @Autowired private Notifications notifications;
     @Autowired private WorkTaskProgressMonitor workTaskProgressMonitor;
+    @Autowired private Dialogs dialogs;
 
     @ViewComponent private KeyValueCollectionContainer prevExportsDc;
     @ViewComponent private DataGrid<KeyValueEntity> prevExportsDataGrid;
@@ -106,6 +109,7 @@ public class ExportProjectSbomHelperView extends StandardView {
     @ViewComponent private VerticalLayout activeTasksBox;
     @ViewComponent private Span infoSpan;
     @ViewComponent private Span currentlyInQueue;
+    @ViewComponent private JmixCheckbox enrichCopyrightCheckbox;
 
     private Project project;
     private String projectTaskPrefix;
@@ -124,7 +128,9 @@ public class ExportProjectSbomHelperView extends StandardView {
     @Subscribe
     protected void onInit(final InitEvent event) {
         sbomFormatComboBox.setItems("SPDX 2.3");
-        generateSbomButton.addClickListener(e -> handleExport(project, sbomFormatComboBox.getValue()));
+        generateSbomButton.addClickListener(e ->
+                handleExport(project, sbomFormatComboBox.getValue(), enrichCopyrightCheckbox.getValue())
+        );
 
         infoSpan.setText(String.format(messages.getMessage("eu.occtet.bocfrontend.view" +
                 ".project/exportProjectSbomHelperView.deletion.fino"), natsObjectStoreTtl));
@@ -163,7 +169,7 @@ public class ExportProjectSbomHelperView extends StandardView {
      * @param project    the project target for the SBOM generation
      * @param sbomFormat the desired output format selected by the user
      */
-    private void handleExport(Project project, String sbomFormat) {
+    private void handleExport(Project project, String sbomFormat, boolean enrichment) {
         if (sbomFormat == null) {
             log.warn("Attempted to start export without an active format selection.");
             notifications.create(messages.getMessage("eu.occtet.bocfrontend.view" +
@@ -177,7 +183,6 @@ public class ExportProjectSbomHelperView extends StandardView {
         String dynamicTaskName = projectTaskPrefix + timeStamp;
         String formatSuffix = sbomFormat.replace(" ", "").toLowerCase();
 
-        // Example: "MyProject_1_2026-02-26_10-25-00_spdx2.3"
         String expectedObjectStoreKey = String.format("%s_%s_%s_%s",
                 project.getProjectName(), project.getId(), timeStamp, formatSuffix);
 
@@ -187,7 +192,8 @@ public class ExportProjectSbomHelperView extends StandardView {
         SpdxExportWorkData spdxExportWorkData = new SpdxExportWorkData(
                 project.getDocumentID(),
                 project.getId(),
-                expectedObjectStoreKey
+                expectedObjectStoreKey,
+                enrichment
         );
 
         WorkTask workTask = new WorkTask(taskId, dynamicTaskName, "Export data to microservice to create new SPDX", actualTimestamp, spdxExportWorkData);
@@ -349,6 +355,35 @@ public class ExportProjectSbomHelperView extends StandardView {
                 }
             });
             return downloadButton;
+        });
+    }
+
+    @Supply(to = "prevExportsDataGrid.deleteButton", subject = "renderer")
+    protected Renderer<KeyValueEntity> deleteButtonRenderer() {
+        return new ComponentRenderer<>(kv -> {
+            String key = kv.getValue(KV_ENTITY_OBJECT_STORE_KEY);
+            JmixButton deleteButton = uiComponents.create(JmixButton.class);
+
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR,  ButtonVariant.LUMO_PRIMARY);
+            deleteButton.setIcon(VaadinIcon.TRASH.create());
+
+            deleteButton.addClickListener(e -> dialogs.createOptionDialog()
+                    .withText(messages.getMessage("exportProjectSbomHelperView.notification.fileDeletedSuccess"))
+                    .withActions(
+                            new DialogAction(DialogAction.Type.YES).withHandler(actionEvent -> {
+                                natsService.deleteFileFromBucket(key);
+
+                                notifications.create(messages.getMessage("exportProjectSbomHelperView.notification.fileDeletedSuccessfull"))
+                                        .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
+                                        .show();
+
+                                refreshDownloadsList();
+                            }),
+                            new DialogAction(DialogAction.Type.NO)
+                    )
+                    .open());
+
+            return deleteButton;
         });
     }
 }

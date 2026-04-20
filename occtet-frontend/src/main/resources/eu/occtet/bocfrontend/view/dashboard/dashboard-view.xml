@@ -30,57 +30,50 @@
                 </query>
             </loader>
         </collection>
-
         <collection id="vulnerabilitiesDc" class="eu.occtet.bocfrontend.entity.Vulnerability">
             <fetchPlan extends="_base"/>
             <loader id="vulnerabilitiesDl">
                 <query>
-                    <![CDATA[
-    select distinct v from InventoryItem ii
-    join ii.softwareComponent sc
-    join sc.vulnerabilityLinks vl
-    join vl.vulnerability v
-    where ii.project = :component_projectSelector
-    ]]>
+                    <![CDATA[select v from Vulnerability v where v in :vulnerabilitiesProject]]>
                 </query>
             </loader>
         </collection>
     </data>
-
     <facets>
         <dataLoadCoordinator auto="true"/>
         <timer id="refreshTimer" delay="1000" autostart="true" repeating="true"/>
     </facets>
-
     <layout>
         <vbox width="100%" height="100%" expand="vulnerabilitiesGrid">
-
-            <hbox width="100%" alignItems="STRETCH">
-            <entityComboBox id="projectSelector"
-                            label="msg://eu.occtet.bocfrontend.view.dashboard/dashboardView.projectSelector"
-                            themeNames="small"
-                            itemsContainer="projectsDc"
-                            metaClass="Project"
-                            width="20em"/>
-                <vbox alignSelf="END" >
-                    <span text="msg://dashboardView.runningTasks"/>
-                    <listBox id="runningTasksList" width="700px" height="100px" readOnly="true" />
+            <hbox width="45%" alignItems="STRETCH" classNames="dashboard-list-layout" css="background-color:var(--lumo-contrast-5pct)">
+                <vbox alignSelf="END">
+                    <h5 text="msg://dashboardView.runningTasks"/>
+                    <listBox id="runningTasksList" width="100%" height="100px" readOnly="true" css="background-color:var(--lumo-contrast-5pct)"/>
                 </vbox>
             </hbox>
-
+            <hbox width="100%" justifyContent="BETWEEN">
+                <entityComboBox id="projectSelector"
+                                label="msg://eu.occtet.bocfrontend.view.dashboard/dashboardView.projectSelector"
+                                themeNames="small"
+                                itemsContainer="projectsDc"
+                                metaClass="Project"
+                                width="20em"/>
+                <simplePagination id="pagination" dataLoader="vulnerabilitiesDl" itemsPerPageItems="100"
+                                  alignSelf="END"/>
+            </hbox>
             <dataGrid id="vulnerabilitiesGrid"
                       dataContainer="vulnerabilitiesDc"
                       classNames="occtet-grid"
                       width="100%"
-                      minHeight="20em">
+                      minHeight="30em">
                 <columns>
-                    <column property="vulnerabilityId" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.vulnerabilityId" autoWidth="true"/>
-                    <column property="riskScore" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.riskScore"/>
-                    <column property="weightedSeverity" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.weightedSeverity"/>
-                    <column property="summary" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.summary"/>
+                    <column property="vulnerabilityId" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.vulnerabilityId" autoWidth="true" filterable="true"/>
+                    <column property="riskScore" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.riskScore" filterable="true"/>
+                    <column property="severity" header="msg://eu.occtet.bocfrontend.entity/Vulnerability.weightedSeverity" filterable="true"/>
                 </columns>
             </dataGrid>
-            <hbox width="100%" height="100%" alignItems="END">
+            <hbox width="100%" height="40%"/>
+            <hbox width="100%" minHeight="50%" alignItems="END">
                 <charts:chart id="chartVulnerabilites" width="100%" height="100%" justifySelf="CENTER">
                     <charts:title text="msg://eu.occtet.bocfrontend.view.dashboard/dashboardView.charts.vulnerability.title"
                                   subtext="msg://eu.occtet.bocfrontend.view.dashboard/dashboardView.charts.vulnerability.subtext"/>

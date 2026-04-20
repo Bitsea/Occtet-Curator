@@ -26,11 +26,15 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.theme.lumo.LumoIcon;
+import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.TemplateLicense;
 import eu.occtet.bocfrontend.entity.UsageLicense;
+import eu.occtet.bocfrontend.factory.TemplateLicenseFactory;
 import eu.occtet.bocfrontend.service.LicenseService;
 import io.jmix.core.DataManager;
+import io.jmix.core.Messages;
 import io.jmix.core.SaveContext;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.view.*;
@@ -41,12 +45,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @ViewController("createLicenseDialog")
 @ViewDescriptor("create-license-dialog.xml")
-@DialogMode(width = "1000px", height = "750px")
+@DialogMode(width = "70%", height = "70%")
 public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareComponent>{
 
     private static final Logger log = LogManager.getLogger(CreateLicenseDialog.class);
 
     private SoftwareComponent softwareComponent;
+    private TemplateLicense createdLicense;
 
     @ViewComponent
     private TextField licenseNameField;
@@ -73,10 +78,17 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
     private TextArea licenseTextField;
 
     @Autowired
-    private DataManager dataManager;
+    private LicenseService licenseService;
 
     @Autowired
     private Notifications notifications;
+
+    @Autowired
+    private DataManager dataManager;
+
+    @Autowired
+    private Messages messages;
+
 
     @Subscribe
     public void onBeforeShow(BeforeShowEvent event){
@@ -87,14 +99,12 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
 
     @Override
     public void setAvailableContent(SoftwareComponent content) {
-        this.softwareComponent = dataManager.load(SoftwareComponent.class).id(content.getId())
-                .fetchPlan(f -> f.add("licenses")).one();
+        this.softwareComponent = content;
     }
 
     @Override
     @Subscribe("addLicenseButton")
     public void addContentButton(ClickEvent<Button> event) {
-
         String priority = priorityField.getValue();
         String licenseType = licenseTypeField.getValue();
         String licenseText = licenseTextField.getValue();
@@ -103,9 +113,10 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
 
         if (checkInput(priority, licenseType, licenseText, licenseName, detailsUrl)) {
 
+            try{
             SaveContext saveContext = new SaveContext();
 
-            TemplateLicense templateLicense = dataManager.create(TemplateLicense.class);
+                TemplateLicense templateLicense = dataManager.create(TemplateLicense.class);
             templateLicense.setPriority(Integer.valueOf(priority));
             templateLicense.setLicenseType(licenseType);
             templateLicense.setTemplateText(licenseText);
@@ -127,22 +138,37 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
 
             log.debug("Created and added new license template and usage {} to softwareComponent", templateLicense.getLicenseName());
             close(StandardOutcome.SAVE);
+            }catch (IllegalArgumentException e) {
+                notifications.create(messages.formatMessage(getClass(), "duplicate.error", licenseType))
+                        .withDuration(4000)
+                        .withPosition(Notification.Position.TOP_CENTER)
+                        .withThemeVariant(NotificationVariant.LUMO_WARNING)
+                        .show();
+            }
 
         } else {
             notifications.create("Something went wrong, please check your input, some fields are required")
                     .withDuration(3000)
                     .withPosition(Notification.Position.TOP_CENTER)
-                    .withThemeVariant(NotificationVariant.LUMO_ERROR)
+                    .withThemeVariant(NotificationVariant.LUMO_WARNING)
                     .show();
         }
     }
 
     @Subscribe(id = "cancelButton")
-    public void cancelLicense(ClickEvent<Button> event) {
+    public void cancelLicense(ClickEvent<Button> event){
         cancelButton(event);
     }
 
-    private boolean checkInput(String priority, String licenseType, String licenseText, String licenseName, String detailsUrl) {
-        return !priority.isEmpty() && !licenseType.isEmpty() && !licenseText.isEmpty() && !licenseName.isEmpty() && !detailsUrl.isEmpty();
+    private boolean checkInput(String priority, String licenseType, String licenseText, String licenseName, String detailsUrl){
+        return priority != null && !priority.trim().isEmpty() &&
+                licenseType != null && !licenseType.trim().isEmpty() &&
+                licenseText != null && !licenseText.trim().isEmpty() &&
+                licenseName != null && !licenseName.trim().isEmpty() &&
+                detailsUrl != null && !detailsUrl.trim().isEmpty();
+    }
+
+    public TemplateLicense getCreatedLicense() {
+        return createdLicense;
     }
 }

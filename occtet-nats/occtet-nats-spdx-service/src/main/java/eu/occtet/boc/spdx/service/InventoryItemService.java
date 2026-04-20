@@ -50,12 +50,12 @@ public class InventoryItemService {
     private InventoryItemRepository inventoryItemRepository;
 
     public InventoryItem getOrCreateInventoryItem(String inventoryName, SoftwareComponent sc,
-                                                  Project project) {
+                                                  Project project, Organization organization) {
         List<InventoryItem> inventoryItemList = inventoryItemRepository.findByProjectAndInventoryName(
                 project, inventoryName
         );
         if (inventoryItemList.isEmpty()) {
-            return inventoryItemFactory.create(inventoryName, project, sc);
+            return inventoryItemFactory.create(inventoryName, project, sc, organization);
         }
         return inventoryItemList.getFirst(); // Return the first inventory of the inventories found
     }

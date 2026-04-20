@@ -64,6 +64,8 @@ public class SoftwareComponentService {
         return listingSoftwareComponent;
     }
 
+
+
     public Set<String> getCVEDescriptionsList(String cve){
         if (cve == null || cve.isBlank()) return new HashSet<>();
 
@@ -74,4 +76,5 @@ public class SoftwareComponentService {
         }
         return result;
     }
+
 }

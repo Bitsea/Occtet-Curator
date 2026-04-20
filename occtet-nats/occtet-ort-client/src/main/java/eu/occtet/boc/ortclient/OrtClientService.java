@@ -63,6 +63,7 @@ public class OrtClientService {
     public ApiClient createApiClient(TokenResponse tokenResponse) {
         if(!tokenResponse.isValid()) throw  new IllegalArgumentException("TokenResponse is expired");
         ApiClient apiClient = new ApiClient();
+        apiClient.setVerifyingSsl(false);
         apiClient.addDefaultHeader("Authorization", "Bearer " + tokenResponse.accessToken);
         apiClient.setBasePath(ortBaseUrl);
         return apiClient;

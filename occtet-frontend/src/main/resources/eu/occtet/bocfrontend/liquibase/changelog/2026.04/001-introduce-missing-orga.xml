@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~  Copyright (C) 2025 Bitsea GmbH
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      https:www.apache.orglicensesLICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  ~  SPDX-License-Identifier: Apache-2.0
+  ~  License-Filename: LICENSE
+  ~
+  ~
+  -->
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+
+
+    <changeSet id="create-organization-table" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="organization" schemaName="public"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="organization">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="organization_pkey"/>
+            </column>
+            <column name="organization_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organization_email" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="insert-default-organization" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <rowCount expectedRows="0" tableName="organization"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM organization WHERE organization_name = 'Default Organization'
+            </sqlCheck>
+            <not>
+                <rowCount expectedRows="0" tableName="project"/>
+            </not>
+            <not>
+                <rowCount expectedRows="0" tableName="software_component"/>
+            </not>
+            <not>
+                <rowCount expectedRows="0" tableName="vulnerability"/>
+            </not>
+            <not>
+                <rowCount expectedRows="0" tableName="inventory_item"/>
+            </not>
+            <not>
+                <rowCount expectedRows="0" tableName="license"/>
+            </not>
+            <not>
+                <rowCount expectedRows="0" tableName="copyright"/>
+            </not>
+        </preConditions>
+
+        <insert tableName="organization">
+            <column name="id" value="1"/>
+            <column name="organization_name" value="Default Organization"/>
+        </insert>
+    </changeSet>
+
+
+    <changeSet id="add-organization-id-to-project" author="Ibrahim.AlBahra">
+
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="project" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="project">
+            <column name="organization_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="add-organization-id-to-software-component" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="software_component" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="software_component">
+            <column name="organization_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="add-organization-id-to-vulnerability" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="vulnerability" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="vulnerability">
+            <column name="organization_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="add-organization-id-to-inventory-item" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="inventory_item" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="inventory_item">
+            <column name="organization_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="add-organization-id-to-license" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="license" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="license">
+            <column name="organization_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="add-organization-id-to-copyright" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="copyright" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="copyright">
+            <column name="organization_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="add-organization-id-to-suggestion" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="suggestion" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="suggestion">
+            <column name="organization_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="add-organization-id-to-user" author="Ibrahim.AlBahra">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="user_" columnName="organization_id"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="user_">
+            <column name="organization_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+
+    <changeSet id="populate-organization-id-existing-data" author="Ibrahim.AlBahra">
+
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM organization WHERE organization_name = 'Default Organization'
+            </sqlCheck>
+        </preConditions>
+
+        <update tableName="project">
+            <column name="organization_id"
+                    valueComputed="(SELECT id FROM organization WHERE organization_name = 'Default Organization')"/>
+            <where>organization_id IS NULL</where>
+        </update>
+
+        <update tableName="software_component">
+            <column name="organization_id"
+                    valueComputed="(SELECT id FROM organization WHERE organization_name = 'Default Organization')"/>
+            <where>organization_id IS NULL</where>
+        </update>
+
+        <update tableName="vulnerability">
+            <column name="organization_id"
+                    valueComputed="(SELECT id FROM organization WHERE organization_name = 'Default Organization')"/>
+            <where>organization_id IS NULL</where>
+        </update>
+
+        <update tableName="inventory_item">
+            <column name="organization_id"
+                    valueComputed="(SELECT id FROM organization WHERE organization_name = 'Default Organization')"/>
+            <where>organization_id IS NULL</where>
+        </update>
+
+        <update tableName="license">
+            <column name="organization_id"
+                    valueComputed="(SELECT id FROM organization WHERE organization_name = 'Default Organization')"/>
+            <where>organization_id IS NULL</where>
+        </update>
+
+        <update tableName="copyright">
+            <column name="organization_id"
+                    valueComputed="(SELECT id FROM organization WHERE organization_name = 'Default Organization')"/>
+            <where>organization_id IS NULL</where>
+        </update>
+
+        <update tableName="suggestion">
+            <column name="organization_id"
+                    valueComputed="(SELECT id FROM organization WHERE organization_name = 'Default Organization')"/>
+            <where>organization_id IS NULL</where>
+        </update>
+
+        <update tableName="user_">
+            <column name="organization_id"
+                    valueComputed="(SELECT id FROM organization WHERE organization_name = 'Default Organization')"/>
+            <where>organization_id IS NULL</where>
+        </update>
+
+    </changeSet>
+
+    <changeSet id="add-not-null-organization-id-project" author="Ibrahim.AlBahra">
+        <addNotNullConstraint tableName="project"
+                              columnName="organization_id"
+                              columnDataType="BIGINT"/>
+    </changeSet>
+
+    <changeSet id="add-not-null-organization-id-software-component" author="Ibrahim.AlBahra">
+        <addNotNullConstraint tableName="software_component"
+                              columnName="organization_id"
+                              columnDataType="BIGINT"/>
+    </changeSet>
+
+    <changeSet id="add-not-null-organization-id-vulnerability" author="Ibrahim.AlBahra">
+        <addNotNullConstraint tableName="vulnerability"
+                              columnName="organization_id"
+                              columnDataType="BIGINT"/>
+    </changeSet>
+
+
+    <changeSet id="drop-organization-columns-from-project" author="Ibrahim.AlBahra">
+        <dropColumn tableName="project" columnName="organization_name"/>
+        <dropColumn tableName="project" columnName="organization_email"/>
+    </changeSet>
+
+    <changeSet id="add-unique-constraints-organization-name" author="">
+        <addUniqueConstraint tableName="organization"
+                             columnNames="organization_name"
+                             constraintName="unq_organization_name"/>
+    </changeSet>
+
+    <changeSet id="add-unique-constraint-project-org-name-version" author="Ibrahim.AlBahra">
+        <addUniqueConstraint tableName="project"
+                             columnNames="organization_id, project_name, version"
+                             constraintName="unq_project_org_name_version"/>
+    </changeSet>
+
+    <changeSet id="add-unique-constraint-software-component-org-name-version" author="Ibrahim.AlBahra">
+        <addUniqueConstraint tableName="software_component"
+                             columnNames="organization_id, software_component_name, version"
+                             constraintName="unq_software_component_org_name_version"/>
+    </changeSet>
+
+    <changeSet id="add-unique-constraint-vulnerability-org-vulnerability-id" author="Ibrahim.AlBahra">
+        <addUniqueConstraint tableName="vulnerability"
+                             columnNames="organization_id, vulnerability_id"
+                             constraintName="unq_vulnerability_org_vulnerability_id"/>
+    </changeSet>
+
+    <changeSet id="add-unique-constraint-suggestion-org-context-sentence" author="Ibrahim.AlBahra">
+        <addUniqueConstraint tableName="suggestion"
+                             columnNames="organization_id, context, sentence"
+                             constraintName="unq_suggestion_org_context_sentence"/>
+    </changeSet>
+
+
+    <changeSet id="add-fk-project-organization-id" author="Ibrahim.AlBahra">
+        <addForeignKeyConstraint baseTableName="project"
+                                 baseColumnNames="organization_id"
+                                 referencedTableName="organization"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_project_organization_id"
+                                 deferrable="false"
+                                 initiallyDeferred="false"
+                                 onDelete="NO ACTION"
+                                 onUpdate="NO ACTION"/>
+    </changeSet>
+
+    <changeSet id="add-fk-software-component-organization-id" author="Ibrahim.AlBahra">
+        <addForeignKeyConstraint baseTableName="software_component"
+                                 baseColumnNames="organization_id"
+                                 referencedTableName="organization"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_software_component_organization_id"
+                                 deferrable="false"
+                                 initiallyDeferred="false"
+                                 onDelete="NO ACTION"
+                                 onUpdate="NO ACTION"/>
+    </changeSet>
+
+    <changeSet id="add-fk-vulnerability-organization-id" author="Ibrahim.AlBahra">
+        <addForeignKeyConstraint baseTableName="vulnerability"
+                                 baseColumnNames="organization_id"
+                                 referencedTableName="organization"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_vulnerability_organization_id"
+                                 deferrable="false"
+                                 initiallyDeferred="false"
+                                 onDelete="NO ACTION"
+                                 onUpdate="NO ACTION"/>
+    </changeSet>
+
+    <changeSet id="add-fk-inventory-item-organization-id" author="Ibrahim.AlBahra">
+        <addForeignKeyConstraint baseTableName="inventory_item"
+                                 baseColumnNames="organization_id"
+                                 referencedTableName="organization"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_inventory_item_organization_id"
+                                 deferrable="false"
+                                 initiallyDeferred="false"
+                                 onDelete="NO ACTION"
+                                 onUpdate="NO ACTION"/>
+    </changeSet>
+
+    <changeSet id="add-fk-license-organization-id" author="Ibrahim.AlBahra">
+        <addForeignKeyConstraint baseTableName="license"
+                                 baseColumnNames="organization_id"
+                                 referencedTableName="organization"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_license_organization_id"
+                                 deferrable="false"
+                                 initiallyDeferred="false"
+                                 onDelete="NO ACTION"
+                                 onUpdate="NO ACTION"/>
+    </changeSet>
+
+    <changeSet id="add-fk-copyright-organization-id" author="Ibrahim.AlBahra">
+        <addForeignKeyConstraint baseTableName="copyright"
+                                 baseColumnNames="organization_id"
+                                 referencedTableName="organization"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_copyright_organization_id"
+                                 deferrable="false"
+                                 initiallyDeferred="false"
+                                 onDelete="NO ACTION"
+                                 onUpdate="NO ACTION"/>
+    </changeSet>
+
+    <changeSet id="add-fk-suggestion-organization-id" author="Ibrahim.AlBahra">
+        <addForeignKeyConstraint baseTableName="suggestion"
+                                 baseColumnNames="organization_id"
+                                 referencedTableName="organization"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_suggestion_organization_id"
+                                 deferrable="false"
+                                 initiallyDeferred="false"
+                                 onDelete="NO ACTION"
+                                 onUpdate="NO ACTION"/>
+    </changeSet>
+
+    <changeSet id="add-fk-user-organization-id" author="Ibrahim.AlBahra">
+        <addForeignKeyConstraint baseTableName="user_"
+                                 baseColumnNames="organization_id"
+                                 referencedTableName="organization"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_user_organization_id"
+                                 deferrable="false"
+                                 initiallyDeferred="false"
+                                 onDelete="NO ACTION"
+                                 onUpdate="NO ACTION"/>
+    </changeSet>
+
+</databaseChangeLog>

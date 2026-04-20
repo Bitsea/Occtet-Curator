@@ -55,7 +55,7 @@ public class MergeService {
     @Transactional
     public void mergeChangesToDocumentEntities(SpdxDocumentRoot spdxDocumentRoot, Project project) {
         log.info("Starting to merge curated changes for project: {}", project.getProjectName());
-        Set<UsageLicense> customLicensesToExtract = new HashSet<>();
+        Set<License> customLicensesToExtract = new HashSet<>();
 
         spdxDocumentRoot.setName(project.getProjectName());
 
@@ -157,11 +157,6 @@ public class MergeService {
         spdxPackageEntity.getExternalRefs().addAll(externalRefs);
     }
 
-     // Reconstructs the structural relationships based on the current inventory item hierarchy.
-//    private void rebuildRelationships(SpdxDocumentRoot spdxDocumentRoot, Project project) {
-//        // Discuss how relations between packages should be rebuilt
-//    }
-
     /**
      * Converts non-standard or modified licenses into extracted licensing info for the SPDX document.
      *
@@ -205,35 +200,48 @@ public class MergeService {
                 .filter(c -> !Boolean.TRUE.equals(c.getGarbage()))
                 .map(Copyright::getCopyrightText)
                 .filter(text -> text != null && !text.isBlank())
-                .collect(Collectors.joining("\n"));
+                .collect(Collectors.joining(", "));
     }
 
     /**
      * Constructs a valid SPDX license expression string from a list of licenses.
      *
      * @param licenses The list of applied licenses.
-     * @return The formatted license expression string (e.g., "MIT AND LicenseRef-12").
+     * @return The formatted license expression string (e.g., "MIT AND LicenseRef-12" or "NOASSERTION").
      */
-    private String formatLicenseExpression(Collection<UsageLicense> licenses) {
-        return licenses.stream()
+    private String formatLicenseExpression(Collection<License> licenses) {
+        if (licenses == null || licenses.isEmpty()) {
+            return "NOASSERTION";
+        }
+
+        List<String> validLicenses = licenses.stream()
+                .filter(license -> {
+                    String name = license.getLicenseName();
+                    return name != null && !name.trim().equalsIgnoreCase("UNKNOWN") && !name.trim().isBlank();
+                })
                 .map(license -> {
-                    String name = license.getTemplate().getLicenseName();
-                    // Intercept UNKNOWN and replace with SPDX standard NOASSERTION
-                    if (name != null && name.trim().equalsIgnoreCase("UNKNOWN")) {
-                        return "NOASSERTION";
-                    }
-                    if (Boolean.FALSE.equals(license.getTemplate().getIsSpdx())) {
+                    if (Boolean.FALSE.equals(license.isSpdx()) || Boolean.TRUE.equals(license.isModified())) {
                         return generateLicenseRefId(license);
                     }
-                    return name;
+                    return license.getLicenseName();
                 })
-                .collect(Collectors.joining(" AND "));
+                .toList();
+
+        if (validLicenses.isEmpty()) {
+            return "NOASSERTION";
+        }
+        return String.join(" AND ", validLicenses);
     }
 
     private String generateLicenseRefId(UsageLicense license) {
         if (license.getTemplate().getLicenseType() != null && !license.getTemplate().getLicenseName().isBlank()) {
             String sanitizedName = license.getTemplate().getLicenseName().replaceAll("[^A-Za-z0-9.-]", "-");
             sanitizedName = sanitizedName.replaceAll("-+", "-");
+
+            if (sanitizedName.startsWith("LicenseRef-")) {
+                return sanitizedName;
+            }
+
             return "LicenseRef-" + sanitizedName;
         }
         return "LicenseRef-custom-" + license.getId();

@@ -36,12 +36,13 @@
         <action id="closeAction" type="detail_close"/>
     </actions>
     <layout>
-
                 <vbox alignItems="CENTER" justifyContent="START" alignSelf="START" height="100%" width="100%">
                         <vbox width="100%" id="form">
                         <hbox width="100%">
-                            <textField id="projectField" property="project.projectName" dataContainer="ortIssueDc" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.project"/>
-                            <textField id="inventoryItem" property="inventoryItem.inventoryName" dataContainer="ortIssueDc" label="msg://eu.occtet.bocfrontend.view.audit.fragment/inventoryName"  width="60%"/>
+                            <comboBox id="projectField" property="project" dataContainer="ortIssueDc" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.project"
+                            required="true"/>
+                            <comboBox id="inventoryItemField" property="inventoryItem" dataContainer="ortIssueDc"
+                                      label="msg://eu.occtet.bocfrontend.view.audit.fragment/inventoryName"  width="60%" required="true"/>
                         </hbox>
                             <hbox width="100%">
                                 <textField id="affectedPath" property="affectedPath" dataContainer="ortIssueDc"
@@ -52,32 +53,25 @@
                             <hbox width="100%">
 
                                 <textField id="worker" property="worker" dataContainer="ortIssueDc"
-                                           label="msg://worker"/>
+                                           label="msg://worker" width="30%"/>
                                 <textField id="identifier" property="identifier" dataContainer="ortIssueDc"
-                                           label="msg://identifier"/>
-
-                                <checkbox id="resolved" property="resolved" dataContainer="ortIssueDc"
-                                          label="msg://eu.occtet.bocfrontend.view.ortViolation/resolved"
+                                           label="msg://identifier" width="30%"/>
+                                <textField id="timestamp" property="timestamp" dataContainer="ortIssueDc"
+                                           label="msg://eu.occtet.bocfrontend.entity/VexData.timeStamp" width="20%"/>
+                            </hbox>
+                            <hbox width="100%">
+                                <textArea id="resolution" property="resolution" dataContainer="ortIssueDc"
+                                           label="msg://resolution" width="70%" minHeight="10em"/>
+                            </hbox>
+                            <hbox width="100%">
+                            <textArea id="message" property="message" dataContainer="ortIssueDc" label="msg://eu.occtet.bocfrontend.view.ortViolation/message"
+                                       width="60%" minHeight="10em"/>
+                            </hbox>
+                            <hbox>
+                                <checkbox id="resolved" property="resolved" dataContainer="ortIssueDc" label="msg://eu.occtet.bocfrontend.view.ortViolation/resolved"
                                           alignSelf="END"/>
-
                             </hbox>
-                            <hbox width="100%">
-                                <textField id="resolution" property="resolution" dataContainer="ortIssueDc"
-                                           label="msg://resolution" width="100%"/>
-                            </hbox>
-                            <hbox width="100%">
-                                <textField id="timestamp" property="timestamp" dataContainer="ortIssueDc" label="msg://eu.occtet.bocfrontend.entity/VexData.timeStamp" width="20%"/>
-
-                            </hbox>
-                            <hbox width="100%">
-                            <textField id="message" property="message" dataContainer="ortIssueDc" label="msg://eu.occtet.bocfrontend.view.ortViolation/message"  width="100%"/>
-
-                        </hbox>
-
-
-
                         </vbox>
-
                     <hbox id="detailActions" justifyContent="CENTER" alignItems="CENTER" alignSelf="CENTER" height="100%">
                         <button id="saveAndCloseButton" action="saveAction" alignSelf="END"/>
                         <button id="closeButton" action="closeAction" alignSelf="END"/>

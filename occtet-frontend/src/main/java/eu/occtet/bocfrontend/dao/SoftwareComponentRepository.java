@@ -20,6 +20,7 @@
 package eu.occtet.bocfrontend.dao;
 
 
+import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.Vulnerability;
@@ -40,6 +41,8 @@ public interface SoftwareComponentRepository extends JmixDataRepository<Software
     List<SoftwareComponent> findByVulnerability(Vulnerability vuln);
     @Query("select distinct sc from InventoryItem i join i.project p join i.softwareComponent sc where p = :project")
     List<SoftwareComponent> findByProject(Project project);
+    @Query("select sc from SoftwareComponent sc where sc not in :softwareComponents")
+    List<SoftwareComponent> findAvailableComponents(List<SoftwareComponent> softwareComponents);
 
 
 }

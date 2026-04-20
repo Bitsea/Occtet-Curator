@@ -31,7 +31,6 @@ import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.service.CopyrightService;
-import io.jmix.core.DataManager;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.multiselectcombobox.JmixMultiSelectComboBox;
 import io.jmix.flowui.view.*;
@@ -41,10 +40,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Set;
 
-
 @ViewController("createCopyrightDialog")
 @ViewDescriptor("create-copyright-dialog.xml")
-@DialogMode(width = "900px", height = "650px")
+@DialogMode(width = "70%", height = "70%")
 public class CreateCopyrightDialog extends AbstractCreateContentDialog<InventoryItem>{
 
     private static final Logger log = LogManager.getLogger(CreateCopyrightDialog.class);
@@ -68,11 +66,11 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
     @Autowired
     private CopyrightService copyrightService;
     @Autowired
-    private DataManager dataManager;
-    @Autowired
     private Notifications notifications;
     @Autowired
     private FileRepository fileRepository;
+
+    private Copyright createdCopyright;
 
 
     @Subscribe
@@ -86,15 +84,7 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
 
     @Override
     public void setAvailableContent(InventoryItem content) {
-        this.inventoryItem = dataManager.load(InventoryItem.class)
-                .id(content.getId())
-                .fetchPlan(fpb -> fpb.addAll(
-                        "softwareComponent",
-                        "softwareComponent.copyrights"))
-                .one();
-        if(inventoryItem.getSoftwareComponent() != null){
-            this.softwareComponent = this.inventoryItem.getSoftwareComponent();
-        }
+        this.inventoryItem = content;
     }
 
     @Override
@@ -104,16 +94,18 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
         String copyrightName = copyrightNameField.getValue();
         Set<File> location = filePathComboBox.getValue();
 
-        if(checkInput(copyrightName,location) && softwareComponent != null){
+        if (checkInput(copyrightName, location)) {
+            this.createdCopyright = copyrightService.createAndSaveCopyright(
+                    copyrightName,
+                    Set.copyOf(location),
+                    isCuratedField.getValue(),
+                    isGarbageField.getValue()
+            );
 
-            Copyright copyright = copyrightService.createCopyright(copyrightName, Set.copyOf(location),
-                    isCuratedField.getValue(),isGarbageField.getValue());
+            log.debug("Created copyright {}", createdCopyright.getCopyrightText());
 
-            softwareComponent.getCopyrights().add(copyright);
-            dataManager.save(softwareComponent);
-            log.debug("Created and added copyright {} to softwareComponent {}",copyright.getCopyrightText(),softwareComponent);
             close(StandardOutcome.SAVE);
-        }else{
+        } else {
             notifications.create("Something went wrong, please check your input")
                     .withDuration(3000)
                     .withPosition(Notification.Position.TOP_CENTER)
@@ -127,10 +119,10 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
 
     private boolean checkInput(String name, Set<File> files){
 
-        if(!name.isEmpty() && files != null){
-            return true;
-        }
-        return false;
+        return !name.isEmpty() && files != null;
     }
 
+    public Copyright getCreatedCopyright() {
+        return createdCopyright;
+    }
 }

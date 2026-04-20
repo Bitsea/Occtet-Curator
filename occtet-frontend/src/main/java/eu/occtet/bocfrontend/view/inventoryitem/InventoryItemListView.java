@@ -20,12 +20,8 @@
 package eu.occtet.bocfrontend.view.inventoryitem;
 
 import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.data.renderer.Renderer;
-import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
@@ -34,6 +30,7 @@ import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.UsageLicense;
 import eu.occtet.bocfrontend.view.main.MainView;
+import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.model.CollectionLoader;
@@ -41,7 +38,7 @@ import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Random;
 
 
 @Route(value = "inventory-items", layout = MainView.class)
@@ -53,50 +50,54 @@ public class InventoryItemListView extends StandardListView<InventoryItem> {
 
     @ViewComponent
     private JmixComboBox<Project> projectComboBox;
-
     @ViewComponent
     private HorizontalLayout filterBox;
-
     @ViewComponent
     private CollectionLoader<InventoryItem> inventoryItemsDl;
 
     @Autowired
     private ProjectRepository projectRepository;
-
     @Autowired
     private DialogWindows dialogWindows;
-
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
+    @Autowired
+    Messages messages;
 
     @Subscribe
     public void onInit(InitEvent event){
-        projectComboBox.setItems(projectRepository.findAll());
-        projectComboBox.setItemLabelGenerator(project -> project.getProjectName()+" - "+project.getVersion());
+        Project showAllProject = new Project();
+        showAllProject.setProjectName(messages.getMessage("Showall"));
+        showAllProject.setVersion("");
+        showAllProject.setId(new Random().nextLong());
+
+        List<Project> allProjects = new java.util.ArrayList<>();
+        allProjects.add(showAllProject);
+        allProjects.addAll(projectRepository.findAll());
+
+        projectComboBox.setItems(allProjects);
+        projectComboBox.setItemLabelGenerator(project -> {
+            if (messages.getMessage("Showall").equals(project.getProjectName())) {
+                return project.getProjectName();
+            }
+            return project.getProjectName() + " - " + project.getVersion();
+        });
     }
 
     @Subscribe(id = "projectComboBox")
     public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
         if(event != null){
-            List<InventoryItem> itemList = inventoryItemRepository.findByProject(event.getValue());
-            loadInventoryItems(itemList);
-            filterBox.setVisible(!itemList.isEmpty());
-        }
-    }
-
-    @Supply(to = "inventoryItemsDataGrid.licenses", subject = "renderer")
-    private Renderer<InventoryItem> licensesRenderer() {
-        return new TextRenderer<>(inventoryItem -> {
-            SoftwareComponent softwareComponent = inventoryItem.getSoftwareComponent();
-
-            if (softwareComponent == null || softwareComponent.getLicenses() == null) {
-                return "";
+            Project selectedProject = event.getValue();
+            if (selectedProject == null || messages.getMessage("Showall").equals(selectedProject.getProjectName())) {
+                List<InventoryItem> items = inventoryItemRepository.findAll();
+                loadInventoryItems(items);
+                filterBox.setVisible(!items.isEmpty());
+            }else {
+                List<InventoryItem> itemList = inventoryItemRepository.findByProject(event.getValue());
+                loadInventoryItems(itemList);
+                filterBox.setVisible(!itemList.isEmpty());
             }
-
-            return softwareComponent.getLicenses().stream()
-                    .map(usage -> usage.getTemplate().getLicenseType())
-                    .collect(Collectors.joining(", "));
-        });
+        }
     }
 
     @Subscribe("inventoryItemsDataGrid")
@@ -109,13 +110,6 @@ public class InventoryItemListView extends StandardListView<InventoryItem> {
         window.setWidth("100%");
         window.setHeight("100%");
         window.open();
-    }
-
-    @Subscribe("showAllButton")
-    public void clickOnShowAllButton(ClickEvent<Button> event){
-        List<InventoryItem> items = inventoryItemRepository.findAll();
-        loadInventoryItems(items);
-        filterBox.setVisible(!items.isEmpty());
     }
 
     private void loadInventoryItems(List<InventoryItem> inventoryItems){
