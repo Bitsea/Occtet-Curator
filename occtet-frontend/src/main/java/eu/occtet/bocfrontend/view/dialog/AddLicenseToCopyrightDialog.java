@@ -52,7 +52,6 @@ public class AddLicenseToCopyrightDialog extends AbstractAddContentDialog<Copyri
 
     @Autowired
 
-    private LicenseRepository licenseRepository;
     private TemplateLicenseRepository templateLicenseRepository;
 
     @ViewComponent

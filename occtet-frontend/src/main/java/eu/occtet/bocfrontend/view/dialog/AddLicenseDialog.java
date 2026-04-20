@@ -28,7 +28,6 @@ import eu.occtet.bocfrontend.dao.TemplateLicenseRepository;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.TemplateLicense;
 import eu.occtet.bocfrontend.entity.UsageLicense;
-import eu.occtet.bocfrontend.entity.TemplateLicense;
 import io.jmix.core.DataManager;
 import io.jmix.core.SaveContext;
 import io.jmix.flowui.component.grid.DataGrid;
@@ -56,6 +55,9 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
 
     @Autowired
     private TemplateLicenseRepository templateLicenseRepository;
+
+    @Autowired
+    DataManager dataManager;
 
     @ViewComponent
     private CollectionContainer<TemplateLicense> licenseDc;
@@ -101,30 +103,30 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
         List<TemplateLicense> selectedLicenses = getSelectedLicenses();
 
         if (!selectedLicenses.isEmpty() && softwareComponent != null) {
-        List<TemplateLicense> selectedTemplates = new ArrayList<>(licensesDataGrid.getSelectedItems());
+            List<TemplateLicense> selectedTemplates = new ArrayList<>(licensesDataGrid.getSelectedItems());
 
-        if (!selectedTemplates.isEmpty() && softwareComponent != null) {
-            SaveContext saveContext = new SaveContext();
+            if (!selectedTemplates.isEmpty() && softwareComponent != null) {
+                SaveContext saveContext = new SaveContext();
 
-            for (TemplateLicense template : selectedTemplates) {
-                UsageLicense newUsage = dataManager.create(UsageLicense.class);
-                newUsage.setTemplate(template);
-                newUsage.setSoftwareComponent(softwareComponent);
-                newUsage.setModified(false);
-                newUsage.setCurated(false);
-                newUsage.setUsageText(template.getTemplateText());
+                for (TemplateLicense template : selectedTemplates) {
+                    UsageLicense newUsage = dataManager.create(UsageLicense.class);
+                    newUsage.setTemplate(template);
+                    newUsage.setSoftwareComponent(softwareComponent);
+                    newUsage.setModified(false);
+                    newUsage.setCurated(false);
+                    newUsage.setUsageText(template.getTemplateText());
 
-                softwareComponent.getLicenses().add(newUsage);
-                saveContext.saving(newUsage);
+                    softwareComponent.getLicenses().add(newUsage);
+                    saveContext.saving(newUsage);
+                }
+
+                saveContext.saving(softwareComponent);
+                dataManager.save(saveContext);
+
+                close(StandardOutcome.SAVE);
             }
-
-            saveContext.saving(softwareComponent);
-            dataManager.save(saveContext);
-
-            close(StandardOutcome.SAVE);
         }
     }
-        }
 
     @Override
     @Subscribe(id = "searchButton")
@@ -143,15 +145,15 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
             listFindings.removeIf(usedTemplates::contains);
 
             licenseDc.setItems(listFindings);
-        }else{
-            licenseDc.setItems(licenseRepository.findAvailableLicenses(softwareComponent.getLicenses()));
+        } else {
+            licenseDc.setItems(templateLicenseRepository.findAvailableLicenses(softwareComponent.getLicenses().stream().map(UsageLicense::getTemplate).collect(Collectors.toList())));
         }
-        }
+    }
 
-        @Subscribe(id = "cancelButton")
-        public void cancelLicense(ClickEvent<Button> event) {
-            cancelButton(event);
-        }
+    @Subscribe(id = "cancelButton")
+    public void cancelLicense(ClickEvent<Button> event) {
+        cancelButton(event);
+    }
 
     public List<TemplateLicense> getSelectedLicenses() {
         return new ArrayList<>(licensesDataGrid.getSelectedItems());

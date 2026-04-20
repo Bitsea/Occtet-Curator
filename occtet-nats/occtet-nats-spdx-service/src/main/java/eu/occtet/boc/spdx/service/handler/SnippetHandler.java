@@ -25,7 +25,6 @@ import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.service.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.persistence.core.queries.CoreAttributeGroup;
 import org.spdx.core.InvalidSPDXAnalysisException;
 import org.spdx.library.SpdxModelFactory;
 import org.spdx.library.model.v2.SpdxConstantsCompatV2;
@@ -114,7 +113,7 @@ public class SnippetHandler {
      */
     private void enrichComponentFromSnippet(SpdxSnippet snippet,
                                             Map<String, InventoryItem> fileMap,
-                                            Map<String, License> licenseCache,
+                                            Map<String, TemplateLicense> licenseCache,
                                             Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc,
                                             Organization organization
     ) {SpdxFile snippetFile;

@@ -37,7 +37,7 @@ import eu.occtet.bocfrontend.view.audit.AuditView;
 import eu.occtet.bocfrontend.view.copyright.CopyrightDetailView;
 import eu.occtet.bocfrontend.view.dialog.*;
 import eu.occtet.bocfrontend.view.inventoryitem.InventoryItemDetailView;
-import eu.occtet.bocfrontend.view.license.LicenseDetailView;
+import eu.occtet.bocfrontend.view.license.TemplateLicenseDetailView;
 import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
 import io.jmix.core.*;
 import io.jmix.flowui.DialogWindows;
@@ -360,14 +360,14 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
             window.addAfterCloseListener(close -> {
                 if (close.closedWith(StandardOutcome.SAVE)) {
-                    List<License> selectedLicenses = window.getView().getSelectedLicenses();
+                    List<TemplateLicense> selectedLicenses = window.getView().getSelectedLicenses();
                     if (selectedLicenses != null && !selectedLicenses.isEmpty()) {
-                        for (License license : selectedLicenses) {
-                            License trackedLicense = dataContext.merge(license);
+                        for (TemplateLicense license : selectedLicenses) {
+                            TemplateLicense trackedLicense = dataContext.merge(license);
                             if (!softwareComponent.getLicenses().contains(trackedLicense)) {
-                                softwareComponent.getLicenses().add(trackedLicense);
+                                softwareComponent.getLicenses().add(trackedLicense.getUsages().getFirst());
 
-                                licenseDc.getMutableItems().add(trackedLicense);
+                                licenseDc.getMutableItems().add(trackedLicense.getUsages().getFirst());
                             }
 
                         }
@@ -395,11 +395,11 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
             window.addAfterCloseListener(close -> {
                 if (close.closedWith(StandardOutcome.SAVE)) {
-                    License newLicense = window.getView().getCreatedLicense();
+                    TemplateLicense newLicense = window.getView().getCreatedLicense();
                     if (newLicense != null) {
-                        License trackedLicense = dataContext.merge(newLicense);
-                        softwareComponent.getLicenses().add(trackedLicense);
-                        licenseDc.getMutableItems().add(trackedLicense);
+                        TemplateLicense trackedLicense = dataContext.merge(newLicense);
+                        softwareComponent.getLicenses().add(trackedLicense.getUsages().getFirst());
+                        licenseDc.getMutableItems().add(trackedLicense.getUsages().getFirst());
                         infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseCreate"));
                     }
                 }

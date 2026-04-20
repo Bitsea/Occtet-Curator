@@ -26,12 +26,9 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.theme.lumo.LumoIcon;
-import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.TemplateLicense;
 import eu.occtet.bocfrontend.entity.UsageLicense;
-import eu.occtet.bocfrontend.factory.TemplateLicenseFactory;
 import eu.occtet.bocfrontend.service.LicenseService;
 import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
@@ -113,30 +110,30 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
 
         if (checkInput(priority, licenseType, licenseText, licenseName, detailsUrl)) {
 
-            try{
-            SaveContext saveContext = new SaveContext();
+            try {
+                SaveContext saveContext = new SaveContext();
 
                 TemplateLicense templateLicense = dataManager.create(TemplateLicense.class);
-            templateLicense.setPriority(Integer.valueOf(priority));
-            templateLicense.setLicenseType(licenseType);
-            templateLicense.setTemplateText(licenseText);
-            templateLicense.setLicenseName(licenseName);
-            templateLicense.setDetailsUrl(detailsUrl);
-            templateLicense.setIsSpdx(isSpdxField.getValue());
+                templateLicense.setPriority(Integer.valueOf(priority));
+                templateLicense.setLicenseType(licenseType);
+                templateLicense.setTemplateText(licenseText);
+                templateLicense.setLicenseName(licenseName);
+                templateLicense.setDetailsUrl(detailsUrl);
+                templateLicense.setIsSpdx(isSpdxField.getValue());
 
-            UsageLicense usageLicense = dataManager.create(UsageLicense.class);
-            usageLicense.setUsageText(licenseText);
-            usageLicense.setModified(isModifiedField.getValue());
-            usageLicense.setCurated(isCuratedField.getValue());
-            usageLicense.setTemplate(templateLicense);
-            usageLicense.setSoftwareComponent(this.softwareComponent);
+                UsageLicense usageLicense = dataManager.create(UsageLicense.class);
+                usageLicense.setUsageText(licenseText);
+                usageLicense.setModified(isModifiedField.getValue());
+                usageLicense.setCurated(isCuratedField.getValue());
+                usageLicense.setTemplate(templateLicense);
+                usageLicense.setSoftwareComponent(this.softwareComponent);
 
-            this.softwareComponent.getLicenses().add(usageLicense);
+                this.softwareComponent.getLicenses().add(usageLicense);
 
-            saveContext.saving(templateLicense, usageLicense, this.softwareComponent);
-            dataManager.save(saveContext);
+                saveContext.saving(templateLicense, usageLicense, this.softwareComponent);
+                dataManager.save(saveContext);
 
-            log.debug("Created and added new license template and usage {} to softwareComponent", templateLicense.getLicenseName());
+                log.debug("Created and added new license template and usage {} to softwareComponent", templateLicense.getLicenseName());
             close(StandardOutcome.SAVE);
             }catch (IllegalArgumentException e) {
                 notifications.create(messages.formatMessage(getClass(), "duplicate.error", licenseType))

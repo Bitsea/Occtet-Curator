@@ -51,11 +51,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Route(value = "template-licenses", layout = MainView.class)
@@ -63,7 +59,7 @@ import java.util.stream.Collectors;
 @ViewDescriptor(path = "template-license-list-view.xml")
 @LookupComponent("licensesDataGrid")
 @DialogMode(width = "80%", height = "80%")
-public class LicenseListView extends StandardListView<License> {
+public class TemplateLicenseListView extends StandardListView<TemplateLicense> {
 
     private static final Logger log = LogManager.getLogger(TemplateLicenseListView.class);
 

@@ -20,7 +20,6 @@
 package eu.occtet.boc.spdx.factory;
 
 
-import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.dao.SoftwareComponentRepository;

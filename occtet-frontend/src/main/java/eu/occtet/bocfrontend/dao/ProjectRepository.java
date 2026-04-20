@@ -19,7 +19,6 @@
 
 package eu.occtet.bocfrontend.dao;
 
-import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Organization;
 import eu.occtet.bocfrontend.entity.Project;
 import io.jmix.core.repository.JmixDataRepository;
@@ -27,7 +26,6 @@ import io.jmix.core.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Set;
 
 
 public interface ProjectRepository extends JmixDataRepository<Project, Long> {
