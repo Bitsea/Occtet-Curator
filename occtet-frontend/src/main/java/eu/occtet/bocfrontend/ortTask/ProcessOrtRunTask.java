@@ -67,10 +67,10 @@ public class ProcessOrtRunTask  {
                 ApiClient apiClient = getApiClient();
 
                 eu.occtet.bocfrontend.entity.User user = (eu.occtet.bocfrontend.entity.User) currentAuthentication.getUser();
-//                OrganizationsApi organizationsApi = new OrganizationsApi(apiClient);
-//                eu.occtet.bocfrontend.entity.Organization orga= user.getOrganization();
-//
-//                Organization organization = createOrganization(orga.getOrganizationName(), organizationsApi);
+                OrganizationsApi organizationsApi = new OrganizationsApi(apiClient);
+                eu.occtet.bocfrontend.entity.Organization orga= user.getOrganization();
+
+                Organization organization = createOrganization(orga.getOrganizationName(), organizationsApi);
 
 
                 RunsApi runsApi = new RunsApi(apiClient);
@@ -83,12 +83,12 @@ public class ProcessOrtRunTask  {
                 if (!pagedSearch.getData().isEmpty()) {
                     log.debug("Got {} finished runs", pagedSearch.getData().size());
 
-                    sendRuns(pagedSearch);
+                    sendRuns(pagedSearch, organization.getId());
                 } else log.debug("No finished runs found");
 
                 if (!pagedSearchWithIssues.getData().isEmpty()) {
                     log.debug("Got {} finished_with_issues runs", pagedSearch.getData().size());
-                    sendRuns(pagedSearchWithIssues);
+                    sendRuns(pagedSearchWithIssues, organization.getId());
                 } else log.debug("No finished_with_issues runs found");
             } catch (Exception e) {
                 log.error("ORT API not reachable, could not fetch runs", e);
@@ -124,9 +124,9 @@ public class ProcessOrtRunTask  {
 
     }
 
-    private void sendRuns(PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch){
+    private void sendRuns(PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch, Long orgaId){
         OrtRunSummary ortRunSummary = pagedSearch.getData().getFirst();
-        if (ortRunSummary != null && !processedRuns.contains(ortRunSummary.getId())) {
+        if (ortRunSummary != null && !processedRuns.contains(ortRunSummary.getId()) && ortRunSummary.getOrganizationId().equals(orgaId)) {
             //TODO ask for organization id here
             Long summaryId = ortRunSummary.getId();
             processedRuns.add(summaryId);
