@@ -45,7 +45,7 @@
     </facets>
     <layout>
         <vbox width="100%" height="100%" expand="vulnerabilitiesGrid">
-            <hbox width="45%" alignItems="STRETCH" classNames="box-layout" css="background-color:var(--lumo-contrast-5pct)">
+            <hbox width="45%" alignItems="STRETCH" classNames="dashboard-list-layout" css="background-color:var(--lumo-contrast-5pct)">
                 <vbox alignSelf="END">
                     <h5 text="msg://dashboardView.runningTasks"/>
                     <listBox id="runningTasksList" width="100%" height="100px" readOnly="true" css="background-color:var(--lumo-contrast-5pct)"/>

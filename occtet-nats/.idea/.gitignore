@@ -2,3 +2,10 @@
 /shelf/
 /workspace.xml
 /dbnavigator.xml
+
+# ignore default dir for ca certs (picked up by our code)
+/cacerts/
+
+# Ignore environment variable files. Create a local copy of .env.example and adjust to your needs, then rename to .env and it will be ignored by git. This is important to avoid accidentally committing sensitive information such as API keys or database credentials.
+.env
+
