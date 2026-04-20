@@ -19,14 +19,32 @@
 
 package eu.occtet.boc.ortclient;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.openapitools.client.ApiClient;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collection;
 
 /**
  * Service class to interact with an ORT server via its REST API.
  */
 public class OrtClientService {
+
+    private static final Logger log = LogManager.getLogger(OrtClientService.class);
+
 
     private String ortBaseUrl = "https://ort.bitsea.de";
     private String keycloakTokenUrl = "https://keycloak.bitsea.de/realms/master/protocol/openid-connect/token";
@@ -34,6 +52,8 @@ public class OrtClientService {
     private String scope="offline_access";
 
 
+    @Value("${https.cacert.path}")
+    private String cacertPath;
     public OrtClientService() {
     }
 
@@ -63,8 +83,28 @@ public class OrtClientService {
     public ApiClient createApiClient(TokenResponse tokenResponse) {
         if(!tokenResponse.isValid()) throw  new IllegalArgumentException("TokenResponse is expired");
         ApiClient apiClient = new ApiClient();
+
+        Collection<? extends Certificate> certificates = CertificateHelper.loadCertificates(cacertPath);
+        try {
+            if (certificates != null)
+                apiClient.setSslCaCert(certificatesToPemStream(certificates));
+        }catch (Exception e){
+            log.error("Failed to set SSL CA certs for API client, error: {}", e.getMessage());
+        }
         apiClient.addDefaultHeader("Authorization", "Bearer " + tokenResponse.accessToken);
         apiClient.setBasePath(ortBaseUrl);
         return apiClient;
+    }
+
+
+    private InputStream certificatesToPemStream(Collection<? extends Certificate> certs) throws Exception {
+        StringBuilder pem = new StringBuilder();
+        for (Certificate cert : certs) {
+            pem.append("-----BEGIN CERTIFICATE-----\n");
+            pem.append(Base64.getMimeEncoder(64, "\n".getBytes())
+                    .encodeToString(cert.getEncoded()));
+            pem.append("\n-----END CERTIFICATE-----\n");
+        }
+        return new ByteArrayInputStream(pem.toString().getBytes(StandardCharsets.UTF_8));
     }
 }

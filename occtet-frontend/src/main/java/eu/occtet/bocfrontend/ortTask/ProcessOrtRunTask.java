@@ -1,38 +1,26 @@
 package eu.occtet.bocfrontend.ortTask;
 
 import eu.occtet.boc.model.ORTProcessWorkData;
-import eu.occtet.boc.model.VulnerabilityServiceWorkData;
-import eu.occtet.boc.model.WorkTaskProgress;
 import eu.occtet.boc.ortclient.AuthService;
 import eu.occtet.boc.ortclient.OrtClientService;
 import eu.occtet.boc.ortclient.TokenResponse;
 import eu.occtet.bocfrontend.config.ConfigOrtProperties;
-import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.entity.CuratorTask;
-import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.factory.CuratorTaskFactory;
-import eu.occtet.bocfrontend.importer.TaskManager;
 import eu.occtet.bocfrontend.service.CuratorTaskService;
-import eu.occtet.bocfrontend.service.WorkTaskProgressMonitor;
 import io.jmix.core.security.SystemAuthenticator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.ApiClient;
-import org.openapitools.client.ApiException;
+import org.openapitools.client.api.OrganizationsApi;
 import org.openapitools.client.api.RunsApi;
-import org.openapitools.client.model.OrtRun;
-import org.openapitools.client.model.OrtRunSummary;
-import org.openapitools.client.model.PagedSearchResponseOrtRunSummaryOrtRunFilters;
-import org.openapitools.client.model.ReporterJob;
+import org.openapitools.client.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,7 +57,13 @@ public class ProcessOrtRunTask  {
 
         systemAuthenticator.withSystem(() -> {
             try {
-                RunsApi runsApi = getRunsApi();
+
+                ApiClient apiClient= getApiClient();
+
+                OrganizationsApi organizationsApi = new OrganizationsApi(apiClient);
+                Organization orga= createOrganization(orgaName, organizationsApi);
+
+                RunsApi runsApi = new RunsApi(apiClient);
                 PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch = runsApi.getRuns("FINISHED", 1, null, "-createdAt");
 
             PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearchWithIssues = runsApi.getRuns("FINISHED_WITH_ISSUES", 1, null, "-createdAt");
@@ -111,7 +105,7 @@ public class ProcessOrtRunTask  {
 
 
 
-    private RunsApi getRunsApi() {
+    private ApiClient getApiClient() {
         try {
             OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
             AuthService authService = new AuthService(ortProperties.tokenUrl());
@@ -121,10 +115,8 @@ public class ProcessOrtRunTask  {
 
             tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
 
-            ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
 
-
-            return new RunsApi(apiClient);
+            return ortClientService.createApiClient(tokenResponse);
         }catch(Exception e){
             log.error("Error creating RunsApi client, ORT possibly not reachable/activated {}", e.getMessage());
             return null;

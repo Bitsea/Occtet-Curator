@@ -19,15 +19,22 @@
 package eu.occtet.boc.ortclient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.internal.tls.OkHostnameVerifier;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.util.Collection;
 
 /**
  * Service to handle authentication against an OAuth2 token endpoint like Keycloak which comes with ORT.
@@ -35,6 +42,9 @@ import java.nio.charset.StandardCharsets;
 public class AuthService {
 
     private String tokenEndpointUrl;
+
+    @Value("${https.cacert.path}")
+    private String cacertPath;
 
     /**
      *
@@ -60,7 +70,9 @@ public class AuthService {
             @Nonnull String password,
             @Nullable  String scope
     ) throws IOException,InterruptedException {
+        //TODO here we must make certain with certificate, erstmal nimm leeren trustmanager
         HttpClient client = HttpClient.newHttpClient();
+
 
         String form = buildForm(
                 "grant_type", "password",

@@ -66,7 +66,7 @@ public class ORTRunStarterService {
         log.debug("connecting with base: {} / and token: {}", ortProperties.baseUrl(), ortProperties.tokenUrl());
 
         Project project= projectRepository.findById(projectId).get();
-        String orgaName= project.getProjectContact();
+        String orgaName= project.getOrganization().getOrganizationName();
         log.debug("connection with ORT on {}", ortProperties.baseUrl());
         OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
         AuthService authService = new AuthService(ortProperties.tokenUrl());
