@@ -54,6 +54,7 @@ public class LicenseHandler {
         Set<License> allLicenses = new HashSet<>();
         List<AnyLicenseInfo> allLicenseInfo = new ArrayList<>();
         parseLicenseText(spdxLicenseInfo, allLicenseInfo);
+        List<License> licensesToSave = new ArrayList<>();
 
         for (AnyLicenseInfo individualLicenseInfo : allLicenseInfo) {
             String licenseId = "";
@@ -83,7 +84,7 @@ public class LicenseHandler {
 
                 if (isListed) {
                     licenseEntity.setSpdx(true);
-                    licenseRepository.save(licenseEntity);
+                    licensesToSave.add(licenseEntity);
                 }
 
                 // Cache Put
@@ -91,6 +92,10 @@ public class LicenseHandler {
             }
 
             allLicenses.add(licenseEntity);
+        }
+
+        if (!licensesToSave.isEmpty()) {
+            licenseRepository.saveAll(licensesToSave);
         }
 
         return allLicenses.stream().toList();

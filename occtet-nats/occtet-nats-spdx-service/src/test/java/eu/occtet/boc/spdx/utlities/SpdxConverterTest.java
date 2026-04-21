@@ -21,7 +21,6 @@ package eu.occtet.boc.spdx.utlities;
 
 import eu.occtet.boc.config.TestEclipseLinkJpaConfiguration;
 import eu.occtet.boc.dao.*;
-import eu.occtet.boc.entity.appconfigurations.AppConfigKey;
 import eu.occtet.boc.entity.spdxV2.*;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
@@ -190,7 +189,7 @@ public class SpdxConverterTest {
             Relationship relationship = (Relationship) spdxDocument.getRelationships().toArray()[0];
 
             SpdxPackage spdxPackage = new SpdxPackage("SPDXRef-Package-Go-gopkg.in.yaml.v3-3.0.1");
-            RelationshipEntity relationshipEntity = spdxConverter.convertRelationShip(relationship, spdxDocumentRoot, spdxPackage);
+            RelationshipEntity relationshipEntity = spdxConverter.convertRelationShip(relationship, spdxDocumentRoot, spdxPackage.getId());
 
             Assertions.assertEquals("SPDXRef-Package-Go-gopkg.in.yaml.v3-3.0.1", relationshipEntity.getSpdxElementId());
             Assertions.assertEquals("DESCRIBES", relationshipEntity.getRelationshipType());
