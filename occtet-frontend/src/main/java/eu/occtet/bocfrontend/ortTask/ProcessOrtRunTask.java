@@ -41,6 +41,9 @@ public class ProcessOrtRunTask  {
     @Value("${nats.send-subject-ort-result}")
     private String sendSubjectOrtResult;
 
+    @Value("${https.cacert.path}")
+    private String cacertPath;
+
     @Autowired
     private CurrentAuthentication currentAuthentication;
 
@@ -70,6 +73,10 @@ public class ProcessOrtRunTask  {
                 OrganizationsApi organizationsApi = new OrganizationsApi(apiClient);
                 eu.occtet.bocfrontend.entity.Organization orga= user.getOrganization();
 
+                if(orga == null){
+                    log.error("User {} has no organization assigned, cannot fetch ORT runs", user.getUsername());
+                    return null;
+                }
                 Organization organization = createOrganization(orga.getOrganizationName(), organizationsApi);
 
 
@@ -127,7 +134,6 @@ public class ProcessOrtRunTask  {
     private void sendRuns(PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch, Long orgaId){
         OrtRunSummary ortRunSummary = pagedSearch.getData().getFirst();
         if (ortRunSummary != null && !processedRuns.contains(ortRunSummary.getId()) && ortRunSummary.getOrganizationId().equals(orgaId)) {
-            //TODO ask for organization id here
             Long summaryId = ortRunSummary.getId();
             processedRuns.add(summaryId);
             log.info("Found new finished ORT run with id {}", summaryId);
@@ -146,8 +152,8 @@ public class ProcessOrtRunTask  {
 
     private ApiClient getApiClient() {
         try {
-            OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
-            AuthService authService = new AuthService(ortProperties.tokenUrl());
+            OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl(), cacertPath, ortProperties.tokenUrl(), ortProperties.clientId());
+            AuthService authService = new AuthService(ortProperties.tokenUrl(), cacertPath);
             log.info("connection with ORT on {}", ortProperties.baseUrl());
             log.info("connection URL {}", ortProperties.tokenUrl());
             TokenResponse tokenResponse = null;

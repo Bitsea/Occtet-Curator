@@ -37,21 +37,21 @@ public final class CertificateHelper {
 
 
     public static Collection<? extends Certificate> loadCertificates(String path) {
-        log.debug("loading certificate from path {}", path);
+        log.info("Helper: loadCertificates from path: {}", path);
         try {
             Path filePath = Paths.get(path);
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             Collection<Certificate> allCertificates = new ArrayList<>();
 
             if (Files.isRegularFile(filePath)) {
-                log.debug("file");
+                log.info("is file: {}", filePath);
                 try (InputStream inputStream = Files.newInputStream(filePath)) {
                     allCertificates.addAll(
                             certificateFactory.generateCertificates(inputStream)
                     );
                 }
             } else if (Files.isDirectory(filePath)) {
-                log.debug("directory");
+                log.info("is directory: {}", filePath);
                 Files.list(filePath)
                         .filter(Files::isRegularFile)
                         .filter(p -> {
@@ -65,15 +65,16 @@ public final class CertificateHelper {
                                 allCertificates.addAll(
                                         certificateFactory.generateCertificates(inputStream)
                                 );
+                                log.info("added certificates from file: {}", certFile.getFileName());
                             } catch (Exception e) {
-                                log.debug("Failed to load: " + certFile);
+                                log.info("Failed to load: " + certFile);
                             }
                         });
             }
-            log.debug("return {} certificates", allCertificates.size());
+            log.info("return {} certificates", allCertificates.size());
             return allCertificates;
         } catch (Exception e) {
-            log.debug("Failed to load certificates from path {}, error: {}", path, e.getMessage());
+            log.info("Failed to load certificates from path {}, error: {}", path, e.getMessage());
             return null;
         }
     }

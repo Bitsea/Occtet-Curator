@@ -49,8 +49,11 @@ public class OrtClientServiceTest  {
         //OrtClientService ortClientService = new OrtClientService("http://localhost:8080");
         //AuthService authService = new AuthService("http://localhost:8081/realms/master/protocol/openid-connect/token");
 
+        String clientId="ort-server";
+        String tokenUrl="http://ort.bitsea.de/realms/master/protocol/openid-connect/token";
+
         // get bearer token from Keycloak
-        OrtClientService ortClientService = new OrtClientService("https://ort.bitsea.de");
+        OrtClientService ortClientService = new OrtClientService("https://ort.bitsea.de", null, tokenUrl, clientId); //cacertPath not needed for local testing
         TokenResponse tokenResponse = ortClientService.authenticate("ort-admin","password");;
         System.out.println("Obtained TokenResponse: " + tokenResponse);
 

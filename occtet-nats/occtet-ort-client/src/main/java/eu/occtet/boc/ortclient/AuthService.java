@@ -47,7 +47,6 @@ public class AuthService {
 
     private String tokenEndpointUrl;
 
-    @Value("${https.cacert.path}")
     private String cacertPath;
 
     private static final Logger log = LogManager.getLogger(AuthService.class);
@@ -57,8 +56,9 @@ public class AuthService {
      *
      * @param tokenEndpointUrl i.e. "http://localhost:8081/realms/master/protocol/openid-connect/token"
      */
-    public AuthService(@Nonnull String tokenEndpointUrl) {
+    public AuthService(@Nonnull String tokenEndpointUrl, String cacertPath) {
         this.tokenEndpointUrl = tokenEndpointUrl;
+        this.cacertPath= cacertPath;
     }
 
 
@@ -79,10 +79,9 @@ public class AuthService {
     ) throws IOException,InterruptedException {
 
         Collection<? extends Certificate> certificates = CertificateHelper.loadCertificates(cacertPath);
-        log.debug("got {} certificates from path {}", certificates != null ? certificates.size() : 0, cacertPath);
+        log.info("got {} certificates from path {}", certificates != null ? certificates.size() : 0, cacertPath);
         HttpClient client;
         if (certificates == null || certificates.isEmpty()) {
-            // 👉 Standard-Verhalten (System Truststore)
             client = HttpClient.newHttpClient();
         } else {
             SSLContext sslContext = buildSslContext(certificates);

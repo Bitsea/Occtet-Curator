@@ -28,13 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
 
@@ -46,19 +40,20 @@ public class OrtClientService {
     private static final Logger log = LogManager.getLogger(OrtClientService.class);
 
 
-    private String ortBaseUrl = "https://ort.bitsea.de";
-    private String keycloakTokenUrl = "https://keycloak.bitsea.de/realms/master/protocol/openid-connect/token";
-    private String clientId="ort-server";
+    private String ortBaseUrl;
+    private String keycloakTokenUrl;
+    private String clientId;
     private String scope="offline_access";
-
-
-    @Value("${https.cacert.path}")
     private String cacertPath;
-    public OrtClientService() {
-    }
 
-    public OrtClientService(String ortBaseUrl) {
+
+
+    public OrtClientService(String ortBaseUrl, String cacertPath, String keycloakTokenUrl, String clientId) {
+        this.cacertPath = cacertPath;
         this.ortBaseUrl = ortBaseUrl;
+        this.keycloakTokenUrl= keycloakTokenUrl;
+        this.clientId= clientId;
+
     }
 
 
@@ -71,7 +66,7 @@ public class OrtClientService {
      * @throws InterruptedException
      */
     public TokenResponse authenticate(String username, String password) throws IOException, InterruptedException {
-        AuthService authService = new AuthService(keycloakTokenUrl);
+        AuthService authService = new AuthService(keycloakTokenUrl, cacertPath);
         return authService.requestToken(clientId,username,password,scope);
     }
 
@@ -83,11 +78,15 @@ public class OrtClientService {
     public ApiClient createApiClient(TokenResponse tokenResponse) {
         if(!tokenResponse.isValid()) throw  new IllegalArgumentException("TokenResponse is expired");
         ApiClient apiClient = new ApiClient();
-
+        log.info("Loading SSL CA certs for API client from path: {}", cacertPath);
         Collection<? extends Certificate> certificates = CertificateHelper.loadCertificates(cacertPath);
+        log.info("is certificates null {}", certificates);
         try {
-            if (certificates != null)
+            if (certificates != null) {
+                log.info("got {} certs", certificates.size());
                 apiClient.setSslCaCert(certificatesToPemStream(certificates));
+            }
+            else apiClient.setVerifyingSsl(false);
         }catch (Exception e){
             log.error("Failed to set SSL CA certs for API client, error: {}", e.getMessage());
         }
