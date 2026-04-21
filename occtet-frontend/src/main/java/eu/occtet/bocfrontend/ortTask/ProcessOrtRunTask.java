@@ -65,6 +65,7 @@ public class ProcessOrtRunTask  {
     public void fetchRun()  {
 
         systemAuthenticator.withSystem(() -> {
+            log.debug("trying to fetch finished runs from ORT API...");
             try {
 
                 ApiClient apiClient = getApiClient();
