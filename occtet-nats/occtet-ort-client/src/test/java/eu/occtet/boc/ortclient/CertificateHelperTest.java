@@ -27,23 +27,16 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.cert.Certificate;
 import java.util.Collection;
-import java.util.Enumeration;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.util.AssertionErrors.assertEquals;
-import static org.springframework.test.util.AssertionErrors.assertNotNull;
 
 
 @ActiveProfiles("test")
 public class CertificateHelperTest {
 
     @Test
-    public void testLoadCertificate() throws URISyntaxException, IOException {
+    public void testLoadCertificate() {
         //test this with a path where your test certificates are loaded
 
         Collection<? extends Certificate> certificates =CertificateHelper.loadCertificates("C:\\Users\\leoni.tischer\\Projekte\\occtet-curator\\Occtet-Curator\\occtet-nats\\cacerts\\_.bitsea.de.cert");

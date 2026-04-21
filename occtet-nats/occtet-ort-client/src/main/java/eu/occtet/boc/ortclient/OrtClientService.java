@@ -80,10 +80,8 @@ public class OrtClientService {
         ApiClient apiClient = new ApiClient();
         log.info("Loading SSL CA certs for API client from path: {}", cacertPath);
         Collection<? extends Certificate> certificates = CertificateHelper.loadCertificates(cacertPath);
-        log.info("is certificates null {}", certificates);
         try {
             if (certificates != null && !certificates.isEmpty()) {
-                log.info("got {} certs", certificates.size());
                 apiClient.setSslCaCert(certificatesToPemStream(certificates));
             }
         }catch (Exception e){
@@ -96,7 +94,6 @@ public class OrtClientService {
 
 
     private InputStream certificatesToPemStream(Collection<? extends Certificate> certs) throws Exception {
-        log.info("pem Stream");
         StringBuilder pem = new StringBuilder();
         for (Certificate cert : certs) {
             pem.append("-----BEGIN CERTIFICATE-----\n");

@@ -74,7 +74,7 @@ public class ProcessOrtRunTask  {
                 eu.occtet.bocfrontend.entity.Organization orga= user.getOrganization();
 
                 if(orga == null){
-                    log.error("User {} has no organization assigned, cannot fetch ORT runs", user.getUsername());
+                    log.error("User {} has no organization {} assigned, cannot fetch ORT runs", user.getUsername(),user.getOrganization());
                     return null;
                 }
                 Organization organization = createOrganization(orga.getOrganizationName(), organizationsApi);
