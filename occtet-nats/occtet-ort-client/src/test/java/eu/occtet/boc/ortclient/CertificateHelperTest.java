@@ -42,6 +42,7 @@ public class CertificateHelperTest {
         //for the test to work, change this with a path to where your real certificates are loaded
         Path resourceDirectory = Paths.get("src","test","resources", "cacerts", "test.de.cert");
         String absolutePath = resourceDirectory.toFile().getAbsolutePath();
+
         Collection<? extends Certificate> certificates =CertificateHelper.loadCertificates(absolutePath);
         assertEquals("size of certificates",1, certificates.size());
     }
