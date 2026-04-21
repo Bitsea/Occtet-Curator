@@ -42,7 +42,6 @@ public final class CertificateHelper {
             Path filePath = Paths.get(path);
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             Collection<Certificate> allCertificates = new ArrayList<>();
-
             if (Files.isRegularFile(filePath)) {
                 log.info("is file: {}", filePath);
                 try (InputStream inputStream = Files.newInputStream(filePath)) {
@@ -52,13 +51,17 @@ public final class CertificateHelper {
                 }
             } else if (Files.isDirectory(filePath)) {
                 log.info("is directory: {}", filePath);
+                if(Files.getFileStore(filePath).getBlockSize()>0) {
+                    long num= Files.getFileStore(filePath).getBlockSize();
+                    log.info("list {}", Files.getFileStore(filePath).getBlockSize());
+                }
                 Files.list(filePath)
                         .filter(Files::isRegularFile)
                         .filter(p -> {
                             String filename = p.getFileName().toString().toLowerCase();
                             return filename.endsWith(".pem") ||
                                     filename.endsWith(".crt") ||
-                                    filename.endsWith(".cer");
+                                    filename.endsWith(".cert");
                         })
                         .forEach(certFile -> {
                             try (InputStream inputStream = Files.newInputStream(certFile)) {
