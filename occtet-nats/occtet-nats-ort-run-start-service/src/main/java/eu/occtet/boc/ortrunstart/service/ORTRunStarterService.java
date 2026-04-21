@@ -48,6 +48,9 @@ public class ORTRunStarterService {
 
     private static final Logger log = LogManager.getLogger(ORTRunStarterService.class);
 
+    @Value("${https.cacert.path}")
+    private String cacertPath;
+
     @Autowired
     private ProjectRepository projectRepository;
 
@@ -66,10 +69,10 @@ public class ORTRunStarterService {
         log.debug("connecting with base: {} / and token: {}", ortProperties.baseUrl(), ortProperties.tokenUrl());
 
         Project project= projectRepository.findById(projectId).get();
-        String orgaName= project.getProjectContact();
+        String orgaName= project.getOrganization().getOrganizationName();
         log.debug("connection with ORT on {}", ortProperties.baseUrl());
-        OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
-        AuthService authService = new AuthService(ortProperties.tokenUrl());
+        OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl(), cacertPath, ortProperties.tokenUrl(), ortProperties.clientId());
+        AuthService authService = new AuthService(ortProperties.tokenUrl(), cacertPath);
         log.debug("authcall on keycloak with clientId {} username {} password {}", ortProperties.clientId(), ortProperties.username(), ortProperties.password() );
 
         TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");

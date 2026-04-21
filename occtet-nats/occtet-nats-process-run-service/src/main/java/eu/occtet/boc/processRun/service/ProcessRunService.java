@@ -45,6 +45,7 @@ import org.openapitools.client.api.RunsApi;
 import org.openapitools.client.model.*;
 import org.openapitools.client.model.Organization;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -77,6 +78,9 @@ public class ProcessRunService {
     @Autowired
     private ProjectFactory projectFactory;
 
+    @Value("${https.cacert.path}")
+    private String cacertPath;
+
 
     private final ConfigOrtProperties ortProperties;
 
@@ -92,8 +96,8 @@ public class ProcessRunService {
     public boolean fetchRun(long runId) throws IOException, InterruptedException, ApiException {
         log.debug("Start processing run with id {}", runId);
 
-        OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl());
-        AuthService authService = new AuthService(ortProperties.tokenUrl());
+        OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl(), cacertPath, ortProperties.tokenUrl(), ortProperties.clientId());
+        AuthService authService = new AuthService(ortProperties.tokenUrl(), cacertPath);
 
         TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
