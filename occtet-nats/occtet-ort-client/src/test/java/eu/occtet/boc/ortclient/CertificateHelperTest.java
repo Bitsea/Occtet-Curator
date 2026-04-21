@@ -27,6 +27,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.cert.Certificate;
 import java.util.Collection;
 import static org.springframework.test.util.AssertionErrors.assertEquals;
@@ -35,11 +37,12 @@ import static org.springframework.test.util.AssertionErrors.assertEquals;
 @ActiveProfiles("test")
 public class CertificateHelperTest {
 
-    @Test
+    //@Test
     public void testLoadCertificate() {
-        //test this with a path where your test certificates are loaded
-
-        Collection<? extends Certificate> certificates =CertificateHelper.loadCertificates("C:\\Users\\leoni.tischer\\Projekte\\occtet-curator\\Occtet-Curator\\occtet-nats\\cacerts\\_.bitsea.de.cert");
+        //for the test to work, change this with a path to where your real certificates are loaded
+        Path resourceDirectory = Paths.get("src","test","resources", "cacerts", "test.de.cert");
+        String absolutePath = resourceDirectory.toFile().getAbsolutePath();
+        Collection<? extends Certificate> certificates =CertificateHelper.loadCertificates(absolutePath);
         assertEquals("size of certificates",1, certificates.size());
     }
 }
