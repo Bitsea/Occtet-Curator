@@ -43,19 +43,19 @@ public final class CertificateHelper {
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             Collection<Certificate> allCertificates = new ArrayList<>();
             if (Files.isRegularFile(filePath)) {
-                log.info("is file: {}", filePath);
+                log.trace("is file: {}", filePath);
                 try (InputStream inputStream = Files.newInputStream(filePath)) {
                     allCertificates.addAll(
                             certificateFactory.generateCertificates(inputStream)
                     );
                 }
             } else if (Files.isDirectory(filePath)) {
-                log.info("is directory: {}", filePath);
+                log.trace("is directory: {}", filePath);
                 Files.list(filePath)
                         .filter(Files::isRegularFile)
                         .filter(p -> {
                             String filename = p.getFileName().toString().toLowerCase();
-                            log.info("checking file: {}", filename);
+                            log.trace("checking file: {}", filename);
                             return filename.endsWith(".pem") ||
                                     filename.endsWith(".crt") ||
                                     filename.endsWith(".cert");
@@ -65,13 +65,13 @@ public final class CertificateHelper {
                                 allCertificates.addAll(
                                         certificateFactory.generateCertificates(inputStream)
                                 );
-                                log.info("added certificates from file: {}", certFile.getFileName());
+                                log.info("added CA certificate from file: {}", certFile.getFileName());
                             } catch (Exception e) {
                                 log.warn("Failed to load: {}", certFile);
                             }
                         });
             }
-            log.debug("return {} certificates", allCertificates.size());
+            log.trace("return {} certificates", allCertificates.size());
             return allCertificates;
         } catch (Exception e) {
             log.warn("Failed to load certificates from path {}, error: {}", path, e.getMessage());
