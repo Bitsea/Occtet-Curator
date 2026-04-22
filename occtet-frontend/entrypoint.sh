@@ -21,8 +21,8 @@
 #
 #
 
-if [ -d "/certs" ]; then
-    for cert in /certs/*; do
+if [ -d "/cacerts" ]; then
+    for cert in /cacerts/*; do
       if [ -f "$cert" ]; then
         alias=$(basename "$cert")
         echo "Importing runtime certificate: $alias"
