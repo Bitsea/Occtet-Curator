@@ -188,9 +188,9 @@ services:
       ORT_BASE_URL: ${ORT_BASE_URL}
       ORT_USERNAME: ${ORT_USERNAME}
       ORT_PASSWORD: ${ORT_PASSWORD}
-      HTTPS_CA_CERT_PATH: ${HTTPS_CA_CERT_PATH}
+      HTTPS_CA_CERT_PATH: /tmp/cacerts
     volumes:
-      - ../cacerts:/tmp/cacerts:ro
+      - ${HTTPS_CA_CERT_PATH}:/tmp/cacerts:ro
 
   process-run-service:
     image: occtet-nats-process-run-service:0.3.8-SNAPSHOT
@@ -203,9 +203,9 @@ services:
       ORT_BASE_URL: ${ORT_BASE_URL}
       ORT_USERNAME: ${ORT_USERNAME}
       ORT_PASSWORD: ${ORT_PASSWORD}
-      HTTPS_CA_CERT_PATH: ${HTTPS_CA_CERT_PATH}
+      HTTPS_CA_CERT_PATH: /tmp/cacerts
     volumes:
-      - ../cacerts:/tmp/cacerts:ro
+      - ${HTTPS_CA_CERT_PATH}:/tmp/cacerts:ro
 
 volumes:
   db_data:
