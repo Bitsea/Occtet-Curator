@@ -73,7 +73,7 @@ services:
       - "8090:8090"
     volumes:
       - ${PROJECT_DATA_PATH}:/project_data
-      - ../occtet-frontend/.certs:/certs:ro
+      - ${HTTPS_CA_CERT_PATH}:/tmp/cacerts:ro
     networks:
       - mynet
     environment:
@@ -86,7 +86,7 @@ services:
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
-      HTTPS_CA_CERT_PATH: ${HTTPS_CA_CERT_PATH}
+      HTTPS_CA_CERT_PATH: /tmp/cacerts
 #      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:8090/boc/ > /dev/null || exit 1"]
