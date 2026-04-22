@@ -43,22 +43,19 @@ public final class CertificateHelper {
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             Collection<Certificate> allCertificates = new ArrayList<>();
             if (Files.isRegularFile(filePath)) {
-                log.trace("is file: {}", filePath);
+                log.info("is file: {}", filePath);
                 try (InputStream inputStream = Files.newInputStream(filePath)) {
                     allCertificates.addAll(
                             certificateFactory.generateCertificates(inputStream)
                     );
                 }
             } else if (Files.isDirectory(filePath)) {
-                log.trace("is directory: {}", filePath);
-                if(Files.getFileStore(filePath).getBlockSize()>0) {
-                    long num= Files.getFileStore(filePath).getBlockSize();
-                    log.debug("list {}", Files.getFileStore(filePath).getBlockSize());
-                }
+                log.info("is directory: {}", filePath);
                 Files.list(filePath)
                         .filter(Files::isRegularFile)
                         .filter(p -> {
                             String filename = p.getFileName().toString().toLowerCase();
+                            log.info("checking file: {}", filename);
                             return filename.endsWith(".pem") ||
                                     filename.endsWith(".crt") ||
                                     filename.endsWith(".cert");
@@ -70,7 +67,7 @@ public final class CertificateHelper {
                                 );
                                 log.info("added certificates from file: {}", certFile.getFileName());
                             } catch (Exception e) {
-                                log.warn("Failed to load: " + certFile);
+                                log.warn("Failed to load: {}", certFile);
                             }
                         });
             }
