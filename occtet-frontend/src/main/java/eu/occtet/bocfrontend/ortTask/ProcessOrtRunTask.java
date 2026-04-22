@@ -63,23 +63,11 @@ public class ProcessOrtRunTask  {
     @Scheduled(cron = "${processRun.cron}")
     @Async
     public void fetchRun()  {
-
         systemAuthenticator.withSystem(() -> {
             log.debug("trying to fetch finished runs from ORT API...");
             try {
 
                 ApiClient apiClient = getApiClient();
-
-                eu.occtet.bocfrontend.entity.User user = (eu.occtet.bocfrontend.entity.User) currentAuthentication.getUser();
-                OrganizationsApi organizationsApi = new OrganizationsApi(apiClient);
-                eu.occtet.bocfrontend.entity.Organization orga= user.getOrganization();
-
-                if(orga == null){
-                    log.error("User {} has no organization {} assigned, cannot fetch ORT runs", user.getUsername(),user.getOrganization());
-                    return null;
-                }
-                Organization organization = createOrganization(orga.getOrganizationName(), organizationsApi);
-
 
                 RunsApi runsApi = new RunsApi(apiClient);
                 log.info("Fetching runs from ORT API: {} basepath api: {}", runsApi.getCustomBaseUrl(), runsApi.getApiClient().getBasePath());
@@ -91,12 +79,12 @@ public class ProcessOrtRunTask  {
                 if (!pagedSearch.getData().isEmpty()) {
                     log.debug("Got {} finished runs", pagedSearch.getData().size());
 
-                    sendRuns(pagedSearch, organization.getId());
+                    sendRuns(pagedSearch, 1234L);//organization.getId());
                 } else log.debug("No finished runs found");
 
                 if (!pagedSearchWithIssues.getData().isEmpty()) {
                     log.debug("Got {} finished_with_issues runs", pagedSearch.getData().size());
-                    sendRuns(pagedSearchWithIssues, organization.getId());
+                    sendRuns(pagedSearchWithIssues, 1234L);
                 } else log.debug("No finished_with_issues runs found");
             } catch (Exception e) {
                 log.error("ORT API not reachable, could not fetch runs", e);
