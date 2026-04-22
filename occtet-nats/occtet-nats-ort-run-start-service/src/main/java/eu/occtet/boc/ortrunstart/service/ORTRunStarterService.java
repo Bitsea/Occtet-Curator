@@ -70,10 +70,10 @@ public class ORTRunStarterService {
 
         Project project= projectRepository.findById(projectId).get();
         String orgaName= project.getOrganization().getOrganizationName();
-        log.debug("connection with ORT on {}, add. cacerts from {}", ortProperties.baseUrl(), cacertPath);
+        log.info("connection with ORT on {}, add. cacerts from {}", ortProperties.baseUrl(), cacertPath);
         OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl(), cacertPath, ortProperties.tokenUrl(), ortProperties.clientId());
         AuthService authService = new AuthService(ortProperties.tokenUrl(), cacertPath);
-        log.debug("authcall on keycloak with clientId {} username {} password {}", ortProperties.clientId(), ortProperties.username(), ortProperties.password() );
+        log.info("authcall on keycloak with clientId {} username {} password {}", ortProperties.clientId(), ortProperties.username(), ortProperties.password() );
 
         TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
