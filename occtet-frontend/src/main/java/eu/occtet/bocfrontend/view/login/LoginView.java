@@ -106,17 +106,19 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     @Subscribe("login")
     public void onLogin(final LoginEvent event) {
         try {
+            log.info("1 current user is {} role is {}", currentAuthentication.getUser().getUsername(), currentAuthentication.getUser().getAuthorities().stream().findFirst());
+            log.info("Attempting login for user '{}'", event.getUsername());
             loginViewSupport.authenticate(
                     AuthDetails.of(event.getUsername(), event.getPassword())
                             .withLocale(login.getSelectedLocale())
                             .withRememberMe(login.isRememberMe())
             );
+            log.info("current user is {} role is {}", currentAuthentication.getUser().getUsername(), currentAuthentication.getUser().getAuthorities().stream().findFirst());
         } catch (final BadCredentialsException | DisabledException | LockedException | AccessDeniedException e) {
             log.warn("Login failed for user '{}': {}", event.getUsername(), e.toString());
             event.getSource().setError(true);
         }
 
-       log.info("current user is {} role is {}", currentAuthentication.getUser().getUsername(), currentAuthentication.getUser().getAuthorities().stream().findFirst());
 
     }
 
