@@ -70,7 +70,7 @@ public class ProcessOrtRunTask  {
                 ApiClient apiClient = getApiClient();
 
                 RunsApi runsApi = new RunsApi(apiClient);
-                log.info("Fetching runs from ORT API: {} basepath api: {}", runsApi.getCustomBaseUrl(), runsApi.getApiClient().getBasePath());
+                log.info("Fetching runs from ORT API: {}", runsApi.getApiClient().getBasePath());
                 PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch = runsApi.getRuns("FINISHED", 1, null, "-createdAt");
 
                 PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearchWithIssues = runsApi.getRuns("FINISHED_WITH_ISSUES", 1, null, "-createdAt");

@@ -37,28 +37,25 @@ public final class CertificateHelper {
 
 
     public static Collection<? extends Certificate> loadCertificates(String path) {
-        log.info("Helper: loadCertificates from path: {}", path);
+        log.debug("Helper: loadCertificates from path: {}", path);
         try {
             Path filePath = Paths.get(path);
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             Collection<Certificate> allCertificates = new ArrayList<>();
             if (Files.isRegularFile(filePath)) {
-                log.info("is file: {}", filePath);
+                log.trace("is file: {}", filePath);
                 try (InputStream inputStream = Files.newInputStream(filePath)) {
                     allCertificates.addAll(
                             certificateFactory.generateCertificates(inputStream)
                     );
                 }
             } else if (Files.isDirectory(filePath)) {
-                log.info("is directory: {}", filePath);
-                if(Files.getFileStore(filePath).getBlockSize()>0) {
-                    long num= Files.getFileStore(filePath).getBlockSize();
-                    log.info("list {}", Files.getFileStore(filePath).getBlockSize());
-                }
+                log.trace("is directory: {}", filePath);
                 Files.list(filePath)
                         .filter(Files::isRegularFile)
                         .filter(p -> {
                             String filename = p.getFileName().toString().toLowerCase();
+                            log.trace("checking file: {}", filename);
                             return filename.endsWith(".pem") ||
                                     filename.endsWith(".crt") ||
                                     filename.endsWith(".cert");
@@ -68,16 +65,16 @@ public final class CertificateHelper {
                                 allCertificates.addAll(
                                         certificateFactory.generateCertificates(inputStream)
                                 );
-                                log.info("added certificates from file: {}", certFile.getFileName());
+                                log.info("added CA certificate from file: {}", certFile.getFileName());
                             } catch (Exception e) {
-                                log.info("Failed to load: " + certFile);
+                                log.warn("Failed to load: {}", certFile);
                             }
                         });
             }
-            log.info("return {} certificates", allCertificates.size());
+            log.trace("return {} certificates", allCertificates.size());
             return allCertificates;
         } catch (Exception e) {
-            log.info("Failed to load certificates from path {}, error: {}", path, e.getMessage());
+            log.warn("Failed to load certificates from path {}, error: {}", path, e.getMessage());
             return null;
         }
     }
