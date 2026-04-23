@@ -78,6 +78,7 @@ services:
       - mynet
     environment:
       <<: *common-env
+      SPRING_PROFILES_ACTIVE: dev
       ORT_TOKEN_URL: ${ORT_TOKEN_URL}
       ORT_BASE_URL: ${ORT_BASE_URL}
       ORT_USERNAME: ${ORT_USERNAME}
