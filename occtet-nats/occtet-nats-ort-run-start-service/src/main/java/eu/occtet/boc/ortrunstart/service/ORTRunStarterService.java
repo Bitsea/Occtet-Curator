@@ -73,7 +73,7 @@ public class ORTRunStarterService {
         log.info("connection with ORT on {}, add. cacerts from {}", ortProperties.baseUrl(), cacertPath);
         OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl(), cacertPath, ortProperties.tokenUrl(), ortProperties.clientId());
         AuthService authService = new AuthService(ortProperties.tokenUrl(), cacertPath);
-        log.info("authcall on keycloak with clientId {} username {} password {}", ortProperties.clientId(), ortProperties.username(), ortProperties.password() );
+        log.info("authcall on keycloak with clientId {} username {} password {}", ortProperties.clientId(), ortProperties.username(), ortProperties.password().substring(0,2)+"..." );
 
         TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
