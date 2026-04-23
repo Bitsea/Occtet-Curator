@@ -58,7 +58,7 @@ import java.util.Map;
  * {@link ResourceRoleRepository} and {@link RowLevelRoleRepository} to ensure
  * only valid, application-defined roles are granted to the user context.
  */
-@Profile("live")
+@Profile("oidc")
 @Primary
 @Component("KeycloakClaimsRolesMapper")
 public class KeycloakClaimsRolesMapper implements ClaimsRolesMapper {

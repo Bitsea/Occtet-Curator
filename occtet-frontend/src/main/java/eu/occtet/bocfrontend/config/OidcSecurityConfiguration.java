@@ -33,7 +33,7 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 
 @Configuration
 @EnableWebSecurity
-@Profile("keycloak")
+@Profile("oidc")
 public class OidcSecurityConfiguration extends OidcVaadinWebSecurity {
 
     @Autowired
