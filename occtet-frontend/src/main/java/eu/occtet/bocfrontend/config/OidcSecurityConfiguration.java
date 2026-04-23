@@ -33,7 +33,7 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 
 @Configuration
 @EnableWebSecurity
-@Profile("live")
+@Profile("oidc-auth")
 public class OidcSecurityConfiguration extends OidcVaadinWebSecurity {
 
     @Autowired
