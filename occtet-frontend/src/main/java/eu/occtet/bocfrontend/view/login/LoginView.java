@@ -85,7 +85,7 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     @Value("${ui.login.defaultPassword:}")
     private String defaultPassword;
 
-    @Value("${jmix.oidc.default-provider}")
+    @Value("${jmix.oidc.default-provider:}")
     private String oidcDefaultProvider;
 
     @Subscribe
