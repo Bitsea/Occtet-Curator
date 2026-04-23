@@ -113,8 +113,6 @@ public class ImportTaskListView extends StandardListView<CuratorTask> {
     public void onBeforeShow(final BeforeShowEvent event) {
 
         updateAvailableImportsBox();
-
-        log.info("current user is {} role is {}", currentAuthentication.getUser().getUsername(), currentAuthentication.getUser().getAuthorities().stream().findFirst());
         load();
 
     }

@@ -58,8 +58,7 @@ public class MainView extends StandardMainView {
     @Subscribe
     private void onReady(final ReadyEvent event) {
         User sessionUser = (User) currentAuthentication.getUser();
-        log.info("Checking organization assignment for user: {}", sessionUser.getUsername());
-        log.info("is admin = {}", userService.isAdmin());
+        log.info("Checking organization assignment for user: {} is admin: {}", sessionUser.getUsername(), userService.isAdmin());
         if (sessionUser.getOrganization() == null) {
             User freshDbUser = dataManager.load(User.class)
                     .id(sessionUser.getId())
