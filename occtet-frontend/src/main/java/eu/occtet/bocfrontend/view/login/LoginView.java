@@ -68,12 +68,6 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     @Autowired
     private MessageTools messageTools;
 
-    @Autowired
-    private Environment environment;
-
-    @Autowired
-    private Messages messages;
-
     @ViewComponent
     private JmixLoginForm login;
 
@@ -96,7 +90,7 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     public void onInit(final InitEvent event) {
         initLocales();
         initDefaultCredentials();
-
+        log.info("LOGIN");
         if ("keycloak".equalsIgnoreCase(oidcDefaultProvider)) {
             log.info("keycloak is configured as default OIDC provider, redirecting to Keycloak login page");
             UI.getCurrent().getPage().setLocation("/oauth2/authorization/keycloak");
