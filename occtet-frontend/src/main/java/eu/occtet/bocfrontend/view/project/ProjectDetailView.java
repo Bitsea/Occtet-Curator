@@ -55,8 +55,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.stream.Collectors;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Route(value = "projects/:id", layout = MainView.class)
 @ViewController(id = "Project.detail")

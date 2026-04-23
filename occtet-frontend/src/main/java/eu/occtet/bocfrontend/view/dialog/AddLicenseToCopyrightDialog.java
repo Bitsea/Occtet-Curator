@@ -27,8 +27,6 @@ import eu.occtet.bocfrontend.dao.CopyrightRepository;
 import eu.occtet.bocfrontend.dao.LicenseRepository;
 import eu.occtet.bocfrontend.entity.Copyright;
 import eu.occtet.bocfrontend.entity.License;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
-import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;

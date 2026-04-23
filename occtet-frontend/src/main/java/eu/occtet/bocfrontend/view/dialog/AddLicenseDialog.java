@@ -22,13 +22,10 @@ package eu.occtet.bocfrontend.view.dialog;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.textfield.TextField;
 import eu.occtet.bocfrontend.dao.LicenseRepository;
-import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
 import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
-import io.jmix.core.DataManager;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;

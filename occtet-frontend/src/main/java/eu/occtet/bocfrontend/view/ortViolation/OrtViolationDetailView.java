@@ -20,7 +20,6 @@ package eu.occtet.bocfrontend.view.ortViolation;
 
 
 import com.vaadin.flow.component.AbstractField;
-
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;

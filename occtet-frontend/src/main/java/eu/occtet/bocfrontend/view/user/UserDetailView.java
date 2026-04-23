@@ -19,14 +19,14 @@
 
 package eu.occtet.bocfrontend.view.user;
 
-import eu.occtet.bocfrontend.dao.OrganizationRepository;
-import eu.occtet.bocfrontend.entity.Organization;
-import eu.occtet.bocfrontend.entity.User;
-import eu.occtet.bocfrontend.view.main.MainView;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.router.Route;
+import eu.occtet.bocfrontend.dao.OrganizationRepository;
+import eu.occtet.bocfrontend.entity.Organization;
+import eu.occtet.bocfrontend.entity.User;
+import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.EntityStates;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.combobox.JmixComboBox;

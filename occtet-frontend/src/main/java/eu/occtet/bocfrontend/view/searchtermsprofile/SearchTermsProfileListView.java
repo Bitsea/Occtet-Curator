@@ -21,9 +21,7 @@
 
 package eu.occtet.bocfrontend.view.searchtermsprofile;
 
-import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile;
-import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.flowui.view.*;
 
 

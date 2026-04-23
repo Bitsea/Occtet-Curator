@@ -20,7 +20,6 @@
 package eu.occtet.bocfrontend.view.login;
 
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.login.AbstractLogin.LoginEvent;
 import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
@@ -46,9 +45,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
-import org.springframework.core.env.Profiles; 
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.function.Function;
@@ -88,12 +85,15 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     @Value("${ui.login.defaultPassword:}")
     private String defaultPassword;
 
+    @Value("${jmix.oidc.default-provider}")
+    private String oidcDefaultProvider;
+
     @Subscribe
     public void onInit(final InitEvent event) {
         initLocales();
         initDefaultCredentials();
 
-        if (environment.acceptsProfiles(Profiles.of("live"))) {
+        if ("keycloak".equalsIgnoreCase(oidcDefaultProvider)) {
             UI.getCurrent().getPage().setLocation("/oauth2/authorization/keycloak");
         }
     }

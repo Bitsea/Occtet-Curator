@@ -19,9 +19,9 @@
 
 package eu.occtet.bocfrontend.view.user;
 
+import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.User;
 import eu.occtet.bocfrontend.view.main.MainView;
-import com.vaadin.flow.router.Route;
 import io.jmix.flowui.view.*;
 
 @Route(value = "users", layout = MainView.class)

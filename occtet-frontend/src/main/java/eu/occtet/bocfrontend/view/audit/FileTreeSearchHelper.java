@@ -29,10 +29,8 @@ import eu.occtet.bocfrontend.comparator.TreePathComparator;
 import eu.occtet.bocfrontend.dao.FileRepository;
 import eu.occtet.bocfrontend.entity.File;
 import eu.occtet.bocfrontend.entity.Project;
-import io.jmix.core.Messages;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.support.TransactionTemplate;
 

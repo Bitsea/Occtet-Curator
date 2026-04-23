@@ -23,11 +23,14 @@ import com.vaadin.flow.component.accordion.AccordionPanel;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import eu.occtet.bocfrontend.dao.*;
+import eu.occtet.bocfrontend.dao.CopyrightRepository;
+import eu.occtet.bocfrontend.dao.InventoryItemRepository;
+import eu.occtet.bocfrontend.dao.LicenseRepository;
+import eu.occtet.bocfrontend.dao.VulnerabilityRepository;
+import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.model.AuditCopyrightDTO;
 import eu.occtet.bocfrontend.model.AuditLicenseDTO;
 import eu.occtet.bocfrontend.model.AuditVulnerabilityDTO;
-import eu.occtet.bocfrontend.entity.*;
 import eu.occtet.bocfrontend.view.audit.AuditView;
 import eu.occtet.bocfrontend.view.dialog.OverviewContentInfoDialog;
 import io.jmix.core.DataManager;
@@ -35,7 +38,6 @@ import io.jmix.core.Messages;
 import io.jmix.core.ValueLoadContext;
 import io.jmix.core.entity.KeyValueEntity;
 import io.jmix.flowui.DialogWindows;
-import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.fragment.Fragment;
@@ -51,7 +53,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @FragmentDescriptor("OverviewProjectTabFragment.xml")

@@ -22,25 +22,21 @@ package eu.occtet.bocfrontend.view.DBLogs;
 
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
+import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.LoggingEventRepository;
 import eu.occtet.bocfrontend.entity.DBLog;
-import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.LoggingEvent;
 import eu.occtet.bocfrontend.view.main.MainView;
-import com.vaadin.flow.router.Route;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
 
 
 @Route(value = "dblog", layout = MainView.class)

@@ -29,15 +29,10 @@ import io.jmix.core.Messages;
 import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.app.main.StandardMainView;
-import io.jmix.flowui.kit.action.ActionPerformedEvent;
 import io.jmix.flowui.view.Subscribe;
 import io.jmix.flowui.view.ViewController;
 import io.jmix.flowui.view.ViewDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
 @Route("")
 @ViewController(id = "MainView")

@@ -25,11 +25,13 @@ import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.html.H3;
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
-import eu.occtet.bocfrontend.entity.*;
+import eu.occtet.bocfrontend.entity.InventoryItem;
+import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.entity.Vulnerability;
 import eu.occtet.bocfrontend.view.audit.fragment.InventoryItemTabFragment;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.grid.DataGrid;
-import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
@@ -37,9 +39,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @ViewController("overviewContentInfoDialog")
 @ViewDescriptor("overview-content-info-dialog.xml")
