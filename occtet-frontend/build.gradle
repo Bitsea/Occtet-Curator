@@ -29,13 +29,13 @@ buildscript {
 plugins {
     id 'io.jmix' version '2.7.2'
     id 'java'
+    id 'org.springframework.boot' version '3.2.5'
     id 'org.jetbrains.gradle.plugin.idea-ext' version '1.1.9'
     id 'com.google.cloud.tools.jib' version '3.3.1'
-    id 'org.liquibase.gradle' version '3.1.0'
+    id 'com.vaadin' version '24.4.13'
+    id 'org.liquibase.gradle' version '2.2.0'
 }
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'com.vaadin'
 
 jmix {
     bomVersion = '2.7.2'
@@ -186,12 +186,13 @@ jib {
 
 liquibase {
     activities {
-        main {
-            driver 'org.postgresql.Driver' // Your database driver
-            url 'jdbc:postgresql://localhost:5432/occtet_boc' // Database URL
-            username 'occtetuser' // Database username
-            password 'q3ik4ul5snmzd87w34zfn5' // Database password
-            changelogFile 'src/main/resources/eu/occtet/bocfrontend/liquibase/changelog/000-tables.xml'
-        }
+        main({
+            driver 'org.postgresql.Driver'
+            url 'jdbc:postgresql://localhost:5432/occtet_boc'
+            username 'occtetuser'
+            password 'q3ik4ul5snmzd87w34zfn5'
+            changelogFile 'src/main/resources/eu/occtet/bocfrontend/liquibase/changelog.xml'
+            classpath "$projectDir/src/main/resources"
+        } )
     }
 }
