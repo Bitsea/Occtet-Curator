@@ -37,6 +37,7 @@ import eu.occtet.bocfrontend.importer.TaskParent;
 import eu.occtet.bocfrontend.service.CuratorTaskService;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.DataManager;
+import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.core.session.SessionData;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.UiComponents;
@@ -104,6 +105,8 @@ public class ImportTaskListView extends StandardListView<CuratorTask> {
 
     @Autowired
     private SessionData sessionData;
+    @Autowired
+    private CurrentAuthentication currentAuthentication;
 
 
     @Subscribe
@@ -111,8 +114,7 @@ public class ImportTaskListView extends StandardListView<CuratorTask> {
 
         updateAvailableImportsBox();
 
-        //curatorTaskDl.setParameter("status", TaskStatus.COMPLETED);
-        //curatorTaskDl.load();
+        log.info("current user is {} role is {}", currentAuthentication.getUser().getUsername(), currentAuthentication.getUser().getAuthorities().stream().findFirst());
         load();
 
     }
