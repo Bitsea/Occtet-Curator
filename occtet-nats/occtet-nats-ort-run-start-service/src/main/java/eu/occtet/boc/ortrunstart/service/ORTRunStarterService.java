@@ -81,6 +81,7 @@ public class ORTRunStarterService {
         // how to access organizations api
         OrganizationsApi organizationsApi = new OrganizationsApi(apiClient);
         Organization orga= createOrganization(orgaName, organizationsApi);
+        PagedResponseSecret
 
 
         //check if product /project is existing
@@ -125,6 +126,14 @@ public class ORTRunStarterService {
             log.error("Error while cretating organization: {} with error: {}", orgaName,e.getMessage() );
             throw e;
         }
+
+    }
+
+    private void createSecretForProduct(Product product, ProductsApi productsApi) throws ApiException {
+        PagedResponseSecret pagedResponseSecret= productsApi.getProductSecrets(product.getId(), null, null, "GITHUB_TOKEN");
+        List<Secret> dataProd = pagedResponseSecret.getData();
+        Optional<Secret> secret= dataProd.stream().filter(s -> s.getName().equals(product.getName())).findFirst();
+
 
     }
 

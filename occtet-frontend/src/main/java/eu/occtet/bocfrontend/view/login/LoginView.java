@@ -104,6 +104,7 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
                             .withLocale(login.getSelectedLocale())
                             .withRememberMe(login.isRememberMe())
             );
+            log.info("current user is {} role is {}", currentAuthentication.getUser().getUsername(), currentAuthentication.getUser().getAuthorities().stream().findFirst());
         } catch (final BadCredentialsException | DisabledException | LockedException | AccessDeniedException e) {
             log.warn("Login failed for user '{}': {}", event.getUsername(), e.toString());
             event.getSource().setError(true);

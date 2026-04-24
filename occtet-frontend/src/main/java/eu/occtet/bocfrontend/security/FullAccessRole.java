@@ -31,7 +31,7 @@ import io.jmix.securityflowui.role.annotation.ViewPolicy;
 @ResourceRole(name = "Full Access", code = FullAccessRole.CODE)
 public interface FullAccessRole {
 
-    String CODE = "ROLE_system-full-access";
+    String CODE = "system-full-access";
 
     @EntityPolicy(entityName = "*", actions = {EntityPolicyAction.ALL})
     @EntityAttributePolicy(entityName = "*", attributes = "*", action = EntityAttributePolicyAction.MODIFY)
