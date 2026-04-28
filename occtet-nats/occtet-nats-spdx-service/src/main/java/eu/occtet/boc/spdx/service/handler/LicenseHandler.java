@@ -19,6 +19,7 @@
 
 package eu.occtet.boc.spdx.service.handler;
 
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.TemplateLicense;
 import eu.occtet.boc.entity.UsageLicense;
 import eu.occtet.boc.spdx.service.TemplateLicenseService;

@@ -57,4 +57,104 @@ public class SpdxImportContext {
         this.spdxDocument = spdxDocument;
         this.spdxDocumentRoot = root;
     }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public SpdxDocument getSpdxDocument() {
+        return spdxDocument;
+    }
+
+    public SpdxDocumentRoot getSpdxDocumentRoot() {
+        return spdxDocumentRoot;
+    }
+
+    public Map<String, SpdxPackageEntity> getPackageLookupMap() {
+        return packageLookupMap;
+    }
+
+    public void setPackageLookupMap(Map<String, SpdxPackageEntity> packageLookupMap) {
+        this.packageLookupMap = packageLookupMap;
+    }
+
+    public Collection<ExtractedLicenseInfo> getExtractedLicenseInfos() {
+        return extractedLicenseInfos;
+    }
+
+    public void setExtractedLicenseInfos(Collection<ExtractedLicenseInfo> extractedLicenseInfos) {
+        this.extractedLicenseInfos = extractedLicenseInfos;
+    }
+
+    public Map<String, SoftwareComponent> getComponentCache() {
+        return componentCache;
+    }
+
+    public void setComponentCache(Map<String, SoftwareComponent> componentCache) {
+        this.componentCache = componentCache;
+    }
+
+    public Map<String, TemplateLicense> getLicenseCache() {
+        return licenseCache;
+    }
+
+    public void setLicenseCache(Map<String, TemplateLicense> licenseCache) {
+        this.licenseCache = licenseCache;
+    }
+
+    public Map<String, InventoryItem> getFileToInventoryItemMap() {
+        return fileToInventoryItemMap;
+    }
+
+    public void setFileToInventoryItemMap(Map<String, InventoryItem> fileToInventoryItemMap) {
+        this.fileToInventoryItemMap = fileToInventoryItemMap;
+    }
+
+    public Map<String, InventoryItem> getInventoryCache() {
+        return inventoryCache;
+    }
+
+    public void setInventoryCache(Map<String, InventoryItem> inventoryCache) {
+        this.inventoryCache = inventoryCache;
+    }
+
+    public List<InventoryItem> getInventoryItems() {
+        return inventoryItems;
+    }
+
+    public void setInventoryItems(List<InventoryItem> inventoryItems) {
+        this.inventoryItems = inventoryItems;
+    }
+
+    public Set<Long> getMainInventoryItems() {
+        return mainInventoryItems;
+    }
+
+    public void setMainInventoryItems(Set<Long> mainInventoryItems) {
+        this.mainInventoryItems = mainInventoryItems;
+    }
+
+    public Set<String> getMainPackageIds() {
+        return mainPackageIds;
+    }
+
+    public void setMainPackageIds(Set<String> mainPackageIds) {
+        this.mainPackageIds = mainPackageIds;
+    }
+
+    public Set<String> getProcessedFileIds() {
+        return processedFileIds;
+    }
+
+    public void setProcessedFileIds(Set<String> processedFileIds) {
+        this.processedFileIds = processedFileIds;
+    }
+
+    public Map<String, List<Relationship>> getPackageRelationships() {
+        return packageRelationships;
+    }
+
+    public void setPackageRelationships(Map<String, List<Relationship>> packageRelationships) {
+        this.packageRelationships = packageRelationships;
+    }
 }
