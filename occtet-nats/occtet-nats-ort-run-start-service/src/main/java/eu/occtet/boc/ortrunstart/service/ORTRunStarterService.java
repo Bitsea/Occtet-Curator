@@ -31,7 +31,6 @@ import org.openapitools.client.ApiClient;
 import org.openapitools.client.ApiException;
 import org.openapitools.client.api.OrganizationsApi;
 import org.openapitools.client.api.ProductsApi;
-import org.openapitools.client.api.RepositoriesApi;
 import org.openapitools.client.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,6 +53,9 @@ public class ORTRunStarterService {
     @Autowired
     private ProjectRepository projectRepository;
 
+    private static final String GITHUB_TOKEN = "GITHUB-TOKEN";
+    private static final String INFRASTRUCTURE_SERVICE_NAME = "RepositoryService";
+
     private final ConfigOrtProperties ortProperties;
 
     public ORTRunStarterService(ConfigOrtProperties ortProperties) {
@@ -61,10 +63,10 @@ public class ORTRunStarterService {
     }
 
     public boolean process(ORTStartRunWorkData workData) throws Exception {
-        return startOrtRun(workData.getProjectId(), workData.getRepositoryType(), workData.getRepositoryUrl(),workData.getRepositoryType(), workData.getRepositoryVersion());
+        return startOrtRun(workData.getProjectId(),workData.getRepositoryType());
     }
 
-    boolean startOrtRun(long projectId, String repoName, String repoURL, String repoType, String repoVersion) throws IOException, InterruptedException, ApiException {
+    boolean startOrtRun(long projectId, String repoType) throws IOException, InterruptedException, ApiException {
 
         log.debug("connecting with base: {} / and token: {}", ortProperties.baseUrl(), ortProperties.tokenUrl());
 
@@ -81,17 +83,18 @@ public class ORTRunStarterService {
         // how to access organizations api
         OrganizationsApi organizationsApi = new OrganizationsApi(apiClient);
         Organization orga= createOrganization(orgaName, organizationsApi);
-        PagedResponseSecret
-
 
         //check if product /project is existing
         ProductsApi productsApi = new ProductsApi(apiClient);
         Product product = createProduct(project, organizationsApi, orga);
+        if (project.getGithubToken() != null) {
+            createInfraStructureService(productsApi, product, project);
+        }
 
-        Repository repository= createRepository(productsApi, product, repoURL, repoType, repoName);
+        Repository repository= createRepository(productsApi, product, project.getRepositoryURL(), repoType, project.getProjectName());
 
         PostRepositoryRun postRepositoryRun= new PostRepositoryRun();
-        postRepositoryRun.setRevision(repoVersion);
+        postRepositoryRun.setRevision(project.getVersion());
         JobConfigurations jobConfigurations= createJobConfig();
         postRepositoryRun.setJobConfigs(jobConfigurations);
         postRepositoryRun.setRepositoryIds(List.of(repository.getId()));
@@ -101,6 +104,29 @@ public class ORTRunStarterService {
 
         return true;
 
+    }
+
+    private void createInfraStructureService(ProductsApi productsApi, Product product, Project project) throws ApiException {
+        PagedResponseInfrastructureService pagedResponseInfrastructureService = productsApi.getProductInfrastructureServices(product.getId(), null, null,null);
+        List<InfrastructureService> dataInfra = pagedResponseInfrastructureService.getData();
+        Optional<InfrastructureService> service = dataInfra.stream().filter(i -> i.getName().equals(INFRASTRUCTURE_SERVICE_NAME+project.getProjectName())).findFirst();
+
+        if (dataInfra.isEmpty() || service.isEmpty()) {
+            Secret passwordSecret = createGithubPasswordSecretForProduct(product, productsApi, project);
+            Secret userSecret = createGithubUserSecretForProduct(product, productsApi, project);
+
+            PostInfrastructureService postInfrastructureService = new PostInfrastructureService();
+            postInfrastructureService.setName(INFRASTRUCTURE_SERVICE_NAME + project.getProjectName());
+            postInfrastructureService.setUsernameSecretRef(userSecret.getName());
+            postInfrastructureService.setUrl(project.getRepositoryURL());
+            postInfrastructureService.addCredentialsTypesItem(CredentialsType.GIT_CREDENTIALS_FILE);
+            postInfrastructureService.setPasswordSecretRef(passwordSecret.getName());
+            log.debug("InfrastructureService with name {} created for product {}", postInfrastructureService.getName(), product.getName());
+
+            productsApi.postProductInfrastructureService(product.getId(), postInfrastructureService);
+        } else {
+            log.debug("InfrastructureService {} already exists", INFRASTRUCTURE_SERVICE_NAME+project.getProjectName());
+        }
     }
 
     private Organization createOrganization(String orgaName, OrganizationsApi organizationsApi) throws ApiException {
@@ -129,12 +155,40 @@ public class ORTRunStarterService {
 
     }
 
-    private void createSecretForProduct(Product product, ProductsApi productsApi) throws ApiException {
-        PagedResponseSecret pagedResponseSecret= productsApi.getProductSecrets(product.getId(), null, null, "GITHUB_TOKEN");
+    private Secret createGithubPasswordSecretForProduct(Product product, ProductsApi productsApi, Project project) throws ApiException {
+        PagedResponseSecret pagedResponseSecret= productsApi.getProductSecrets(product.getId(), null, null, null);
         List<Secret> dataProd = pagedResponseSecret.getData();
-        Optional<Secret> secret= dataProd.stream().filter(s -> s.getName().equals(product.getName())).findFirst();
+        Optional<Secret> secretGit= dataProd.stream().filter(s -> s.getName().equalsIgnoreCase(project.getGithubUser()+GITHUB_TOKEN)).findFirst();
+        Secret secret=null;
+        if(dataProd.isEmpty() || secretGit.isEmpty()) {
+            log.debug("Secret {} not found, creating it", project.getGithubUser()+GITHUB_TOKEN);
+            PostSecret postSecret= new PostSecret().name(project.getGithubUser()+GITHUB_TOKEN);
+            postSecret.setName(project.getGithubUser()+GITHUB_TOKEN);
+            postSecret.setValue(project.getGithubToken());
+            secret= productsApi.postProductSecret(product.getId(), postSecret);
+        } else {
+            log.debug("Secret {} found", secretGit.get().getName());
+            secret= secretGit.get();
+        }
+        return secret;
+    }
 
-
+    private Secret createGithubUserSecretForProduct(Product product, ProductsApi productsApi, Project project) throws ApiException {
+        PagedResponseSecret pagedResponseSecret= productsApi.getProductSecrets(product.getId(), null, null, null);
+        List<Secret> dataProd = pagedResponseSecret.getData();
+        Optional<Secret> secretGit= dataProd.stream().filter(s -> s.getName().equalsIgnoreCase(project.getGithubUser())).findFirst();
+        Secret secret= null;
+        if(dataProd.isEmpty() || secretGit.isEmpty()) {
+            log.debug("Secret {} not found, creating it", project.getGithubUser());
+            PostSecret postSecret= new PostSecret().name(project.getGithubUser());
+            postSecret.setName(project.getGithubUser());
+            postSecret.setValue(project.getGithubUser());
+            secret= productsApi.postProductSecret(product.getId(), postSecret);
+        } else {
+            log.debug("Secret {} found", secretGit.get().getName());
+            secret= secretGit.get();
+        }
+        return secret;
     }
 
     private Product createProduct(Project project, OrganizationsApi organizationsApi, Organization orga) throws ApiException {

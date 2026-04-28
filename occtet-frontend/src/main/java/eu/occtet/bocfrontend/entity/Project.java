@@ -20,9 +20,7 @@
 package eu.occtet.bocfrontend.entity;
 
 import eu.occtet.bocfrontend.entity.appconfigurations.SearchTermsProfile;
-import io.jmix.core.DeletePolicy;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
-import io.jmix.core.entity.annotation.OnDelete;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
@@ -79,9 +77,11 @@ public class Project implements HasOrganization {
     @Column(name = "GITHUB_TOKEN", columnDefinition = "VARCHAR(255)")
     private String githubToken;
 
+    @Column(name = "GITHUB_USER", columnDefinition = "VARCHAR(255)")
+    private String githubUser;
+
     @Column(name = "REPOSITORY_URL", columnDefinition = "VARCHAR(255)")
     private String repositoryURL;
-
 
 
     public Project() {
@@ -187,6 +187,14 @@ public class Project implements HasOrganization {
 
     public void setRepositoryURL(String repositoryURL) {
         this.repositoryURL = repositoryURL;
+    }
+
+    public String getGithubUser() {
+        return githubUser;
+    }
+
+    public void setGithubUser(String githubUser) {
+        this.githubUser = githubUser;
     }
 }
 

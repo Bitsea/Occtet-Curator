@@ -25,6 +25,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.AppConfigurationRepository;
@@ -70,6 +71,12 @@ public class ProjectDetailView extends StandardDetailView<Project> {
     private TextField projectNameField;
     @ViewComponent
     private TextField projectVersion;
+    @ViewComponent
+    private TextField repositoryURL;
+    @ViewComponent
+    private PasswordField githubToken;
+    @ViewComponent
+    private TextField githubUser;
     @Autowired
     private Messages messages;
     @Autowired

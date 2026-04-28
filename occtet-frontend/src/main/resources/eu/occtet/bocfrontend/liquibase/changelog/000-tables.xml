@@ -125,12 +125,6 @@
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-23">
         <addUniqueConstraint columnNames="package_verification_code_id" constraintName="spdx_package_entity_package_verification_code_id_key" tableName="spdx_package_entity"/>
     </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-24">
-        <addUniqueConstraint columnNames="file_name" constraintName="unq_information_file_0" tableName="information_file"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-25">
-        <addUniqueConstraint columnNames="license_type" constraintName="unq_license_0" tableName="license"/>
-    </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-26">
         <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="50" maxValue="9223372036854775807" minValue="1" sequenceName="annotation_entity_seq" startValue="1"/>
     </changeSet>
@@ -707,20 +701,8 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-96">
-        <addForeignKeyConstraint baseColumnNames="spdx_package_id" baseTableName="annotation_entity" constraintName="fk_annotation_entity_spdx_package_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_package_entity" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-97">
-        <addForeignKeyConstraint baseColumnNames="file_id" baseTableName="checksum_entity" constraintName="fk_checksum_entity_file_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_file_entity" validate="true"/>
-    </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-98">
         <addForeignKeyConstraint baseColumnNames="package_id" baseTableName="checksum_entity" constraintName="fk_checksum_entity_package_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_package_entity" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-99">
-        <addForeignKeyConstraint baseColumnNames="task_id" baseTableName="configuration" constraintName="fk_configuration_task_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="curator_task" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-101">
-        <addForeignKeyConstraint baseColumnNames="copyright_id" baseTableName="copyright_file_link" constraintName="fk_copyright_file_link_copyright_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="copyright" validate="true"/>
     </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-102">
         <addForeignKeyConstraint baseColumnNames="file_id" baseTableName="copyright_file_link" constraintName="fk_copyright_file_link_file_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
@@ -728,41 +710,14 @@
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-103">
         <addForeignKeyConstraint baseColumnNames="software_component_id" baseTableName="copyright" constraintName="fk_copyright_software_component_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="software_component" validate="true"/>
     </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-104">
-        <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="curator_task" constraintName="fk_curator_task_project_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="project" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-105">
-        <addForeignKeyConstraint baseColumnNames="checksum_id" baseTableName="external_ref_document_entity" constraintName="fk_external_ref_document_entity_checksum_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="checksum_entity" validate="true"/>
-    </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-106">
         <addForeignKeyConstraint baseColumnNames="spdx_document_id" baseTableName="external_ref_document_entity" constraintName="fk_external_ref_document_entity_spdx_document_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_document_root" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-107">
-        <addForeignKeyConstraint baseColumnNames="package_id" baseTableName="external_ref_entity" constraintName="fk_external_ref_entity_package_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_package_entity" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-108">
-        <addForeignKeyConstraint baseColumnNames="license_id" baseTableName="extracted_license_see_also" constraintName="fk_extracted_license_see_also_license_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="extracted_licensing_info_entity" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-109">
-        <addForeignKeyConstraint baseColumnNames="spdx_document_id" baseTableName="extracted_licensing_info_entity" constraintName="fk_extracted_licensing_info_entity_spdx_document_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_document_root" validate="true"/>
     </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-110">
         <addForeignKeyConstraint baseColumnNames="file_id" baseTableName="file_inventory_item_link" constraintName="fk_file_inventory_item_link_file_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
     </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-111">
-        <addForeignKeyConstraint baseColumnNames="inventory_item_id" baseTableName="file_inventory_item_link" constraintName="fk_file_inventory_item_link_inventory_item_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="inventory_item" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-112">
-        <addForeignKeyConstraint baseColumnNames="spdx_file_id" baseTableName="file_license_info" constraintName="fk_file_license_info_spdx_file_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_file_entity" validate="true"/>
-    </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-113">
         <addForeignKeyConstraint baseColumnNames="parent_id" baseTableName="file" constraintName="fk_file_parent_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-114">
-        <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="file" constraintName="fk_file_project_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="project" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-115">
-        <addForeignKeyConstraint baseColumnNames="spdx_file_id" baseTableName="file_types" constraintName="fk_file_types_spdx_file_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_file_entity" validate="true"/>
     </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-116">
         <addForeignKeyConstraint baseColumnNames="parent_inventory_item_id" baseTableName="inventory_item" constraintName="fk_inventory_item_parent_inventory_item_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="inventory_item" validate="true"/>
@@ -773,77 +728,23 @@
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-118">
         <addForeignKeyConstraint baseColumnNames="software_component_id" baseTableName="inventory_item" constraintName="fk_inventory_item_software_component_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="software_component" validate="true"/>
     </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-119">
-        <addForeignKeyConstraint baseColumnNames="copyright_id" baseTableName="license" constraintName="fk_license_copyright_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="copyright" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-120">
-        <addForeignKeyConstraint baseColumnNames="inventory_item_id" baseTableName="ort_issue" constraintName="fk_ort_issue_inventory_item_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="inventory_item" validate="true"/>
-    </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-121">
         <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="ort_issue" constraintName="fk_ort_issue_project_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="project" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-122">
-        <addForeignKeyConstraint baseColumnNames="inventory_item_id" baseTableName="ort_violation" constraintName="fk_ort_violation_inventory_item_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="inventory_item" validate="true"/>
     </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-123">
         <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="ort_violation" constraintName="fk_ort_violation_project_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="project" validate="true"/>
     </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-124">
-        <addForeignKeyConstraint baseColumnNames="package_id" baseTableName="package_file_names" constraintName="fk_package_file_names_package_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_package_entity" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-125">
-        <addForeignKeyConstraint baseColumnNames="package_id" baseTableName="package_license_info_from_files" constraintName="fk_package_license_info_from_files_package_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_package_entity" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-126">
-        <addForeignKeyConstraint baseColumnNames="package_id" baseTableName="package_verification_excluded_files" constraintName="fk_package_verification_excluded_files_package_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="package_verification_code_entity" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-127">
-        <addForeignKeyConstraint baseColumnNames="project_id" baseTableName="project_search_terms_profiles_link" constraintName="fk_project_search_terms_profiles_link_project_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="project" validate="true"/>
-    </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-128">
         <addForeignKeyConstraint baseColumnNames="search_terms_profile_id" baseTableName="project_search_terms_profiles_link" constraintName="fk_project_search_terms_profiles_link_search_terms_profile_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="search_terms_profile" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-129">
-        <addForeignKeyConstraint baseColumnNames="spdx_document_id" baseTableName="relationship_entity" constraintName="fk_relationship_entity_spdx_document_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_document_root" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-134">
-        <addForeignKeyConstraint baseColumnNames="snippet_id" baseTableName="snippet_licenses" constraintName="fk_snippet_licenses_snippet_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="snippet" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-135">
-        <addForeignKeyConstraint baseColumnNames="spdx_document_id" baseTableName="snippet" constraintName="fk_snippet_spdx_document_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_document_root" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-136">
-        <addForeignKeyConstraint baseColumnNames="license_id" baseTableName="software_component_license_link" constraintName="fk_software_component_license_link_license_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="license" validate="true"/>
     </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-137">
         <addForeignKeyConstraint baseColumnNames="software_component_id" baseTableName="software_component_license_link" constraintName="fk_software_component_license_link_software_component_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="software_component" validate="true"/>
     </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-138">
-        <addForeignKeyConstraint baseColumnNames="software_component_id" baseTableName="software_component_vulnerability_link" constraintName="fk_software_component_vulnerability_link_software_component_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="software_component" validate="true"/>
-    </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-139">
         <addForeignKeyConstraint baseColumnNames="vulnerability_id" baseTableName="software_component_vulnerability_link" constraintName="fk_software_component_vulnerability_link_vulnerability_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="vulnerability" validate="true"/>
     </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-140">
-        <addForeignKeyConstraint baseColumnNames="spdx_document_id" baseTableName="spdx_document_describes" constraintName="fk_spdx_document_describes_spdx_document_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_document_root" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-141">
-        <addForeignKeyConstraint baseColumnNames="creation_info_id" baseTableName="spdx_document_root" constraintName="fk_spdx_document_root_creation_info_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="creation_info_entity" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-142">
-        <addForeignKeyConstraint baseColumnNames="spdx_document_id" baseTableName="spdx_file_entity" constraintName="fk_spdx_file_entity_spdx_document_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_document_root" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-143">
-        <addForeignKeyConstraint baseColumnNames="package_verification_code_id" baseTableName="spdx_package_entity" constraintName="fk_spdx_package_entity_package_verification_code_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="package_verification_code_entity" validate="true"/>
-    </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-144">
         <addForeignKeyConstraint baseColumnNames="spdx_document_id" baseTableName="spdx_package_entity" constraintName="fk_spdx_package_entity_spdx_document_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="spdx_document_root" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-145">
-        <addForeignKeyConstraint baseColumnNames="software_component_id" baseTableName="vex_data" constraintName="fk_vex_data_software_component_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="software_component" validate="true"/>
-    </changeSet>
-    <changeSet author="Leoni.Tischer (generated)" id="1774437688496-146">
-        <addForeignKeyConstraint baseColumnNames="vex_data_id" baseTableName="vulnerability_vex_link" constraintName="fk_vulnerability_vex_link_vex_data_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="vex_data" validate="true"/>
     </changeSet>
     <changeSet author="Leoni.Tischer (generated)" id="1774437688496-147">
         <addForeignKeyConstraint baseColumnNames="vulnerability_id" baseTableName="vulnerability_vex_link" constraintName="fk_vulnerability_vex_link_vulnerability_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="vulnerability" validate="true"/>

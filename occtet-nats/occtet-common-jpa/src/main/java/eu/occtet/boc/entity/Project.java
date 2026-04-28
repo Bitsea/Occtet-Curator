@@ -76,6 +76,9 @@ public class Project implements HasOrganization {
     @Column(name = "GITHUB_TOKEN", columnDefinition = "VARCHAR(255)")
     private String githubToken;
 
+    @Column(name = "GITHUB_USER", columnDefinition = "VARCHAR(255)")
+    private String githubUser;
+
     @Column(name = "REPOSITORY_URL", columnDefinition = "VARCHAR(255)")
     private String repositoryURL;
 
@@ -182,5 +185,13 @@ public class Project implements HasOrganization {
 
     public void setRepositoryURL(String repositoryURL) {
         this.repositoryURL = repositoryURL;
+    }
+
+    public String getGithubUser() {
+        return githubUser;
+    }
+
+    public void setGithubUser(String githubUser) {
+        this.githubUser = githubUser;
     }
 }
