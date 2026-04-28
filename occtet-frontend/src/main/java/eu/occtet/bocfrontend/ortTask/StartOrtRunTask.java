@@ -31,11 +31,10 @@ public class StartOrtRunTask extends TaskParent {
         super("ORT_Run_Starter");
     }
 
-    //ORT server is needing organization, product and repository
+    //ORT server is needing organization, product and repository, details for repo is in project
     //as product we take the project
     private static final String CONFIG_KEY_REPOSITORY_TYPE = "RepositoryType";
-    private static final String CONFIG_KEY_REPOSITORY_URL= "RepositoryURL";
-    private static final String CONFIG_KEY_REPOSITORY_VERSION= "RepositoryVersion";
+
 
 
     @Override
@@ -46,8 +45,6 @@ public class StartOrtRunTask extends TaskParent {
 
 
             String repoType = "";
-            String repoURL = "";
-            String repoVersion = "";
             List<Configuration> configurations = curatorTask.getTaskConfiguration();
 
             for(Configuration configuration: configurations) {
@@ -55,18 +52,12 @@ public class StartOrtRunTask extends TaskParent {
                     case CONFIG_KEY_REPOSITORY_TYPE:
                         repoType = configuration.getValue();
                         break;
-                    case CONFIG_KEY_REPOSITORY_URL:
-                        repoURL= configuration.getValue();
-                        break;
-                    case CONFIG_KEY_REPOSITORY_VERSION:
-                        repoVersion = configuration.getValue();
-                        break;
                 }
 
             }
             Long projectId = curatorTask.getProject().getId();
 
-            return startTask(curatorTask, projectId,  repoType, repoURL, repoVersion);
+            return startTask(curatorTask, projectId,  repoType);
         }catch (Exception e){
             log.error("Exception when sending task", e);
             curatorTaskService.saveWithFeedBack(curatorTask,List.of("Exception when sending task: "+ e.getMessage()), TaskStatus.CANCELLED);
@@ -75,29 +66,28 @@ public class StartOrtRunTask extends TaskParent {
 
     }
 
-    private boolean startTask(CuratorTask task, Long projectId,  String repoType, String repoURL, String repoVersion)  {
+    private boolean startTask(CuratorTask task, Long projectId,  String repoType)  {
 
         log.debug("starting task with ORTStartRunWorkData {} for project {} with subject {}", task.getTaskName(),projectId, sendSubjectOrt);
-        ORTStartRunWorkData ortStartRunWorkData = new ORTStartRunWorkData(repoType, repoURL, repoVersion,  projectId);
+        ORTStartRunWorkData ortStartRunWorkData = new ORTStartRunWorkData(repoType,  projectId);
 
         return curatorTaskService.saveAndRunTask(task,ortStartRunWorkData,"starting ORT run for project :" + projectId, sendSubjectOrt);
     }
 
     @Override
     public List<String> getSupportedConfigurationKeys() {
-        return List.of(CONFIG_KEY_REPOSITORY_TYPE,  CONFIG_KEY_REPOSITORY_URL, CONFIG_KEY_REPOSITORY_VERSION);
+        return List.of(CONFIG_KEY_REPOSITORY_TYPE);
     }
 
     @Override
     public List<String> getRequiredConfigurationKeys() {
-        return List.of(CONFIG_KEY_REPOSITORY_TYPE,  CONFIG_KEY_REPOSITORY_URL, CONFIG_KEY_REPOSITORY_VERSION);
+        return List.of(CONFIG_KEY_REPOSITORY_TYPE);
     }
 
     @Override
     public Configuration.Type getTypeOfConfiguration(String key) {
         log.debug("getTypeOfConfiguration called for key: {}", key);
         return switch (key) {
-            case CONFIG_KEY_REPOSITORY_URL, CONFIG_KEY_REPOSITORY_VERSION -> Configuration.Type.STRING;
             case CONFIG_KEY_REPOSITORY_TYPE -> Configuration.Type.REPOSITORY_TYPE;
             default -> super.getTypeOfConfiguration(key);
         };
@@ -106,7 +96,6 @@ public class StartOrtRunTask extends TaskParent {
     @Override
     public String getDefaultConfigurationValue(String k) {
         return switch (k) {
-            case CONFIG_KEY_REPOSITORY_URL, CONFIG_KEY_REPOSITORY_VERSION -> "";
             case CONFIG_KEY_REPOSITORY_TYPE -> "";
             default -> super.getDefaultConfigurationValue(k);
         };

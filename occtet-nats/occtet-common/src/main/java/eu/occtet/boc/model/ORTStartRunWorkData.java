@@ -27,19 +27,13 @@ import eu.occtet.boc.service.IWorkDataProcessor;
 public class ORTStartRunWorkData extends BaseWorkData{
 
     private String repositoryType;
-    private String repositoryUrl;
-    private String repositoryVersion;
     private long projectId;
 
 
     @JsonCreator
     public ORTStartRunWorkData(@JsonProperty("repositoryType") String repositoryType,
-                              @JsonProperty("repositoryUrl") String repositoryUrl,
-                              @JsonProperty("repositoryVersion") String repositoryVersion,
                               @JsonProperty("projectId") long projectId) {
         this.repositoryType = repositoryType;
-        this.repositoryUrl = repositoryUrl;
-        this.repositoryVersion = repositoryVersion;
         this.projectId = projectId;
     }
 
@@ -57,22 +51,6 @@ public class ORTStartRunWorkData extends BaseWorkData{
 
     public void setProjectId(long projectId) {
         this.projectId = projectId;
-    }
-
-    public String getRepositoryUrl() {
-        return repositoryUrl;
-    }
-
-    public void setRepositoryUrl(String repositoryUrl) {
-        this.repositoryUrl = repositoryUrl;
-    }
-
-    public String getRepositoryVersion() {
-        return repositoryVersion;
-    }
-
-    public void setRepositoryVersion(String repositoryVersion) {
-        this.repositoryVersion = repositoryVersion;
     }
 
 
