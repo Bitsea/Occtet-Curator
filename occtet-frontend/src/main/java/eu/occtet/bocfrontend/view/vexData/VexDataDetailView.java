@@ -18,6 +18,7 @@
  */
 
 package eu.occtet.bocfrontend.view.vexData;
+
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -30,7 +31,6 @@ import eu.occtet.bocfrontend.entity.VexData;
 import eu.occtet.bocfrontend.entity.Vulnerability;
 import eu.occtet.bocfrontend.factory.VexDataFactory;
 import eu.occtet.bocfrontend.model.vexModels.VexVulnerability;
-import eu.occtet.bocfrontend.model.vexModels.Vulnerabilites;
 import eu.occtet.bocfrontend.service.VexDataService;
 import eu.occtet.bocfrontend.view.main.MainView;
 import eu.occtet.bocfrontend.view.vexData.fragment.VexMetaDataFragment;

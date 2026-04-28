@@ -45,19 +45,29 @@
             <vbox id="projectDetailContainer" colspan="2" margin="false" padding="false">
                 <vbox colspan="2" margin="false" padding="false">
                     <textField id="projectNameField" property="projectName" required="true"
-                               width="50%" label="msg://Project.name" requiredMessage="msg://eu.occtet.bocfrontend.view.project/Project.name.required.message" colspan="2"/>
+                               width="50%" label="msg://Project.name" requiredMessage="msg://eu.occtet.bocfrontend.view.project/Project.name.required.message" colspan="2"
+                               dataContainer="projectDc"/>
                     <textField id="projectVersion" property="version" required="true" width="20%"
                                label="msg://eu.occtet.bocfrontend.view.project/projectDetailView.projectVersion"
-                               requiredMessage="msg://eu.occtet.bocfrontend.view.project/Project.version.required.message"/>
+                               requiredMessage="msg://eu.occtet.bocfrontend.view.project/Project.version.required.message" dataContainer="projectDc"/>
+                    <textField id="repositoryURL" property="repositoryURL" required="true" width="20%"
+                               label="msg://repositoryURL"
+                               requiredMessage="msg://Project.url.required.message" dataContainer="projectDc"/>
+                    <textField id="githubUser" property="githubUser" width="20%"
+                                   label="msg://githubUser"
+                                   dataContainer="projectDc"/>
+                    <passwordField id="githubToken" property="githubToken" width="20%"
+                                   label="msg://githubToken"
+                                   dataContainer="projectDc"/>
                     <textField id="projectContactField" property="projectContact" width="50%"
                                label="msg://eu.occtet.bocfrontend.view.project/Project.projectContact"
-                               requiredMessage="msg://product.contact.required.message"/>
+                               requiredMessage="msg://product.contact.required.message" dataContainer="projectDc"/>
                     <textField id="contactEmailField" label="msg://eu.occtet.bocfrontend.view.project/Project.contactEmail"
-                               property="contactEmail" width="50%"/>
+                               property="contactEmail" width="50%" dataContainer="projectDc"/>
                     <comboBox id="organizationJmixComboBox"
                               property="organization"
                               label="msg://organizationName"
-                              required="true"/>
+                              required="true" dataContainer="projectDc"/>
                 </vbox>
             </vbox>
             <htmlObject colspan="2" width="100%"><hr/></htmlObject>

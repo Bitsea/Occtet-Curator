@@ -73,6 +73,15 @@ public class Project implements HasOrganization {
     @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
     private Organization organization;
 
+    @Column(name = "GITHUB_TOKEN", columnDefinition = "VARCHAR(255)")
+    private String githubToken;
+
+    @Column(name = "GITHUB_USER", columnDefinition = "VARCHAR(255)")
+    private String githubUser;
+
+    @Column(name = "REPOSITORY_URL", columnDefinition = "VARCHAR(255)")
+    private String repositoryURL;
+
     public Project() {this.createdAt = LocalDateTime.now();}
 
     public Project(String projectName ) {
@@ -161,4 +170,28 @@ public class Project implements HasOrganization {
         this.organization = organization;
     }
 
+
+    public String getGithubToken() {
+        return githubToken;
+    }
+
+    public void setGithubToken(String githubToken) {
+        this.githubToken = githubToken;
+    }
+
+    public String getRepositoryURL() {
+        return repositoryURL;
+    }
+
+    public void setRepositoryURL(String repositoryURL) {
+        this.repositoryURL = repositoryURL;
+    }
+
+    public String getGithubUser() {
+        return githubUser;
+    }
+
+    public void setGithubUser(String githubUser) {
+        this.githubUser = githubUser;
+    }
 }

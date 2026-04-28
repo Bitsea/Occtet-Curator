@@ -41,7 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Component
-@Profile("live")
+@Profile("oidc")
 public class OcctetSynchronizingOidcUserMapper extends SynchronizingOidcUserMapper<User> {
 
     private static final Logger log = LogManager.getLogger(OcctetSynchronizingOidcUserMapper.class);

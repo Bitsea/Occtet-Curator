@@ -16,11 +16,11 @@ The JAR will be created in the target folder.
 
 Create docker image:
 
-`docker build -t occtet-nats-issue-catcher-service .`
+`docker build -t occtet-nats-ort-run-start-service .`
 
 Export Docker image as file for remote deployment:
-`docker save occtet-nats-issue-catcher-service | gzip > occtet-nats-issue-catcher-service.tar.gz`
+`docker save occtet-nats-ort-run-start-service | gzip > occtet-nats-ort-run-start-service.tar.gz`
 
 Import Docker image on remote machine:
-`gunzip -c occtet-nats-issue-catcher-service.tar.gz | docker load`
+`gunzip -c occtet-nats-ort-run-start-service.tar.gz | docker load`
 

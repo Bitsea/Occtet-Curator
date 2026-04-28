@@ -19,26 +19,41 @@
 
 package eu.occtet.boc.ortclient;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.openapitools.client.ApiClient;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.cert.Certificate;
+import java.util.Base64;
+import java.util.Collection;
 
 /**
  * Service class to interact with an ORT server via its REST API.
  */
 public class OrtClientService {
 
-    private String ortBaseUrl = "https://ort.bitsea.de";
-    private String keycloakTokenUrl = "https://keycloak.bitsea.de/realms/master/protocol/openid-connect/token";
-    private String clientId="ort-server";
+    private static final Logger log = LogManager.getLogger(OrtClientService.class);
+
+
+    private String ortBaseUrl;
+    private String keycloakTokenUrl;
+    private String clientId;
     private String scope="offline_access";
+    private String cacertPath;
 
 
-    public OrtClientService() {
-    }
 
-    public OrtClientService(String ortBaseUrl) {
+    public OrtClientService(String ortBaseUrl, String cacertPath, String keycloakTokenUrl, String clientId) {
+        this.cacertPath = cacertPath;
         this.ortBaseUrl = ortBaseUrl;
+        this.keycloakTokenUrl= keycloakTokenUrl;
+        this.clientId= clientId;
+
     }
 
 
@@ -51,7 +66,7 @@ public class OrtClientService {
      * @throws InterruptedException
      */
     public TokenResponse authenticate(String username, String password) throws IOException, InterruptedException {
-        AuthService authService = new AuthService(keycloakTokenUrl);
+        AuthService authService = new AuthService(keycloakTokenUrl, cacertPath);
         return authService.requestToken(clientId,username,password,scope);
     }
 
@@ -63,9 +78,29 @@ public class OrtClientService {
     public ApiClient createApiClient(TokenResponse tokenResponse) {
         if(!tokenResponse.isValid()) throw  new IllegalArgumentException("TokenResponse is expired");
         ApiClient apiClient = new ApiClient();
-        apiClient.setVerifyingSsl(false);
+        log.info("Loading SSL CA certs for API client from path: {}", cacertPath);
+        Collection<? extends Certificate> certificates = CertificateHelper.loadCertificates(cacertPath);
+        try {
+            if (certificates != null && !certificates.isEmpty()) {
+                apiClient.setSslCaCert(certificatesToPemStream(certificates));
+            }
+        }catch (Exception e){
+            log.error("Failed to set SSL CA certs for API client, error: {}", e.getMessage());
+        }
         apiClient.addDefaultHeader("Authorization", "Bearer " + tokenResponse.accessToken);
         apiClient.setBasePath(ortBaseUrl);
         return apiClient;
+    }
+
+
+    private InputStream certificatesToPemStream(Collection<? extends Certificate> certs) throws Exception {
+        StringBuilder pem = new StringBuilder();
+        for (Certificate cert : certs) {
+            pem.append("-----BEGIN CERTIFICATE-----\n");
+            pem.append(Base64.getMimeEncoder(64, "\n".getBytes())
+                    .encodeToString(cert.getEncoded()));
+            pem.append("\n-----END CERTIFICATE-----\n");
+        }
+        return new ByteArrayInputStream(pem.toString().getBytes(StandardCharsets.UTF_8));
     }
 }

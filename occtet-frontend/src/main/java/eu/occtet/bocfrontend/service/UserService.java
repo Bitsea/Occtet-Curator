@@ -40,6 +40,7 @@ public class UserService {
                 .stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_admin")
                         || a.getAuthority().equals("system-full-access")
-                        || a.getAuthority().equals("admin"));
+                        || a.getAuthority().equals("admin")
+                        || a.getAuthority().equals("ROLE_system-full-access"));
     }
 }

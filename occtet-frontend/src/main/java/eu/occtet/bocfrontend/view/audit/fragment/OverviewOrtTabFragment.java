@@ -23,7 +23,10 @@ package eu.occtet.bocfrontend.view.audit.fragment;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.textfield.TextField;
-import eu.occtet.bocfrontend.entity.*;
+import eu.occtet.bocfrontend.entity.InventoryItem;
+import eu.occtet.bocfrontend.entity.OrtIssue;
+import eu.occtet.bocfrontend.entity.OrtViolation;
+import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.view.audit.AuditView;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
@@ -39,7 +42,6 @@ import io.jmix.flowui.view.ViewComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-
 
 import javax.annotation.Nonnull;
 

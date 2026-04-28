@@ -97,24 +97,25 @@ public class ORTRunStarterServiceTest{
 
 
 
-        ortRunStarterService.startOrtRun(project.getId(),  "repoName",
-                "https://github.com/Bitsea/Occtet-Curator/", "GIT_REPO", "0.3.8-alpha");
+        ortRunStarterService.startOrtRun(project.getId(),   "GIT_REPO");
 
     }
 
 
     private static final Logger log = LogManager.getLogger(ORTRunStarterService.class);
 
+    //all these parameters need adjustments if you want to test according to your settings
     String clientId="ort-server";
     private String tokenUrl="http://ort.bitsea.de/realms/master/protocol/openid-connect/token";
     private String username = "ort-admin";
     private String password = "password";
+    private String cacertsPath= null; // not needed for localhost testing, but would be needed for https connections to a server
 
 
     //@Test // commented out because it requires a running ORT server and Keycloak instance on localhost.
     public void startOrtRunTest() throws IOException, InterruptedException, ApiException {
-        OrtClientService ortClientService = new OrtClientService("http://ort.bitsea.de");
-        AuthService authService = new AuthService(tokenUrl);
+        OrtClientService ortClientService = new OrtClientService("http://ort.bitsea.de", cacertsPath, tokenUrl, clientId);
+        AuthService authService = new AuthService(tokenUrl, cacertsPath);
         TokenResponse tokenResponse = authService.requestToken(clientId,username,password,"offline_access");
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
 

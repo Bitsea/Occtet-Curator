@@ -20,7 +20,6 @@
 package eu.occtet.bocfrontend.view.login;
 
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.login.AbstractLogin.LoginEvent;
 import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
@@ -31,6 +30,7 @@ import io.jmix.core.CoreProperties;
 import io.jmix.core.MessageTools;
 import io.jmix.core.Messages;
 import io.jmix.core.security.AccessDeniedException;
+import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.flowui.component.loginform.JmixLoginForm;
 import io.jmix.flowui.kit.component.ComponentUtils;
 import io.jmix.flowui.kit.component.loginform.JmixLoginI18n;
@@ -46,9 +46,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
-import org.springframework.core.env.Profiles; 
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.function.Function;
@@ -70,12 +68,6 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     @Autowired
     private MessageTools messageTools;
 
-    @Autowired
-    private Environment environment;
-
-    @Autowired
-    private Messages messages;
-
     @ViewComponent
     private JmixLoginForm login;
 
@@ -88,12 +80,18 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     @Value("${ui.login.defaultPassword:}")
     private String defaultPassword;
 
+    @Value("${jmix.oidc.default-provider:}")
+    private String oidcDefaultProvider;
+
+    @Autowired
+    private CurrentAuthentication currentAuthentication;
+
     @Subscribe
     public void onInit(final InitEvent event) {
         initLocales();
         initDefaultCredentials();
-
-        if (environment.acceptsProfiles(Profiles.of("live"))) {
+        if ("keycloak".equalsIgnoreCase(oidcDefaultProvider)) {
+            log.info("keycloak is configured as default OIDC provider, redirecting to Keycloak login page");
             UI.getCurrent().getPage().setLocation("/oauth2/authorization/keycloak");
         }
     }
@@ -106,10 +104,13 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
                             .withLocale(login.getSelectedLocale())
                             .withRememberMe(login.isRememberMe())
             );
+            log.info("current user is {} role is {}", currentAuthentication.getUser().getUsername(), currentAuthentication.getUser().getAuthorities().stream().findFirst());
         } catch (final BadCredentialsException | DisabledException | LockedException | AccessDeniedException e) {
             log.warn("Login failed for user '{}': {}", event.getUsername(), e.toString());
             event.getSource().setError(true);
         }
+
+
     }
 
     private void initLocales() {

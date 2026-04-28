@@ -467,10 +467,10 @@ public class SpdxConverter {
      *
      * @param relationship     The source relationship model defining the link between SPDX elements.
      * @param spdxDocumentRoot The parent {@link SpdxDocumentRoot} entity.
-     * @param spdxPackage      The package acting as the source of this relationship (used for the source ID).
+     * @param sourceElementId      The source ID of the package
      * @return The persisted {@link RelationshipEntity} (either newly created or the existing match).
      */
-    public RelationshipEntity convertRelationShip(Relationship relationship, SpdxDocumentRoot spdxDocumentRoot, SpdxPackage spdxPackage) {
+    public RelationshipEntity convertRelationShip(Relationship relationship, SpdxDocumentRoot spdxDocumentRoot, String sourceElementId) {
         try {
             if (spdxDocumentRoot.getRelationships() == null) {
                 spdxDocumentRoot.setRelationships(new ArrayList<>());
@@ -480,20 +480,20 @@ public class SpdxConverter {
             String type = relationship.getRelationshipType().toString();
 
             boolean exists = spdxDocumentRoot.getRelationships().stream()
-                    .anyMatch(r -> r.getSpdxElementId().equals(spdxPackage.getId())
+                    .anyMatch(r -> r.getSpdxElementId().equals(sourceElementId)
                             && ((r.getRelatedSpdxElement() == null && targetId == null) || (r.getRelatedSpdxElement() != null && r.getRelatedSpdxElement().equals(targetId)))
                             && r.getRelationshipType().equals(type));
 
             if (exists) {
                 return spdxDocumentRoot.getRelationships().stream()
-                        .filter(r -> r.getSpdxElementId().equals(spdxPackage.getId()) && r.getRelatedSpdxElement().equals(targetId) && r.getRelationshipType().equals(type))
+                        .filter(r -> r.getSpdxElementId().equals(sourceElementId) && r.getRelatedSpdxElement().equals(targetId) && r.getRelationshipType().equals(type))
                         .findFirst().orElse(null);
             }
 
             RelationshipEntity relationshipEntity = new RelationshipEntity();
             relationshipEntity.setSpdxDocument(spdxDocumentRoot);
             relationshipEntity.setComment(relationship.getComment().orElse(""));
-            relationshipEntity.setSpdxElementId(spdxPackage.getId());
+            relationshipEntity.setSpdxElementId(sourceElementId);
             if (targetId != null)
                 relationshipEntity.setRelatedSpdxElement(targetId);
             relationshipEntity.setRelationshipType(type);

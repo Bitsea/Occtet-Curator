@@ -10,7 +10,6 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 import java.util.List;
 import java.util.stream.Collectors;
 

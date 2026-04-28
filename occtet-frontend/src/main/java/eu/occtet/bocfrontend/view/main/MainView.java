@@ -24,20 +24,18 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.User;
 import eu.occtet.bocfrontend.service.UserService;
+import eu.occtet.bocfrontend.view.login.LoginView;
 import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
 import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.app.main.StandardMainView;
-import io.jmix.flowui.kit.action.ActionPerformedEvent;
 import io.jmix.flowui.view.Subscribe;
 import io.jmix.flowui.view.ViewController;
 import io.jmix.flowui.view.ViewDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
 @Route("")
 @ViewController(id = "MainView")
@@ -55,9 +53,12 @@ public class MainView extends StandardMainView {
     @Autowired
     private UserService userService;
 
+    private static final Logger log = LoggerFactory.getLogger(MainView.class);
+
     @Subscribe
     private void onReady(final ReadyEvent event) {
         User sessionUser = (User) currentAuthentication.getUser();
+        log.info("Checking organization assignment for user: {} is admin: {}", sessionUser.getUsername(), userService.isAdmin());
         if (sessionUser.getOrganization() == null) {
             User freshDbUser = dataManager.load(User.class)
                     .id(sessionUser.getId())

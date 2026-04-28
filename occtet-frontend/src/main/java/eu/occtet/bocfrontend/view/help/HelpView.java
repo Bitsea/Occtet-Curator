@@ -1,10 +1,8 @@
 package eu.occtet.bocfrontend.view.help;
 
 
-
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import eu.occtet.bocfrontend.view.main.MainView;
