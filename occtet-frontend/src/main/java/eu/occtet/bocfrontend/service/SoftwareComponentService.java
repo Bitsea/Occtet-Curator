@@ -60,7 +60,7 @@ public class SoftwareComponentService {
 
     public List<SoftwareComponent> findSoftwareComponentsByLicense(UsageLicense license){
         List<SoftwareComponent> listingSoftwareComponent = softwareComponentRepository.findAll();
-        listingSoftwareComponent.removeIf(sc->sc.getLicenses().stream().noneMatch(l->l.equals(license)));
+        listingSoftwareComponent.removeIf(sc->sc.getUsageLicenses().stream().noneMatch(l->l.equals(license)));
         return listingSoftwareComponent;
     }
 

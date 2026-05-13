@@ -43,7 +43,7 @@ public class SoftwareComponentFactory {
         softwareComponent.setVersion(version);
         softwareComponent.setPurl(purl);
         softwareComponent.setCurated(curated);
-        softwareComponent.setLicenses(licenses);
+        softwareComponent.setUsageLicenses(licenses);
 
         return dataManager.save(softwareComponent);
     }

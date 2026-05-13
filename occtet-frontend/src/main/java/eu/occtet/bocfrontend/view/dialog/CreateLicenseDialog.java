@@ -128,7 +128,7 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
                 usageLicense.setTemplate(templateLicense);
                 usageLicense.setSoftwareComponent(this.softwareComponent);
 
-                this.softwareComponent.getLicenses().add(usageLicense);
+                this.softwareComponent.getUsageLicenses().add(usageLicense);
 
                 saveContext.saving(templateLicense, usageLicense, this.softwareComponent);
                 dataManager.save(saveContext);

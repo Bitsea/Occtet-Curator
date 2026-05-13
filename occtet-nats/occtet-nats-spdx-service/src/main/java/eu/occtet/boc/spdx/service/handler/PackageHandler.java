@@ -151,28 +151,28 @@ public class PackageHandler {
         }
 
         List<UsageLicense> pkgLicenses = licenseHandler.createUsageLicenses(spdxPkgLicense, context.getLicenseCache(),
-                context.getExtractedLicenseInfos()/*, context.getProject().getOrganization()*/);
-        if(component.getLicenses() != null) {
+                context.getExtractedLicenseInfos(), context.getProject().getOrganization());
+        if(component.getUsageLicenses() != null) {
             //make double sure there are no doubles
-            Set<UsageLicense> lSet= new HashSet<>( component.getLicenses());
-            component.setLicenses(new ArrayList<>(lSet));
+            Set<UsageLicense> lSet= new HashSet<>( component.getUsageLicenses());
+            component.setUsageLicenses(new ArrayList<>(lSet));
 
             for (UsageLicense newUsage : pkgLicenses) {
                 // Prevent duplicates by checking if the component already has a UsageLicense for this Template's license type
-                boolean alreadyExists = component.getLicenses().stream()
+                boolean alreadyExists = component.getUsageLicenses().stream()
                         .anyMatch(existing -> existing.getTemplate() != null &&
                                 existing.getTemplate().getLicenseType().equals(newUsage.getTemplate().getLicenseType()));
 
                 if (!alreadyExists) {
                     newUsage.setSoftwareComponent(component);
-                    component.getLicenses().add(newUsage);
+                    component.getUsageLicenses().add(newUsage);
                 }
             }
         } else {
             // Set the bidirectional relationship for all new usage licenses
             SoftwareComponent finalComponent = component;
             pkgLicenses.forEach(usage -> usage.setSoftwareComponent(finalComponent));
-            component.setLicenses(new ArrayList<>(pkgLicenses));
+            component.setUsageLicenses(new ArrayList<>(pkgLicenses));
         }
 
         String packageLicenseString = spdxPkgLicense != null ? spdxPkgLicense.toString() : "";

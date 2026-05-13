@@ -19,18 +19,28 @@
 package eu.occtet.bocfrontend.entity;
 
 
+import io.jmix.core.DeletePolicy;
+import io.jmix.core.entity.annotation.OnDelete;
+import io.jmix.core.metamodel.annotation.DependsOnProperties;
 import io.jmix.core.metamodel.annotation.JmixEntity;
+import io.jmix.core.metamodel.annotation.JmixProperty;
 import jakarta.persistence.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @JmixEntity
 @Table(name = "USAGE_LICENSE")
 @Entity
-public class UsageLicense {
+public class UsageLicense implements HasOrganization {
 
     @Id
     @Column(name = "ID", nullable = false)
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
+
+    @Column(name = "CUSTOM_NAME", columnDefinition = "TEXT")
+    private String customName;
 
     @Column(name = "USAGE_TEXT", columnDefinition = "TEXT")
     private String usageText;
@@ -48,6 +58,30 @@ public class UsageLicense {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "TEMPLATE_LICENSE_ID")
     private TemplateLicense template;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID")
+    private Organization organization;
+
+    @ManyToMany(mappedBy = "files")
+    @OnDelete(DeletePolicy.UNLINK)
+    private Set<Copyright> copyrights = new HashSet<>();
+
+    @JmixProperty
+    @DependsOnProperties({"usageText", "template"})
+    public String getEffectiveText() {
+        //usagetext has precedence over template text
+        if (usageText != null && !usageText.isBlank()) {
+            return usageText;
+        }
+        return template.getTemplateText();
+    }
+
+    @JmixProperty
+    @DependsOnProperties({"template"})
+    public String getEffectiveName() {
+        return (customName != null) ? customName: template.getLicenseName();
+    }
 
     public Long getId() {
         return id;
@@ -95,5 +129,31 @@ public class UsageLicense {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getCustomName() {
+        return customName;
+    }
+
+    public void setCustomName(String customName) {
+        this.customName = customName;
+    }
+
+    public Set<Copyright> getCopyrights() {
+        return copyrights;
+    }
+
+    public void setCopyrights(Set<Copyright> copyrights) {
+        this.copyrights = copyrights;
+    }
+
+    @Override
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    @Override
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 }

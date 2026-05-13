@@ -108,12 +108,16 @@ public class SpdxHandlerTest {
 
     private Project project;
     private SpdxImportContext context;
+    private Organization organization;
 
     @BeforeEach
     public void setup() throws Exception {
+        organization= new Organization();
+        organization.setOrganizationName("TestOrganization");
         project = new Project();
         project.setProjectName("IntegrationTestProject");
         project.setVersion("1.0.0");
+        project.setOrganization(organization);
         project = projectRepository.save(project);
 
         SpdxModelFactory.init();
@@ -221,7 +225,7 @@ public class SpdxHandlerTest {
                 .anyMatch(c -> c.getCopyrightText().equals("Copyright 2008-2010 John Smith"));
         Assertions.assertTrue(hasSnippetCopyright, "Component should contain snippet copyright");
 
-        boolean hasSnippetLicense = component.getLicenses().stream()
+        boolean hasSnippetLicense = component.getUsageLicenses().stream()
                 .anyMatch(l -> l.getTemplate().getLicenseName().equals("GPL-2.0-only"));
         Assertions.assertTrue(hasSnippetLicense, "Component should contain snippet license (GPL-2.0-only)");
     }
@@ -267,13 +271,16 @@ public class SpdxHandlerTest {
         List<UsageLicense> standardResult = licenseHandler.createUsageLicenses(
                 standardLicenseInfo,
                 context.getLicenseCache(),
-                context.getExtractedLicenseInfos()
+                context.getExtractedLicenseInfos(),
+                context.getProject().getOrganization()
+
         );
 
         List<UsageLicense> extractedResult = licenseHandler.createUsageLicenses(
                 extractedLicenseInfo,
                 context.getLicenseCache(),
-                context.getExtractedLicenseInfos()
+                context.getExtractedLicenseInfos(),
+                context.getProject().getOrganization()
         );
 
         // Standard License assertions

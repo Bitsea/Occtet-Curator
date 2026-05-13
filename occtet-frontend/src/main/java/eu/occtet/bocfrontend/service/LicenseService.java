@@ -53,7 +53,7 @@ public class LicenseService {
     public List<UsageLicense> findLicensesByProject(Project project){
         List<SoftwareComponent> softwareComponents = softwareComponentService.findSoftwareComponentsByProject(project);
         List<UsageLicense> licenses = new ArrayList<>();
-        softwareComponents.forEach(sc->licenses.addAll(sc.getLicenses()));
+        softwareComponents.forEach(sc->licenses.addAll(sc.getUsageLicenses()));
         return licenses;
     }
 

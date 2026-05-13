@@ -55,9 +55,9 @@ public class LicenseServiceTest {
         inventoryItem.setProject(project);
         softwareComponent.setName("softwareComponent1");
         softwareComponent.setVersion("1.0");
-        softwareComponent.setLicenses(new java.util.ArrayList<>());
-        softwareComponent.getLicenses().add(license1);
-        softwareComponent.getLicenses().add(license2);
+        softwareComponent.setUsageLicenses(new java.util.ArrayList<>());
+        softwareComponent.getUsageLicenses().add(license1);
+        softwareComponent.getUsageLicenses().add(license2);
         inventoryItem.setSoftwareComponent(softwareComponent);
 
         dataManager.save(project);

@@ -62,8 +62,11 @@ public class SoftwareComponent implements HasOrganization {
     @JoinColumn(name= "SOFTWARE_COMPONENT_ID")
     private List<Copyright> copyrights;
 
-    @OneToMany(mappedBy = "softwareComponent", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UsageLicense> licenses = new ArrayList<>();
+    @JoinTable(name = "SOFTWARE_COMPONENT_USAGE_LICENSE_LINK",
+            joinColumns = @JoinColumn(name = "SOFTWARE_COMPONENT_ID"),
+            inverseJoinColumns = @JoinColumn(name = "USAGE_LICENSE_ID"))
+    @ManyToMany
+    private List<UsageLicense> usageLicenses = new ArrayList<>();
 
     @OneToMany(mappedBy = "softwareComponent", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ComponentVulnerabilityLink> vulnerabilityLinks = new ArrayList<>();
@@ -79,7 +82,7 @@ public class SoftwareComponent implements HasOrganization {
                              List<UsageLicense> license, Organization organization) {
         this.name = softwareName;
         this.version = version;
-        this.licenses = license;
+        this.usageLicenses = license;
         this.curated = false;
         this.organization= organization;
     }
@@ -88,7 +91,7 @@ public class SoftwareComponent implements HasOrganization {
                              List<UsageLicense> license, String url, Organization organization) {
         this.name = softwareName;
         this.version = version;
-        this.licenses = license;
+        this.usageLicenses = license;
         this.curated = false;
         this.detailsUrl= url;
         this.organization= organization;
@@ -98,7 +101,7 @@ public class SoftwareComponent implements HasOrganization {
         this.name = softwareName;
         this.version = version;
         this.curated = false;
-        this.licenses = new ArrayList<>();
+        this.usageLicenses = new ArrayList<>();
         this.organization= organization;
     }
     public SoftwareComponent(
@@ -106,14 +109,14 @@ public class SoftwareComponent implements HasOrganization {
             String version,
             String purl,
             boolean curated,
-            List<UsageLicense> licenses,
+            List<UsageLicense> usageLicenses,
             String url
     ) {
         this.name = name;
         this.version = version;
         this.purl = purl;
         this.curated = curated;
-        this.licenses = licenses==null? new ArrayList<>() : licenses;
+        this.usageLicenses = usageLicenses ==null? new ArrayList<>() : usageLicenses;
         this.detailsUrl= url;
     }
 
@@ -149,12 +152,12 @@ public class SoftwareComponent implements HasOrganization {
         this.version = version;
     }
 
-    public List<UsageLicense> getLicenses() {
-        return licenses;
+    public List<UsageLicense> getUsageLicenses() {
+        return usageLicenses;
     }
 
-    public void setLicenses(List<UsageLicense> licenses) {
-        this.licenses = licenses;
+    public void setUsageLicenses(List<UsageLicense> usageLicenses) {
+        this.usageLicenses = usageLicenses;
     }
 
     public String getPurl() {
@@ -250,12 +253,12 @@ public class SoftwareComponent implements HasOrganization {
     }
 
     public void addLicense(UsageLicense license) {
-        this.licenses.add(license);
+        this.usageLicenses.add(license);
         license.setSoftwareComponent(this);
     }
 
     public void removeLicense(UsageLicense license) {
-        this.licenses.remove(license);
+        this.usageLicenses.remove(license);
         license.setSoftwareComponent(null);
     }
 }

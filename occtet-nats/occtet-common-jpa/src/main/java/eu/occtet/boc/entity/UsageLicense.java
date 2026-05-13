@@ -21,15 +21,21 @@ package eu.occtet.boc.entity;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "USAGE_LICENSE")
 @EntityListeners(AuditingEntityListener.class)
-public class UsageLicense {
+public class UsageLicense implements HasOrganization {
 
     @Id
     @Column(name = "ID", nullable = false)
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
+
+    @Column(name = "CUSTOM_NAME", columnDefinition = "TEXT")
+    private String customName;
 
     @Column(name = "USAGE_TEXT", columnDefinition = "TEXT")
     private String usageText;
@@ -40,13 +46,19 @@ public class UsageLicense {
     @Column(name = "CURATED")
     private Boolean curated;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "SOFTWARE_COMPONENT_ID")
+    @ManyToMany(mappedBy = "usageLicenses")
     private SoftwareComponent softwareComponent;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "TEMPLATE_LICENSE_ID")
     private TemplateLicense template;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ORGANIZATION_ID")
+    private Organization organization;
+
+    @ManyToMany(mappedBy = "licenses")
+    private Set<Copyright> copyrights = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -92,5 +104,33 @@ public class UsageLicense {
         return template;
     }
 
+    public String getCustomName() {
+        return customName;
+    }
 
+    public void setCustomName(String customName) {
+        this.customName = customName;
+    }
+
+    public Set<Copyright> getCopyrights() {
+        return copyrights;
+    }
+
+    public void setCopyrights(Set<Copyright> copyrights) {
+        this.copyrights = copyrights;
+    }
+
+    @Override
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    @Override
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

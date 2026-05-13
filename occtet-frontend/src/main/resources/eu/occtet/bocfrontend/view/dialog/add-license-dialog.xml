@@ -22,11 +22,11 @@
       title="msg:// Available Licenses">
     <data>
         <collection id="licenseDc"
-                    class="eu.occtet.bocfrontend.entity.License">
+                    class="eu.occtet.bocfrontend.entity.UsageLicense">
             <fetchPlan extends="_base"/>
             <loader id="licenseDl">
                 <query>
-                    <![CDATA[select e from License e]]>
+                    <![CDATA[select e from UsageLicense e]]>
                 </query>
             </loader>
         </collection>
@@ -45,9 +45,11 @@
                       classNames="occtet-grid"
                       selectionMode="MULTI">
                 <columns resizable="true">
-                    <column property="licenseType" header="Licence type"/>
-                    <column property="licenseText" header="License text"/>
-                    <column property="priority" header="Priority"/>
+                    <column property="template.licenseType" header="Licence type"/>
+                    <column property="template.priority" header="Priority"/>
+                    <column property="customName" header="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
+                    <column property="usageText" header="License text"/>
+
                 </columns>
             </dataGrid>
             <hbox alignItems="CENTER" alignSelf="CENTER" justifySelf="CENTER" justifyContent="CENTER" width="100%">

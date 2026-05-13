@@ -66,8 +66,8 @@ public class MergeService {
 
                 handleSpdxPackageEntity(spdxPackageEntity, inventoryItem, softwareComponent);
 
-                if (softwareComponent != null && softwareComponent.getLicenses() != null) {
-                    customLicensesToExtract.addAll(softwareComponent.getLicenses());
+                if (softwareComponent != null && softwareComponent.getUsageLicenses() != null) {
+                    customLicensesToExtract.addAll(softwareComponent.getUsageLicenses());
                 }
             } catch (NoSuchElementException e) {
                 log.debug("No inventoryItem was found for this package: {}, skip merging changes to document entities.", spdxPackageEntity.getSpdxId());
@@ -120,8 +120,8 @@ public class MergeService {
             }
         }
 
-        if (softwareComponent.getLicenses() != null && !softwareComponent.getLicenses().isEmpty()) {
-            String concludedLicenses = formatLicenseExpression(softwareComponent.getLicenses());
+        if (softwareComponent.getUsageLicenses() != null && !softwareComponent.getUsageLicenses().isEmpty()) {
+            String concludedLicenses = formatLicenseExpression(softwareComponent.getUsageLicenses());
             spdxPackageEntity.setLicenseConcluded(concludedLicenses);
         }
 

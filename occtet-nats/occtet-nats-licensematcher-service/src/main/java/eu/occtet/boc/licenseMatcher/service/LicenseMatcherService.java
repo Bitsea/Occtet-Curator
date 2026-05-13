@@ -102,8 +102,8 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
             if (optItem.isPresent()) {
                 InventoryItem item = optItem.get();
                 log.debug("working on item {}, softwareComponent {}", item.getInventoryName(), item.getSoftwareComponent().getName());
-                log.debug("softwarecomponent has {} licenses", item.getSoftwareComponent().getLicenses().size());
-                for (UsageLicense license : item.getSoftwareComponent().getLicenses()) {
+                log.debug("softwarecomponent has {} licenses", item.getSoftwareComponent().getUsageLicenses().size());
+                for (UsageLicense license : item.getSoftwareComponent().getUsageLicenses()) {
                     String licenseId = license.getTemplate().getLicenseType();
                     String licenseText = license.getUsageText();
                     if(licenseId.contains("LicenseRef-") || licenseId.contains("licenseref-")){

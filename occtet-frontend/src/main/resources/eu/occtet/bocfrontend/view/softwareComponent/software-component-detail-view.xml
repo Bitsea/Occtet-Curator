@@ -38,8 +38,12 @@
         </instance>
 
         <collection id="licenseDc"
-                    class="eu.occtet.bocfrontend.entity.License">
-            <fetchPlan extends="_base"/>
+                    class="eu.occtet.bocfrontend.entity.UsageLicense">
+            <fetchPlan extends="_base">
+                <property name="template" fetchPlan="_base">
+                    <property name="licenseName"/>
+                </property>
+            </fetchPlan>
             <loader id="licenseDl">
                 <query><![CDATA[select e from License e]]></query>
             </loader>
@@ -59,7 +63,7 @@
                     <formLayout id="form" dataContainer="softwareComponentDc">
                         <textField id="nameField" property="name" label="msg://eu.occtet.bocfrontend.entity/Configuration.name"/>
                         <hbox>
-                            <textField id="versionField" property="version" label="msg://eu.occtet.bocfrontend.entity/Project.version" width="10em"/>
+                            <textField  dataContainer="softwareComponentDc" id="versionField" property="version" label="msg://eu.occtet.bocfrontend.entity/Project.version" width="10em"/>
                         </hbox>
                         <textField id="url" property="detailsUrl" label="msg://eu.occtet.bocfrontend.entity/LicenseType.detailsUrl"/>
                         <checkbox id="curatedField" property="curated" label="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
@@ -124,14 +128,12 @@
                 <vbox width="100%" alignItems="CENTER" alignSelf="END" height="100%">
                     <dataGrid classNames="occtet-grid" id="licensesDataGrid" width="100%" height="40em" dataContainer="licenseDc" columnReorderingAllowed="true" alignSelf="CENTER">
                         <columns resizable="true">
-                            <column property="licenseType" header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseId"/>
-                            <column property="priority" header="msg://eu.occtet.bocfrontend.entity/License.priority"/>
-                            <column property="licenseText" header="msg://eu.occtet.bocfrontend.entity/License.licenseText"/>
-                            <column property="licenseName" header="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
-                            <column property="detailsUrl" header="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.detailsUrl"/>
+                            <column property="usageText" header="msg://eu.occtet.bocfrontend.entity/License.licenseText"/>
                             <column property="isModified" header="msg://eu.occtet.bocfrontend.entity/License.isModified"/>
                             <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
-                            <column property="isSpdx" header="msg://eu.occtet.bocfrontend.entity/License.isSpdx"/>
+                            <column property="template.priority" header="msg://eu.occtet.bocfrontend.entity/License.priority"/>
+                            <column property="template.licenseName" header="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
+                            <column property="template.licenseType" header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseId"/>
                         </columns>
                     </dataGrid>
                     <hbox>

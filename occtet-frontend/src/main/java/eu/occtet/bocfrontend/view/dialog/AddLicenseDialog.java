@@ -24,7 +24,7 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.textfield.TextField;
-import eu.occtet.bocfrontend.dao.TemplateLicenseRepository;
+import eu.occtet.bocfrontend.dao.UsageLicenseRepository;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.TemplateLicense;
 import eu.occtet.bocfrontend.entity.UsageLicense;
@@ -51,22 +51,22 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
 
     private SoftwareComponent softwareComponent;
 
-    private TemplateLicense selectedTemplate;
+    private UsageLicense selectedLicense;
 
     @Autowired
-    private TemplateLicenseRepository templateLicenseRepository;
+    private UsageLicenseRepository usageLicenseRepository;
 
     @Autowired
     DataManager dataManager;
 
     @ViewComponent
-    private CollectionContainer<TemplateLicense> licenseDc;
+    private CollectionContainer<UsageLicense> licenseDc;
 
     @ViewComponent
     private TextField searchField;
 
     @ViewComponent
-    private DataGrid<TemplateLicense> licensesDataGrid;
+    private DataGrid<UsageLicense> licensesDataGrid;
 
     @Override
     @Subscribe("licenseDc")
@@ -81,34 +81,32 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
     }
 
     private void loadAvailableLicenses() {
-        List<TemplateLicense> usedTemplates = this.softwareComponent.getLicenses().stream()
-                .map(UsageLicense::getTemplate)
-                .collect(Collectors.toList());
+        List<UsageLicense> usedTemplates = this.softwareComponent.getUsageLicenses();
 
         if (usedTemplates.isEmpty()) {
-            licenseDc.setItems(templateLicenseRepository.findAll());
+            licenseDc.setItems(usageLicenseRepository.findAll());
         } else {
-            licenseDc.setItems(templateLicenseRepository.findAvailableLicenses(usedTemplates));
+            licenseDc.setItems(usageLicenseRepository.findAvailableUsageLicenses(usedTemplates));
         }
     }
 
     @Subscribe("licensesDataGrid")
-    public void selectAvailableContent(final ItemClickEvent<TemplateLicense> event) {
-        selectedTemplate = event.getItem();
+    public void selectAvailableContent(final ItemClickEvent<UsageLicense> event) {
+        selectedLicense = event.getItem();
     }
 
     @Override
     @Subscribe(id = "addLicenseButton")
     public void addContentButton(ClickEvent<Button> event) {
-        List<TemplateLicense> selectedLicenses = getSelectedLicenses();
-
+        List<UsageLicense> selectedLicenses = getSelectedLicenses();
+        //TODO ! check here, the creation of the usage license... i thought adding is just adding of already existing...
         if (!selectedLicenses.isEmpty() && softwareComponent != null) {
-            List<TemplateLicense> selectedTemplates = new ArrayList<>(licensesDataGrid.getSelectedItems());
+            List<UsageLicense> selectedTemplates = new ArrayList<>(licensesDataGrid.getSelectedItems());
 
             if (!selectedTemplates.isEmpty() && softwareComponent != null) {
                 SaveContext saveContext = new SaveContext();
 
-                for (TemplateLicense template : selectedTemplates) {
+                for (UsageLicense template : selectedTemplates) {
                     UsageLicense newUsage = dataManager.create(UsageLicense.class);
                     newUsage.setTemplate(template);
                     newUsage.setSoftwareComponent(softwareComponent);
@@ -116,7 +114,7 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
                     newUsage.setCurated(false);
                     newUsage.setUsageText(template.getTemplateText());
 
-                    softwareComponent.getLicenses().add(newUsage);
+                    softwareComponent.getUsageLicenses().add(newUsage);
                     saveContext.saving(newUsage);
                 }
 
@@ -133,12 +131,12 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
     public void searchContentButton(ClickEvent<Button> event) {
         String searchWord = searchField.getValue();
         if (searchWord != null && !searchWord.isEmpty()) {
-            List<TemplateLicense> listFindings = templateLicenseRepository.findAll().stream()
+            List<TemplateLicense> listFindings = usageLicenseRepository.findAll().stream()
                     .filter(l -> l.getLicenseName().toLowerCase().contains(searchWord.toLowerCase())
                             || l.getLicenseType().toLowerCase().contains(searchWord.toLowerCase()))
                     .collect(Collectors.toList());
 
-            List<TemplateLicense> usedTemplates = this.softwareComponent.getLicenses().stream()
+            List<TemplateLicense> usedTemplates = this.softwareComponent.getUsageLicenses().stream()
                     .map(UsageLicense::getTemplate)
                     .collect(Collectors.toList());
 
@@ -146,7 +144,7 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
 
             licenseDc.setItems(listFindings);
         } else {
-            licenseDc.setItems(templateLicenseRepository.findAvailableLicenses(softwareComponent.getLicenses().stream().map(UsageLicense::getTemplate).collect(Collectors.toList())));
+            licenseDc.setItems(usageLicenseRepository.findAvailableUsageLicenses(softwareComponent.getUsageLicenses().stream().map(UsageLicense::getTemplate).collect(Collectors.toList())));
         }
     }
 

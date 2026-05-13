@@ -62,8 +62,11 @@ public class SoftwareComponent implements HasOrganization {
     @Column(name= "LICENSE_AI_CONTROLLED")
     private Boolean licenseAiControlled;
 
-    @OneToMany(mappedBy = "softwareComponent", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UsageLicense> licenses = new ArrayList<>();
+    @JoinTable(name = "SOFTWARE_COMPONENT_USAGE_LICENSE_LINK",
+            joinColumns = @JoinColumn(name = "SOFTWARE_COMPONENT_ID"),
+            inverseJoinColumns = @JoinColumn(name = "USAGE_LICENSE_ID"))
+    @ManyToMany
+    private List<UsageLicense> usageLicenses = new ArrayList<>();
 
 
     @OneToMany(mappedBy = "softwareComponent", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -92,7 +95,7 @@ public class SoftwareComponent implements HasOrganization {
         this.version = version;
         this.purl = purl;
         this.curated = curated;
-        this.licenses = licenses;
+        this.usageLicenses = licenses;
         this.licenseAiControlled= false;
     }
 
@@ -132,12 +135,12 @@ public class SoftwareComponent implements HasOrganization {
         return curated;
     }
 
-    public List<UsageLicense> getLicenses() {
-        return licenses;
+    public List<UsageLicense> getUsageLicenses() {
+        return usageLicenses;
     }
 
-    public void setLicenses(List<UsageLicense> licenses) {
-        this.licenses = licenses;
+    public void setUsageLicenses(List<UsageLicense> usageLicenses) {
+        this.usageLicenses = usageLicenses;
     }
 
     public void setPurl(String purl) {this.purl = purl;}
@@ -231,12 +234,12 @@ public class SoftwareComponent implements HasOrganization {
     }
 
     public void addLicense(UsageLicense license) {
-        this.licenses.add(license);
+        this.usageLicenses.add(license);
         license.setSoftwareComponent(this);
     }
 
     public void removeLicense(UsageLicense license) {
-        this.licenses.remove(license);
+        this.usageLicenses.remove(license);
         license.setSoftwareComponent(null);
     }
 }

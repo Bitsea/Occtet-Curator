@@ -157,22 +157,22 @@ public class SnippetHandler {
 
             AnyLicenseInfo concluded = snippet.getLicenseConcluded();
             if (concluded != null && !concluded.isNoAssertion(concluded) && !concluded.isNoAssertion(concluded)) {
-                List<License> licenses = licenseHandler.createLicenses(concluded, licenseCache,
+                List<UsageLicense> usageLicenses = licenseHandler.createUsageLicenses(concluded, licenseCache,
                         licenseInfosExtractedSpdxDoc, organization);
 
-                if (component.getLicenses() == null) {
-                    component.setLicenses(new ArrayList<>());
+                if (component.getUsageLicenses() == null) {
+                    component.setUsageLicenses(new ArrayList<>());
                 }
 
                 for (UsageLicense newUsage : usageLicenses) {
                     // Prevent duplicates by checking if this component already uses this Template ID
-                    boolean alreadyExists = component.getLicenses().stream()
+                    boolean alreadyExists = component.getUsageLicenses().stream()
                             .anyMatch(existing -> existing.getTemplate().getLicenseType()
                                     .equals(newUsage.getTemplate().getLicenseType()));
 
                     if (!alreadyExists) {
                         newUsage.setSoftwareComponent(component); // Bind the component
-                        component.getLicenses().add(newUsage);
+                        component.getUsageLicenses().add(newUsage);
                         componentUpdated = true;
                     }
                 }

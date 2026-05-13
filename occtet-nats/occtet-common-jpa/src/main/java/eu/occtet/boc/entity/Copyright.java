@@ -57,8 +57,10 @@ public class Copyright implements HasOrganization {
             inverseJoinColumns = @JoinColumn(name = "FILE_ID", referencedColumnName = "ID"))
     private Set<File> files = new HashSet<>();;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name= "COPYRIGHT_ID")
+    @JoinTable(name = "COPYRIGHT_USAGE_LICENSE_LINK",
+            joinColumns = @JoinColumn(name = "COPYRIGHT_ID"),
+            inverseJoinColumns = @JoinColumn(name = "USAGE_LICENSE_ID"))
+    @ManyToMany
     private List<UsageLicense> licenses;
 
     @ManyToOne(fetch = FetchType.LAZY)

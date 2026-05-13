@@ -366,8 +366,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                     if (selectedLicenses != null && !selectedLicenses.isEmpty()) {
                         for (TemplateLicense license : selectedLicenses) {
                             TemplateLicense trackedLicense = dataContext.merge(license);
-                            if (!softwareComponent.getLicenses().contains(trackedLicense)) {
-                                softwareComponent.getLicenses().add(trackedLicense.getUsages().getFirst());
+                            if (!softwareComponent.getUsageLicenses().contains(trackedLicense)) {
+                                softwareComponent.getUsageLicenses().add(trackedLicense.getUsages().getFirst());
 
                                 licenseDc.getMutableItems().add(trackedLicense.getUsages().getFirst());
                             }
@@ -400,7 +400,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                     TemplateLicense newLicense = window.getView().getCreatedLicense();
                     if (newLicense != null) {
                         TemplateLicense trackedLicense = dataContext.merge(newLicense);
-                        softwareComponent.getLicenses().add(trackedLicense.getUsages().getFirst());
+                        softwareComponent.getUsageLicenses().add(trackedLicense.getUsages().getFirst());
                         licenseDc.getMutableItems().add(trackedLicense.getUsages().getFirst());
                         infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseCreate"));
                     }
@@ -436,7 +436,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
         if (!selectedLicenses.isEmpty() && softwareComponent != null) {
             for (UsageLicense license : selectedLicenses) {
-                softwareComponent.getLicenses().remove(license);
+                softwareComponent.getUsageLicenses().remove(license);
                 licenseDc.getMutableItems().remove(license);
             }
             infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseRemove"));

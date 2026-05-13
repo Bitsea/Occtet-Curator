@@ -21,7 +21,6 @@ package eu.occtet.boc.fossreport.service;
 
 
 import eu.occtet.boc.dao.SoftwareComponentRepository;
-import eu.occtet.boc.dao.SoftwareComponentRepository;
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.SoftwareComponent;
@@ -78,11 +77,11 @@ public class SoftwareComponentService {
             List<UsageLicense> license, String url) {
         if (!softwareComponent.isCurated()) {
             if (license != null) {
-                if (softwareComponent.getLicenses() == null) {
-                    softwareComponent.setLicenses(license);
+                if (softwareComponent.getUsageLicenses() == null) {
+                    softwareComponent.setUsageLicenses(license);
                 } else
                     license.forEach(l -> {
-                        if (!softwareComponent.getLicenses().contains(l))
+                        if (!softwareComponent.getUsageLicenses().contains(l))
                             softwareComponent.addLicense(l);
                     });
             }

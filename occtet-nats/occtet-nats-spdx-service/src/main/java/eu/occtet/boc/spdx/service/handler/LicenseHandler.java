@@ -45,7 +45,7 @@ public class LicenseHandler {
 
     public List<UsageLicense> createUsageLicenses(AnyLicenseInfo spdxLicenseInfo,
                                                   Map<String, TemplateLicense> licenseCache,
-                                                  Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc)
+                                                  Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc, Organization organization)
             throws InvalidSPDXAnalysisException {
 
         List<UsageLicense> generatedUsages = new ArrayList<>();
@@ -88,6 +88,7 @@ public class LicenseHandler {
                 usage.setUsageText(licenseText);
                 usage.setModified(false);
                 usage.setCurated(false);
+                usage.setOrganization(organization);
 
                 generatedUsages.add(usage);
             }

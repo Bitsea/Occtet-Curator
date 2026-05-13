@@ -69,7 +69,7 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
 
     @ViewComponent
     private CollectionContainer<UsageLicense> licenseDc;
-    private CollectionContainer<License> licenseDc;
+
     @ViewComponent
     private CollectionContainer<Copyright> copyrightDc;
     @ViewComponent
@@ -77,7 +77,7 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
     @ViewComponent
     private DataGrid<Copyright> copyrightDataGrid;
     @ViewComponent
-    private DataGrid<License> licensesDataGrid;
+    private DataGrid<UsageLicense> licensesDataGrid;
     @ViewComponent
     private JmixButton removeCopyrightButton;
     @ViewComponent
@@ -110,7 +110,7 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
         SoftwareComponent softwareComponent = getEditedEntity();
-        licenseDc.setItems(softwareComponent.getLicenses());
+        licenseDc.setItems(softwareComponent.getUsageLicenses());
         copyrightDc.setItems(softwareComponent.getCopyrights());
     }
 
@@ -198,14 +198,16 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
 
         window.addAfterCloseListener(close -> {
             if (close.closedWith(StandardOutcome.SAVE)) {
-                List<License> selectedLicenses = window.getView().getSelectedLicenses();
+                //TODO  should this be usage or template licese?
+                // if the usage text is empty the template text should be shown
+                List<UsageLicense> selectedLicenses = window.getView().getSelectedLicenses();
 
                 if (selectedLicenses != null && !selectedLicenses.isEmpty()) {
-                    for (License license : selectedLicenses) {
-                        License trackedLicense = dataContext.merge(license);
+                    for (UsageLicense license : selectedLicenses) {
+                        UsageLicense trackedLicense = dataContext.merge(license);
 
-                        if (!softwareComponent.getLicenses().contains(trackedLicense)) {
-                            softwareComponent.getLicenses().add(trackedLicense);
+                        if (!softwareComponent.getUsageLicenses().contains(trackedLicense)) {
+                            softwareComponent.getUsageLicenses().add(trackedLicense);
                             licenseDc.getMutableItems().add(trackedLicense);
                         }
                     }
@@ -230,14 +232,14 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
 
         window.addAfterCloseListener(close -> {
             if (close.closedWith(StandardOutcome.SAVE)) {
-                License newLicense = window.getView().getCreatedLicense();
+                UsageLicense newLicense = window.getView().getCreatedLicense();
 
                 if (newLicense != null) {
-                    License trackedLicense = dataContext.merge(newLicense);
-                    if (softwareComponent.getLicenses() == null) {
-                        softwareComponent.setLicenses(new ArrayList<>());
+                    UsageLicense trackedLicense = dataContext.merge(newLicense);
+                    if (softwareComponent.getUsageLicenses() == null) {
+                        softwareComponent.setUsageLicenses(new ArrayList<>());
                     }
-                    softwareComponent.getLicenses().add(trackedLicense);
+                    softwareComponent.getUsageLicenses().add(trackedLicense);
                     licenseDc.getMutableItems().add(trackedLicense);
                     infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseCreate"));
                 }
@@ -310,12 +312,12 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
      */
     @Subscribe(id = "removeLicenseButton")
     public void removeLicenses(ClickEvent<JmixButton> event) {
-        Set<License> selectedLicenses = licensesDataGrid.getSelectedItems();
+        Set<UsageLicense> selectedLicenses = licensesDataGrid.getSelectedItems();
         SoftwareComponent softwareComponent = getEditedEntity();
 
         if (!selectedLicenses.isEmpty() && softwareComponent != null) {
-            for (License license : selectedLicenses) {
-                softwareComponent.getLicenses().remove(license);
+            for (UsageLicense license : selectedLicenses) {
+                softwareComponent.getUsageLicenses().remove(license);
                 licenseDc.getMutableItems().remove(license);
             }
             infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseRemove"));

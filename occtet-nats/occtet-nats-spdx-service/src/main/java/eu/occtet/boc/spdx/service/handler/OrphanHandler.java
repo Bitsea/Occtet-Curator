@@ -113,6 +113,7 @@ public class OrphanHandler {
 
                 SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(filePath, "Standalone", context.getProject().getOrganization());
                 InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(filePath, component, context.getProject(), context.getProject().getOrganization());
+                boolean componentUpdated = false;
 
                 inventoryItem.setSpdxId(file.getId());
                 inventoryItem.setCurated(false);
@@ -141,6 +142,7 @@ public class OrphanHandler {
 
                     if (!component.getCopyrights().contains(copyright)) {
                         component.getCopyrights().add(copyright);
+                        componentUpdated = true;
                     }
                 }
 
@@ -150,23 +152,30 @@ public class OrphanHandler {
                 }
 
                 if (fileLicense != null) {
-                    List<License> licenses = licenseHandler.createLicenses(fileLicense, context.getLicenseCache(),
+                    List<UsageLicense> usageLicenses = licenseHandler.createUsageLicenses(fileLicense, context.getLicenseCache(),
                             context.getExtractedLicenseInfos(), context.getProject().getOrganization());
 
-                    if (component.getLicenses() == null) component.setLicenses(new ArrayList<>());
+                    if (component.getUsageLicenses() == null){
+                        component.setUsageLicenses(new ArrayList<>());
+                        componentUpdated = true;
+                    }
 
                     for (UsageLicense newUsage : usageLicenses) {
                         // Prevent duplicates by checking if this component already uses this Template ID
-                        boolean alreadyExists = component.getLicenses().stream()
+                        boolean alreadyExists = component.getUsageLicenses().stream()
                                 .anyMatch(existing -> existing.getTemplate().getLicenseType()
                                         .equals(newUsage.getTemplate().getLicenseType()));
 
                         if (!alreadyExists) {
                             newUsage.setSoftwareComponent(component); // Bind the component
-                            component.getLicenses().add(newUsage);
+                            component.getUsageLicenses().add(newUsage);
                             componentUpdated = true;
                         }
                     }
+                }
+
+                if (componentUpdated) {
+                    softwareComponentService.update(component);
                 }
                 context.getInventoryItems().add(inventoryItem);
             }

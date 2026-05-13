@@ -41,5 +41,8 @@ public interface UsageLicenseRepository extends JmixDataRepository<UsageLicense,
     @Query("select ul from UsageLicense ul join InventoryItem i on i.softwareComponent = ul.softwareComponent where i = :item")
     List<UsageLicense> findByInventoryItem(InventoryItem item);
 
+    @Query("select t from UsageLicense t where t not in :licenses")
+    List<UsageLicense> findAvailableUsageLicenses(List<UsageLicense> licenses);
+
     UsageLicense findLicenseById(Object licenseId);
 }

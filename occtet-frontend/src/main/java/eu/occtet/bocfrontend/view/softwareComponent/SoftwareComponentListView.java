@@ -109,10 +109,10 @@ public class SoftwareComponentListView extends StandardListView<SoftwareComponen
     private Renderer<SoftwareComponent> licensesRenderer() {
         return new TextRenderer<>(component -> {
 
-            if (component.getLicenses() == null) {
+            if (component.getUsageLicenses() == null) {
                 return "";
             }
-            return component.getLicenses().stream()
+            return component.getUsageLicenses().stream()
                     .map(usage -> usage.getTemplate().getLicenseType())
                     .collect(Collectors.joining(", "));
         });
