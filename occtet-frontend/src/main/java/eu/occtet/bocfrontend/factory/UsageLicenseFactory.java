@@ -20,8 +20,8 @@ package eu.occtet.bocfrontend.factory;
 
 import com.github.javaparser.quality.Nullable;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
-import eu.occtet.bocfrontend.entity.TemplateLicense;
-import eu.occtet.bocfrontend.entity.UsageLicense;
+import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
 import io.jmix.core.DataManager;
 import jakarta.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,12 +33,12 @@ public class UsageLicenseFactory {
     @Autowired
     private DataManager dataManager;
 
-    public UsageLicense create(@Nonnull String usageText, boolean isModified, boolean curated,
-                               @Nullable SoftwareComponent softwareComponent, @Nullable TemplateLicense template) {
-        UsageLicense license = dataManager.create(UsageLicense.class);
+    public SoftwareComponentLicenseUsage create(@Nonnull String usageText, boolean isModified, boolean curated,
+                                                @Nullable SoftwareComponent softwareComponent, @Nullable License template) {
+        SoftwareComponentLicenseUsage license = dataManager.create(SoftwareComponentLicenseUsage.class);
 
         license.setUsageText(usageText);
-        license.setModified(isModified);
+        license.setIsModified(isModified);
         license.setCurated(curated);
         license.setSoftwareComponent(softwareComponent);
         license.setTemplate(template);
@@ -47,7 +47,7 @@ public class UsageLicenseFactory {
     }
 
 
-    public UsageLicense create(@Nonnull String usageText, boolean isModified, boolean curated) {
+    public SoftwareComponentLicenseUsage create(@Nonnull String usageText, boolean isModified, boolean curated) {
         return create(usageText, isModified, curated, null, null);
     }
 }

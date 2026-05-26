@@ -150,30 +150,8 @@ public class PackageHandler {
             spdxPkgLicense = spdxPackage.getLicenseDeclared();
         }
 
-        List<UsageLicense> pkgLicenses = licenseHandler.createUsageLicenses(spdxPkgLicense, context.getLicenseCache(),
-                context.getExtractedLicenseInfos(), context.getProject().getOrganization());
-        if(component.getUsageLicenses() != null) {
-            //make double sure there are no doubles
-            Set<UsageLicense> lSet= new HashSet<>( component.getUsageLicenses());
-            component.setUsageLicenses(new ArrayList<>(lSet));
-
-            for (UsageLicense newUsage : pkgLicenses) {
-                // Prevent duplicates by checking if the component already has a UsageLicense for this Template's license type
-                boolean alreadyExists = component.getUsageLicenses().stream()
-                        .anyMatch(existing -> existing.getTemplate() != null &&
-                                existing.getTemplate().getLicenseType().equals(newUsage.getTemplate().getLicenseType()));
-
-                if (!alreadyExists) {
-                    newUsage.setSoftwareComponent(component);
-                    component.getUsageLicenses().add(newUsage);
-                }
-            }
-        } else {
-            // Set the bidirectional relationship for all new usage licenses
-            SoftwareComponent finalComponent = component;
-            pkgLicenses.forEach(usage -> usage.setSoftwareComponent(finalComponent));
-            component.setUsageLicenses(new ArrayList<>(pkgLicenses));
-        }
+        licenseHandler.createUsageLicenses(spdxPkgLicense, context,
+                context.getExtractedLicenseInfos(),component, context.getProject().getOrganization());
 
         String packageLicenseString = spdxPkgLicense != null ? spdxPkgLicense.toString() : "";
 

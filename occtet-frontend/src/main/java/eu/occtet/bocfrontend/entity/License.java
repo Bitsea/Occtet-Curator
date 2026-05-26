@@ -16,18 +16,18 @@
  *  License-Filename: LICENSE
  */
 
-package eu.occtet.boc.entity;
+package eu.occtet.bocfrontend.entity;
 
+import com.google.gson.annotations.SerializedName;
+import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 import java.util.ArrayList;
 import java.util.List;
 
+@JmixEntity
+@Table(name = "LICENSE")
 @Entity
-@Table(name = "TEMPLATE_LICENSE")
-@EntityListeners(AuditingEntityListener.class)
-public class TemplateLicense {
+public class License {
 
     @Id
     @Column(name = "ID", nullable = false)
@@ -38,12 +38,15 @@ public class TemplateLicense {
     private Integer priority;
 
     @Column(name = "LICENSE_TYPE")
+    @SerializedName("licenseId")
     private String licenseType;
 
     @Column(name = "TEMPLATE_TEXT", columnDefinition = "TEXT")
+    @SerializedName("licenseText")
     private String templateText;
 
     @Column(name = "LICENSE_NAME")
+    @SerializedName("name")
     private String licenseName;
 
     @Column(name = "DETAILS_URL")
@@ -53,9 +56,9 @@ public class TemplateLicense {
     private Boolean isSpdx;
 
     @OneToMany(mappedBy = "template", fetch = FetchType.LAZY)
-    private List<UsageLicense> usages = new ArrayList<>();
+    private List<SoftwareComponentLicenseUsage> usages = new ArrayList<>();
 
-    public TemplateLicense() {
+    public License() {
     }
 
     public Integer getPriority() {
@@ -106,14 +109,19 @@ public class TemplateLicense {
         this.isSpdx = isSpdx;
     }
 
-    public List<UsageLicense> getUsages() {
+    public List<SoftwareComponentLicenseUsage> getUsages() {
         return usages;
     }
 
-    public void setUsages(List<UsageLicense> usages) {
+    public void setUsages(List<SoftwareComponentLicenseUsage> usages) {
         this.usages = usages;
     }
 
+    public Long getId() {
+        return id;
+    }
 
-
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

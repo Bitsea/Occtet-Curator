@@ -27,25 +27,68 @@
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
 
 
-    <changeSet id="migrate-license-data" author="leoni">
-        <sql>
-            INSERT INTO TEMPLATE_LICENSE (id, priority, license_type, template_text, license_name, details_url, is_spdx,
-            version)
-            SELECT id, priority, license_type, license_text, license_name, details_url, is_spdx, 1 FROM LICENSE;
-        </sql>
+    <changeSet id="migrate-usage-licenses-link-table-1" author="leoni">
 
-        <sql>
-            INSERT INTO USAGE_LICENSE (id, template_id, version, software_component_id)
-            SELECT uuid_generate_v4(), id, 1, software_component_id
-            FROM LICENSE;
-        </sql>
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="SOFTWARE_COMPONENT_LICENSE_LINK"/>
+        </preConditions>
+        <renameTable oldTableName="SOFTWARE_COMPONENT_LICENSE_LINK" newTableName="SOFTWARE_COMPONENT_LICENSE_USAGE"/>
 
-        <sql>
-            INSERT INTO SOFTWARE_COMPONENT_USAGE_LICENSE_LINK (software_component_id, usage_license_id)
-            SELECT old_link.software_component_id, new_usage.id
-            FROM SOFTWARE_COMPONENT_LICENSE_LINK old_link
-            JOIN USAGE_LICENSE new_usage ON old_link.license_id = new_usage.template_id;
-        </sql>
+        <dropPrimaryKey tableName="SOFTWARE_COMPONENT_LICENSE_USAGE" />
+
+        <addColumn tableName="SOFTWARE_COMPONENT_LICENSE_USAGE">
+            <column name="ID" type="bigint">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SOFTWARE_COMPONENT_LICENSE_USAGE"/>
+            </column>
+            <column name="CUSTOM_TEXT" type="CLOB"/>
+            <column name="MODIFIED" type="BOOLEAN"/>
+            <column name="CURATED" type="BOOLEAN"/>
+            <column name="CUSTOM_NAME" type="text"/>
+            <column name="ORGANIZATION_ID" type="BIGINT"/>
+        </addColumn>
+
+    </changeSet>
+    <changeSet id="license-entity" author="leoni">
+
+        <dropColumn tableName="SOFTWARE_COMPONENT_LICENSE_USAGE" columnName="CUSTOM_LICENSE_ID"/>
+
+    </changeSet>
+
+    <changeSet id="license-entity-adjusting" author="leoni">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="LICENSE" columnName="LICENSE_TEXT"/>
+        </preConditions>
+
+        <renameColumn tableName="LICENSE" oldColumnName="LICENSE_TEXT" newColumnName="TEMPLATE_TEXT"/>
+        <dropColumn tableName="LICENSE" columnName="CURATED"/>
+        <dropColumn tableName="LICENSE" columnName="MODIFIED"/>
+    </changeSet>
+
+    <changeSet id="create-link-tables-for-usages" author="leoni">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="COPYRIGHT_LICENSE_USAGE_LINK"/>
+            </not>
+        </preConditions>
+        <createTable tableName="COPYRIGHT_LICENSE_USAGE_LINK">
+            <column name="COPYRIGHT_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SOFTWARE_COMPONENT_LICENSE_USAGE_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Constraints für Copyright Link -->
+        <addPrimaryKey tableName="COPYRIGHT_LICENSE_USAGE_LINK" columnNames="COPYRIGHT_ID, SOFTWARE_COMPONENT_LICENSE_USAGE_ID"/>
+
+        <addForeignKeyConstraint baseTableName="COPYRIGHT_LICENSE_USAGE_LINK" baseColumnNames="COPYRIGHT_ID"
+                                 referencedTableName="COPYRIGHT" referencedColumnNames="ID"
+                                 constraintName="FK_COPY_LIC_USE_ON_COPYRIGHT"/>
+        <addForeignKeyConstraint baseTableName="COPYRIGHT_LICENSE_USAGE_LINK" baseColumnNames="SOFTWARE_COMPONENT_LICENSE_USAGE_ID"
+                                 referencedTableName="SOFTWARE_COMPONENT_LICENSE_USAGE" referencedColumnNames="ID"
+                                 constraintName="FK_COPY_LIC_USE_ON_USAGE"/>
+
 
     </changeSet>
 

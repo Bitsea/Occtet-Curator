@@ -68,7 +68,7 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
     private static final Logger log = LogManager.getLogger(SoftwareComponentDetailView.class);
 
     @ViewComponent
-    private CollectionContainer<UsageLicense> licenseDc;
+    private CollectionContainer<SoftwareComponentLicenseUsage> licenseDc;
 
     @ViewComponent
     private CollectionContainer<Copyright> copyrightDc;
@@ -77,7 +77,7 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
     @ViewComponent
     private DataGrid<Copyright> copyrightDataGrid;
     @ViewComponent
-    private DataGrid<UsageLicense> licensesDataGrid;
+    private DataGrid<SoftwareComponentLicenseUsage> licensesDataGrid;
     @ViewComponent
     private JmixButton removeCopyrightButton;
     @ViewComponent
@@ -198,19 +198,35 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
 
         window.addAfterCloseListener(close -> {
             if (close.closedWith(StandardOutcome.SAVE)) {
-                //TODO  should this be usage or template licese?
-                // if the usage text is empty the template text should be shown
-                List<UsageLicense> selectedLicenses = window.getView().getSelectedLicenses();
 
-                if (selectedLicenses != null && !selectedLicenses.isEmpty()) {
-                    for (UsageLicense license : selectedLicenses) {
-                        UsageLicense trackedLicense = dataContext.merge(license);
+                List<License> selectedTemplates = window.getView().getSelectedLicenses();
 
-                        if (!softwareComponent.getUsageLicenses().contains(trackedLicense)) {
-                            softwareComponent.getUsageLicenses().add(trackedLicense);
-                            licenseDc.getMutableItems().add(trackedLicense);
+                if (selectedTemplates != null && !selectedTemplates.isEmpty()) {
+                    for (License template : selectedTemplates) {
+
+                        boolean alreadyExists = softwareComponent.getUsageLicenses().stream()
+                                .anyMatch(usage -> usage.getTemplate() != null && usage.getTemplate().equals(template));
+
+                        if (!alreadyExists) {
+
+                            SoftwareComponentLicenseUsage newUsage = dataContext.create(SoftwareComponentLicenseUsage.class);
+
+                            newUsage.setTemplate(template);
+                            newUsage.setIsModified(false);
+                            newUsage.setCustomName(template.getLicenseName());
+                            newUsage.setCurated(false);
+
+                            if (softwareComponent.getOrganization() != null) {
+                                newUsage.setOrganization(softwareComponent.getOrganization());
+                            }
+
+                            softwareComponent.addLicenseUsage(newUsage);
+
+                            licenseDc.getMutableItems().add(newUsage);
                         }
                     }
+
+                    dataContext.merge(softwareComponent);
                     infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseAdd"));
                 }
             }
@@ -231,18 +247,12 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
         window.open();
 
         window.addAfterCloseListener(close -> {
-            if (close.closedWith(StandardOutcome.SAVE)) {
-                UsageLicense newLicense = window.getView().getCreatedLicense();
+            SoftwareComponentLicenseUsage newUsage = window.getView().getCreatedUsage();
+            if (newUsage != null) {
 
-                if (newLicense != null) {
-                    UsageLicense trackedLicense = dataContext.merge(newLicense);
-                    if (softwareComponent.getUsageLicenses() == null) {
-                        softwareComponent.setUsageLicenses(new ArrayList<>());
-                    }
-                    softwareComponent.getUsageLicenses().add(trackedLicense);
-                    licenseDc.getMutableItems().add(trackedLicense);
-                    infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseCreate"));
-                }
+                licenseDc.getMutableItems().add(newUsage);
+                infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseCreate"));
+
             }
         });
     }
@@ -312,11 +322,11 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
      */
     @Subscribe(id = "removeLicenseButton")
     public void removeLicenses(ClickEvent<JmixButton> event) {
-        Set<UsageLicense> selectedLicenses = licensesDataGrid.getSelectedItems();
+        Set<SoftwareComponentLicenseUsage> selectedLicenses = licensesDataGrid.getSelectedItems();
         SoftwareComponent softwareComponent = getEditedEntity();
 
         if (!selectedLicenses.isEmpty() && softwareComponent != null) {
-            for (UsageLicense license : selectedLicenses) {
+            for (SoftwareComponentLicenseUsage license : selectedLicenses) {
                 softwareComponent.getUsageLicenses().remove(license);
                 licenseDc.getMutableItems().remove(license);
             }

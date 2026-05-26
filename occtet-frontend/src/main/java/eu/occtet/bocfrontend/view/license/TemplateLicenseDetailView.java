@@ -19,7 +19,7 @@
 package eu.occtet.bocfrontend.view.license;
 
 import com.vaadin.flow.router.Route;
-import eu.occtet.bocfrontend.entity.TemplateLicense;
+import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.flowui.view.EditedEntityContainer;
 import io.jmix.flowui.view.StandardDetailView;
@@ -30,5 +30,6 @@ import io.jmix.flowui.view.ViewDescriptor;
 @ViewController(id = "TemplateLicense.detail")
 @ViewDescriptor(path = "template-license-detail-view.xml")
 @EditedEntityContainer("licenseDc")
-public class TemplateLicenseDetailView extends StandardDetailView<TemplateLicense> {
+public class TemplateLicenseDetailView extends StandardDetailView<License> {
+
 }

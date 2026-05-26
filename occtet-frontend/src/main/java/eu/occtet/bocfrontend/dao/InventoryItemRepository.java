@@ -46,7 +46,7 @@ public interface InventoryItemRepository extends JmixDataRepository<InventoryIte
     List<InventoryItem> findByBeforeProjectAndInventoryNameAndCurated(Project project, String name, boolean curated);
     @Query("select distinct i from InventoryItem i " +
             "join i.softwareComponent sc " +
-            "join sc.licenses ul " +
-            "where i.project = :project and ul.template = :templateLicense")
-    List<InventoryItem> findByTemplateLicenseAndProject(TemplateLicense templateLicense, Project project);
+            "join sc.usageLicenses lu " +
+            "where i.project = :project and lu.template = :template")
+    List<InventoryItem> findByTemplateLicenseAndProject(License template, Project project);
 }

@@ -19,14 +19,14 @@
 
 package eu.occtet.bocfrontend.model;
 
-import eu.occtet.bocfrontend.entity.TemplateLicense;
+import eu.occtet.bocfrontend.entity.License;
 
 import java.util.List;
 
 public class SPDXLicenseInfos {
 
         private String licenseListVersion;
-        private List<TemplateLicense> licenses;
+        private List<License> licenses;
         private String releaseDate;
 
         public String getLicenseListVersion() {
@@ -37,11 +37,11 @@ public class SPDXLicenseInfos {
             this.licenseListVersion = licenseListVersion;
         }
 
-        public List<TemplateLicense> getLicenses() {
+        public List<License> getLicenses() {
             return licenses;
         }
 
-        public void setLicenses(List<TemplateLicense> licenses) {
+        public void setLicenses(List<License> licenses) {
             this.licenses = licenses;
         }
 

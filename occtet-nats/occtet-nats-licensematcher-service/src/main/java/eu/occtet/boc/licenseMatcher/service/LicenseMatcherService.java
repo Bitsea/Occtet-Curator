@@ -22,7 +22,7 @@ package eu.occtet.boc.licenseMatcher.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.entity.UsageLicense;
+import eu.occtet.boc.entity.SoftwareComponentLicenseUsage;
 import eu.occtet.boc.licenseMatcher.factory.InventoryItemFactory;
 import eu.occtet.boc.licenseMatcher.tools.LicenseMatcher;
 import eu.occtet.boc.model.AILicenseMatcherWorkData;
@@ -103,7 +103,7 @@ public class LicenseMatcherService extends BaseWorkDataProcessor {
                 InventoryItem item = optItem.get();
                 log.debug("working on item {}, softwareComponent {}", item.getInventoryName(), item.getSoftwareComponent().getName());
                 log.debug("softwarecomponent has {} licenses", item.getSoftwareComponent().getUsageLicenses().size());
-                for (UsageLicense license : item.getSoftwareComponent().getUsageLicenses()) {
+                for (SoftwareComponentLicenseUsage license : item.getSoftwareComponent().getUsageLicenses()) {
                     String licenseId = license.getTemplate().getLicenseType();
                     String licenseText = license.getUsageText();
                     if(licenseId.contains("LicenseRef-") || licenseId.contains("licenseref-")){

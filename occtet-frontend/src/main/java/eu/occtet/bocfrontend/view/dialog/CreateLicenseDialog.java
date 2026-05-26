@@ -27,13 +27,11 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
-import eu.occtet.bocfrontend.entity.TemplateLicense;
-import eu.occtet.bocfrontend.entity.UsageLicense;
-import eu.occtet.bocfrontend.service.LicenseService;
-import io.jmix.core.DataManager;
+import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
 import io.jmix.core.Messages;
-import io.jmix.core.SaveContext;
 import io.jmix.flowui.Notifications;
+import io.jmix.flowui.model.DataContext;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -48,7 +46,7 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
     private static final Logger log = LogManager.getLogger(CreateLicenseDialog.class);
 
     private SoftwareComponent softwareComponent;
-    private TemplateLicense createdLicense;
+
 
     @ViewComponent
     private TextField licenseNameField;
@@ -75,16 +73,19 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
     private TextArea licenseTextField;
 
     @Autowired
-    private LicenseService licenseService;
-
-    @Autowired
     private Notifications notifications;
 
     @Autowired
-    private DataManager dataManager;
-
-    @Autowired
     private Messages messages;
+    @Autowired
+    private DataContext dataContext;
+
+    private SoftwareComponentLicenseUsage createdUsage;
+
+
+    public SoftwareComponentLicenseUsage getCreatedUsage() {
+        return createdUsage;
+    }
 
 
     @Subscribe
@@ -111,29 +112,25 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
         if (checkInput(priority, licenseType, licenseText, licenseName, detailsUrl)) {
 
             try {
-                SaveContext saveContext = new SaveContext();
 
-                TemplateLicense templateLicense = dataManager.create(TemplateLicense.class);
-                templateLicense.setPriority(Integer.valueOf(priority));
-                templateLicense.setLicenseType(licenseType);
-                templateLicense.setTemplateText(licenseText);
-                templateLicense.setLicenseName(licenseName);
-                templateLicense.setDetailsUrl(detailsUrl);
-                templateLicense.setIsSpdx(isSpdxField.getValue());
+                License license = dataContext.create(License.class);
+                license.setPriority(Integer.valueOf(priority));
+                license.setLicenseType(licenseType);
+                license.setTemplateText(licenseText);
+                license.setLicenseName(licenseName);
+                license.setDetailsUrl(detailsUrl);
+                license.setIsSpdx(isSpdxField.getValue());
 
-                UsageLicense usageLicense = dataManager.create(UsageLicense.class);
-                usageLicense.setUsageText(licenseText);
-                usageLicense.setModified(isModifiedField.getValue());
-                usageLicense.setCurated(isCuratedField.getValue());
-                usageLicense.setTemplate(templateLicense);
-                usageLicense.setSoftwareComponent(this.softwareComponent);
+                createdUsage = dataContext.create(SoftwareComponentLicenseUsage.class);
+                createdUsage.setIsModified(isModifiedField.getValue());
+                createdUsage.setCurated(isCuratedField.getValue());
+                createdUsage.setTemplate(license);
+                createdUsage.setSoftwareComponent(this.softwareComponent);
 
-                this.softwareComponent.getUsageLicenses().add(usageLicense);
+                this.softwareComponent.addLicenseUsage(createdUsage);
 
-                saveContext.saving(templateLicense, usageLicense, this.softwareComponent);
-                dataManager.save(saveContext);
 
-                log.debug("Created and added new license template and usage {} to softwareComponent", templateLicense.getLicenseName());
+                log.debug("Created and added new license template and usage {} to softwareComponent", license.getLicenseName());
             close(StandardOutcome.SAVE);
             }catch (IllegalArgumentException e) {
                 notifications.create(messages.formatMessage(getClass(), "duplicate.error", licenseType))
@@ -163,9 +160,5 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
                 licenseText != null && !licenseText.trim().isEmpty() &&
                 licenseName != null && !licenseName.trim().isEmpty() &&
                 detailsUrl != null && !detailsUrl.trim().isEmpty();
-    }
-
-    public TemplateLicense getCreatedLicense() {
-        return createdLicense;
     }
 }

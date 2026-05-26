@@ -19,15 +19,14 @@
 package eu.occtet.boc.entity;
 
 import jakarta.persistence.*;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.HashSet;
 import java.util.Set;
 
+
+@Table(name = "SOFTWARE_COMPONENT_LICENSE_USAGE")
 @Entity
-@Table(name = "USAGE_LICENSE")
-@EntityListeners(AuditingEntityListener.class)
-public class UsageLicense implements HasOrganization {
+public class SoftwareComponentLicenseUsage implements HasOrganization {
 
     @Id
     @Column(name = "ID", nullable = false)
@@ -36,6 +35,7 @@ public class UsageLicense implements HasOrganization {
 
     @Column(name = "CUSTOM_NAME", columnDefinition = "TEXT")
     private String customName;
+
 
     @Column(name = "USAGE_TEXT", columnDefinition = "TEXT")
     private String usageText;
@@ -46,12 +46,15 @@ public class UsageLicense implements HasOrganization {
     @Column(name = "CURATED")
     private Boolean curated;
 
-    @ManyToMany(mappedBy = "usageLicenses")
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "SOFTWARE_COMPONENT_ID")
     private SoftwareComponent softwareComponent;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "TEMPLATE_LICENSE_ID")
-    private TemplateLicense template;
+    @JoinColumn(name = "LICENSE_ID")
+    private License template;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ORGANIZATION_ID")
@@ -59,6 +62,7 @@ public class UsageLicense implements HasOrganization {
 
     @ManyToMany(mappedBy = "licenses")
     private Set<Copyright> copyrights = new HashSet<>();
+
 
     public Long getId() {
         return id;
@@ -72,11 +76,24 @@ public class UsageLicense implements HasOrganization {
         this.usageText = usageText;
     }
 
-    public Boolean getModified() {
+    public String getEffectiveText() {
+        //usagetext has precedence over template text
+        if (usageText != null && !usageText.isBlank()) {
+            return usageText;
+        }
+        return template.getLicenseText();
+    }
+
+    public String getEffectiveName() {
+        return (customName != null) ? customName: template.getLicenseName();
+    }
+
+
+    public Boolean getIsModified() {
         return isModified;
     }
 
-    public void setModified(Boolean modified) {
+    public void setIsModified(Boolean modified) {
         isModified = modified;
     }
 
@@ -96,12 +113,16 @@ public class UsageLicense implements HasOrganization {
         this.softwareComponent = softwareComponent;
     }
 
-    public void setTemplate(TemplateLicense template) {
+    public void setTemplate(License template) {
         this.template = template;
     }
 
-    public TemplateLicense getTemplate() {
+    public License getTemplate() {
         return template;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getCustomName() {
@@ -130,7 +151,6 @@ public class UsageLicense implements HasOrganization {
         this.organization = organization;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+
+
 }

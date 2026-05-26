@@ -18,8 +18,8 @@
 
 package eu.occtet.boc.spdx.service;
 
-import eu.occtet.boc.dao.TemplateLicenseRepository;
-import eu.occtet.boc.entity.TemplateLicense;
+import eu.occtet.boc.dao.LicenseRepository;
+import eu.occtet.boc.entity.License;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -29,29 +29,28 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TemplateLicenseService {
+public class LicenseService {
 
-    private static final Logger log = LogManager.getLogger(TemplateLicenseService.class);
+    private static final Logger log = LogManager.getLogger(LicenseService.class);
 
     @Autowired
-    private TemplateLicenseRepository templateLicenseRepository;
+    private LicenseRepository licenseRepository;
 
-    public TemplateLicense findOrCreateTemplateLicense(String licenseId, String templateText, String licenseName, boolean isSpdx) {
+    public License findOrCreateTemplateLicense(String licenseId, String templateText) {
         log.debug("Finding or creating Template License for {}", licenseId);
 
         // Only check by ID/Type now, variations in text belong to UsageLicense
-        List<TemplateLicense> templates = templateLicenseRepository.findByLicenseType(licenseId);
+        List<License> templates = licenseRepository.findByLicenseType(licenseId);
 
         if (!templates.isEmpty()) {
             return templates.getFirst();
         } else {
-            TemplateLicense newTemplate = new TemplateLicense();
+            License newTemplate = new License();
             newTemplate.setLicenseType(licenseId);
-            newTemplate.setTemplateText(templateText);
-            newTemplate.setLicenseName(licenseName);
-            newTemplate.setIsSpdx(isSpdx);
+            newTemplate.setLicenseText(templateText);
+            newTemplate.setLicenseName(licenseId);
 
-            return templateLicenseRepository.save(newTemplate);
+            return licenseRepository.save(newTemplate);
         }
     }
 }

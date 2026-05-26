@@ -66,7 +66,7 @@ public class SoftwareComponentListView extends StandardListView<SoftwareComponen
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
     @Autowired
-    Messages messages;
+    private Messages messages;
 
 
     @Subscribe
@@ -105,7 +105,7 @@ public class SoftwareComponentListView extends StandardListView<SoftwareComponen
         }
     }
 
-    @Supply(to = "softwareComponentsDataGrid.licenses", subject = "renderer")
+    @Supply(to = "softwareComponentsDataGrid.usageLicenses", subject = "renderer")
     private Renderer<SoftwareComponent> licensesRenderer() {
         return new TextRenderer<>(component -> {
 

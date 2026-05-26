@@ -38,14 +38,13 @@
         </instance>
 
         <collection id="licenseDc"
-                    class="eu.occtet.bocfrontend.entity.UsageLicense">
+                    class="eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage">
             <fetchPlan extends="_base">
                 <property name="template" fetchPlan="_base">
-                    <property name="licenseName"/>
                 </property>
             </fetchPlan>
             <loader id="licenseDl">
-                <query><![CDATA[select e from License e]]></query>
+                <query><![CDATA[select e from SoftwareComponentLicenseUsage e]]></query>
             </loader>
         </collection>
     </data>
@@ -66,6 +65,7 @@
                             <textField  dataContainer="softwareComponentDc" id="versionField" property="version" label="msg://eu.occtet.bocfrontend.entity/Project.version" width="10em"/>
                         </hbox>
                         <textField id="url" property="detailsUrl" label="msg://eu.occtet.bocfrontend.entity/LicenseType.detailsUrl"/>
+                        <textField id="purl" property="purl" label="msg://eu.occtet.bocfrontend.entity/OrtIssue.purl"/>
                         <checkbox id="curatedField" property="curated" label="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
                         <checkbox id="licenseAICurated" property="licenseAiControlled" label="msg://licenseAiControlled"/>
                     </formLayout>

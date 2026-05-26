@@ -152,31 +152,14 @@ public class OrphanHandler {
                 }
 
                 if (fileLicense != null) {
-                    List<UsageLicense> usageLicenses = licenseHandler.createUsageLicenses(fileLicense, context.getLicenseCache(),
-                            context.getExtractedLicenseInfos(), context.getProject().getOrganization());
-
-                    if (component.getUsageLicenses() == null){
-                        component.setUsageLicenses(new ArrayList<>());
-                        componentUpdated = true;
-                    }
-
-                    for (UsageLicense newUsage : usageLicenses) {
-                        // Prevent duplicates by checking if this component already uses this Template ID
-                        boolean alreadyExists = component.getUsageLicenses().stream()
-                                .anyMatch(existing -> existing.getTemplate().getLicenseType()
-                                        .equals(newUsage.getTemplate().getLicenseType()));
-
-                        if (!alreadyExists) {
-                            newUsage.setSoftwareComponent(component); // Bind the component
-                            component.getUsageLicenses().add(newUsage);
-                            componentUpdated = true;
-                        }
-                    }
+                    licenseHandler.createUsageLicenses(fileLicense, context,
+                            context.getExtractedLicenseInfos(), component, context.getProject().getOrganization());
+                    componentUpdated= true;
                 }
 
-                if (componentUpdated) {
+                if(componentUpdated)
                     softwareComponentService.update(component);
-                }
+
                 context.getInventoryItems().add(inventoryItem);
             }
 

@@ -41,7 +41,7 @@ public class SpdxImportContext {
     private Collection<ExtractedLicenseInfo> extractedLicenseInfos;
     private Map<String, SpdxPackageEntity> packageLookupMap = new HashMap<>();
     private Map<String, SoftwareComponent> componentCache = new HashMap<>();
-    private Map<String, TemplateLicense> licenseCache = new HashMap<>();
+    private Map<String, License> licenseCache = new HashMap<>();
     private Map<String, InventoryItem> fileToInventoryItemMap = new HashMap<>();
     private Map<String, InventoryItem> inventoryCache = new HashMap<>();
 
@@ -94,11 +94,11 @@ public class SpdxImportContext {
         this.componentCache = componentCache;
     }
 
-    public Map<String, TemplateLicense> getLicenseCache() {
+    public Map<String, License> getLicenseCache() {
         return licenseCache;
     }
 
-    public void setLicenseCache(Map<String, TemplateLicense> licenseCache) {
+    public void setLicenseCache(Map<String, License> licenseCache) {
         this.licenseCache = licenseCache;
     }
 

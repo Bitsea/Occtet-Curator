@@ -21,7 +21,8 @@ package eu.occtet.bocfrontend.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import eu.occtet.bocfrontend.entity.TemplateLicense;
+import com.google.gson.JsonDeserializer;
+import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.factory.TemplateLicenseFactory;
 import eu.occtet.bocfrontend.model.SPDXLicenseDetails;
 import eu.occtet.bocfrontend.model.SPDXLicenseInfos;
@@ -37,6 +38,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.reflections.Reflections.log;
@@ -65,10 +68,13 @@ public class SPDXLicenseService {
 
             InputStreamReader br = new InputStreamReader(inputStream);
             GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.registerTypeAdapter(LocalDateTime.class, (JsonDeserializer<LocalDateTime>) (json, typeOfT, context) ->
+                    LocalDateTime.parse(json.getAsString(), DateTimeFormatter.ISO_DATE_TIME)
+            );
             Gson gson = gsonBuilder.create();
             SPDXLicenseInfos spdxLicenseInfos = gson.fromJson(br, SPDXLicenseInfos.class);
 
-            List<TemplateLicense> licenses = spdxLicenseInfos.getLicenses();
+            List<License> licenses = spdxLicenseInfos.getLicenses();
             log.debug("Size of spdx licenses: {}",licenses.size());
             if(!licenses.isEmpty() && licenses != null){saveLicenseInfos(licenses);}
 
@@ -77,7 +83,7 @@ public class SPDXLicenseService {
         }
     }
 
-    private void saveLicenseInfos(List<TemplateLicense> licenses){
+    private void saveLicenseInfos(List<License> licenses){
 
         licenses.forEach(license -> {
             if(license.getLicenseType() == null){
@@ -96,11 +102,11 @@ public class SPDXLicenseService {
         });
     }
 
-    private boolean isSpdxLicense(TemplateLicense license) {
+    private boolean isSpdxLicense(License license) {
         return license.getDetailsUrl().startsWith("https://spdx.org");
     }
 
-    private void downloadLicenseText(TemplateLicense license, String url) {
+    private void downloadLicenseText(License license, String url) {
         try {
             // download the license Text from the details Url
             WebClient client = WebClient.create(url);

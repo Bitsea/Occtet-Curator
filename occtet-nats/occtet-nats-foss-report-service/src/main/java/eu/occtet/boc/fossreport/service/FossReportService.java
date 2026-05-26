@@ -144,7 +144,7 @@ public class FossReportService extends ProgressReportingService {
             boolean wasCombined = FossReportUtilities.wasCombined(inventoryName);
             boolean isStyleBy = inventoryName.contains("Style");
             String url = rowDto.URL();
-            List<UsageLicense> licenses = prepareLicenses(wasCombined, isStyleBy, rowDto);
+            List<SoftwareComponentLicenseUsage> licenses = prepareLicenses(wasCombined, isStyleBy, rowDto, project.getOrganization());
             String parentComponentVersion = FossReportUtilities.extractVersion(rowDto.parentNameAndVersion());
             String parentComponentName = FossReportUtilities.extractVersionOfComponentName(rowDto.parentNameAndVersion(),
                     parentComponentVersion);
@@ -227,10 +227,10 @@ public class FossReportService extends ProgressReportingService {
      *
      * @return a list of License objects containing extracted license information.
      */
-    private List<UsageLicense> prepareLicenses(boolean wasCombined, Boolean isStyleBy, RowDto rowDto, Organization organization) {
+    private List<SoftwareComponentLicenseUsage> prepareLicenses(boolean wasCombined, Boolean isStyleBy, RowDto rowDto, Organization organization) {
 
         List<String> licenseNames;
-        List<UsageLicense> licenses = new ArrayList<>();
+        List<SoftwareComponentLicenseUsage> licenses = new ArrayList<>();
 
         if (wasCombined) {
             licenseNames = FossReportUtilities.separateCombinedLicenses(rowDto.licenseTypeId());

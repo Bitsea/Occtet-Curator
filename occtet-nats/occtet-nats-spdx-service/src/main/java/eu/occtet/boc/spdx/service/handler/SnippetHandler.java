@@ -100,10 +100,7 @@ public class SnippetHandler {
 
         enrichComponentFromSnippet(
                 snippet,
-                context.getFileToInventoryItemMap(),
-                context.getLicenseCache(),
-                context.getExtractedLicenseInfos(),
-                context.getProject().getOrganization()
+                context
         );
     }
 
@@ -112,11 +109,16 @@ public class SnippetHandler {
      * copyright and license info found in the snippet.
      */
     private void enrichComponentFromSnippet(SpdxSnippet snippet,
-                                            Map<String, InventoryItem> fileMap,
-                                            Map<String, TemplateLicense> licenseCache,
-                                            Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc,
-                                            Organization organization
-    ) {SpdxFile snippetFile;
+                                            SpdxImportContext context
+    ) {
+
+        Map<String, InventoryItem> fileMap= context.getFileToInventoryItemMap();
+        Map<String, License> licenseCache= context.getLicenseCache();
+        Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc= context.getExtractedLicenseInfos();
+        Organization organization = context.getProject().getOrganization();
+
+
+        SpdxFile snippetFile;
         try {
             snippetFile = snippet.getSnippetFromFile();
             if (snippetFile == null) return;
@@ -157,25 +159,9 @@ public class SnippetHandler {
 
             AnyLicenseInfo concluded = snippet.getLicenseConcluded();
             if (concluded != null && !concluded.isNoAssertion(concluded) && !concluded.isNoAssertion(concluded)) {
-                List<UsageLicense> usageLicenses = licenseHandler.createUsageLicenses(concluded, licenseCache,
-                        licenseInfosExtractedSpdxDoc, organization);
-
-                if (component.getUsageLicenses() == null) {
-                    component.setUsageLicenses(new ArrayList<>());
-                }
-
-                for (UsageLicense newUsage : usageLicenses) {
-                    // Prevent duplicates by checking if this component already uses this Template ID
-                    boolean alreadyExists = component.getUsageLicenses().stream()
-                            .anyMatch(existing -> existing.getTemplate().getLicenseType()
-                                    .equals(newUsage.getTemplate().getLicenseType()));
-
-                    if (!alreadyExists) {
-                        newUsage.setSoftwareComponent(component); // Bind the component
-                        component.getUsageLicenses().add(newUsage);
+                licenseHandler.createUsageLicenses(concluded, context,
+                        licenseInfosExtractedSpdxDoc,component, context.getProject().getOrganization());
                         componentUpdated = true;
-                    }
-                }
             }
 
             if (componentUpdated) {

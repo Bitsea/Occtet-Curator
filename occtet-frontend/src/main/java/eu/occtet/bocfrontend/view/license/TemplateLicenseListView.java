@@ -29,7 +29,7 @@ import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.dao.TemplateLicenseRepository;
 import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.TemplateLicense;
+import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.service.SPDXLicenseService;
 import eu.occtet.bocfrontend.view.main.MainView;
 import eu.occtet.bocfrontend.view.services.LicenseTextService;
@@ -52,6 +52,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Route(value = "template-licenses", layout = MainView.class)
@@ -59,15 +60,22 @@ import java.util.stream.Collectors;
 @ViewDescriptor(path = "template-license-list-view.xml")
 @LookupComponent("licensesDataGrid")
 @DialogMode(width = "80%", height = "80%")
-public class TemplateLicenseListView extends StandardListView<TemplateLicense> {
+public class TemplateLicenseListView extends StandardListView<License> {
 
     private static final Logger log = LogManager.getLogger(TemplateLicenseListView.class);
 
-    private final static String SIMILARITY_RANK_COLUMN_ID = "Similarity Rank";
     private static final int MAX_FULLTEXT_RESULTS = 50;
 
     @ViewComponent
-    private CollectionLoader<TemplateLicense> licensesDl;
+    private CollectionLoader<License> licensesDl;
+    @ViewComponent
+    private DataGrid<License> licensesDataGrid;
+    @ViewComponent
+    private CollectionContainer<License> licensesDc;
+    @ViewComponent
+    private JmixComboBox<Project> projectComboBox;
+    @ViewComponent
+    private HorizontalLayout filterBox;
 
     @Autowired
     private SPDXLicenseService spdxLicenseService;
@@ -75,40 +83,46 @@ public class TemplateLicenseListView extends StandardListView<TemplateLicense> {
     private DialogWindows dialogWindows;
     @Autowired
     private LicenseTextService licenseTextService;
-
-    @ViewComponent
-    private DataGrid<TemplateLicense> licensesDataGrid;
-
     @Autowired
     private Messages messages;
-
-    @ViewComponent
-    private CollectionContainer<TemplateLicense> licensesDc;
-
     @Autowired
-    private TemplateLicenseRepository templateLicenseRepository;
-
-    @ViewComponent
-    private JmixComboBox<Project> projectComboBox;
-
+    private TemplateLicenseRepository licenseRepository;
     @Autowired
     private ProjectRepository projectRepository;
 
-    @ViewComponent
-    private HorizontalLayout filterBox;
-
     @Subscribe
-    public void onInit(InitEvent event) {
-        projectComboBox.setItems(projectRepository.findAll());
-        projectComboBox.setItemLabelGenerator(project -> project.getProjectName() + " - " + project.getVersion());
+    public void onInit(InitEvent event){
+        Project showAllProject = new Project();
+        showAllProject.setProjectName(messages.getMessage("Showall"));
+        showAllProject.setVersion("");
+        showAllProject.setId(new Random().nextLong());
+
+        List<Project> allProjects = new java.util.ArrayList<>();
+        allProjects.add(showAllProject);
+        allProjects.addAll(projectRepository.findAll());
+
+        projectComboBox.setItems(allProjects);
+        projectComboBox.setItemLabelGenerator(project -> {
+            if (messages.getMessage("Showall").equals(project.getProjectName())) {
+                return project.getProjectName();
+            }
+            return project.getProjectName() + " - " + project.getVersion();
+        });
     }
 
     @Subscribe(id = "projectComboBox")
-    public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event) {
-        if (event != null) {
-            List<TemplateLicense> licensesProject = templateLicenseRepository.findTemplateLicensesByProject(event.getValue());
-            loadLicenses(licensesProject);
-            filterBox.setVisible(!licensesProject.isEmpty());
+    public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
+        if(event != null){
+            Project selectedProject = event.getValue();
+            if (selectedProject == null || messages.getMessage("Showall").equals(selectedProject.getProjectName())) {
+                List<License> licenses = licenseRepository.findAll();
+                loadLicenses(licenses);
+                filterBox.setVisible(!licenses.isEmpty());
+            }else {
+                List<License> licensesProject = licenseRepository.findTemplateLicensesByProject(event.getValue());
+                loadLicenses(licensesProject);
+                filterBox.setVisible(!licensesProject.isEmpty());
+            }
         }
     }
 
@@ -131,49 +145,44 @@ public class TemplateLicenseListView extends StandardListView<TemplateLicense> {
 
     private void doFulltextSearch(String search) {
         if (!StringUtils.isEmpty(search)) {
-
-            List<Pair<TemplateLicense, Float>> licenseTypes = licenseTextService.findBySimilarity(search, MAX_FULLTEXT_RESULTS);
-
-            Map<String, Float> similarityMap = licenseTypes.stream()
-                    .collect(Collectors.toMap(
-                            pair -> pair.getKey().getLicenseType(),
-                            Pair::getValue,
-                            (existing, replacement) -> existing // Keeps the first one if there are duplicate license types
-                    ));
-
-            DataGridColumn<TemplateLicense> dgc = licensesDataGrid.addColumn(new TextRenderer<>(entity -> {
-                Float rank = similarityMap.get(entity.getLicenseType());
-                return rank != null ? new DecimalFormat("#").format(rank * 100) : "";
+            List<Pair<License, Float>> licenseTypes = new ArrayList<>(licenseTextService.findBySimilarity(search, MAX_FULLTEXT_RESULTS));
+            DataGridColumn dgc =licensesDataGrid.addColumn(new TextRenderer<>(entity -> {
+                AtomicReference<String> rankLabel = new AtomicReference<>("");
+                Optional<Float> rankValue= licenseTypes.stream()
+                        .filter(lt -> entity.getLicenseType().equals(lt.getKey().getLicenseType()))
+                        .map(Pair::getValue).findFirst();
+                rankValue.ifPresent(rank -> rankLabel.set("" + new DecimalFormat("#").format(rank * 100)));
+                return rankLabel.get();
             }));
-            String key = messages.getMessage(getClass(), "similarityRank");
-            if (licensesDataGrid.getColumnByKey(key) == null) {
+            String key=messages.getMessage(getClass(), "similarityRank");
+            if (licensesDataGrid.getColumnByKey(key)==null) {
                 dgc.setKey(messages.getMessage(getClass(), "similarityRank"));
                 dgc.setHeader(messages.getMessage(getClass(), "similarityRank"));
             }
             licensesDc.setItems(licenseTypes.stream().map(Pair::getKey).collect(Collectors.toList()));
         } else {
             log.debug("empty search, loading all licenses");
-            licensesDc.setItems(templateLicenseRepository.findAll());
+            licensesDc.setItems( licenseRepository.findAll());
         }
     }
 
     private void checkAndRemoveSimilarityColumn() {
-        String key = messages.getMessage(getClass(), "similarityRank");
-        if (licensesDataGrid.getColumnByKey(key) != null)
+        String key=messages.getMessage(getClass(), "similarityRank");
+        if (licensesDataGrid.getColumnByKey(key)!=null)
             licensesDataGrid.removeColumnByKey(key);
     }
 
     @Subscribe("fetchSPDXButton")
-    public void fetchSPDX_Licenses(ClickEvent<Button> event) {
+    public void fetchSPDX_Licenses(ClickEvent<Button> event){
         checkAndRemoveSimilarityColumn();
         spdxLicenseService.readDefaultLicenseInfos();
-        licensesDl.load();
+        loadLicenses(licenseRepository.findTemplateLicensesByProject(projectComboBox.getValue()));
     }
 
     @Subscribe("licensesDataGrid")
-    public void clickOnLicenseDatagrid(ItemDoubleClickEvent<TemplateLicense> event) {
+    public void clickOnLicenseDatagrid(ItemDoubleClickEvent<License> event){
         DialogWindow<TemplateLicenseDetailView> window =
-                dialogWindows.detail(this, TemplateLicense.class)
+                dialogWindows.detail(this, License.class)
                         .withViewClass(TemplateLicenseDetailView.class)
                         .editEntity(event.getItem())
                         .build();
@@ -182,15 +191,8 @@ public class TemplateLicenseListView extends StandardListView<TemplateLicense> {
         window.open();
     }
 
-    @Subscribe("showAllButton")
-    public void clickOnShowAllButton(ClickEvent<Button> event) {
-        List<TemplateLicense> licenses = templateLicenseRepository.findAll();
-        loadLicenses(licenses);
-        filterBox.setVisible(!licenses.isEmpty());
-    }
-
-    private void loadLicenses(List<TemplateLicense> licenses) {
-        licensesDl.setParameter("licenses", licenses);
+    private void loadLicenses(List<License> licenses){
+        licensesDl.setParameter("licenses",licenses);
         licensesDl.load();
     }
 }

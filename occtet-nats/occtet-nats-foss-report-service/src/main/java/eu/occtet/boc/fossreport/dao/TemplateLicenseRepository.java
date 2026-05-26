@@ -18,10 +18,10 @@
 
 package eu.occtet.boc.fossreport.dao;
 
-import eu.occtet.boc.entity.TemplateLicense;
+import eu.occtet.boc.entity.License;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface TemplateLicenseRepository extends JpaRepository<TemplateLicense, Long> {
+public interface TemplateLicenseRepository extends JpaRepository<License, Long> {
 }

@@ -21,11 +21,10 @@ package eu.occtet.boc.fossreport.service;
 
 
 import eu.occtet.boc.dao.SoftwareComponentRepository;
-import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.SoftwareComponent;
-import eu.occtet.boc.entity.UsageLicense;
 
+import eu.occtet.boc.entity.SoftwareComponentLicenseUsage;
 import eu.occtet.boc.fossreport.factory.SoftwareComponentFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,7 +44,7 @@ public class SoftwareComponentService {
     public SoftwareComponent getOrCreateSoftwareComponent(
             String softwareName,
             String version,
-            List<UsageLicense> license,
+            List<SoftwareComponentLicenseUsage> license,
             String url, Organization organization){
         List<SoftwareComponent> existing = softwareComponentRepository.findByNameAndVersion(softwareName, version);
 
@@ -74,7 +73,7 @@ public class SoftwareComponentService {
 
     private void updateSoftwareComponent(
             SoftwareComponent softwareComponent,
-            List<UsageLicense> license, String url) {
+            List<SoftwareComponentLicenseUsage> license, String url) {
         if (!softwareComponent.isCurated()) {
             if (license != null) {
                 if (softwareComponent.getUsageLicenses() == null) {
@@ -82,7 +81,7 @@ public class SoftwareComponentService {
                 } else
                     license.forEach(l -> {
                         if (!softwareComponent.getUsageLicenses().contains(l))
-                            softwareComponent.addLicense(l);
+                            softwareComponent.addLicenseUsage(l);
                     });
             }
             if (url != null && !url.isEmpty()) {

@@ -20,8 +20,8 @@
 package eu.occtet.boc.fossreport.service;
 
 
-import eu.occtet.boc.dao.TemplateLicenseRepository;
-import eu.occtet.boc.entity.TemplateLicense;
+import eu.occtet.boc.dao.LicenseRepository;
+import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.fossreport.factory.LicenseFactory;
 import org.slf4j.Logger;
@@ -40,16 +40,16 @@ public class LicenseService {
     private LicenseFactory licenseFactory;
 
     @Autowired
-    private TemplateLicenseRepository licenseRepository;
+    private LicenseRepository licenseRepository;
 
-    public TemplateLicense findOrCreateLicenseWithModified(String licenseId, String licenseText, Boolean modified, Organization organization){
-        List<TemplateLicense> license = licenseRepository.findByLicenseType(licenseId);
+    public License findOrCreateLicenseWithModified(String licenseId, String licenseText, Boolean modified, Organization organization){
+        List<License> license = licenseRepository.findByLicenseType(licenseId);
 
         if (!license.isEmpty()) {
             return license.getFirst();
         } else {
 
-            return licenseFactory.createWithModified(licenseId, licenseText, modified, organization);
+            return licenseFactory.createWithModified(licenseId, licenseText, modified);
         }
     }
 }

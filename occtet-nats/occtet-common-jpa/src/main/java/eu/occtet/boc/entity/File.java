@@ -27,10 +27,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 
 @Entity
@@ -277,6 +274,7 @@ public class File {
     public void setProject(Project project) {
         this.project = project;
     }
+
 
     @Override
     public boolean equals(Object o) {

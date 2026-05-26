@@ -18,12 +18,15 @@
   -->
 
 <view xmlns="http://jmix.io/schema/flowui/view"
-      title="msg://licenseDetailView.title"
+      title="msg://usagelicenseDetailView.title"
       focusComponent="form">
     <data>
         <instance id="licenseDc"
-                  class="eu.occtet.bocfrontend.entity.License">
-            <fetchPlan extends="_base"/>
+                  class="eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage">
+            <fetchPlan extends="_base">
+                <property name="template" fetchPlan="_base">
+                </property>
+            </fetchPlan>
             <loader id="licenseDl"/>
         </instance>
     </data>
@@ -36,16 +39,16 @@
     </actions>
     <layout>
         <formLayout id="form" dataContainer="licenseDc" height="90%" width="100%">
-            <textField id="licenseNameField" property="licenseName" label="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
-            <textField id="licenseTypeField" property="licenseType" label="msg://eu.occtet.bocfrontend.entity/License.licenseType"/>
-            <textField id="detailsUrlField" property="detailsUrl" label="msg://eu.occtet.bocfrontend.entity/License.detailsUrl"/>
-            <textField id="priorityField" property="priority" label="msg://eu.occtet.bocfrontend.entity/License.priority"/>
+            <textField id="licenseNameField" property="customName" label="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
+            <textField id="licenseTypeField" property="template.licenseType" label="msg://eu.occtet.bocfrontend.entity/License.licenseType"/>
+            <textField id="detailsUrlField" property="template.detailsUrl" label="msg://eu.occtet.bocfrontend.entity/License.detailsUrl"/>
+            <textField id="priorityField" property="template.priority" label="msg://eu.occtet.bocfrontend.entity/License.priority"/>
             <hbox>
-                <checkbox id="isSpdxField" property="isSpdx" label="msg://eu.occtet.bocfrontend.entity/License.isSpdx"
+                <checkbox id="isSpdxField" property="template.isSpdx" label="msg://eu.occtet.bocfrontend.entity/License.isSpdx"
                           dataContainer="licenseDc"/>
             </hbox>
-            <textArea id="licenseTextField" property="templateText"
-                      label="msg://eu.occtet.bocfrontend.entity/License.licenseText" minWidth="100%" maxRows="20"/>
+            <textArea id="licenseTextField" property="usageText"
+                      label="msg://eu.occtet.bocfrontend.entity/License.licenseText" minWidth="100%" maxRows="20" readOnly="false"/>
         </formLayout>
         <hbox id="detailActions" alignSelf="CENTER">
             <button id="saveAndCloseButton" action="saveAction"/>

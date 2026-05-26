@@ -42,8 +42,11 @@
         </instance>
 
         <collection id="licenseDc"
-                    class="eu.occtet.bocfrontend.entity.License">
-            <fetchPlan extends="_base"/>
+                    class="eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage">
+            <fetchPlan extends="_base">
+                <property name="template" fetchPlan="_base">
+                </property>
+            </fetchPlan>
         </collection>
     </data>
     <facets>
@@ -85,14 +88,13 @@
                 <vbox width="100%" alignItems="CENTER" alignSelf="END" height="100%">
                     <dataGrid classNames="occtet-grid" dataContainer="licenseDc" id="licensesDataGrid" width="100%">
                         <columns resizable="true">
-                            <column header="msg://eu.occtet.bocfrontend.entity/License.licenseName" property="licenseName"/>
-                            <column header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseId" property="licenseType"/>
-                            <column header="msg://eu.occtet.bocfrontend.entity/LicenseType.detailsUrl" property="detailsUrl"/>
-                            <column header="msg://licensetype.isSpdx" property="isSpdx"/>
+                            <column header="msg://eu.occtet.bocfrontend.entity/License.licenseName" property="customName"/>
+                            <column header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseId" property="template.licenseType"/>
+                            <column header="msg://eu.occtet.bocfrontend.entity/LicenseType.detailsUrl" property="template.detailsUrl"/>
+                            <column header="msg://licensetype.isSpdx" property="template.isSpdx"/>
                         </columns>
                     </dataGrid>
                     <hbox>
-                        <button id="addLicense" text="Add license" themeNames="primary"/>
                         <button id="removeLicenseButton" icon="TRASH" themeNames="error"/>
                     </hbox>
                 </vbox>

@@ -19,10 +19,10 @@
 
 package eu.occtet.boc.spdx.service.handler;
 
-import eu.occtet.boc.entity.Organization;
-import eu.occtet.boc.entity.TemplateLicense;
-import eu.occtet.boc.entity.UsageLicense;
-import eu.occtet.boc.spdx.service.TemplateLicenseService;
+import eu.occtet.boc.entity.*;
+import eu.occtet.boc.entity.License;
+import eu.occtet.boc.spdx.context.SpdxImportContext;
+import eu.occtet.boc.spdx.service.LicenseService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spdx.core.InvalidSPDXAnalysisException;
@@ -38,61 +38,73 @@ import java.util.*;
 public class LicenseHandler {
 
     @Autowired
-    private TemplateLicenseService templateLicenseService;
+    private LicenseService licenseService;
 
     private static final Logger log = LogManager.getLogger(LicenseHandler.class);
 
 
-    public List<UsageLicense> createUsageLicenses(AnyLicenseInfo spdxLicenseInfo,
-                                                  Map<String, TemplateLicense> licenseCache,
-                                                  Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc, Organization organization)
+    public Set<SoftwareComponentLicenseUsage> createUsageLicenses(AnyLicenseInfo spdxLicenseInfo,
+                                                                  SpdxImportContext context,
+                                                                  Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc,
+                                                                  SoftwareComponent softwareComponent, Organization organization)
             throws InvalidSPDXAnalysisException {
 
-        List<UsageLicense> generatedUsages = new ArrayList<>();
+        Map<String, License> licenseCache= context.getLicenseCache();
+        Set<SoftwareComponentLicenseUsage> generatedUsages = new HashSet<>();
         List<AnyLicenseInfo> allLicenseInfo = new ArrayList<>();
         parseLicenseText(spdxLicenseInfo, allLicenseInfo);
 
         for (AnyLicenseInfo individualLicenseInfo : allLicenseInfo) {
             String licenseId = "";
-            String licenseText = "";
-            boolean isListed = false;
+            String licenseText;
 
             if (individualLicenseInfo instanceof SpdxListedLicense) {
                 ListedLicense license = LicenseInfoFactory.getListedLicenseById(individualLicenseInfo.getId());
                 licenseId = license.getId();
                 licenseText = license.getLicenseText();
-                isListed = true;
             } else if (individualLicenseInfo instanceof ExtractedLicenseInfo) {
                 Optional<ExtractedLicenseInfo> extracted = licenseInfosExtractedSpdxDoc.stream()
                         .filter(s -> s.getLicenseId().equals(individualLicenseInfo.getId())).findFirst();
                 if (extracted.isPresent()) {
                     licenseId = extracted.get().getId();
                     licenseText = extracted.get().getExtractedText();
+                } else {
+                    licenseText = "";
                 }
+            } else {
+                licenseText = "";
             }
 
             if (licenseId.isEmpty()) licenseId = "Unknown";
 
-            TemplateLicense licenseEntity = licenseCache.get(licenseId);
+
+            License licenseEntity = licenseCache.get(licenseId);
 
             if (licenseEntity == null) {
-                TemplateLicense templateEntity = licenseCache.get(licenseId);
-
-                if (templateEntity == null) {
-                    templateEntity = templateLicenseService.findOrCreateTemplateLicense(licenseId, licenseText, licenseId, isListed);
-                    licenseCache.put(licenseId, templateEntity);
-                }
-
-                UsageLicense usage = new UsageLicense();
-                usage.setTemplate(templateEntity);
-                usage.setUsageText(licenseText);
-                usage.setModified(false);
-                usage.setCurated(false);
-                usage.setOrganization(organization);
-
-                generatedUsages.add(usage);
+                licenseEntity = licenseCache.computeIfAbsent(licenseId,
+                        id -> licenseService.findOrCreateTemplateLicense(id, licenseText));
+                licenseCache.put(licenseId, licenseEntity);
             }
+
+            SoftwareComponentLicenseUsage usage = new SoftwareComponentLicenseUsage();
+            usage.setTemplate(licenseEntity);
+            usage.setSoftwareComponent(softwareComponent);
+            if (licenseText!= null && !licenseText.equals(licenseEntity.getLicenseText())) {
+                usage.setUsageText(licenseText);
+                usage.setIsModified(true);
+            } else usage.setIsModified(false);
+            if (licenseId!= null && !licenseId.equals(licenseEntity.getLicenseType())) {
+                usage.setIsModified(true);
+            }
+            usage.setCustomName(licenseEntity.getLicenseName());
+            usage.setCurated(false);
+            usage.setOrganization(organization);
+
+            generatedUsages.add(usage);
+
+
         }
+
         return generatedUsages;
     }
 

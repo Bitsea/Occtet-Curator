@@ -19,14 +19,19 @@
 
 <view xmlns="http://jmix.io/schema/flowui/view"
       xmlns:c="http://jmix.io/schema/flowui/jpql-condition"
-      title="msg://templatelicenseListView.title"
+      title="msg://usageLicenseListView.title"
       focusComponent="licensesDataGrid">
     <data>
         <collection id="licensesDc"
-                    class="eu.occtet.bocfrontend.entity.License" fetchPlan="_local">
+                    class="eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage" fetchPlan="_local">
+            <fetchPlan extends="_base">
+                <property name="template" fetchPlan="_base">
+                </property>
+            </fetchPlan>
             <loader id="licensesDl" readOnly="true">
                 <query>
-                    <![CDATA[select l from License l where l in :licenses]]>
+                    <![CDATA[select e from SoftwareComponentLicenseUsage e
+                         where e in :licenses]]>
                 </query>
             </loader>
         </collection>
@@ -64,12 +69,11 @@
                     <action id="removeAction" type="list_remove"/>
                 </actions>
                 <columns resizable="true">
-                    <column property="licenseType" header="msg://eu.occtet.bocfrontend.entity/License"/>
-                    <column property="priority" header="msg://eu.occtet.bocfrontend.entity/LicenseType.priority"/>
-                    <column property="templateText" header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseText"/>
-                    <column property="licenseName" header="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
-                    <column property="detailsUrl" header="msg://eu.occtet.bocfrontend.entity/License.detailsUrl"/>
-                    <column property="isSpdx" header="msg://eu.occtet.bocfrontend.entity/License.isSpdx"/>
+                    <column property="template.licenseType" header="msg://eu.occtet.bocfrontend.entity/License"/>
+                    <column property="template.priority" header="msg://eu.occtet.bocfrontend.entity/LicenseType.priority"/>
+                    <column property="usageText" header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseText"/>
+                    <column property="customName" header="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
+                    <column property="template.detailsUrl" header="msg://eu.occtet.bocfrontend.entity/License.detailsUrl"/>
                 </columns>
             </dataGrid>
             <hbox width="100%">
@@ -79,7 +83,7 @@
                     <button id="removeButton" action="licensesDataGrid.removeAction"/>
                 </hbox>
                 <hbox alignSelf="END">
-                    <button id="textSearchLicense" text="msg://licenseListView.searchText" themeNames="primary"/>
+                    <button id="textSearchLicense" text="msg://eu.occtet.bocfrontend.view.license/licenseListView.searchText" themeNames="primary"/>
                     <button id="fetchSPDXButton" text="Fetch spdx licenses" themeNames="primary" alignSelf="END"/>
                 </hbox>
             </hbox>

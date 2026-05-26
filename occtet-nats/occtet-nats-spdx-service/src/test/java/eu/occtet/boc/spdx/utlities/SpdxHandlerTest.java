@@ -55,21 +55,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {
         SpdxService.class, SoftwareComponentService.class, SoftwareComponentRepository.class,
-        CopyrightService.class, InventoryItemService.class, TemplateLicenseService.class, FileService.class,
+        CopyrightService.class, InventoryItemService.class, LicenseService.class, FileService.class,
         ProjectRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class, FileRepository.class,
         CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class,
         LicenseHandler.class, PackageHandler.class, OrphanHandler.class, RelationshipHandler.class, SnippetHandler.class, JsonSanitizer.class,
-        TemplateLicenseRepository.class, TemplateLicense.class
+        LicenseRepository.class, License.class
 })
 @EnableJpaRepositories(basePackages = {"eu.occtet.boc.dao"})
 @EntityScan(basePackages = {"eu.occtet.boc.entity"})
@@ -93,7 +90,7 @@ public class SpdxHandlerTest {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
-    private TemplateLicenseRepository templateLicenseRepository;
+    private LicenseRepository licenseRepository;
 
     @Autowired
     private LicenseHandler licenseHandler;
@@ -109,6 +106,7 @@ public class SpdxHandlerTest {
     private Project project;
     private SpdxImportContext context;
     private Organization organization;
+    private SoftwareComponent softwareComponent;
 
     @BeforeEach
     public void setup() throws Exception {
@@ -119,6 +117,8 @@ public class SpdxHandlerTest {
         project.setVersion("1.0.0");
         project.setOrganization(organization);
         project = projectRepository.save(project);
+        softwareComponent= new SoftwareComponent();
+        softwareComponent.setName("testComponent");
 
         SpdxModelFactory.init();
         MultiFormatStore inputStore = new MultiFormatStore(new InMemSpdxStore(), MultiFormatStore.Format.JSON);
@@ -268,41 +268,41 @@ public class SpdxHandlerTest {
         SpdxPackage pkg6 = getPackageById("SPDXRef-Package-Maven-pkg6-grp-pkg6-0.0.1");
         AnyLicenseInfo extractedLicenseInfo = pkg6.getLicenseDeclared();
 
-        List<UsageLicense> standardResult = licenseHandler.createUsageLicenses(
+        Set<SoftwareComponentLicenseUsage> standardResult = licenseHandler.createUsageLicenses(
                 standardLicenseInfo,
-                context.getLicenseCache(),
-                context.getExtractedLicenseInfos(),
+                context,
+                context.getExtractedLicenseInfos(),softwareComponent,
                 context.getProject().getOrganization()
 
         );
 
-        List<UsageLicense> extractedResult = licenseHandler.createUsageLicenses(
+        Set<SoftwareComponentLicenseUsage> extractedResult = licenseHandler.createUsageLicenses(
                 extractedLicenseInfo,
-                context.getLicenseCache(),
-                context.getExtractedLicenseInfos(),
+                context,
+                context.getExtractedLicenseInfos(),softwareComponent,
                 context.getProject().getOrganization()
         );
 
         // Standard License assertions
         Assertions.assertEquals(1, standardResult.size());
-        UsageLicense mitUsage = standardResult.getFirst();
-        TemplateLicense mitTemplate = mitUsage.getTemplate();
+        SoftwareComponentLicenseUsage mitUsage = standardResult.iterator().next();
+        License mitTemplate = mitUsage.getTemplate();
 
         Assertions.assertEquals("MIT", mitTemplate.getLicenseName());
         Assertions.assertTrue(mitTemplate.getIsSpdx(), "Standard license should be marked as SPDX");
-        Assertions.assertFalse(templateLicenseRepository.findByLicenseType("MIT").isEmpty(), "MIT should be persisted as a template");
+        Assertions.assertFalse(licenseRepository.findByLicenseType("MIT").isEmpty(), "MIT should be persisted as a template");
 
         // Extracted License assertions
         Assertions.assertEquals(1, extractedResult.size());
-        UsageLicense asmusUsage = extractedResult.getFirst();
-        TemplateLicense asmusTemplate = asmusUsage.getTemplate();
+        SoftwareComponentLicenseUsage asmusUsage = extractedResult.iterator().next();
+        License asmusTemplate = asmusUsage.getTemplate();
 
         Assertions.assertEquals("LicenseRef-scancode-asmus", asmusTemplate.getLicenseName());
         Assertions.assertFalse(asmusTemplate.getIsSpdx(), "Extracted license should NOT be marked as standard SPDX");
 
         Assertions.assertTrue(asmusUsage.getUsageText().contains("ASMUS License"), "Usage license should contain the extracted title");
         Assertions.assertTrue(asmusUsage.getUsageText().contains("This file contains bugs"), "Usage license should contain the extracted body text");
-        Assertions.assertFalse(templateLicenseRepository.findByLicenseType("LicenseRef-scancode-asmus").isEmpty(), "Custom template should be persisted");
+        Assertions.assertFalse(licenseRepository.findByLicenseType("LicenseRef-scancode-asmus").isEmpty(), "Custom template should be persisted");
     }
 
     /**

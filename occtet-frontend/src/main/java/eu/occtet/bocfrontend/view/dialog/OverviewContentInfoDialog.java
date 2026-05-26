@@ -75,8 +75,8 @@ public class OverviewContentInfoDialog extends StandardView {
     public void setInformationContent(Object content, Project project) {
         List<InventoryItem> items = new ArrayList<>();
 
-        // Switched from License to TemplateLicense
-        if (content instanceof TemplateLicense templateLicense) {
+
+        if (content instanceof License templateLicense) {
             // Note: You must add this method to InventoryItemRepository!
             items = inventoryItemRepository.findByTemplateLicenseAndProject(templateLicense, project);
             title.setText(templateLicense.getLicenseName());

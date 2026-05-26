@@ -20,10 +20,11 @@
 package eu.occtet.bocfrontend.service;
 
 
-import eu.occtet.bocfrontend.dao.UsageLicenseRepository;
+import eu.occtet.bocfrontend.dao.LicenseRepository;
+import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
-import eu.occtet.bocfrontend.entity.UsageLicense;
+import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
 import eu.occtet.bocfrontend.factory.UsageLicenseFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,7 +38,7 @@ import java.util.List;
 public class LicenseService {
 
     private static final Logger log = LogManager.getLogger(LicenseService.class);
-    private final UsageLicenseRepository licenseRepository;
+    private final LicenseRepository licenseRepository;
 
     @Autowired
     private InventoryItemService inventoryItemService;
@@ -46,19 +47,17 @@ public class LicenseService {
     @Autowired
     private UsageLicenseFactory licenseFactory;
 
-    public LicenseService(UsageLicenseRepository licenseRepository) {
+    public LicenseService(LicenseRepository licenseRepository) {
         this.licenseRepository = licenseRepository;
     }
 
-    public List<UsageLicense> findLicensesByProject(Project project){
+    public List<SoftwareComponentLicenseUsage> findUsageLicensesByProject(Project project){
         List<SoftwareComponent> softwareComponents = softwareComponentService.findSoftwareComponentsByProject(project);
-        List<UsageLicense> licenses = new ArrayList<>();
+        List<SoftwareComponentLicenseUsage> licenses = new ArrayList<>();
         softwareComponents.forEach(sc->licenses.addAll(sc.getUsageLicenses()));
         return licenses;
     }
 
-    public List<UsageLicense> findLicenseByCurated(Boolean isCurated){
-        return licenseRepository.findByCurated(isCurated);
-    }
+
 
 }

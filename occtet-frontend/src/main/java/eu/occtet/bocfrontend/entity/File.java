@@ -35,6 +35,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -114,6 +115,7 @@ public class File {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PROJECT_ID")
     private Project project;
+
 
     public File() {
     }
@@ -260,6 +262,7 @@ public class File {
     public void setProject(Project project) {
         this.project = project;
     }
+
 
     @Override
     public boolean equals(Object o) {

@@ -2,7 +2,7 @@ package eu.occtet.bocfrontend.view.services;
 
 import eu.occtet.bocfrontend.dao.LicenseDao;
 import eu.occtet.bocfrontend.dao.TemplateLicenseRepository;
-import eu.occtet.bocfrontend.entity.TemplateLicense;
+import eu.occtet.bocfrontend.entity.License;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,12 +20,12 @@ public class LicenseTextService {
     @Autowired
     private TemplateLicenseRepository templateLicenseRepository;
 
-    public List<Pair<TemplateLicense, Float>> findBySimilarity(String text, int limit) {
+    public List<Pair<License, Float>> findBySimilarity(String text, int limit) {
         List<Pair<Long, Float>> ids = licenseDao.findLicenseIdsSimilarTo(text, limit);
 
         return ids.stream()
                 .map(idFloatPair -> {
-                    TemplateLicense template = templateLicenseRepository.findById(idFloatPair.getKey()).orElse(null);
+                    License template = templateLicenseRepository.findById(idFloatPair.getKey()).orElse(null);
 
                     if (template == null) {
                         return null;

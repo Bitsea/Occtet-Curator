@@ -23,23 +23,14 @@ package eu.occtet.boc.spdx.factory;
 import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.dao.SoftwareComponentRepository;
-import eu.occtet.boc.entity.UsageLicense;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class SoftwareComponentFactory {
 
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
-
-    public SoftwareComponent create(String softwareName, String version,
-                                    List<UsageLicense> license, String url, Organization organization) {
-
-        SoftwareComponent softwareComponent= new SoftwareComponent(softwareName, version,license, url, organization );
-        return softwareComponentRepository.save(softwareComponent);}
 
     public SoftwareComponent create(String softwareName, String version, Organization organization) {
         return softwareComponentRepository.save(new SoftwareComponent(softwareName, version, organization));

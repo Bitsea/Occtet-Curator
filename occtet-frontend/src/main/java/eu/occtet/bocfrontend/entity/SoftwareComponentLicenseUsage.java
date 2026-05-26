@@ -30,9 +30,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 @JmixEntity
-@Table(name = "USAGE_LICENSE")
+@Table(name = "SOFTWARE_COMPONENT_LICENSE_USAGE")
 @Entity
-public class UsageLicense implements HasOrganization {
+public class SoftwareComponentLicenseUsage implements HasOrganization {
 
     @Id
     @Column(name = "ID", nullable = false)
@@ -41,6 +41,7 @@ public class UsageLicense implements HasOrganization {
 
     @Column(name = "CUSTOM_NAME", columnDefinition = "TEXT")
     private String customName;
+
 
     @Column(name = "USAGE_TEXT", columnDefinition = "TEXT")
     private String usageText;
@@ -51,19 +52,21 @@ public class UsageLicense implements HasOrganization {
     @Column(name = "CURATED")
     private Boolean curated;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "SOFTWARE_COMPONENT_ID")
     private SoftwareComponent softwareComponent;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "TEMPLATE_LICENSE_ID")
-    private TemplateLicense template;
+    @JoinColumn(name = "LICENSE_ID")
+    private License template;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ORGANIZATION_ID")
     private Organization organization;
 
-    @ManyToMany(mappedBy = "files")
+    @ManyToMany(mappedBy = "licenses")
     @OnDelete(DeletePolicy.UNLINK)
     private Set<Copyright> copyrights = new HashSet<>();
 
@@ -83,6 +86,7 @@ public class UsageLicense implements HasOrganization {
         return (customName != null) ? customName: template.getLicenseName();
     }
 
+
     public Long getId() {
         return id;
     }
@@ -95,11 +99,11 @@ public class UsageLicense implements HasOrganization {
         this.usageText = usageText;
     }
 
-    public Boolean getModified() {
+    public Boolean getIsModified() {
         return isModified;
     }
 
-    public void setModified(Boolean modified) {
+    public void setIsModified(Boolean modified) {
         isModified = modified;
     }
 
@@ -119,11 +123,11 @@ public class UsageLicense implements HasOrganization {
         this.softwareComponent = softwareComponent;
     }
 
-    public void setTemplate(TemplateLicense template) {
+    public void setTemplate(License template) {
         this.template = template;
     }
 
-    public TemplateLicense getTemplate() {
+    public License getTemplate() {
         return template;
     }
 
@@ -156,4 +160,5 @@ public class UsageLicense implements HasOrganization {
     public void setOrganization(Organization organization) {
         this.organization = organization;
     }
+
 }

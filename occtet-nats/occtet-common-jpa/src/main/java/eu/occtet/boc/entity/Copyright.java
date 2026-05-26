@@ -55,13 +55,13 @@ public class Copyright implements HasOrganization {
             name = "COPYRIGHT_FILE_LINK",
             joinColumns = @JoinColumn(name = "COPYRIGHT_ID", referencedColumnName = "ID"),
             inverseJoinColumns = @JoinColumn(name = "FILE_ID", referencedColumnName = "ID"))
-    private Set<File> files = new HashSet<>();;
+    private Set<File> files = new HashSet<>();
 
-    @JoinTable(name = "COPYRIGHT_USAGE_LICENSE_LINK",
+    @JoinTable(name = "COPYRIGHT_LICENSE_USAGE_LINK",
             joinColumns = @JoinColumn(name = "COPYRIGHT_ID"),
-            inverseJoinColumns = @JoinColumn(name = "USAGE_LICENSE_ID"))
+            inverseJoinColumns = @JoinColumn(name = "SOFTWARE_COMPONENT_LICENSE_USAGE_ID"))
     @ManyToMany
-    private List<UsageLicense> licenses;
+    private List<SoftwareComponentLicenseUsage> licenses;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
@@ -138,11 +138,11 @@ public class Copyright implements HasOrganization {
         this.curated = curated;
     }
 
-    public List<UsageLicense> getLicenses() {
+    public List<SoftwareComponentLicenseUsage> getLicenses() {
         return licenses;
     }
 
-    public void setLicenses(List<UsageLicense> licenses) {
+    public void setLicenses(List<SoftwareComponentLicenseUsage> licenses) {
         this.licenses = licenses;
     }
 

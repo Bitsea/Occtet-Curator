@@ -63,9 +63,11 @@ public class Copyright implements HasOrganization {
     @OnDelete(DeletePolicy.CASCADE)
     private Set<File> files = new HashSet<>();;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name= "COPYRIGHT_ID")
-    private List<TemplateLicense> licenses;
+    @JoinTable(name = "COPYRIGHT_SOFTWARE_COMPONENT_USAGE_LICENSE_LINK",
+            joinColumns = @JoinColumn(name = "COPYRIGHT_ID"),
+            inverseJoinColumns = @JoinColumn(name = "SOFTWARE_COMPONENT_LICENSE_USAGE_ID"))
+    @ManyToMany
+    private List<SoftwareComponentLicenseUsage> licenses;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ORGANIZATION_ID")
@@ -103,11 +105,11 @@ public class Copyright implements HasOrganization {
         return garbage;
     }
 
-    public List<TemplateLicense> getLicenses() {
+    public List<SoftwareComponentLicenseUsage> getLicenses() {
         return licenses;
     }
 
-    public void setLicenses(List<TemplateLicense> licenses) {
+    public void setLicenses(List<SoftwareComponentLicenseUsage> licenses) {
         this.licenses = licenses;
     }
 

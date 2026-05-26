@@ -62,11 +62,10 @@ public class SoftwareComponent implements HasOrganization {
     @Column(name= "LICENSE_AI_CONTROLLED")
     private Boolean licenseAiControlled;
 
-    @JoinTable(name = "SOFTWARE_COMPONENT_USAGE_LICENSE_LINK",
-            joinColumns = @JoinColumn(name = "SOFTWARE_COMPONENT_ID"),
-            inverseJoinColumns = @JoinColumn(name = "USAGE_LICENSE_ID"))
-    @ManyToMany
-    private List<UsageLicense> usageLicenses = new ArrayList<>();
+
+    @OnDelete(DeletePolicy.CASCADE)
+    @OneToMany(mappedBy = "softwareComponent", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SoftwareComponentLicenseUsage> usageLicenses = new ArrayList<>();
 
 
     @OneToMany(mappedBy = "softwareComponent", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -78,7 +77,7 @@ public class SoftwareComponent implements HasOrganization {
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name= "SOFTWARE_COMPONENT_ID")
-    private List<Copyright> copyrights = new ArrayList<>();
+    private List<Copyright> copyrights= new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
@@ -90,7 +89,7 @@ public class SoftwareComponent implements HasOrganization {
     }
 
     public SoftwareComponent(String name, String version, String purl,
-                             Boolean curated, List<UsageLicense> licenses) {
+                             Boolean curated, List<SoftwareComponentLicenseUsage> licenses) {
         this.name = name;
         this.version = version;
         this.purl = purl;
@@ -133,14 +132,6 @@ public class SoftwareComponent implements HasOrganization {
 
     public Boolean getCurated() {
         return curated;
-    }
-
-    public List<UsageLicense> getUsageLicenses() {
-        return usageLicenses;
-    }
-
-    public void setUsageLicenses(List<UsageLicense> usageLicenses) {
-        this.usageLicenses = usageLicenses;
     }
 
     public void setPurl(String purl) {this.purl = purl;}
@@ -233,13 +224,42 @@ public class SoftwareComponent implements HasOrganization {
         this.organization = organization;
     }
 
-    public void addLicense(UsageLicense license) {
-        this.usageLicenses.add(license);
-        license.setSoftwareComponent(this);
+    public void addLicenseUsage(SoftwareComponentLicenseUsage usage) {
+        if (this.usageLicenses == null) {
+            this.usageLicenses = new ArrayList<>();
+        }
+        this.usageLicenses.add(usage);
+        usage.setSoftwareComponent(this);
+
+        if (this.organization != null) {
+            usage.setOrganization(this.organization);
+        }
     }
 
-    public void removeLicense(UsageLicense license) {
-        this.usageLicenses.remove(license);
-        license.setSoftwareComponent(null);
+    public void addLicenseUsages(List<SoftwareComponentLicenseUsage> usage) {
+        if (this.usageLicenses == null) {
+            this.usageLicenses = new ArrayList<>();
+        }
+        this.usageLicenses.addAll(usage);
+        for(SoftwareComponentLicenseUsage sclu: usage){
+            sclu.setSoftwareComponent(this);
+            if (this.organization != null) {
+               sclu.setOrganization(this.organization);
+            }
+        }
+
+
     }
+
+    public void removeLicenseUsage(SoftwareComponentLicenseUsage usage) {
+        if (this.usageLicenses != null) {
+            this.usageLicenses.remove(usage);
+            usage.setSoftwareComponent(null);
+        }
+    }
+
+    public List<SoftwareComponentLicenseUsage> getUsageLicenses() {
+        return usageLicenses;
+    }
+
 }

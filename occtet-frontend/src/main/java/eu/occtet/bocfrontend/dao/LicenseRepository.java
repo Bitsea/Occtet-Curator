@@ -18,29 +18,30 @@
 
 package eu.occtet.bocfrontend.dao;
 
-import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.entity.InventoryItem;
 import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.Project;
 import io.jmix.core.repository.JmixDataRepository;
 import io.jmix.core.repository.Query;
 
 import java.util.List;
 
-public interface TemplateLicenseRepository extends JmixDataRepository<License, Long> {
+public interface LicenseRepository extends JmixDataRepository<License, Long> {
 
     List<License> findAll();
 
-    List<License> findByLicenseName(String licenseName);
 
-    List<License> findByPriority(Integer priority);
+    @Query("select distinct ul from License ul join InventoryItem i on i.softwareComponent = ul.softwareComponent where i.project = :project")
+    List<License> findLicensesByProject(Project project);
 
-    License findTemplateLicenseById(Long id);
+    @Query("select ul from License ul join InventoryItem i on i.softwareComponent = ul.softwareComponent join ul.template t where i.project = :project and t.licenseName = :licenseName")
+    List<License> findLicensesByLicenseNameAndProject(String licenseName, Project project);
 
-    @Query("select t from TemplateLicense t where t not in :licenses")
+    @Query("select ul from License ul join InventoryItem i on i.softwareComponent = ul.softwareComponent where i = :item")
+    List<License> findByInventoryItem(InventoryItem item);
+
+    @Query("select t from License t where t not in :licenses")
     List<License> findAvailableLicenses(List<License> licenses);
 
-    @Query("select distinct ul.template from InventoryItem i " +
-            "join i.softwareComponent sc " +
-            "join sc.usageLicenses ul " +
-            "where i.project = :project")
-    List<License> findTemplateLicensesByProject(Project project);
+    License findLicenseById(Object licenseId);
 }

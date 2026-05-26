@@ -18,7 +18,7 @@
 
 package eu.occtet.bocfrontend.factory;
 
-import eu.occtet.bocfrontend.entity.TemplateLicense;
+import eu.occtet.bocfrontend.entity.License;
 import io.jmix.core.DataManager;
 import jakarta.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +30,9 @@ public class TemplateLicenseFactory {
     @Autowired
     private DataManager dataManager;
 
-    public TemplateLicense create(@Nonnull Integer priority, @Nonnull String licenseType, @Nonnull String templateText,
-                                  @Nonnull String licenseName, @Nonnull String detailsUrl, boolean isSpdx) {
-        TemplateLicense license = dataManager.create(TemplateLicense.class);
+    public License create(@Nonnull Integer priority, @Nonnull String licenseType, @Nonnull String templateText,
+                          @Nonnull String licenseName, @Nonnull String detailsUrl, boolean isSpdx) {
+        License license = dataManager.create(License.class);
 
         license.setPriority(priority);
         license.setLicenseType(licenseType);
@@ -44,12 +44,12 @@ public class TemplateLicenseFactory {
         return dataManager.save(license);
     }
 
-    public TemplateLicense create(@Nonnull String licenseType, @Nonnull String templateText, @Nonnull String licenseName) {
+    public License create(@Nonnull String licenseType, @Nonnull String templateText, @Nonnull String licenseName) {
         return create(0, licenseType, templateText, licenseName, "", false);
     }
 
-    public TemplateLicense create(@Nonnull String licenseType, @Nonnull String templateText, @Nonnull String licenseName,
-                                  @Nonnull String detailUrl, boolean isSpdx) {
+    public License create(@Nonnull String licenseType, @Nonnull String templateText, @Nonnull String licenseName,
+                          @Nonnull String detailUrl, boolean isSpdx) {
         return create(0, licenseType, templateText, licenseName, detailUrl, isSpdx);
     }
 }

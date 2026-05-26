@@ -20,10 +20,9 @@
 package eu.occtet.boc.fossreport.factory;
 
 
-import eu.occtet.boc.dao.TemplateLicenseRepository;
+import eu.occtet.boc.dao.LicenseRepository;
 
-import eu.occtet.boc.entity.TemplateLicense;
-import eu.occtet.boc.entity.Organization;
+import eu.occtet.boc.entity.License;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,25 +33,25 @@ public class LicenseFactory {
 
     private static final Logger log = LoggerFactory.getLogger(LicenseFactory.class);
 
-    private final TemplateLicenseRepository licenseRepository;
+    private final LicenseRepository licenseRepository;
 
     @Autowired
-    public LicenseFactory(TemplateLicenseRepository licenseRepository) {
+    public LicenseFactory(LicenseRepository licenseRepository) {
         this.licenseRepository = licenseRepository;
     }
 
-    public TemplateLicense create(String licenseId, String licenseText){
+    public License create(String licenseId, String licenseText){
         log.debug("Creating License with licenseId: {} and licenseText: {}", licenseId, licenseText);
-        TemplateLicense license = new TemplateLicense();
+        License license = new License();
         license.setLicenseName(licenseId);
-        license.setTemplateText(licenseText);
+        license.setLicenseText(licenseText);
         return licenseRepository.save(license);
     }
-    public TemplateLicense createWithModified(String licenseId, String licenseText, Boolean modified){
+    public License createWithModified(String licenseId, String licenseText, Boolean modified){
         log.debug("Creating License with licenseId: {} and licenseText: {} and modified: {}", licenseId, licenseText, modified);
-        TemplateLicense license = new TemplateLicense();
+        License license = new License();
         license.setLicenseName(licenseId);
-        license.setTemplateText(licenseText);
+        license.setLicenseText(licenseText);
         return licenseRepository.save(license);
     }
 

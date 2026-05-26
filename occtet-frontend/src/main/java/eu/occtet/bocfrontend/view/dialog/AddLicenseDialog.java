@@ -24,10 +24,12 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.textfield.TextField;
-import eu.occtet.bocfrontend.dao.UsageLicenseRepository;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.renderer.TextRenderer;
+import eu.occtet.bocfrontend.dao.LicenseRepository;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
-import eu.occtet.bocfrontend.entity.TemplateLicense;
-import eu.occtet.bocfrontend.entity.UsageLicense;
+import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
 import io.jmix.core.DataManager;
 import io.jmix.core.SaveContext;
 import io.jmix.flowui.component.grid.DataGrid;
@@ -38,7 +40,9 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -51,109 +55,91 @@ public class AddLicenseDialog extends AbstractAddContentDialog<SoftwareComponent
 
     private SoftwareComponent softwareComponent;
 
-    private UsageLicense selectedLicense;
 
     @Autowired
-    private UsageLicenseRepository usageLicenseRepository;
+    private LicenseRepository licenseRepository;
 
     @Autowired
-    DataManager dataManager;
+    private DataManager dataManager;
 
     @ViewComponent
-    private CollectionContainer<UsageLicense> licenseDc;
+    private CollectionContainer<License> licenseDc;
 
     @ViewComponent
     private TextField searchField;
 
     @ViewComponent
-    private DataGrid<UsageLicense> licensesDataGrid;
+    private DataGrid<License> licensesDataGrid;
 
     @Override
     @Subscribe("licenseDc")
     public void setAvailableContent(SoftwareComponent softwareComponent) {
-        this.softwareComponent = dataManager.load(SoftwareComponent.class)
-                .id(softwareComponent.getId())
-                .fetchPlan(f -> f.add("licenses", f1 -> f1.add("template")))
-                .one();
-
+        if (softwareComponent.getUsageLicenses() == null ) {
+            this.softwareComponent = dataManager.load(SoftwareComponent.class)
+                    .id(softwareComponent.getId())
+                    .fetchPlan(f -> f.add("licenseUsages", f1 -> f1.add("template")))
+                    .one();
+        } else {
+            this.softwareComponent = softwareComponent;
+        }
         log.debug("setAvailableContent called with SoftwareComponent: {}", softwareComponent);
         loadAvailableLicenses();
     }
 
     private void loadAvailableLicenses() {
-        List<UsageLicense> usedTemplates = this.softwareComponent.getUsageLicenses();
+        List<License> alreadyLinkedTemplates = this.softwareComponent.getUsageLicenses().stream()
+                .map(SoftwareComponentLicenseUsage::getTemplate)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
-        if (usedTemplates.isEmpty()) {
-            licenseDc.setItems(usageLicenseRepository.findAll());
+        if (alreadyLinkedTemplates.isEmpty()) {
+            licenseDc.setItems(dataManager.load(License.class).all().list());
         } else {
-            licenseDc.setItems(usageLicenseRepository.findAvailableUsageLicenses(usedTemplates));
+            licenseDc.setItems(licenseRepository.findAvailableLicenses(alreadyLinkedTemplates));
         }
-    }
-
-    @Subscribe("licensesDataGrid")
-    public void selectAvailableContent(final ItemClickEvent<UsageLicense> event) {
-        selectedLicense = event.getItem();
     }
 
     @Override
     @Subscribe(id = "addLicenseButton")
     public void addContentButton(ClickEvent<Button> event) {
-        List<UsageLicense> selectedLicenses = getSelectedLicenses();
-        //TODO ! check here, the creation of the usage license... i thought adding is just adding of already existing...
-        if (!selectedLicenses.isEmpty() && softwareComponent != null) {
-            List<UsageLicense> selectedTemplates = new ArrayList<>(licensesDataGrid.getSelectedItems());
 
-            if (!selectedTemplates.isEmpty() && softwareComponent != null) {
-                SaveContext saveContext = new SaveContext();
-
-                for (UsageLicense template : selectedTemplates) {
-                    UsageLicense newUsage = dataManager.create(UsageLicense.class);
-                    newUsage.setTemplate(template);
-                    newUsage.setSoftwareComponent(softwareComponent);
-                    newUsage.setModified(false);
-                    newUsage.setCurated(false);
-                    newUsage.setUsageText(template.getTemplateText());
-
-                    softwareComponent.getUsageLicenses().add(newUsage);
-                    saveContext.saving(newUsage);
-                }
-
-                saveContext.saving(softwareComponent);
-                dataManager.save(saveContext);
-
-                close(StandardOutcome.SAVE);
-            }
+        if (licensesDataGrid.getSelectedItems().isEmpty()) {
+            return;
         }
-    }
+
+        close(StandardOutcome.SAVE);
+        }
+
 
     @Override
     @Subscribe(id = "searchButton")
     public void searchContentButton(ClickEvent<Button> event) {
         String searchWord = searchField.getValue();
         if (searchWord != null && !searchWord.isEmpty()) {
-            List<TemplateLicense> listFindings = usageLicenseRepository.findAll().stream()
+            List<License> listFindings = licenseRepository.findAll().stream()
                     .filter(l -> l.getLicenseName().toLowerCase().contains(searchWord.toLowerCase())
                             || l.getLicenseType().toLowerCase().contains(searchWord.toLowerCase()))
                     .collect(Collectors.toList());
 
-            List<TemplateLicense> usedTemplates = this.softwareComponent.getUsageLicenses().stream()
-                    .map(UsageLicense::getTemplate)
+            List<License> usedTemplates = this.softwareComponent.getUsageLicenses().stream()
+                    .map(SoftwareComponentLicenseUsage::getTemplate)
                     .collect(Collectors.toList());
 
             listFindings.removeIf(usedTemplates::contains);
 
             licenseDc.setItems(listFindings);
         } else {
-            licenseDc.setItems(usageLicenseRepository.findAvailableUsageLicenses(softwareComponent.getUsageLicenses().stream().map(UsageLicense::getTemplate).collect(Collectors.toList())));
+            licenseDc.setItems(licenseRepository.findAvailableLicenses(softwareComponent.getUsageLicenses().stream().map(SoftwareComponentLicenseUsage::getTemplate).collect(Collectors.toList())));
         }
     }
+
 
     @Subscribe(id = "cancelButton")
     public void cancelLicense(ClickEvent<Button> event) {
         cancelButton(event);
     }
 
-    public List<TemplateLicense> getSelectedLicenses() {
+    public List<License> getSelectedLicenses() {
         return new ArrayList<>(licensesDataGrid.getSelectedItems());
     }
 }

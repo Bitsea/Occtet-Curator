@@ -146,7 +146,6 @@ public class ProcessOrtRunTask  {
             log.info("connection with ORT on {}", ortProperties.baseUrl());
             log.info("connection URL {}", ortProperties.tokenUrl());
             TokenResponse tokenResponse = null;
-            log.info("authcall on keycloak with clientId {} username {} password {}", ortProperties.clientId(), ortProperties.username(), ortProperties.password() );
 
             tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
 
