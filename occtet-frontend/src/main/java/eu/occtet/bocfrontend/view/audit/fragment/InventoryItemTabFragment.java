@@ -62,6 +62,7 @@ import io.jmix.flowui.model.*;
 import io.jmix.flowui.view.*;
 import io.nats.client.JetStreamApiException;
 import jakarta.annotation.Nonnull;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -419,12 +420,21 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     @Supply(to = "licensesDataGrid.usageText", subject = "renderer")
     private Renderer<SoftwareComponentLicenseUsage> effectiveTextColumnRenderer() {
         //only first part of text is shown due nicer view
-        return new TextRenderer<>(usage -> usage.getEffectiveText().substring(0, 100) + "...");
+        return new TextRenderer<>(usage -> {
+            String text = usage.getEffectiveText();
+            if (text == null) {
+                return "";
+            }
+            return StringUtils.abbreviate(text, 100);
+        });
     }
 
     @Supply(to = "licensesDataGrid.customName", subject = "renderer")
     private Renderer<SoftwareComponentLicenseUsage> effectiveCustomNameColumnRenderer() {
-        return new TextRenderer<>(SoftwareComponentLicenseUsage::getEffectiveName);
+        return new TextRenderer<>(usage -> {
+            String name = usage.getEffectiveName();
+            return name != null ? name : "";
+        });
     }
 
 
@@ -503,8 +513,18 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
      */
     @Subscribe("licensesDataGrid")
     public void onLicensesDataGridItemDoubleClick(final ItemDoubleClickEvent<SoftwareComponentLicenseUsage> event) {
-        DialogWindow<SoftwareComponentLicenseUsageDetailView> window = dialogWindow.view(hostView, SoftwareComponentLicenseUsageDetailView.class).build();
+        DialogWindow<SoftwareComponentLicenseUsageDetailView> window =
+                dialogWindow.view(hostView, SoftwareComponentLicenseUsageDetailView.class).build();
         window.getView().setEntityToEdit(event.getItem());
+
+        window.addAfterCloseListener(afterCloseEvent -> {
+            if (afterCloseEvent.closedWith(StandardOutcome.SAVE)) {
+                SoftwareComponentLicenseUsage savedEntity = window.getView().getEditedEntity();
+
+                licenseDc.replaceItem(savedEntity);
+            }
+        });
+
         window.open();
     }
 

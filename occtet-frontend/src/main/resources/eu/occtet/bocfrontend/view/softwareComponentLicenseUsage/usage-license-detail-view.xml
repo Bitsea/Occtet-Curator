@@ -39,15 +39,18 @@
     </actions>
     <layout>
         <formLayout id="form" dataContainer="licenseDc" height="90%" width="100%">
-            <textField id="licenseNameField" property="customName" label="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
-            <textField id="licenseTypeField" property="template.licenseType" label="msg://eu.occtet.bocfrontend.entity/License.licenseType"/>
-            <textField id="detailsUrlField" property="template.detailsUrl" label="msg://eu.occtet.bocfrontend.entity/License.detailsUrl"/>
-            <textField id="priorityField" property="template.priority" label="msg://eu.occtet.bocfrontend.entity/License.priority"/>
+            <textField id="licenseNameField" label="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
+            <textField id="licenseTypeField" property="template.licenseType" label="msg://eu.occtet.bocfrontend.entity/License.licenseType"
+                       readOnly="true"/>
+            <textField id="detailsUrlField" property="template.detailsUrl" label="msg://eu.occtet.bocfrontend.entity/License.detailsUrl"
+                       readOnly="true"/>
+            <textField id="priorityField" property="template.priority" label="msg://eu.occtet.bocfrontend.entity/License.priority"
+                       readOnly="true"/>
             <hbox>
                 <checkbox id="isSpdxField" property="template.isSpdx" label="msg://eu.occtet.bocfrontend.entity/License.isSpdx"
-                          dataContainer="licenseDc"/>
+                          dataContainer="licenseDc" readOnly="true"/>
             </hbox>
-            <textArea id="licenseTextField" property="usageText"
+            <textArea id="licenseTextField"
                       label="msg://eu.occtet.bocfrontend.entity/License.licenseText" minWidth="100%" maxRows="20" readOnly="false"/>
         </formLayout>
         <hbox id="detailActions" alignSelf="CENTER">

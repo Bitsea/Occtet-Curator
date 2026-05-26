@@ -21,6 +21,8 @@ package eu.occtet.bocfrontend.view.softwareComponentLicenseUsage;
 
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentLicenseUsageRepository;
@@ -33,13 +35,14 @@ import io.jmix.core.Messages;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.view.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Random;
 
 @Route(value = "usage-licenses", layout = MainView.class)
-@ViewController(id = "UsageLicense.list")
+@ViewController(id = "SoftwareComponentLicenseUsage.list")
 @ViewDescriptor(path = "usage-license-list-view.xml")
 @LookupComponent("licensesDataGrid")
 @DialogMode(width = "80%", height = "80%")
@@ -99,6 +102,26 @@ public class SoftwareComponentLicenseUsageListView extends StandardListView<Soft
     private void loadLicenses(List<SoftwareComponentLicenseUsage> licenses) {
         licensesDl.setParameter("licenses", licenses);
         licensesDl.load();
+    }
+
+    @Supply(to = "licensesDataGrid.usageText", subject = "renderer")
+    private Renderer<SoftwareComponentLicenseUsage> effectiveTextColumnRenderer() {
+        //only first part of text is shown due nicer view
+        return new TextRenderer<>(usage -> {
+            String text = usage.getEffectiveText();
+            if (text == null) {
+                return "";
+            }
+            return StringUtils.abbreviate(text, 100);
+        });
+    }
+
+    @Supply(to = "licensesDataGrid.customName", subject = "renderer")
+    private Renderer<SoftwareComponentLicenseUsage> effectiveCustomNameColumnRenderer() {
+        return new TextRenderer<>(usage -> {
+            String name = usage.getEffectiveName();
+            return name != null ? name : "";
+        });
     }
 
 }

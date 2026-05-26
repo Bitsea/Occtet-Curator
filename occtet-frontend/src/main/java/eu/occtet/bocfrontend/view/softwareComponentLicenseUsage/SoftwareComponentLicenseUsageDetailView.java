@@ -26,16 +26,23 @@ import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
+import eu.occtet.bocfrontend.view.audit.fragment.InventoryItemTabFragment;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.InstanceContainer;
 import io.jmix.flowui.view.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @Route(value = "usage-licenses/:id", layout = MainView.class)
-@ViewController(id = "UsageLicense.detail")
+@ViewController(id = "SoftwareComponentLicenseUsage.detail")
 @ViewDescriptor(path = "usage-license-detail-view.xml")
 @EditedEntityContainer("licenseDc")
 public class SoftwareComponentLicenseUsageDetailView extends StandardDetailView<SoftwareComponentLicenseUsage> {
+
+    private static final Logger log = LogManager.getLogger(SoftwareComponentLicenseUsageDetailView.class);
+
 
     @ViewComponent
     private TextArea licenseTextField;
@@ -43,13 +50,17 @@ public class SoftwareComponentLicenseUsageDetailView extends StandardDetailView<
     @ViewComponent
     private TextField licenseNameField;
 
+    private String firstText;
+    private String firstName;
+
 
     @Subscribe
     public void onReady(ReadyEvent event) {
         SoftwareComponentLicenseUsage sc = getEditedEntity();
-        licenseNameField.setValue(sc.getEffectiveName());
-        String effectiveText = sc.getEffectiveText();
-        licenseTextField.setValue(effectiveText);
+        firstName= sc.getEffectiveName();
+        licenseNameField.setValue(firstName);
+        firstText = sc.getEffectiveText();
+        licenseTextField.setValue(firstText);
     }
 
     @Subscribe
@@ -57,16 +68,38 @@ public class SoftwareComponentLicenseUsageDetailView extends StandardDetailView<
         // see if text has changed, compare to standard
         String currentText = licenseTextField.getValue();
         String currentName = licenseNameField.getValue();
-        String templateText = getEditedEntity().getTemplate().getTemplateText();
-        String templateName = getEditedEntity().getTemplate().getLicenseName();
+        SoftwareComponentLicenseUsage entity = getEditedEntity();
+        String templateText = entity.getTemplate() != null ? entity.getTemplate().getTemplateText() : "";
+        String templateName = entity.getTemplate() != null ? entity.getTemplate().getLicenseName() : "";
 
-        if (!currentText.equals(templateText)) {
-            getEditedEntity().setUsageText(currentText);
+        if(currentText != null && currentText.equals(templateText) && currentName != null && currentName.equals(templateName)){
+            entity.setUsageText(null);
+            entity.setCustomName(null);
+            entity.setIsModified(false);
         }
-        if (!currentName.equals(templateName)) {
-            getEditedEntity().setCustomName(currentName);
+
+        if(currentText != null && currentText.equals(templateText)){
+            entity.setUsageText(null);
+        } else if (currentText != null && !currentText.equals(firstText)) {
+            entity.setUsageText(currentText);
+            entity.setIsModified(true);
+        } else if (currentText == null || currentText.isEmpty()) {
+            entity.setUsageText(null);
+            entity.setIsModified(true);
+        }
+
+        if(currentName != null && currentName.equals(templateName)){
+            entity.setCustomName(null);
+        } else if (currentName != null && !currentName.equals(firstName)) {
+            entity.setCustomName(currentName);
+            entity.setIsModified(true);
+        } else if (currentName == null || currentName.isEmpty()) {
+            entity.setCustomName(null);
+            entity.setIsModified(true);
         }
 
     }
+
+
 
 }
