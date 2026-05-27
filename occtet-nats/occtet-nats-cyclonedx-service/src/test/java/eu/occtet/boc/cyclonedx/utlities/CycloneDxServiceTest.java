@@ -1,0 +1,226 @@
+/*
+ * Copyright (C) 2025 Bitsea GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https:www.apache.orglicensesLICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *  License-Filename: LICENSE
+ */
+
+package eu.occtet.boc.cyclonedx.utlities;
+
+import eu.occtet.boc.config.TestEclipseLinkJpaConfiguration;
+import eu.occtet.boc.cyclonedx.factory.CopyrightFactory;
+import eu.occtet.boc.cyclonedx.factory.FileFactory;
+import eu.occtet.boc.cyclonedx.factory.InventoryItemFactory;
+import eu.occtet.boc.cyclonedx.factory.SoftwareComponentFactory;
+import eu.occtet.boc.cyclonedx.service.*;
+import eu.occtet.boc.cyclonedx.service.handler.*;
+import eu.occtet.boc.dao.*;
+import eu.occtet.boc.entity.*;
+import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
+import eu.occtet.boc.model.SpdxWorkData;
+import eu.occtet.boc.cyclonedx.context.CycloneDxImportContext;
+import eu.occtet.boc.cyclonedx.converter.SpdxConverter;
+import eu.occtet.boc.spdx.factory.*;
+import eu.occtet.boc.spdx.service.*;
+import eu.occtet.boc.spdx.service.handler.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.util.function.Consumer;
+
+import static org.mockito.ArgumentMatchers.any;
+
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles("test")
+@ContextConfiguration(classes = {CycloneDxService.class, SoftwareComponentService.class, SoftwareComponentRepository.class,
+        CopyrightService.class, InventoryItemService.class, LicenseService.class, FileService.class,
+        ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class, FileRepository.class,
+        CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class,
+        SpdxConverter.class, TestEclipseLinkJpaConfiguration.class, LicenseHandler.class, ComponentHandler.class, OrphanHandler.class,
+        RelationshipHandler.class, SnippetHandler.class, JsonSanitizer.class
+})
+@EnableJpaRepositories(basePackages = {
+        "eu.occtet.boc.dao"})
+@EntityScan(basePackages = {
+        "eu.occtet.boc.entity"
+})
+@ExtendWith(MockitoExtension.class)
+
+
+public class CycloneDxServiceTest {
+
+    private static final String TEST_FILE = "synthetic-scan-result-expected-output.spdx.json";
+
+    @Autowired
+    private CycloneDxService cycloneDxService;
+
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private InventoryItemRepository inventoryItemRepository;
+
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
+    @MockitoBean
+    private ComponentHandler componentHandler;
+    @MockitoBean
+    private RelationshipHandler relationshipHandler;
+    @MockitoBean
+    private SnippetHandler snippetHandler;
+    @MockitoBean
+    private OrphanHandler orphanHandler;
+    @MockitoBean
+    private SpdxConverter spdxConverter;
+    @MockitoBean
+    private AnswerService answerService;
+    @MockitoBean
+    private SpdxDocumentRootRepository spdxDocumentRootRepository;
+    @MockitoBean
+    private CleanUpService cleanUpService;
+    @MockitoBean
+    private JsonSanitizer  jsonSanitizer;
+
+    private Organization org;
+    private Project project;
+    private byte[] jsonBytes;
+
+    @BeforeEach
+    public void setup() throws IOException {
+        org = new Organization();
+        org.setOrganizationName("TestOrg");
+        organizationRepository.save(org);
+
+        project = new Project();
+        project.setProjectName("Orchestration Project");
+        project.setVersion("0.0.1");
+        project.setOrganization(org);
+        project = projectRepository.save(project);
+
+        jsonBytes = Thread.currentThread().getContextClassLoader()
+                .getResourceAsStream(TEST_FILE).readAllBytes();
+
+        Mockito.lenient().when(spdxConverter.convertSpdxV2DocumentInformation(any()))
+                .thenReturn(new SpdxDocumentRoot());
+        Mockito.lenient().when(spdxDocumentRootRepository.save(any()))
+                .thenReturn(new SpdxDocumentRoot());
+        Mockito.lenient().when(jsonSanitizer.sanitizeSpdxJson(any(), any(), any()))
+                .thenReturn(jsonBytes);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void testParseDocument_OrchestrationFlow() throws Exception {
+        SpdxWorkData workData = new SpdxWorkData();
+        workData.setProjectId(project.getId());
+        workData.setJsonBytes(jsonBytes);
+        workData.setUseCopyrightAi(false);
+        workData.setUseLicenseMatcher(false);
+
+        InventoryItem simulatedItem = new InventoryItem();
+        simulatedItem.setProject(project);
+        simulatedItem.setSpdxId("SPDXRef-Package-Maven-pkg7-grp-pkg7-0.0.1-source-artifact");
+        simulatedItem.setInventoryName("Simulated Item");
+        simulatedItem.setOrganization(org);
+        inventoryItemRepository.save(simulatedItem);
+
+        boolean result = cycloneDxService.process(workData);
+
+
+        Assertions.assertTrue(result, "Service should return true on success");
+
+        org.mockito.InOrder inOrder = Mockito.inOrder(
+                cleanUpService,
+                componentHandler,
+                orphanHandler,
+                relationshipHandler,
+                snippetHandler
+        );
+
+        inOrder.verify(cleanUpService).cleanUpFileTree(any(Project.class));
+        inOrder.verify(componentHandler).processAllPackages(any(CycloneDxImportContext.class), any(Consumer.class));
+        inOrder.verify(orphanHandler).processOrphanFiles(any(CycloneDxImportContext.class));
+        inOrder.verify(relationshipHandler).processAllRelationships(any(CycloneDxImportContext.class), any(Consumer.class));
+        inOrder.verify(snippetHandler).processAllSnippets(any(CycloneDxImportContext.class));
+    }
+
+    @Test
+    public void testParseDocument_ContextPopulation() throws Exception {
+
+        SpdxWorkData workData = new SpdxWorkData();
+        workData.setProjectId(project.getId());
+        workData.setJsonBytes(jsonBytes);
+
+        // Simulate DB state for cache refresh
+        InventoryItem dbItem = new InventoryItem();
+        dbItem.setProject(project);
+        dbItem.setSpdxId("SPDXRef-Existing-Item");
+        dbItem.setInventoryName("Existing Item");
+        dbItem.setOrganization(org);
+
+        inventoryItemRepository.save(dbItem);
+
+        cycloneDxService.process(workData);
+
+        ArgumentCaptor<CycloneDxImportContext> contextCaptor = ArgumentCaptor.forClass(CycloneDxImportContext.class);
+        Mockito.verify(relationshipHandler).processAllRelationships(contextCaptor.capture(), any());
+
+        CycloneDxImportContext context = contextCaptor.getValue();
+
+
+        Assertions.assertTrue(context.getMainPackageIds().contains("SPDXRef-Project-Maven-proj1-grp-proj1-0.0.1"),
+                "Context should contain Main Package IDs extracted from DocumentDescribes");
+        Assertions.assertTrue(context.getInventoryCache().containsKey("SPDXRef-Existing-Item"),
+                "Context InventoryCache should be populated with items found in DB");
+        Assertions.assertEquals(dbItem.getId(), context.getInventoryCache().get("SPDXRef-Existing-Item").getId());
+    }
+
+    @Test
+    public void testParseDocument_InvalidProject_ReturnsFalse() {
+        SpdxWorkData workData = new SpdxWorkData();
+        workData.setProjectId(999999L); // Non-existent ID
+        workData.setJsonBytes(jsonBytes);
+
+        try {
+
+        boolean result = cycloneDxService.process(workData);
+
+        Assertions.assertFalse(result, "Should return false if project does not exist");
+
+
+            Mockito.verify(componentHandler, Mockito.never()).processAllPackages(any(), any());
+        } catch (Exception e) {
+            Assertions.fail("Mock verification failed");
+        }
+    }
+}
