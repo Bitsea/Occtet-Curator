@@ -29,6 +29,8 @@ import eu.occtet.boc.cyclonedx.service.SoftwareComponentService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.Component;
+import org.cyclonedx.model.LicenseChoice;
 import org.spdx.core.InvalidSPDXAnalysisException;
 import org.spdx.core.TypedValue;
 import org.spdx.library.SpdxModelFactory;
@@ -70,37 +72,27 @@ public class ComponentHandler {
     public void processAllPackages(CycloneDxImportContext context, Consumer<Integer> progressCallback, Bom bom) {
 
         try {
-            List<TypedValue> packageUris = doc.getModelStore().getAllItems(null, "Package").toList();
 
             int count = 0;
             Set<String> seenPackages = new HashSet<>();
             Set<InventoryItem> inventoryItemsToSave = new HashSet<>();
             Set<Copyright> copyrightsToSave = new HashSet<>();
 
-            for (TypedValue uri : packageUris) {
+            for (Component component : bom.getComponents()) {
                 try {
-                    SpdxModelFactory.getSpdxObjects(doc.getModelStore(), null, "Package", uri.getObjectUri(), null)
-                            .forEach(obj -> {
-                                if (obj instanceof SpdxPackage pkg && !seenPackages.contains(pkg.getId())) {
-                                    try {
-                                        InventoryItem item = parseSinglePackage(pkg, context, copyrightsToSave);
-                                        context.getInventoryItems().add(item);
-                                        inventoryItemsToSave.add(item);
-                                        seenPackages.add(pkg.getId());
 
-                                        List<Relationship> relationships = pkg.getRelationships().stream().toList();
-                                        context.getPackageRelationships().put(pkg.getId(), relationships);
-                                    } catch (Exception e) {
-                                        log.error("Failed to import package {}: {}. Skipping...", pkg.getId(), e.getMessage());
-                                    }
-                                }
-                            });
+                    InventoryItem item = parseSinglePackage(component, context, copyrightsToSave);
+                    context.getInventoryItems().add(item);
+                    inventoryItemsToSave.add(item);
+                    seenPackages.add(component.getPurl());
+
+
                 } catch (Exception e) {
-                    log.error("Error retrieving SPDX object for URI: {}", uri.getObjectUri(), e);
+                    log.error("Error retrieving cycloneDx object for component: {}", component.getPurl(), e);
                 }
 
                 count++;
-                int percent = (int) ((40.0 * count) / packageUris.size());
+                int percent = (int) ((40.0 * count) / bom.getComponents().size());
                 if (percent % 5 == 0) progressCallback.accept(percent);
             }
 
@@ -112,52 +104,52 @@ public class ComponentHandler {
                 inventoryItemRepository.saveAll(inventoryItemsToSave);
             }
 
-        } catch (InvalidSPDXAnalysisException e) {
-            log.error("Error retrieving SPDX object for URI: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Error retrieving cycloneDx object: {}", e.getMessage(), e);
         }
     }
 
-    public InventoryItem parseSinglePackage(SpdxPackage spdxPackage, CycloneDxImportContext context, Set<Copyright> copyrightsToSave)
+    public InventoryItem parseSinglePackage(Component component, CycloneDxImportContext context, Set<Copyright> copyrightsToSave)
             throws Exception {
 
         List<OrtIssue> ortIssues= ortIssueRepository.findByProject(context.getProject());
         List<OrtViolation> ortViolations = ortViolationRepository.findByProject(context.getProject());
 
-        log.info("Looking at package: {}", spdxPackage.getId());
-        spdxConverter.convertPackage(spdxPackage, context.getSpdxDocumentRoot(), context.getPackageLookupMap());
+        log.info("Looking at package: {}", component.getPurl());
 
-        String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
-        String version = spdxPackage.getVersionInfo().orElse("");
+        String packageName = component.getName();
+        String version = component.getVersion();
         List<Copyright> copyrights = new ArrayList<>();
 
         String componentKey = packageName + ":" + version;
-        SoftwareComponent component = context.getComponentCache().get(componentKey);
+        SoftwareComponent sc = context.getComponentCache().get(component.getPurl());
 
-        if (component == null) {
-            component = softwareComponentService.getOrCreateSoftwareComponent(packageName, version, context.getProject().getOrganization());
-            context.getComponentCache().put(componentKey, component);
+        if (sc == null) {
+            sc = softwareComponentService.getOrCreateSoftwareComponent(packageName, version, context.getProject().getOrganization());
+            context.getComponentCache().put(componentKey, sc);
         }
 
         //get License from package
-        AnyLicenseInfo spdxPkgLicense = spdxPackage.getLicenseConcluded();
-        if (spdxPkgLicense == null || spdxPkgLicense.isNoAssertion(spdxPkgLicense)) {
-            spdxPkgLicense = spdxPackage.getLicenseDeclared();
-        }
+        LicenseChoice licenseChoices = component.getLicenses();
 
-        licenseHandler.createUsageLicenses(spdxPkgLicense, context,
-                context.getExtractedLicenseInfos(),component, context.getProject().getOrganization());
+        licenseHandler.createUsageLicenses(licenseChoices, context,
+                sc, context.getProject().getOrganization());
 
-        String packageLicenseString = spdxPkgLicense != null ? spdxPkgLicense.toString() : "";
+        String packageLicenseString = sc.g;
 
         String inventoryName = spdxPackage.getId().replaceAll("(?i)^SPDXRef-[^-]+-[^-]+-", "");
         if (!inventoryName.contains(component.getVersion())) inventoryName += component.getVersion();
         inventoryName += " (" + packageLicenseString + ")";
 
-        InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, component,
-                context.getProject(),
-                context.getProject().getOrganization());
-        inventoryItem.setSpdxId(spdxPackage.getId());
-        inventoryItem.setCurated(false);
+        InventoryItem inventoryItem;
+        if(!context.getInventoryCache().containsKey(inventoryName)) {
+            inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, sc,
+                    context.getProject(),
+                    context.getProject().getOrganization());
+            inventoryItem.setCurated(false);
+        }else {
+            inventoryItem= context.getInventoryCache().get(inventoryName);
+        }
 
         inventoryItemService.sortViolationsAndIssues(ortIssues, ortViolations, inventoryItem);
 

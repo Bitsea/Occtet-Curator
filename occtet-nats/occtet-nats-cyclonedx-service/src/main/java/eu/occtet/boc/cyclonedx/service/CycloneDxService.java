@@ -30,7 +30,6 @@ import eu.occtet.boc.entity.*;
 import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.service.ProgressReportingService;
 import eu.occtet.boc.cyclonedx.context.CycloneDxImportContext;
-import eu.occtet.boc.cyclonedx.converter.SpdxConverter;
 import eu.occtet.boc.cyclonedx.exception.SpdxImportException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,8 +49,7 @@ public class CycloneDxService extends ProgressReportingService {
 
     private static final Logger log = LogManager.getLogger(CycloneDxService.class);
 
-    @Autowired
-    private SpdxConverter spdxConverter;
+
     @Autowired
     private ComponentHandler componentHandler;
     @Autowired
@@ -65,13 +63,13 @@ public class CycloneDxService extends ProgressReportingService {
     @Autowired
     private ProjectRepository projectRepository;
     @Autowired
-    private AnswerService answerService;
+    private SoftwareComponentRepository softwareComponentRepository;
     @Autowired
-    private SpdxDocumentRootRepository spdxDocumentRootRepository;
+    private AnswerService answerService;
+
     @Autowired
     private CleanUpService cleanUpService;
-    @Autowired
-    private JsonSanitizer sanitizer;
+
 
     /**
      * using spdxWorkdata because the same data is used for CycloneDx, easier to mantain one data model
@@ -109,12 +107,13 @@ public class CycloneDxService extends ProgressReportingService {
 
 
             notifyProgress(10, "converting CycloneDx");
-
-            componentHandler.processAllPackages(context, (percent) -> notifyProgress(20 + percent, "processing packages"));
+            refreshInventoryCache(context, true);
+            refreshComponentCache(context);
+            componentHandler.processAllPackages(context, (percent) -> notifyProgress(20 + percent, "processing packages"),bom);
 
             orphanHandler.processOrphanFiles(context);
 
-            refreshInventoryCache(context);
+           // cleanUpInventories(context);
             relationshipHandler.processAllRelationships(context, (percent) -> notifyProgress(60 + percent, "converting relationships"));
 
             snippetHandler.processAllSnippets(context);
@@ -154,14 +153,14 @@ public class CycloneDxService extends ProgressReportingService {
         return projectOptional.get();
     }
 
-    private void refreshInventoryCache(CycloneDxImportContext context) {
+    private void refreshInventoryCache(CycloneDxImportContext context, Boolean curated) {
         log.debug("Refreshing inventory cache for project {}", context.getProject().getId());
         List<InventoryItem> allItems = inventoryItemRepository.findAllByProject(context.getProject());
 
         Map<String, InventoryItem> inventoryCache = allItems.stream()
-                .filter(item -> item.getSpdxId() != null)
+                .filter(item -> item.getCurated() == curated)
                 .collect(Collectors.toMap(
-                        InventoryItem::getSpdxId,
+                        InventoryItem::getInventoryName,
                         item -> item,
                         (existing, replacement) -> existing
                 ));
@@ -169,6 +168,22 @@ public class CycloneDxService extends ProgressReportingService {
         context.setInventoryCache(inventoryCache);
 
         log.debug("Inventory cache refreshed. Mapped {} items.", inventoryCache.size());
+    }
+
+    private void refreshComponentCache(CycloneDxImportContext context) {
+        log.debug("Refreshing inventory cache for project {}", context.getProject().getId());
+        List<SoftwareComponent> allItems = softwareComponentRepository.findByInventoryItemProject(context.getProject());
+
+        Map<String, SoftwareComponent> componentCache = allItems.stream()
+                .collect(Collectors.toMap(
+                        SoftwareComponent::getPurl,
+                        item -> item,
+                        (existing, replacement) -> existing
+                ));
+
+        context.setComponentCache(componentCache);
+
+        log.debug("Component cache refreshed. Mapped {} components.", componentCache.size());
     }
 
     private void scheduleAnswerService(CycloneDxImportContext context, SpdxWorkData workData) {

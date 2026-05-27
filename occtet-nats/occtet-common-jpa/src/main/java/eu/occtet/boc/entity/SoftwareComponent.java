@@ -43,6 +43,9 @@ public class SoftwareComponent implements HasOrganization {
     @Column(name = "SOFTWARE_COMPONENT_NAME", nullable = false)
     private String name;
 
+    @Column(name= "BOM_REF", columnDefinition = "TEXT")
+    private String bomRef;
+
     @Column(name = "VERSION", nullable = false)
     private String version;
 
@@ -267,4 +270,13 @@ public class SoftwareComponent implements HasOrganization {
             usage.setSoftwareComponent(null);
         }
     }
+
+    public String getBomRef() {
+        return bomRef;
+    }
+
+    public void setBomRef(String bomRef) {
+        this.bomRef = bomRef;
+    }
+
 }

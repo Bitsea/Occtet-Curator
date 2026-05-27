@@ -25,6 +25,7 @@ import eu.occtet.boc.cyclonedx.context.CycloneDxImportContext;
 import eu.occtet.boc.cyclonedx.service.LicenseService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.cyclonedx.model.LicenseChoice;
 import org.spdx.core.InvalidSPDXAnalysisException;
 import org.spdx.library.LicenseInfoFactory;
 import org.spdx.library.model.v2.license.*;
@@ -43,16 +44,15 @@ public class LicenseHandler {
     private static final Logger log = LogManager.getLogger(LicenseHandler.class);
 
 
-    public Set<SoftwareComponentLicenseUsage> createUsageLicenses(AnyLicenseInfo spdxLicenseInfo,
+    public Set<SoftwareComponentLicenseUsage> createUsageLicenses(LicenseChoice licenseChoice,
                                                                   CycloneDxImportContext context,
-                                                                  Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc,
                                                                   SoftwareComponent softwareComponent, Organization organization)
             throws InvalidSPDXAnalysisException {
 
         Map<String, License> licenseCache= context.getLicenseCache();
         Set<SoftwareComponentLicenseUsage> generatedUsages = new HashSet<>();
         List<AnyLicenseInfo> allLicenseInfo = new ArrayList<>();
-        parseLicenseText(spdxLicenseInfo, allLicenseInfo);
+        parseLicenseText(licenseChoice, allLicenseInfo);
 
         for (AnyLicenseInfo individualLicenseInfo : allLicenseInfo) {
             String licenseId = "";
@@ -108,8 +108,8 @@ public class LicenseHandler {
         return generatedUsages;
     }
 
-    private void parseLicenseText(AnyLicenseInfo licenseInfo, List<AnyLicenseInfo> allLicenseInfos) throws InvalidSPDXAnalysisException {
-        switch (licenseInfo) {
+    private void parseLicenseText(LicenseChoice licenseChoice, List<AnyLicenseInfo> allLicenseInfos) throws InvalidSPDXAnalysisException {
+        switch (licenseChoice) {
             case ConjunctiveLicenseSet conjunctiveLicenseSet -> {
                 for (AnyLicenseInfo member : conjunctiveLicenseSet.getMembers()) {
                     parseLicenseText(member, allLicenseInfos);
@@ -128,7 +128,7 @@ public class LicenseHandler {
             }
             case SpdxNoAssertionLicense ignored -> {
             }
-            case null, default -> log.info("Encountered unknown license type: {}", licenseInfo);
+            case null, default -> log.info("Encountered unknown license type: {}", licenseChoice);
         }
     }
 

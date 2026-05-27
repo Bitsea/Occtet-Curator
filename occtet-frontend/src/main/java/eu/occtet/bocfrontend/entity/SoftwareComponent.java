@@ -49,6 +49,9 @@ public class SoftwareComponent implements HasOrganization {
     @InstanceName
     private String name;
 
+    @Column(name= "BOM_REF", columnDefinition = "TEXT")
+    private String bomRef;
+
     @Column(name = "VERSION", nullable = false)
     @JsonView(ApiView.SoftwareComponentView.class)
     private String version;
@@ -262,4 +265,11 @@ public class SoftwareComponent implements HasOrganization {
         return usageLicenses;
     }
 
+    public String getBomRef() {
+        return bomRef;
+    }
+
+    public void setBomRef(String bomRef) {
+        this.bomRef = bomRef;
+    }
 }

@@ -157,7 +157,7 @@ public class OrphanHandler {
 
                 if (fileLicense != null) {
                     licenseHandler.createUsageLicenses(fileLicense, context,
-                            context.getExtractedLicenseInfos(), component, context.getProject().getOrganization());
+                            component, context.getProject().getOrganization());
                     componentUpdated= true;
                 }
 
