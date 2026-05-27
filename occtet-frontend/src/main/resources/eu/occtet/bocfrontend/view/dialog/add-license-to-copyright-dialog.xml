@@ -22,8 +22,11 @@
       title="msg:// Available licenses">
     <data>
         <collection id="licenseDc"
-                    class="eu.occtet.bocfrontend.entity.License">
-            <fetchPlan extends="_base"/>
+                    class="eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage">
+            <fetchPlan extends="_base">
+                <property name="template" fetchPlan="_base">
+                </property>
+            </fetchPlan>
             <loader id="licenseDl">
                 <query>
                     <![CDATA[select e from License e]]>
@@ -45,9 +48,9 @@
                       classNames="occtet-grid"
                       selectionMode="MULTI">
                 <columns resizable="true">
-                    <column property="licenseType" header="Licence type"/>
-                    <column property="licenseText" header="License text"/>
-                    <column property="priority" header="Priority" />
+                    <column property="template.licenseType" header="msg://eu.occtet.bocfrontend.entity/LicenseType.licenseId"/>
+                    <column property="customName" header="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
+                    <column property="template.priority" header="msg://eu.occtet.bocfrontend.entity/License.priority" />
                 </columns>
             </dataGrid>
             <hbox>

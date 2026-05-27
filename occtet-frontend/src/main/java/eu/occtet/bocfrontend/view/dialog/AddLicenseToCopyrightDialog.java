@@ -21,12 +21,13 @@ package eu.occtet.bocfrontend.view.dialog;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.textfield.TextField;
-import eu.occtet.bocfrontend.dao.CopyrightRepository;
-import eu.occtet.bocfrontend.dao.LicenseRepository;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.renderer.TextRenderer;
+import eu.occtet.bocfrontend.dao.TemplateLicenseRepository;
 import eu.occtet.bocfrontend.entity.Copyright;
-import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.view.*;
@@ -36,76 +37,91 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 
 @ViewController("addLicenseToCopyrightDialog")
 @ViewDescriptor("add-license-to-copyright-dialog.xml")
 @DialogMode(width = "70%", height = "70%")
-public class AddLicenseToCopyrightDialog extends AbstractAddContentDialog<Copyright>{
+public class AddLicenseToCopyrightDialog extends StandardView{
 
     private static final Logger log = LogManager.getLogger(AddLicenseToCopyrightDialog.class);
 
-    private License license;
 
-    private Copyright copyright;
+    private SoftwareComponentLicenseUsage license;
+
+    private Set<Copyright> copyrights;
+    private SoftwareComponent softwareComponent;
 
     @Autowired
 
-    private LicenseRepository licenseRepository;
+    private TemplateLicenseRepository templateLicenseRepository;
 
     @ViewComponent
-    private CollectionContainer<License> licenseDc;
+    private CollectionContainer<SoftwareComponentLicenseUsage> licenseDc;
 
     @ViewComponent
     private TextField searchField;
-    @Autowired
-    private CopyrightRepository copyrightRepository;
+
+
     @ViewComponent
-    private DataGrid<License> licensesDataGrid;
+    private DataGrid<SoftwareComponentLicenseUsage> licensesDataGrid;
 
 
-    @Subscribe("licensesDataGrid")
-    public void selectAvailableContent(final ItemClickEvent<License> event){license = event.getItem();}
 
     @Subscribe("licenseDc")
-    @Override
-    public void setAvailableContent(Copyright copyright){
-        this.copyright= copyright;
-        licenseDc.setItems(licenseRepository.findAll());
+    public void setAvailableContent(Set<Copyright> selectedCopyrights, SoftwareComponent softwareComponent) {
+        this.copyrights = selectedCopyrights;
+        this.softwareComponent= softwareComponent;
+        licenseDc.setItems(softwareComponent.getUsageLicenses());
     }
 
-    @Override
+
     @Subscribe(id = "addLicenseButton")
     public void addContentButton(ClickEvent<Button> event) {
 
-        List<License> licenses = new ArrayList<>(licensesDataGrid.getSelectedItems());
-        log.debug("adding licenses {}", licenses.size());
-        if(event != null & licenses != null){
-            for(License license : licenses){
-                if(!this.copyright.getLicenses().contains(license)){
-                    this.copyright.getLicenses().add(license);
+        List<SoftwareComponentLicenseUsage> selectedLicenses = new ArrayList<>(licensesDataGrid.getSelectedItems());
+        log.debug("adding licenses {}", selectedLicenses.size());
+
+        // Note: Fixed bitwise '&' to logical '&&' and checked for empty list
+        if (event != null && !selectedLicenses.isEmpty()) {
+            for (SoftwareComponentLicenseUsage license : selectedLicenses) {
+                for(Copyright copyright: copyrights) {
+                    if (!copyright.getLicenses().contains(license)) {
+                        copyright.getLicenses().add(license);
+                    }
                 }
             }
-            copyrightRepository.save(this.copyright);
             close(StandardOutcome.CLOSE);
         }
     }
 
-    @Override
+
     @Subscribe(id = "searchButton")
     public void searchContentButton(ClickEvent<Button> event) {
 
         String searchWord = searchField.getValue();
-        if(!searchWord.isEmpty() && event != null){
-            List<License> listFindings= licenseRepository.findAll().stream().filter(l-> l.getLicenseName().toLowerCase().contains(searchWord.toLowerCase())
-                    || l.getLicenseType().toLowerCase().contains(searchWord.toLowerCase())).toList();
+        if (searchWord != null && !searchWord.isEmpty() && event != null) {
+            List<SoftwareComponentLicenseUsage> listFindings = softwareComponent.getUsageLicenses().stream()
+                    .filter(l -> l.getEffectiveName().toLowerCase().contains(searchWord.toLowerCase())
+                            || l.getTemplate().getLicenseType().toLowerCase().contains(searchWord.toLowerCase()))
+                    .toList();
             licenseDc.setItems(listFindings);
-        }else{
-            licenseDc.setItems(licenseRepository.findAll());
+        } else {
+            licenseDc.setItems(softwareComponent.getUsageLicenses());
         }
     }
 
+
     @Subscribe(id = "cancelButton")
-    public void cancelLicense(ClickEvent<Button> event){cancelButton(event);}
+    public void cancelLicense(ClickEvent<Button> event) {
+        close(StandardOutcome.DISCARD);;
+    }
+
+
+    @Supply(to = "licensesDataGrid.customName", subject = "renderer")
+    private Renderer<SoftwareComponentLicenseUsage> effectiveCustomNameColumnRenderer() {
+        return new TextRenderer<>(SoftwareComponentLicenseUsage::getEffectiveName);
+    }
 
 }

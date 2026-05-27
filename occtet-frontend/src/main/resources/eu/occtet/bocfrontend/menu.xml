@@ -31,8 +31,10 @@
           icon="vaadin:browser"/>
     <item view="InventoryItem.list" title="msg://eu.occtet.bocfrontend.view.inventoryitem/inventoryItemListView.title"
           icon="vaadin:archives"/>
-    <item view="License.list" title="msg://eu.occtet.bocfrontend.view.license/licenseListView.title"
+    <item view="TemplateLicense.list" title="msg://eu.occtet.bocfrontend.view.license/templatelicenseListView.title"
           icon="vaadin:file-text-o"/>
+    <item view="SoftwareComponentLicenseUsage.list" title="msg://eu.occtet.bocfrontend.view.softwareComponentLicenseUsage/usageLicenseListView.title"
+          icon="vaadin:file-text"/>
     <item view="Copyright.list" title="msg://eu.occtet.bocfrontend/copyrights"
           icon="vaadin:copyright"/>
     <item view="ortIssue.list" title="msg://eu.occtet.bocfrontend.view.ortIssue/title"

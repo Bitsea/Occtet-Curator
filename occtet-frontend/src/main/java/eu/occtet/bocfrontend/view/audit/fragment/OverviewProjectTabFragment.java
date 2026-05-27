@@ -181,24 +181,26 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
 
         ValueLoadContext context = new ValueLoadContext()
                 .setQuery(new ValueLoadContext.Query("""
-                            select l.id as licenseId, count(s) as countSC
-                            from InventoryItem i
-                            join i.softwareComponent s
-                            join s.licenses l
-                            join i.project p
-                            where p.id = :project_id
-                            group by l.id
-                       """)
-                        .setParameter("project_id",project.getId()))
+                    select l.id as licenseId, l.licenseName as licenseName, count(i) as countSC
+                    from InventoryItem i
+                    join i.softwareComponent s
+                    join s.usageLicenses usage
+                    join usage.template l
+                    join i.project p
+                    where p.id = :project_id
+                    group by l.id, l.licenseName
+               """)
+                        .setParameter("project_id", project.getId()))
                 .addProperty("licenseId")
+                .addProperty("licenseName")
                 .addProperty("countSC");
 
-
         List<KeyValueEntity> values = dataManager.loadValues(context);
+
         values.forEach(s -> {
-            License license = licenseRepository.findLicenseById(s.getValue("licenseId"));
+            String name = s.getValue("licenseName");
             Long value = s.getValue("countSC");
-            licensesDTOs.add(new AuditLicenseDTO(license.getLicenseName(),value.intValue()));
+            licensesDTOs.add(new AuditLicenseDTO(name,value.intValue()));
         });
         auditLicensesDc.setItems(licensesDTOs);
         licensesAccordion.setSummaryText(messages.getMessage("eu.occtet.bocfrontend.view/overvoewProjectTabFragment.licenseAccordion.summary") + " ("+licensesDTOs.size()+")");

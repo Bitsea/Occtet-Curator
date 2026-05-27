@@ -21,10 +21,13 @@ package eu.occtet.bocfrontend.view.copyright;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.CopyrightRepository;
 import eu.occtet.bocfrontend.entity.Copyright;
 import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
 import eu.occtet.bocfrontend.view.dialog.AddLicenseToCopyrightDialog;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.Messages;
@@ -56,10 +59,10 @@ public class CopyrightDetailView extends StandardDetailView<Copyright> {
     private Notifications notifications;
 
     @ViewComponent
-    private CollectionContainer<License> licenseDc;
+    private CollectionContainer<SoftwareComponentLicenseUsage> licenseDc;
 
     @ViewComponent
-    private DataGrid<License> licensesDataGrid;
+    private DataGrid<SoftwareComponentLicenseUsage> licensesDataGrid;
 
     @Autowired
     private CopyrightRepository copyrightRepository;
@@ -72,17 +75,6 @@ public class CopyrightDetailView extends StandardDetailView<Copyright> {
         updateLicenseGrid();
     }
 
-
-    @Subscribe(id = "addLicense", subject = "clickListener")
-    public void onAddLicenseClick(final ClickEvent<JmixButton> event) {
-
-            DialogWindow<AddLicenseToCopyrightDialog> window = dialogWindow.view(this, AddLicenseToCopyrightDialog.class).build();
-            window.getView().setAvailableContent(this.getEditedEntity());
-            window.open();
-            window.addAfterCloseListener(close ->
-                    updateLicenseGrid());
-
-    }
 
     public void updateLicenseGrid(){
         log.debug("update licenses {}", getEditedEntity().getLicenses().size());
@@ -100,7 +92,7 @@ public class CopyrightDetailView extends StandardDetailView<Copyright> {
      */
     @Subscribe(id = "removeLicenseButton")
     public void removeLicenses(ClickEvent<JmixButton> event) {
-        Set<License> selectedLicenses = licensesDataGrid.getSelectedItems();
+        Set<SoftwareComponentLicenseUsage> selectedLicenses = licensesDataGrid.getSelectedItems();
         Copyright current= this.getEditedEntity();
         if (!selectedLicenses.isEmpty()) {
             current.getLicenses().removeAll(selectedLicenses);
@@ -115,5 +107,11 @@ public class CopyrightDetailView extends StandardDetailView<Copyright> {
         licensesDataGrid.setSelectionMode(DataGrid.SelectionMode.SINGLE);
         licensesDataGrid.deselectAll();
     }
+
+    @Supply(to = "licensesDataGrid.customName", subject = "renderer")
+    private Renderer<SoftwareComponentLicenseUsage> effectiveCustomNameColumnRenderer() {
+        return new TextRenderer<>(SoftwareComponentLicenseUsage::getEffectiveName);
+    }
+
 
 }

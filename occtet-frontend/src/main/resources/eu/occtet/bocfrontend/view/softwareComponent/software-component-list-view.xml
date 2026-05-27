@@ -26,7 +26,7 @@
         <collection id="softwareComponentsDc"
                     class="eu.occtet.bocfrontend.entity.SoftwareComponent">
             <fetchPlan extends="_base">
-                <property name="licenses" fetchPlan="_base"/>
+                <property name="usageLicenses" fetchPlan="_base"/>
             </fetchPlan>
             <loader id="softwareComponentsDl" readOnly="true">
                 <query>
@@ -71,7 +71,7 @@
                     <column property="name" header="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.name" filterable="true"/>
                     <column property="version" header="msg://eu.occtet.bocfrontend.entity/Project.version"/>
                     <column property="purl" header="msg://eu.occtet.bocfrontend.entity/SoftwareComponent.purl"/>
-                    <column property="licenses" header="msg://Licenses"/>
+                    <column property="usageLicenses" header="msg://Licenses"/>
                     <column property="curated" header="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
                     <column property="licenseAiControlled" header="msg://licenseAiControlled"/>
                 </columns>

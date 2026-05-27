@@ -25,7 +25,6 @@ import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.service.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.persistence.core.queries.CoreAttributeGroup;
 import org.spdx.core.InvalidSPDXAnalysisException;
 import org.spdx.library.SpdxModelFactory;
 import org.spdx.library.model.v2.SpdxConstantsCompatV2;
@@ -36,10 +35,7 @@ import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Service
@@ -104,10 +100,7 @@ public class SnippetHandler {
 
         enrichComponentFromSnippet(
                 snippet,
-                context.getFileToInventoryItemMap(),
-                context.getLicenseCache(),
-                context.getExtractedLicenseInfos(),
-                context.getProject().getOrganization()
+                context
         );
     }
 
@@ -116,11 +109,16 @@ public class SnippetHandler {
      * copyright and license info found in the snippet.
      */
     private void enrichComponentFromSnippet(SpdxSnippet snippet,
-                                            Map<String, InventoryItem> fileMap,
-                                            Map<String, License> licenseCache,
-                                            Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc,
-                                            Organization organization
-    ) {SpdxFile snippetFile;
+                                            SpdxImportContext context
+    ) {
+
+        Map<String, InventoryItem> fileMap= context.getFileToInventoryItemMap();
+        Map<String, License> licenseCache= context.getLicenseCache();
+        Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc= context.getExtractedLicenseInfos();
+        Organization organization = context.getProject().getOrganization();
+
+
+        SpdxFile snippetFile;
         try {
             snippetFile = snippet.getSnippetFromFile();
             if (snippetFile == null) return;
@@ -161,19 +159,9 @@ public class SnippetHandler {
 
             AnyLicenseInfo concluded = snippet.getLicenseConcluded();
             if (concluded != null && !concluded.isNoAssertion(concluded) && !concluded.isNoAssertion(concluded)) {
-                List<License> licenses = licenseHandler.createLicenses(concluded, licenseCache,
-                        licenseInfosExtractedSpdxDoc, organization);
-
-                if (component.getLicenses() == null) {
-                    component.setLicenses(new java.util.ArrayList<>());
-                }
-
-                for (License license : licenses) {
-                    if (!component.getLicenses().contains(license)) {
-                        component.addLicense(license);
+                licenseHandler.createUsageLicenses(concluded, context,
+                        licenseInfosExtractedSpdxDoc,component, context.getProject().getOrganization());
                         componentUpdated = true;
-                    }
-                }
             }
 
             if (componentUpdated) {

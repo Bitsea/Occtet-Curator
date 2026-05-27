@@ -144,7 +144,7 @@ public class FossReportService extends ProgressReportingService {
             boolean wasCombined = FossReportUtilities.wasCombined(inventoryName);
             boolean isStyleBy = inventoryName.contains("Style");
             String url = rowDto.URL();
-            List<License> licenses = prepareLicenses(wasCombined, isStyleBy, rowDto, project.getOrganization());
+            List<SoftwareComponentLicenseUsage> licenses = prepareLicenses(wasCombined, isStyleBy, rowDto, project.getOrganization());
             String parentComponentVersion = FossReportUtilities.extractVersion(rowDto.parentNameAndVersion());
             String parentComponentName = FossReportUtilities.extractVersionOfComponentName(rowDto.parentNameAndVersion(),
                     parentComponentVersion);
@@ -227,20 +227,20 @@ public class FossReportService extends ProgressReportingService {
      *
      * @return a list of License objects containing extracted license information.
      */
-    private List<License> prepareLicenses(boolean wasCombined, Boolean isStyleBy, RowDto rowDto, Organization organization) {
+    private List<SoftwareComponentLicenseUsage> prepareLicenses(boolean wasCombined, Boolean isStyleBy, RowDto rowDto, Organization organization) {
 
         List<String> licenseNames;
-        List<License> licenses = new ArrayList<>();
+        List<SoftwareComponentLicenseUsage> licenses = new ArrayList<>();
 
         if (wasCombined) {
             licenseNames = FossReportUtilities.separateCombinedLicenses(rowDto.licenseTypeId());
             for (String licenseName : licenseNames) {
                 licenses.add(licenseService.findOrCreateLicenseWithModified(licenseName, rowDto.licenseText(),
-                        isStyleBy, organization));
+                        isStyleBy, organization).getUsages().getFirst());
             }
         } else {
             licenses.add(licenseService.findOrCreateLicenseWithModified(rowDto.licenseTypeId(),
-                    rowDto.licenseText(), isStyleBy, organization));
+                    rowDto.licenseText(), isStyleBy, organization).getUsages().getFirst());
         }
         log.debug("Licenses found: {}", licenses.size());
         return licenses;

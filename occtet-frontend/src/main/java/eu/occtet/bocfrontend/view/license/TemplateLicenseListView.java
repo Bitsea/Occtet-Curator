@@ -19,7 +19,6 @@
 
 package eu.occtet.bocfrontend.view.license;
 
-
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
@@ -27,10 +26,10 @@ import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
-import eu.occtet.bocfrontend.dao.LicenseRepository;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
-import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.dao.TemplateLicenseRepository;
 import eu.occtet.bocfrontend.entity.Project;
+import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.service.SPDXLicenseService;
 import eu.occtet.bocfrontend.view.main.MainView;
 import eu.occtet.bocfrontend.view.services.LicenseTextService;
@@ -43,31 +42,28 @@ import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.view.*;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
+import io.micrometer.common.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Optional;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-
-@Route(value = "licenses", layout = MainView.class)
-@ViewController(id = "License.list")
-@ViewDescriptor(path = "license-list-view.xml")
+@Route(value = "template-licenses", layout = MainView.class)
+@ViewController(id = "TemplateLicense.list")
+@ViewDescriptor(path = "template-license-list-view.xml")
 @LookupComponent("licensesDataGrid")
 @DialogMode(width = "80%", height = "80%")
-public class LicenseListView extends StandardListView<License> {
+public class TemplateLicenseListView extends StandardListView<License> {
 
-    private static final Logger log = LogManager.getLogger(LicenseListView.class);
+    private static final Logger log = LogManager.getLogger(TemplateLicenseListView.class);
 
-    private final static String SIMILARITY_RANK_COLUMN_ID ="Similarity Rank";
     private static final int MAX_FULLTEXT_RESULTS = 50;
 
     @ViewComponent
@@ -90,7 +86,7 @@ public class LicenseListView extends StandardListView<License> {
     @Autowired
     private Messages messages;
     @Autowired
-    private LicenseRepository licenseRepository;
+    private TemplateLicenseRepository licenseRepository;
     @Autowired
     private ProjectRepository projectRepository;
 
@@ -123,7 +119,7 @@ public class LicenseListView extends StandardListView<License> {
                 loadLicenses(licenses);
                 filterBox.setVisible(!licenses.isEmpty());
             }else {
-                List<License> licensesProject = licenseRepository.findLicensesByProject(event.getValue());
+                List<License> licensesProject = licenseRepository.findTemplateLicensesByProject(event.getValue());
                 loadLicenses(licensesProject);
                 filterBox.setVisible(!licensesProject.isEmpty());
             }
@@ -180,14 +176,14 @@ public class LicenseListView extends StandardListView<License> {
     public void fetchSPDX_Licenses(ClickEvent<Button> event){
         checkAndRemoveSimilarityColumn();
         spdxLicenseService.readDefaultLicenseInfos();
-        licensesDl.load();
+        loadLicenses(licenseRepository.findTemplateLicensesByProject(projectComboBox.getValue()));
     }
 
     @Subscribe("licensesDataGrid")
     public void clickOnLicenseDatagrid(ItemDoubleClickEvent<License> event){
-        DialogWindow<LicenseDetailView> window =
+        DialogWindow<TemplateLicenseDetailView> window =
                 dialogWindows.detail(this, License.class)
-                        .withViewClass(LicenseDetailView.class)
+                        .withViewClass(TemplateLicenseDetailView.class)
                         .editEntity(event.getItem())
                         .build();
         window.setWidth("100%");

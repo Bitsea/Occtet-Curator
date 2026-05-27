@@ -21,9 +21,9 @@ package eu.occtet.bocfrontend.service;
 
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
 import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
+import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +58,9 @@ public class SoftwareComponentService {
         return listingSoftwareComponent;
     }
 
-    public List<SoftwareComponent> findSoftwareComponentsByLicense(License license){
+    public List<SoftwareComponent> findSoftwareComponentsByLicense(SoftwareComponentLicenseUsage license){
         List<SoftwareComponent> listingSoftwareComponent = softwareComponentRepository.findAll();
-        listingSoftwareComponent.removeIf(sc->sc.getLicenses().stream().noneMatch(l->l.equals(license)));
+        listingSoftwareComponent.removeIf(sc->sc.getUsageLicenses().stream().noneMatch(l->l.equals(license)));
         return listingSoftwareComponent;
     }
 

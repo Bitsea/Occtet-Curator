@@ -113,6 +113,7 @@ public class OrphanHandler {
 
                 SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(filePath, "Standalone", context.getProject().getOrganization());
                 InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(filePath, component, context.getProject(), context.getProject().getOrganization());
+                boolean componentUpdated = false;
 
                 inventoryItem.setSpdxId(file.getId());
                 inventoryItem.setCurated(false);
@@ -141,6 +142,7 @@ public class OrphanHandler {
 
                     if (!component.getCopyrights().contains(copyright)) {
                         component.getCopyrights().add(copyright);
+                        componentUpdated = true;
                     }
                 }
 
@@ -150,17 +152,14 @@ public class OrphanHandler {
                 }
 
                 if (fileLicense != null) {
-                    List<License> licenses = licenseHandler.createLicenses(fileLicense, context.getLicenseCache(),
-                            context.getExtractedLicenseInfos(), context.getProject().getOrganization());
-
-                    if (component.getLicenses() == null) component.setLicenses(new ArrayList<>());
-
-                    for (License l : licenses) {
-                        if (!component.getLicenses().contains(l)) {
-                            component.addLicense(l);
-                        }
-                    }
+                    licenseHandler.createUsageLicenses(fileLicense, context,
+                            context.getExtractedLicenseInfos(), component, context.getProject().getOrganization());
+                    componentUpdated= true;
                 }
+
+                if(componentUpdated)
+                    softwareComponentService.update(component);
+
                 context.getInventoryItems().add(inventoryItem);
             }
 

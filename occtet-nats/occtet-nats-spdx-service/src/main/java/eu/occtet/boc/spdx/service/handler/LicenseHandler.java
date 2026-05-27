@@ -19,9 +19,9 @@
 
 package eu.occtet.boc.spdx.service.handler;
 
-import eu.occtet.boc.dao.LicenseRepository;
+import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.License;
-import eu.occtet.boc.entity.Organization;
+import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.service.LicenseService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,67 +38,74 @@ import java.util.*;
 public class LicenseHandler {
 
     @Autowired
-    private LicenseRepository licenseRepository;
-    @Autowired
     private LicenseService licenseService;
 
     private static final Logger log = LogManager.getLogger(LicenseHandler.class);
 
 
-    public List<License> createLicenses(AnyLicenseInfo spdxLicenseInfo,
-                                        Map<String, License> licenseCache,
-                                        Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc,
-                                        Organization organization)
+    public Set<SoftwareComponentLicenseUsage> createUsageLicenses(AnyLicenseInfo spdxLicenseInfo,
+                                                                  SpdxImportContext context,
+                                                                  Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc,
+                                                                  SoftwareComponent softwareComponent, Organization organization)
             throws InvalidSPDXAnalysisException {
 
-        Set<License> allLicenses = new HashSet<>();
+        Map<String, License> licenseCache= context.getLicenseCache();
+        Set<SoftwareComponentLicenseUsage> generatedUsages = new HashSet<>();
         List<AnyLicenseInfo> allLicenseInfo = new ArrayList<>();
         parseLicenseText(spdxLicenseInfo, allLicenseInfo);
-        List<License> licensesToSave = new ArrayList<>();
 
         for (AnyLicenseInfo individualLicenseInfo : allLicenseInfo) {
             String licenseId = "";
-            String licenseText = "";
-            boolean isListed = false;
+            String licenseText;
 
             if (individualLicenseInfo instanceof SpdxListedLicense) {
                 ListedLicense license = LicenseInfoFactory.getListedLicenseById(individualLicenseInfo.getId());
                 licenseId = license.getId();
                 licenseText = license.getLicenseText();
-                isListed = true;
             } else if (individualLicenseInfo instanceof ExtractedLicenseInfo) {
                 Optional<ExtractedLicenseInfo> extracted = licenseInfosExtractedSpdxDoc.stream()
                         .filter(s -> s.getLicenseId().equals(individualLicenseInfo.getId())).findFirst();
                 if (extracted.isPresent()) {
                     licenseId = extracted.get().getId();
                     licenseText = extracted.get().getExtractedText();
+                } else {
+                    licenseText = "";
                 }
+            } else {
+                licenseText = "";
             }
 
             if (licenseId.isEmpty()) licenseId = "Unknown";
 
+
             License licenseEntity = licenseCache.get(licenseId);
 
             if (licenseEntity == null) {
-                licenseEntity = licenseService.findOrCreateLicense(licenseId, licenseText, licenseId, organization);
-
-                if (isListed) {
-                    licenseEntity.setSpdx(true);
-                    licensesToSave.add(licenseEntity);
-                }
-
-                // Cache Put
+                licenseEntity = licenseCache.computeIfAbsent(licenseId,
+                        id -> licenseService.findOrCreateTemplateLicense(id, licenseText));
                 licenseCache.put(licenseId, licenseEntity);
             }
 
-            allLicenses.add(licenseEntity);
+            SoftwareComponentLicenseUsage usage = new SoftwareComponentLicenseUsage();
+            usage.setTemplate(licenseEntity);
+            usage.setSoftwareComponent(softwareComponent);
+            if (licenseText!= null && !licenseText.equals(licenseEntity.getLicenseText())) {
+                usage.setUsageText(licenseText);
+                usage.setIsModified(true);
+            } else usage.setIsModified(false);
+            if (licenseId!= null && !licenseId.equals(licenseEntity.getLicenseType())) {
+                usage.setIsModified(true);
+            }
+            usage.setCustomName(licenseEntity.getLicenseName());
+            usage.setCurated(false);
+            usage.setOrganization(organization);
+
+            generatedUsages.add(usage);
+
+
         }
 
-        if (!licensesToSave.isEmpty()) {
-            licenseRepository.saveAll(licensesToSave);
-        }
-
-        return allLicenses.stream().toList();
+        return generatedUsages;
     }
 
     private void parseLicenseText(AnyLicenseInfo licenseInfo, List<AnyLicenseInfo> allLicenseInfos) throws InvalidSPDXAnalysisException {

@@ -1,100 +1,64 @@
 /*
- * Copyright (C) 2025 Bitsea GmbH
+ *  Copyright (C) 2025 Bitsea GmbH
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  You may obtain a copy of the License at
  *
- *     https:www.apache.orglicensesLICENSE-2.0
+ *  https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and limitations under the License.
  *
- * SPDX-License-Identifier: Apache-2.0
- * License-Filename: LICENSE
+ *   SPDX-License-Identifier: Apache-2.0
+ *  License-Filename: LICENSE
  */
 
 package eu.occtet.bocfrontend.entity;
 
-
-import com.fasterxml.jackson.annotation.JsonView;
 import com.google.gson.annotations.SerializedName;
-import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.persistence.*;
-
-
+import java.util.ArrayList;
+import java.util.List;
 
 @JmixEntity
-@Table(name = "LICENSE",uniqueConstraints = { @UniqueConstraint(columnNames = { "LICENSE_TYPE"})})
+@Table(name = "LICENSE")
 @Entity
-public class License implements HasOrganization {
+public class License {
 
-    @JmixGeneratedValue
     @Id
-    @Column(name="ID", nullable = false)
+    @Column(name = "ID", nullable = false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(name= "PRIORITY")
+    @Column(name = "PRIORITY")
     private Integer priority;
 
+    @Column(name = "LICENSE_TYPE")
     @SerializedName("licenseId")
-    @Column(name= "LICENSE_TYPE")
     private String licenseType;
 
-    @Column(name= "LICENSE_TEXT", columnDefinition = "TEXT")
-    private String licenseText;
+    @Column(name = "TEMPLATE_TEXT", columnDefinition = "TEXT")
+    @SerializedName("licenseText")
+    private String templateText;
 
+    @Column(name = "LICENSE_NAME")
     @SerializedName("name")
-    @Column(name= "LICENSE_NAME")
     private String licenseName;
 
     @Column(name = "DETAILS_URL")
-    @JsonView(ApiView.LicenseView.class)
     private String detailsUrl;
 
-    @Column(name="MODIFIED")
-    private Boolean isModified;
-
-    @Column(name= "CURATED")
-    private Boolean curated;
-
-    @Column(name= "IS_SPDX")
+    @Column(name = "IS_SPDX")
     private Boolean isSpdx;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ORGANIZATION_ID")
-    private Organization organization;
+    @OneToMany(mappedBy = "template", fetch = FetchType.LAZY)
+    private List<SoftwareComponentLicenseUsage> usages = new ArrayList<>();
 
-    public License(){}
-
-    public License(String licenseType, String licenseText, String licenseName) {
-        this.licenseType = licenseType;
-        this.licenseText = licenseText;
-        this.licenseName = licenseName;
-    }
-
-    public License(String licenseType, String licenseText) {
-        this.licenseType = licenseType;
-        this.licenseText = licenseText;
-    }
-
-
-    public License(String licenseType, String licenseText, Boolean modified) {
-        this.licenseType = licenseType;
-        this.licenseText = licenseText;
-        this.isModified= modified;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+    public License() {
     }
 
     public Integer getPriority() {
@@ -113,12 +77,12 @@ public class License implements HasOrganization {
         this.licenseType = licenseType;
     }
 
-    public String getLicenseText() {
-        return licenseText;
+    public String getTemplateText() {
+        return templateText;
     }
 
-    public void setLicenseText(String licenseText) {
-        this.licenseText = licenseText;
+    public void setTemplateText(String templateText) {
+        this.templateText = templateText;
     }
 
     public String getLicenseName() {
@@ -129,14 +93,6 @@ public class License implements HasOrganization {
         this.licenseName = licenseName;
     }
 
-    public Boolean getIsModified() {
-        return isModified;
-    }
-
-    public void setIsModified(Boolean modified) {
-        this.isModified = modified;
-    }
-
     public String getDetailsUrl() {
         return detailsUrl;
     }
@@ -145,48 +101,27 @@ public class License implements HasOrganization {
         this.detailsUrl = detailsUrl;
     }
 
-    public Boolean isModified() {
-        return isModified;
-    }
-
-    public void setModified(Boolean modified) {
-        isModified = modified;
-    }
-
-    public Boolean getModified() {
-        return isModified;
-    }
-
-    public Boolean isCurated() {
-        return curated;
-    }
-
-    public void setCurated(Boolean curated) {
-        this.curated = curated;
-    }
-
-    public Boolean isSpdx() {
+    public Boolean getIsSpdx() {
         return isSpdx;
     }
 
-    public void setSpdx(Boolean spdx) {
-        isSpdx = spdx;
+    public void setIsSpdx(Boolean isSpdx) {
+        this.isSpdx = isSpdx;
     }
 
-    public Boolean getCurated() {
-        return curated;
+    public List<SoftwareComponentLicenseUsage> getUsages() {
+        return usages;
     }
 
-    public Boolean getSpdx() {
-        return isSpdx;
+    public void setUsages(List<SoftwareComponentLicenseUsage> usages) {
+        this.usages = usages;
     }
 
-    public Organization getOrganization() {
-        return organization;
+    public Long getId() {
+        return id;
     }
 
-    public void setOrganization(Organization organization) {
-        this.organization = organization;
+    public void setId(Long id) {
+        this.id = id;
     }
 }
-

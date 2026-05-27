@@ -19,11 +19,13 @@
 
 package eu.occtet.bocfrontend.service;
 
+
 import eu.occtet.bocfrontend.dao.LicenseRepository;
 import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
-import eu.occtet.bocfrontend.factory.LicenseFactory;
+import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
+import eu.occtet.bocfrontend.factory.UsageLicenseFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,36 +45,19 @@ public class LicenseService {
     @Autowired
     private SoftwareComponentService softwareComponentService;
     @Autowired
-    private LicenseFactory licenseFactory;
+    private UsageLicenseFactory licenseFactory;
 
     public LicenseService(LicenseRepository licenseRepository) {
         this.licenseRepository = licenseRepository;
     }
 
-    public List<License> findLicensesByProject(Project project){
+    public List<SoftwareComponentLicenseUsage> findUsageLicensesByProject(Project project){
         List<SoftwareComponent> softwareComponents = softwareComponentService.findSoftwareComponentsByProject(project);
-        List<License> licenses = new ArrayList<>();
-        softwareComponents.forEach(sc->licenses.addAll(sc.getLicenses()));
+        List<SoftwareComponentLicenseUsage> licenses = new ArrayList<>();
+        softwareComponents.forEach(sc->licenses.addAll(sc.getUsageLicenses()));
         return licenses;
     }
 
-    public List<License> findLicenseByPriority(Integer priority){
-        return licenseRepository.findLicensesByPriority(priority);
-    }
 
-    public List<License> findLicenseByCurated(Boolean isCurated){
-        return licenseRepository.findLicensesByCurated(isCurated);
-    }
-
-    public License createLicense(Integer priority, String licenseType,String licenseText, String licenseName,
-                                 String detailsUrl, boolean isModified, boolean curated, boolean isSpdx){
-        try {
-            return licenseFactory.create(priority,licenseType,licenseText,licenseName,detailsUrl,isModified,curated,isSpdx);
-        } catch (IllegalArgumentException e) {
-            log.error("Error creating license: {}", e.getMessage());
-            throw new IllegalArgumentException("Invalid license type");
-        }
-
-    }
 
 }

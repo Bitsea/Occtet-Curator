@@ -49,7 +49,7 @@ public class LicenseService {
             return license.getFirst();
         } else {
 
-            return licenseFactory.createWithModified(licenseId, licenseText, modified, organization);
+            return licenseFactory.createWithModified(licenseId, licenseText, modified);
         }
     }
 }

@@ -26,11 +26,12 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
-import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
-import eu.occtet.bocfrontend.service.LicenseService;
+import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
 import io.jmix.core.Messages;
 import io.jmix.flowui.Notifications;
+import io.jmix.flowui.model.DataContext;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,7 +46,7 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
     private static final Logger log = LogManager.getLogger(CreateLicenseDialog.class);
 
     private SoftwareComponent softwareComponent;
-    private License createdLicense;
+
 
     @ViewComponent
     private TextField licenseNameField;
@@ -72,13 +73,19 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
     private TextArea licenseTextField;
 
     @Autowired
-    private LicenseService licenseService;
-
-    @Autowired
     private Notifications notifications;
 
     @Autowired
     private Messages messages;
+    @Autowired
+    private DataContext dataContext;
+
+    private SoftwareComponentLicenseUsage createdUsage;
+
+
+    public SoftwareComponentLicenseUsage getCreatedUsage() {
+        return createdUsage;
+    }
 
 
     @Subscribe
@@ -105,21 +112,27 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
         if (checkInput(priority, licenseType, licenseText, licenseName, detailsUrl)) {
 
             try {
-                this.createdLicense = licenseService.createLicense(
-                        Integer.valueOf(priority),
-                        licenseType,
-                        licenseText,
-                        licenseName,
-                        detailsUrl,
-                        isModifiedField.getValue(),
-                        isCuratedField.getValue(),
-                        isSpdxField.getValue()
-                );
 
-                log.debug("Instantiated new license record: {}", createdLicense.getLicenseName());
-                close(StandardOutcome.SAVE);
+                License license = dataContext.create(License.class);
+                license.setPriority(Integer.valueOf(priority));
+                license.setLicenseType(licenseType);
+                license.setTemplateText(licenseText);
+                license.setLicenseName(licenseName);
+                license.setDetailsUrl(detailsUrl);
+                license.setIsSpdx(isSpdxField.getValue());
 
-            } catch (IllegalArgumentException e) {
+                createdUsage = dataContext.create(SoftwareComponentLicenseUsage.class);
+                createdUsage.setIsModified(isModifiedField.getValue());
+                createdUsage.setCurated(isCuratedField.getValue());
+                createdUsage.setTemplate(license);
+                createdUsage.setSoftwareComponent(this.softwareComponent);
+
+                this.softwareComponent.addLicenseUsage(createdUsage);
+
+
+                log.debug("Created and added new license template and usage {} to softwareComponent", license.getLicenseName());
+            close(StandardOutcome.SAVE);
+            }catch (IllegalArgumentException e) {
                 notifications.create(messages.formatMessage(getClass(), "duplicate.error", licenseType))
                         .withDuration(4000)
                         .withPosition(Notification.Position.TOP_CENTER)
@@ -128,7 +141,7 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
             }
 
         } else {
-            notifications.create(messages.getMessage("unknown.error"))
+            notifications.create("Something went wrong, please check your input, some fields are required")
                     .withDuration(3000)
                     .withPosition(Notification.Position.TOP_CENTER)
                     .withThemeVariant(NotificationVariant.LUMO_WARNING)
@@ -147,9 +160,5 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
                 licenseText != null && !licenseText.trim().isEmpty() &&
                 licenseName != null && !licenseName.trim().isEmpty() &&
                 detailsUrl != null && !detailsUrl.trim().isEmpty();
-    }
-
-    public License getCreatedLicense() {
-        return createdLicense;
     }
 }

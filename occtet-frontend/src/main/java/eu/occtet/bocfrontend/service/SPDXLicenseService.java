@@ -21,12 +21,11 @@ package eu.occtet.bocfrontend.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import eu.occtet.bocfrontend.dao.LicenseRepository;
+import com.google.gson.JsonDeserializer;
 import eu.occtet.bocfrontend.entity.License;
-import eu.occtet.bocfrontend.factory.LicenseFactory;
+import eu.occtet.bocfrontend.factory.TemplateLicenseFactory;
 import eu.occtet.bocfrontend.model.SPDXLicenseDetails;
 import eu.occtet.bocfrontend.model.SPDXLicenseInfos;
-import io.jmix.core.DataManager;
 import io.jmix.core.security.Authenticated;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +37,9 @@ import reactor.core.publisher.Mono;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.reflections.Reflections.log;
@@ -48,7 +48,7 @@ import static org.reflections.Reflections.log;
 public class SPDXLicenseService {
 
     @Autowired
-    private LicenseFactory licenseFactory;
+    private TemplateLicenseFactory licenseFactory;
 
 
     @Authenticated
@@ -68,6 +68,9 @@ public class SPDXLicenseService {
 
             InputStreamReader br = new InputStreamReader(inputStream);
             GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.registerTypeAdapter(LocalDateTime.class, (JsonDeserializer<LocalDateTime>) (json, typeOfT, context) ->
+                    LocalDateTime.parse(json.getAsString(), DateTimeFormatter.ISO_DATE_TIME)
+            );
             Gson gson = gsonBuilder.create();
             SPDXLicenseInfos spdxLicenseInfos = gson.fromJson(br, SPDXLicenseInfos.class);
 
@@ -94,7 +97,7 @@ public class SPDXLicenseService {
             }else{
                 downloadLicenseText(license,license.getDetailsUrl());
             }
-            licenseFactory.create(license.getLicenseType(),license.getLicenseText(),
+            licenseFactory.create(license.getLicenseType(),license.getTemplateText(),
                     license.getLicenseName(), license.getDetailsUrl(), isSpdxLicense(license));
         });
     }
@@ -112,8 +115,8 @@ public class SPDXLicenseService {
             SPDXLicenseDetails details = response.block();
             if (details != null && !StringUtils.isEmpty(details.getLicenseText())) {
 
-                if (StringUtils.isEmpty(license.getLicenseText()) || !license.getLicenseText().equals(details.getLicenseText())) {
-                    license.setLicenseText(details.getLicenseText());
+                if (StringUtils.isEmpty(license.getTemplateText()) || !license.getTemplateText().equals(details.getLicenseText())) {
+                    license.setTemplateText(details.getLicenseText());
                     log.debug("downloaded license text for {} ", license.getLicenseType());
                 }
             }

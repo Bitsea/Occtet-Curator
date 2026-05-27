@@ -200,7 +200,7 @@ public class TabManager {
         InventoryItemTabFragment fragment = fragments.create(hostView, InventoryItemTabFragment.class);
         fragment.setHostView((AuditView) hostView);
         log.debug("Opening inventory item: {}", item.getInventoryName());
-        fragment.setInventoryItem(item);
+        fragment.setInventoryItem(item.getId());
         return fragment;
     }
 

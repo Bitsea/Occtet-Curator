@@ -26,7 +26,7 @@
             <fetchPlan extends="_base"/>
             <loader id="licenseDl">
                 <query>
-                    <![CDATA[select e from License e]]>
+                    <![CDATA[select e from UsageLicense e]]>
                 </query>
             </loader>
         </collection>
@@ -46,8 +46,9 @@
                       selectionMode="MULTI">
                 <columns resizable="true">
                     <column property="licenseType" header="Licence type"/>
-                    <column property="licenseText" header="License text"/>
                     <column property="priority" header="Priority"/>
+                    <column property="licenseName" header="msg://eu.occtet.bocfrontend.entity/License.licenseName"/>
+
                 </columns>
             </dataGrid>
             <hbox alignItems="CENTER" alignSelf="CENTER" justifySelf="CENTER" justifyContent="CENTER" width="100%">

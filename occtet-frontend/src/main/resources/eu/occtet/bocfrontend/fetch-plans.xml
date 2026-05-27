@@ -37,6 +37,20 @@
             <property name="severity"/>
         </property>
     </fetchPlan>
+    <fetchPlan entity="SoftwareComponentLicenseUsage" name="softwareComponentLicenseUsage-fetch-plan" extends="_local">
+        <property name="template">
+        </property>
+    </fetchPlan>
+    <fetchPlan entity="SoftwareComponentLicenseUsage" name="softwareComponentLicenseUsage-fetch-plan_1"
+               extends="_local">
+        <property name="template">
+        </property>
+    </fetchPlan>
+    <fetchPlan entity="SoftwareComponentLicenseUsage" name="softwareComponentLicenseUsage-fetch-plan_2"
+               extends="_local">
+        <property name="template">
+        </property>
+    </fetchPlan>
 
 
 </fetchPlans>

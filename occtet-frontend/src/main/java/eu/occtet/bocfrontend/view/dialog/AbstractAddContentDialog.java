@@ -30,7 +30,7 @@ public abstract class AbstractAddContentDialog<T> extends StandardView {
 
     public abstract void addContentButton(ClickEvent<Button> event);
 
-    public void cancelButton(ClickEvent<Button> event){close(StandardOutcome.CLOSE);}
+    public void cancelButton(ClickEvent<Button> event){close(StandardOutcome.DISCARD);}
 
     public abstract void searchContentButton(ClickEvent<Button> event);
 

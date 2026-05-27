@@ -1,20 +1,19 @@
 /*
- * Copyright (C) 2025 Bitsea GmbH
+ *  Copyright (C) 2025 Bitsea GmbH
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  You may obtain a copy of the License at
  *
- *     https:www.apache.orglicensesLICENSE-2.0
+ *  https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and limitations under the License.
  *
- * SPDX-License-Identifier: Apache-2.0
- * License-Filename: LICENSE
+ *   SPDX-License-Identifier: Apache-2.0
+ *  License-Filename: LICENSE
  */
 
 package eu.occtet.bocfrontend.dao;
@@ -27,21 +26,22 @@ import io.jmix.core.repository.Query;
 
 import java.util.List;
 
-
-public interface LicenseRepository  extends JmixDataRepository<License, Long> {
+public interface LicenseRepository extends JmixDataRepository<License, Long> {
 
     List<License> findAll();
-    List<License> findByLicenseName(String licenseName);
-    List<License> findLicensesByCurated(Boolean curated);
-    List<License> findLicensesByPriority(Integer priority);
-    List<License> findLicensesByLicenseName(String licenseName);
-    @Query("select distinct l from InventoryItem i join i.project p join i.softwareComponent sc join sc.licenses l where p = :project")
+
+
+    @Query("select distinct ul from License ul join InventoryItem i on i.softwareComponent = ul.softwareComponent where i.project = :project")
     List<License> findLicensesByProject(Project project);
-    License findLicenseById(Long id);
-    @Query("select l from InventoryItem i join i.project p join i.softwareComponent sc join sc.licenses l where p = :project and l.licenseName = :licenseName")
+
+    @Query("select ul from License ul join InventoryItem i on i.softwareComponent = ul.softwareComponent join ul.template t where i.project = :project and t.licenseName = :licenseName")
     List<License> findLicensesByLicenseNameAndProject(String licenseName, Project project);
-    @Query("select l from InventoryItem i join i.softwareComponent sc join sc.licenses l where i = :item")
+
+    @Query("select ul from License ul join InventoryItem i on i.softwareComponent = ul.softwareComponent where i = :item")
     List<License> findByInventoryItem(InventoryItem item);
-    @Query("select l from License l where l not in :licenses")
+
+    @Query("select t from License t where t not in :licenses")
     List<License> findAvailableLicenses(List<License> licenses);
+
+    License findLicenseById(Object licenseId);
 }

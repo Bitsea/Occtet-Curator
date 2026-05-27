@@ -55,7 +55,7 @@ public class MergeService {
     @Transactional
     public void mergeChangesToDocumentEntities(SpdxDocumentRoot spdxDocumentRoot, Project project) {
         log.info("Starting to merge curated changes for project: {}", project.getProjectName());
-        Set<License> customLicensesToExtract = new HashSet<>();
+        Set<SoftwareComponentLicenseUsage> customLicensesToExtract = new HashSet<>();
 
         spdxDocumentRoot.setName(project.getProjectName());
 
@@ -66,8 +66,8 @@ public class MergeService {
 
                 handleSpdxPackageEntity(spdxPackageEntity, inventoryItem, softwareComponent);
 
-                if (softwareComponent != null && softwareComponent.getLicenses() != null) {
-                    customLicensesToExtract.addAll(softwareComponent.getLicenses());
+                if (softwareComponent != null && softwareComponent.getUsageLicenses() != null) {
+                    customLicensesToExtract.addAll(softwareComponent.getUsageLicenses());
                 }
             } catch (NoSuchElementException e) {
                 log.debug("No inventoryItem was found for this package: {}, skip merging changes to document entities.", spdxPackageEntity.getSpdxId());
@@ -120,8 +120,8 @@ public class MergeService {
             }
         }
 
-        if (softwareComponent.getLicenses() != null && !softwareComponent.getLicenses().isEmpty()) {
-            String concludedLicenses = formatLicenseExpression(softwareComponent.getLicenses());
+        if (softwareComponent.getUsageLicenses() != null && !softwareComponent.getUsageLicenses().isEmpty()) {
+            String concludedLicenses = formatLicenseExpression(softwareComponent.getUsageLicenses());
             spdxPackageEntity.setLicenseConcluded(concludedLicenses);
         }
 
@@ -163,20 +163,20 @@ public class MergeService {
      * @param spdxDocumentRoot The root document entity.
      * @param collectedLicenses The aggregate set of all licenses utilized across components and files.
      */
-    private void handleExtractedLicenses(SpdxDocumentRoot spdxDocumentRoot, Set<License> collectedLicenses) {
+    private void handleExtractedLicenses(SpdxDocumentRoot spdxDocumentRoot, Set<SoftwareComponentLicenseUsage> collectedLicenses) {
         List<ExtractedLicensingInfoEntity> newExtractedLicenses = new ArrayList<>();
 
-        for (License license : collectedLicenses) {
-            if (license.getLicenseName() != null && license.getLicenseName().trim().equalsIgnoreCase("UNKNOWN")) {
+        for (SoftwareComponentLicenseUsage license : collectedLicenses) {
+            if (license.getTemplate().getLicenseName() != null && license.getTemplate().getLicenseName().trim().equalsIgnoreCase("UNKNOWN")) {
                 continue;
             }
 
-            if (Boolean.FALSE.equals(license.isSpdx()) || Boolean.TRUE.equals(license.isModified())) {
+            if (Boolean.FALSE.equals(license.getTemplate().getIsSpdx()) ) {
                 ExtractedLicensingInfoEntity extractedInfo = new ExtractedLicensingInfoEntity();
                 extractedInfo.setSpdxDocument(spdxDocumentRoot);
                 extractedInfo.setLicenseId(generateLicenseRefId(license));
-                extractedInfo.setName(license.getLicenseName() != null ? license.getLicenseName() : "Custom License");
-                extractedInfo.setExtractedText(license.getLicenseText());
+                extractedInfo.setName(license.getEffectiveName() != null ? license.getEffectiveName() : "Custom License");
+                extractedInfo.setExtractedText(license.getEffectiveText());
                 newExtractedLicenses.add(extractedInfo);
             }
         }
@@ -209,21 +209,21 @@ public class MergeService {
      * @param licenses The list of applied licenses.
      * @return The formatted license expression string (e.g., "MIT AND LicenseRef-12" or "NOASSERTION").
      */
-    private String formatLicenseExpression(Collection<License> licenses) {
+    private String formatLicenseExpression(Collection<SoftwareComponentLicenseUsage> licenses) {
         if (licenses == null || licenses.isEmpty()) {
             return "NOASSERTION";
         }
 
         List<String> validLicenses = licenses.stream()
                 .filter(license -> {
-                    String name = license.getLicenseName();
+                    String name = license.getEffectiveName();
                     return name != null && !name.trim().equalsIgnoreCase("UNKNOWN") && !name.trim().isBlank();
                 })
                 .map(license -> {
-                    if (Boolean.FALSE.equals(license.isSpdx()) || Boolean.TRUE.equals(license.isModified())) {
+                    if (Boolean.FALSE.equals(license.getTemplate().getIsSpdx()) || Boolean.TRUE.equals(license.getIsModified())) {
                         return generateLicenseRefId(license);
                     }
-                    return license.getLicenseName();
+                    return license.getEffectiveName();
                 })
                 .toList();
 
@@ -233,9 +233,9 @@ public class MergeService {
         return String.join(" AND ", validLicenses);
     }
 
-    private String generateLicenseRefId(License license) {
-        if (license.getLicenseName() != null && !license.getLicenseName().isBlank()) {
-            String sanitizedName = license.getLicenseName().replaceAll("[^A-Za-z0-9.-]", "-");
+    private String generateLicenseRefId(SoftwareComponentLicenseUsage license) {
+        if (license.getTemplate().getLicenseType() != null && !license.getEffectiveName().isBlank()) {
+            String sanitizedName = license.getEffectiveName().replaceAll("[^A-Za-z0-9.-]", "-");
             sanitizedName = sanitizedName.replaceAll("-+", "-");
 
             if (sanitizedName.startsWith("LicenseRef-")) {
@@ -244,7 +244,7 @@ public class MergeService {
 
             return "LicenseRef-" + sanitizedName;
         }
-        return "LicenseRef-custom-" + license.getId();
+        return "LicenseRef-custom-" + license.getTemplate().getLicenseType();
     }
 
 }

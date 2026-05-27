@@ -31,7 +31,6 @@ import eu.occtet.boc.spdx.converter.SpdxConverter;
 import eu.occtet.boc.spdx.factory.*;
 import eu.occtet.boc.spdx.service.*;
 import eu.occtet.boc.spdx.service.handler.*;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,10 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -67,10 +63,10 @@ import java.util.Optional;
 @ContextConfiguration(classes = {
         SpdxService.class, SoftwareComponentService.class, SoftwareComponentRepository.class,
         CopyrightService.class, InventoryItemService.class, LicenseService.class, FileService.class,
-        ProjectRepository.class, LicenseRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class, FileRepository.class,
-        CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class,
-        LicenseFactory.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class,
-        LicenseHandler.class, PackageHandler.class, OrphanHandler.class, RelationshipHandler.class, SnippetHandler.class, JsonSanitizer.class
+        ProjectRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class, FileRepository.class,
+        CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class,
+        LicenseHandler.class, PackageHandler.class, OrphanHandler.class, RelationshipHandler.class, SnippetHandler.class, JsonSanitizer.class,
+        LicenseRepository.class, License.class
 })
 @EnableJpaRepositories(basePackages = {"eu.occtet.boc.dao"})
 @EntityScan(basePackages = {"eu.occtet.boc.entity"})
@@ -95,10 +91,7 @@ public class SpdxHandlerTest {
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
     private LicenseRepository licenseRepository;
-    @Autowired
-    private OrganizationRepository organizationRepository;
-    @Autowired
-    private EntityManager entityManager;
+
     @Autowired
     private LicenseHandler licenseHandler;
     @Autowired
@@ -112,18 +105,20 @@ public class SpdxHandlerTest {
 
     private Project project;
     private SpdxImportContext context;
+    private Organization organization;
+    private SoftwareComponent softwareComponent;
 
     @BeforeEach
     public void setup() throws Exception {
-        Organization org = new Organization();
-        org.setOrganizationName("TestOrg");
-        organizationRepository.save(org);
-
+        organization= new Organization();
+        organization.setOrganizationName("TestOrganization");
         project = new Project();
         project.setProjectName("IntegrationTestProject");
         project.setVersion("1.0.0");
-        project.setOrganization(org);
+        project.setOrganization(organization);
         project = projectRepository.save(project);
+        softwareComponent= new SoftwareComponent();
+        softwareComponent.setName("testComponent");
 
         SpdxModelFactory.init();
         MultiFormatStore inputStore = new MultiFormatStore(new InMemSpdxStore(), MultiFormatStore.Format.JSON);
@@ -230,8 +225,8 @@ public class SpdxHandlerTest {
                 .anyMatch(c -> c.getCopyrightText().equals("Copyright 2008-2010 John Smith"));
         Assertions.assertTrue(hasSnippetCopyright, "Component should contain snippet copyright");
 
-        boolean hasSnippetLicense = component.getLicenses().stream()
-                .anyMatch(l -> l.getLicenseName().equals("GPL-2.0-only"));
+        boolean hasSnippetLicense = component.getUsageLicenses().stream()
+                .anyMatch(l -> l.getTemplate().getLicenseName().equals("GPL-2.0-only"));
         Assertions.assertTrue(hasSnippetLicense, "Component should contain snippet license (GPL-2.0-only)");
     }
 
@@ -268,41 +263,46 @@ public class SpdxHandlerTest {
 
     @Test
     public void testLicenseHandler_ShouldProcessExtractedAndListedLicenses() throws Exception {
-
         SpdxPackage pkg4 = getPackageById("SPDXRef-Package-Maven-pkg4-grp-pkg4-0.0.1");
         AnyLicenseInfo standardLicenseInfo = pkg4.getLicenseDeclared();
         SpdxPackage pkg6 = getPackageById("SPDXRef-Package-Maven-pkg6-grp-pkg6-0.0.1");
         AnyLicenseInfo extractedLicenseInfo = pkg6.getLicenseDeclared();
 
-        List<License> standardResult = licenseHandler.createLicenses(
+        Set<SoftwareComponentLicenseUsage> standardResult = licenseHandler.createUsageLicenses(
                 standardLicenseInfo,
-                context.getLicenseCache(),
-                context.getExtractedLicenseInfos(),
+                context,
+                context.getExtractedLicenseInfos(),softwareComponent,
                 context.getProject().getOrganization()
+
         );
 
-        List<License> extractedResult = licenseHandler.createLicenses(
+        Set<SoftwareComponentLicenseUsage> extractedResult = licenseHandler.createUsageLicenses(
                 extractedLicenseInfo,
-                context.getLicenseCache(),
-                context.getExtractedLicenseInfos(),
+                context,
+                context.getExtractedLicenseInfos(),softwareComponent,
                 context.getProject().getOrganization()
         );
 
-
+        // Standard License assertions
         Assertions.assertEquals(1, standardResult.size());
-        License mit = standardResult.getFirst();
-        Assertions.assertEquals("MIT", mit.getLicenseName());
-        Assertions.assertTrue(mit.isSpdx(), "Standard license should be marked as SPDX");
-        Assertions.assertFalse(licenseRepository.findByLicenseName("MIT").isEmpty(), "MIT should be persisted");
+        SoftwareComponentLicenseUsage mitUsage = standardResult.iterator().next();
+        License mitTemplate = mitUsage.getTemplate();
 
+        Assertions.assertEquals("MIT", mitTemplate.getLicenseName());
+        Assertions.assertTrue(mitTemplate.getIsSpdx(), "Standard license should be marked as SPDX");
+        Assertions.assertFalse(licenseRepository.findByLicenseType("MIT").isEmpty(), "MIT should be persisted as a template");
+
+        // Extracted License assertions
         Assertions.assertEquals(1, extractedResult.size());
-        License asmus = extractedResult.getFirst();
-        Assertions.assertEquals("LicenseRef-scancode-asmus", asmus.getLicenseName());
-        Assertions.assertFalse(asmus.isSpdx(), "Extracted license should NOT be marked as standard SPDX");
+        SoftwareComponentLicenseUsage asmusUsage = extractedResult.iterator().next();
+        License asmusTemplate = asmusUsage.getTemplate();
 
-        Assertions.assertTrue(asmus.getLicenseText().contains("ASMUS License"), "Should contain the extracted title");
-        Assertions.assertTrue(asmus.getLicenseText().contains("This file contains bugs"), "Should contain the extracted body text");
-        Assertions.assertFalse(licenseRepository.findByLicenseName("LicenseRef-scancode-asmus").isEmpty(), "Custom license should be persisted");
+        Assertions.assertEquals("LicenseRef-scancode-asmus", asmusTemplate.getLicenseName());
+        Assertions.assertFalse(asmusTemplate.getIsSpdx(), "Extracted license should NOT be marked as standard SPDX");
+
+        Assertions.assertTrue(asmusUsage.getUsageText().contains("ASMUS License"), "Usage license should contain the extracted title");
+        Assertions.assertTrue(asmusUsage.getUsageText().contains("This file contains bugs"), "Usage license should contain the extracted body text");
+        Assertions.assertFalse(licenseRepository.findByLicenseType("LicenseRef-scancode-asmus").isEmpty(), "Custom template should be persisted");
     }
 
     /**

@@ -150,19 +150,8 @@ public class PackageHandler {
             spdxPkgLicense = spdxPackage.getLicenseDeclared();
         }
 
-        List<License> pkgLicenses = licenseHandler.createLicenses(spdxPkgLicense, context.getLicenseCache(),
-                context.getExtractedLicenseInfos(), context.getProject().getOrganization());
-        if(component.getLicenses() != null) {
-            //make double sure there are no doubles
-            Set<License> lSet= new HashSet<>( component.getLicenses());
-            component.setLicenses(new ArrayList<>(lSet));
-            SoftwareComponent finalComponent = component;
-            pkgLicenses.stream()
-                    .filter(license -> !finalComponent.getLicenses().contains(license))
-                    .forEach(component::addLicense);
-        } else {
-            component.setLicenses(pkgLicenses);
-        }
+        licenseHandler.createUsageLicenses(spdxPkgLicense, context,
+                context.getExtractedLicenseInfos(),component, context.getProject().getOrganization());
 
         String packageLicenseString = spdxPkgLicense != null ? spdxPkgLicense.toString() : "";
 

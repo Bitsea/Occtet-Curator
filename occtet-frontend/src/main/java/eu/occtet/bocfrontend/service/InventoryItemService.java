@@ -21,9 +21,7 @@ package eu.occtet.bocfrontend.service;
 
 import eu.occtet.bocfrontend.dao.InventoryItemRepository;
 import eu.occtet.bocfrontend.entity.InventoryItem;
-import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Project;
-import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import io.jmix.core.DataManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

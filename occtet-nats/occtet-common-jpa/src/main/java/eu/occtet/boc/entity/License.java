@@ -1,105 +1,68 @@
 /*
- * Copyright (C) 2025 Bitsea GmbH
+ *  Copyright (C) 2025 Bitsea GmbH
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  You may obtain a copy of the License at
  *
- *      https:www.apache.orglicensesLICENSE-2.0
+ *  https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and limitations under the License.
  *
- *  SPDX-License-Identifier: Apache-2.0
+ *   SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
  */
 
 package eu.occtet.boc.entity;
 
-
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "LICENSE")
 @EntityListeners(AuditingEntityListener.class)
-public class License implements HasOrganization {
+public class License {
 
     @Id
-    @Column(name="ID", nullable = false)
-    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    @Column(name = "ID", nullable = false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(name= "PRIORITY")
+    @Column(name = "PRIORITY")
     private Integer priority;
 
-    @Column(name= "LICENSE_TYPE")
+    @Column(name = "LICENSE_TYPE")
     private String licenseType;
 
-    @Column(name= "LICENSE_TEXT",columnDefinition = "TEXT")
-    private String licenseText;
+    @Column(name = "TEMPLATE_TEXT", columnDefinition = "TEXT")
+    private String templateText;
 
-    @Column(name= "LICENSE_NAME")
+    @Column(name = "LICENSE_NAME")
     private String licenseName;
 
     @Column(name = "DETAILS_URL")
     private String detailsUrl;
 
-    @Column(name="MODIFIED")
-    private Boolean isModified;
+    @Column(name = "IS_SPDX")
+    private Boolean isSpdx;
 
-    @Column(name= "CURATED")
-    private Boolean curated;
-
-    @Column(name= "IS_SPDX")
-    private Boolean isSpdx = false;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
-    private Organization organization;
+    @OneToMany(mappedBy = "template", fetch = FetchType.LAZY)
+    private List<SoftwareComponentLicenseUsage> usages = new ArrayList<>();
 
     public License() {
     }
 
-    public License(String licenseType, String licenseText, String licenseName, Organization organization) {
-        this.licenseType = licenseType;
-        this.licenseText = licenseText;
-        this.licenseName = licenseName;
-        this.organization = organization;
-    }
-
-    public License(String licenseType, String licenseText, Organization organization) {
-        this.licenseType = licenseType;
-        this.licenseText = licenseText;
-        this.organization = organization;
-    }
-
-
-    public License(String licenseType, String licenseText, Boolean modified, Organization organization) {
-        this.licenseType = licenseType;
-        this.licenseText = licenseText;
-        this.organization = organization;
-        this.isModified= modified;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public int getPriority() {
+    public Integer getPriority() {
         return priority;
     }
 
-    public void setPriority(int priority) {
+    public void setPriority(Integer priority) {
         this.priority = priority;
     }
 
@@ -112,11 +75,11 @@ public class License implements HasOrganization {
     }
 
     public String getLicenseText() {
-        return licenseText;
+        return templateText;
     }
 
     public void setLicenseText(String licenseText) {
-        this.licenseText = licenseText;
+        this.templateText = licenseText;
     }
 
     public String getLicenseName() {
@@ -127,14 +90,6 @@ public class License implements HasOrganization {
         this.licenseName = licenseName;
     }
 
-    public Boolean getIsModified() {
-        return isModified;
-    }
-
-    public void setIsModified(Boolean modified) {
-        this.isModified = modified;
-    }
-
     public String getDetailsUrl() {
         return detailsUrl;
     }
@@ -143,53 +98,22 @@ public class License implements HasOrganization {
         this.detailsUrl = detailsUrl;
     }
 
-    public Boolean isModified() {
-        return isModified;
-    }
-
-    public void setModified(Boolean modified) {
-        isModified = modified;
-    }
-
-    public Boolean isCurated() {
-        return curated;
-    }
-
-    public void setCurated(Boolean curated) {
-        this.curated = curated;
-    }
-
-    public Boolean isSpdx() {
+    public Boolean getIsSpdx() {
         return isSpdx;
     }
 
-    public void setSpdx(Boolean spdx) {
-        isSpdx = spdx;
+    public void setIsSpdx(Boolean isSpdx) {
+        this.isSpdx = isSpdx;
     }
 
-    public void setPriority(Integer priority) {
-        this.priority = priority;
+    public List<SoftwareComponentLicenseUsage> getUsages() {
+        return usages;
     }
 
-    public Boolean getModified() {
-        return isModified;
+    public void setUsages(List<SoftwareComponentLicenseUsage> usages) {
+        this.usages = usages;
     }
 
-    public Boolean getCurated() {
-        return curated;
-    }
 
-    public Boolean getSpdx() {
-        return isSpdx;
-    }
 
-    @Override
-    public Organization getOrganization() {
-        return organization;
-    }
-
-    @Override
-    public void setOrganization(Organization organization) {
-        this.organization = organization;
-    }
 }

@@ -28,7 +28,6 @@ import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.dao.SoftwareComponentRepository;
-import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.view.main.MainView;
@@ -67,7 +66,7 @@ public class SoftwareComponentListView extends StandardListView<SoftwareComponen
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
     @Autowired
-    Messages messages;
+    private Messages messages;
 
 
     @Subscribe
@@ -106,15 +105,15 @@ public class SoftwareComponentListView extends StandardListView<SoftwareComponen
         }
     }
 
-    @Supply(to = "softwareComponentsDataGrid.licenses", subject = "renderer")
+    @Supply(to = "softwareComponentsDataGrid.usageLicenses", subject = "renderer")
     private Renderer<SoftwareComponent> licensesRenderer() {
         return new TextRenderer<>(component -> {
 
-            if (component.getLicenses() == null) {
+            if (component.getUsageLicenses() == null) {
                 return "";
             }
-            return component.getLicenses().stream()
-                    .map(License::getLicenseType)
+            return component.getUsageLicenses().stream()
+                    .map(usage -> usage.getTemplate().getLicenseType())
                     .collect(Collectors.joining(", "));
         });
     }
