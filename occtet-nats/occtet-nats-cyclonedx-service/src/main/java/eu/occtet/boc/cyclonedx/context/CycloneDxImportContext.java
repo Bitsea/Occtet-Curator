@@ -37,15 +37,17 @@ public class CycloneDxImportContext {
 
     // Caches and State
     private Map<String, SoftwareComponent> componentCache = new HashMap<>();
+    private Map<String, SoftwareComponent> componentVulnerabilityCache = new HashMap<>();
+
     private Map<String, License> licenseCache = new HashMap<>();
+    //here we take the softwarecomponent name as key, because the same license can be used for multiple components, but a component can only have one usage license
+    private Map<String, SoftwareComponentLicenseUsage> usageLicenseCache = new HashMap<>();
     private Map<String, InventoryItem> fileToInventoryItemMap = new HashMap<>();
     private Map<String, InventoryItem> inventoryCache = new HashMap<>();
 
     // Tracking Sets
     private List<InventoryItem> inventoryItems = new ArrayList<>();
     private Set<Long> mainInventoryItems = new HashSet<>();
-    private Set<String> mainPackageIds = new HashSet<>();
-    private Set<String> processedFileIds = new HashSet<>();
 
     public CycloneDxImportContext(Project project) {
         this.project = project;
@@ -104,19 +106,20 @@ public class CycloneDxImportContext {
         this.mainInventoryItems = mainInventoryItems;
     }
 
-    public Set<String> getMainPackageIds() {
-        return mainPackageIds;
+
+    public Map<String, SoftwareComponentLicenseUsage> getUsageLicenseCache() {
+        return usageLicenseCache;
     }
 
-    public void setMainPackageIds(Set<String> mainPackageIds) {
-        this.mainPackageIds = mainPackageIds;
+    public void setUsageLicenseCache(Map<String, SoftwareComponentLicenseUsage> usageLicenseCache) {
+        this.usageLicenseCache = usageLicenseCache;
     }
 
-    public Set<String> getProcessedFileIds() {
-        return processedFileIds;
+    public Map<String, SoftwareComponent> getComponentVulnerabilityCache() {
+        return componentVulnerabilityCache;
     }
 
-    public void setProcessedFileIds(Set<String> processedFileIds) {
-        this.processedFileIds = processedFileIds;
+    public void setComponentVulnerabilityCache(Map<String, SoftwareComponent> componentVulnerabilityCache) {
+        this.componentVulnerabilityCache = componentVulnerabilityCache;
     }
 }

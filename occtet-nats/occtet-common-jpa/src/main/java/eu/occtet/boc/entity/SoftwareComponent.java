@@ -43,7 +43,7 @@ public class SoftwareComponent implements HasOrganization {
     @Column(name = "SOFTWARE_COMPONENT_NAME", nullable = false)
     private String name;
 
-    @Column(name= "BOM_REF", columnDefinition = "TEXT")
+    @Transient
     private String bomRef;
 
     @Column(name = "VERSION", nullable = false)

@@ -19,15 +19,21 @@
 
 package eu.occtet.boc.dao;
 
-import eu.occtet.boc.entity.Project;
+import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.SoftwareComponent;
+import eu.occtet.boc.entity.SoftwareComponentLicenseUsage;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface SoftwareComponentRepository extends JpaRepository<SoftwareComponent, Long> {
+public interface SoftwareComponentLicenseUsageRepository extends JpaRepository<SoftwareComponentLicenseUsage, Long> {
 
-    List<SoftwareComponent> findByNameAndVersion(String softwareName, String version);
-    List<SoftwareComponent> findAllByProject(Project project);
-
-}
+    @Query("SELECT u FROM SoftwareComponentLicenseUsage u " +
+            "JOIN FETCH u.template " +
+            "WHERE u.softwareComponent = :softwareComponent AND u.template = :template")
+    List<SoftwareComponentLicenseUsage> findAllBySoftwareComponentAndTemplate(
+            @Param("softwareComponent") SoftwareComponent softwareComponent,
+            @Param("template") License template
+    );}

@@ -48,14 +48,13 @@ public class FileService {
      * Resolves existing file entities or instantiates new ones to persist the structural file tree.
      * Binds the original SPDX identifier to the domain entity to prevent metadata loss during downstream exports.
      *
-     * @param fileToSpdxIdMap A mapping of the artifact path to its assigned SPDX document identifier.
      * @param inventoryItem   The audited inventory node grouping these files.
      * @return A map correlating the artifact path to the fully persisted file entity.
      */
     @Transactional
-    public Map<String, File> findOrCreateBatch(Map<String, String> fileToSpdxIdMap, InventoryItem inventoryItem) {
+    public Map<String, File> findOrCreateBatch(Set<String> files, InventoryItem inventoryItem) {
         log.debug("Create Batch of File entities for InventoryItem id={} with {} paths",
-                inventoryItem.getId(), fileToSpdxIdMap.size());
+                inventoryItem.getId(), files.size());
 
         List<File> toSave = new ArrayList<>();
         Map<String, File> cache = new HashMap<>();
@@ -65,19 +64,14 @@ public class FileService {
                 .filter(f -> f.getArtifactPath() != null)
                 .collect(Collectors.toMap(File::getArtifactPath, f -> f, (f1, f2) -> f1));
 
-        for (Map.Entry<String, String> entry : fileToSpdxIdMap.entrySet()) {
-            String path = entry.getKey();
-            String spdxId = entry.getValue();
+        for (String path : files) {
+
 
             File fileEntity = existingMap.get(path);
 
             if (fileEntity != null) {
                 log.debug("Linking existing File entity {} to InventoryItem {}", path, inventoryItem.getInventoryName());
                 fileEntity.addInventoryItem(inventoryItem);
-
-                if (fileEntity.getDocumentId() == null) {
-                    fileEntity.setDocumentId(spdxId);
-                }
 
                 toSave.add(fileEntity);
                 cache.put(path, fileEntity);
@@ -92,7 +86,6 @@ public class FileService {
                         path, name, inventoryItem.getInventoryName());
 
                 File newLoc = filefactory.create(path, name, inventoryItem.getProject(), inventoryItem);
-                newLoc.setDocumentId(spdxId);
                 toSave.add(newLoc);
                 cache.put(path, newLoc);
             }

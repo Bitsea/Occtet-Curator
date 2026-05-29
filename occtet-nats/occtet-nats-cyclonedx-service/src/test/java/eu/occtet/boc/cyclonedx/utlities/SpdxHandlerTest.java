@@ -33,10 +33,6 @@ import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.entity.spdxV2.SpdxFileEntity;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.cyclonedx.context.CycloneDxImportContext;
-import eu.occtet.boc.cyclonedx.converter.SpdxConverter;
-import eu.occtet.boc.spdx.factory.*;
-import eu.occtet.boc.spdx.service.*;
-import eu.occtet.boc.spdx.service.handler.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,8 +66,8 @@ import java.util.*;
         CycloneDxService.class, SoftwareComponentService.class, SoftwareComponentRepository.class,
         CopyrightService.class, InventoryItemService.class, LicenseService.class, FileService.class,
         ProjectRepository.class, InventoryItemRepository.class, SoftwareComponentFactory.class, FileRepository.class,
-        CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class, SpdxConverter.class, TestEclipseLinkJpaConfiguration.class,
-        LicenseHandler.class, ComponentHandler.class, OrphanHandler.class, RelationshipHandler.class, SnippetHandler.class, JsonSanitizer.class,
+        CopyrightFactory.class, FileFactory.class, InventoryItemFactory.class, CleanUpService.class, TestEclipseLinkJpaConfiguration.class,
+        LicenseHandler.class, ComponentHandler.class,  JsonSanitizer.class,
         LicenseRepository.class, License.class
 })
 @EnableJpaRepositories(basePackages = {"eu.occtet.boc.dao"})
@@ -84,8 +80,6 @@ public class SpdxHandlerTest {
 
     @MockitoBean
     private AnswerService answerService;
-    @MockitoBean
-    private SpdxConverter spdxConverter;
     @MockitoBean
     private SpdxDocumentRootRepository spdxDocumentRootRepository;
     @MockitoBean
@@ -102,12 +96,6 @@ public class SpdxHandlerTest {
     private LicenseHandler licenseHandler;
     @Autowired
     private ComponentHandler componentHandler;
-    @Autowired
-    private RelationshipHandler relationshipHandler;
-    @Autowired
-    private OrphanHandler orphanHandler;
-    @Autowired
-    private SnippetHandler snippetHandler;
 
     private Project project;
     private CycloneDxImportContext context;

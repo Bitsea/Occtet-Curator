@@ -19,13 +19,16 @@
 
 package eu.occtet.boc.cyclonedx.service.handler;
 
+import eu.occtet.boc.cyclonedx.service.SoftwareComponentLicenseUsageService;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.cyclonedx.context.CycloneDxImportContext;
 import eu.occtet.boc.cyclonedx.service.LicenseService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.cyclonedx.model.AttachmentText;
 import org.cyclonedx.model.LicenseChoice;
+import org.cyclonedx.model.license.Expression;
 import org.spdx.core.InvalidSPDXAnalysisException;
 import org.spdx.library.LicenseInfoFactory;
 import org.spdx.library.model.v2.license.*;
@@ -33,6 +36,7 @@ import org.spdx.library.model.v3_0_1.expandedlicensing.ListedLicense;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
@@ -43,93 +47,87 @@ public class LicenseHandler {
 
     private static final Logger log = LogManager.getLogger(LicenseHandler.class);
 
+    @Autowired
+    private SoftwareComponentLicenseUsageService softwareComponentLicenseUsageService;
 
-    public Set<SoftwareComponentLicenseUsage> createUsageLicenses(LicenseChoice licenseChoice,
+
+    public String createUsageLicenses(LicenseChoice licenseChoice,
                                                                   CycloneDxImportContext context,
-                                                                  SoftwareComponent softwareComponent, Organization organization)
-            throws InvalidSPDXAnalysisException {
+                                                                  SoftwareComponent softwareComponent, Organization organization) {
 
         Map<String, License> licenseCache= context.getLicenseCache();
-        Set<SoftwareComponentLicenseUsage> generatedUsages = new HashSet<>();
-        List<AnyLicenseInfo> allLicenseInfo = new ArrayList<>();
-        parseLicenseText(licenseChoice, allLicenseInfo);
 
-        for (AnyLicenseInfo individualLicenseInfo : allLicenseInfo) {
-            String licenseId = "";
-            String licenseText;
+        StringBuilder licenseDeclaration= new StringBuilder();
+        if (licenseChoice != null) {
+            if (licenseChoice.getExpression() != null) {
+                Expression expression = licenseChoice.getExpression();
+                licenseDeclaration.append(expression.getValue());
+                String cleanedExpression = licenseDeclaration.toString().replaceAll("[()]", "");
 
-            if (individualLicenseInfo instanceof SpdxListedLicense) {
-                ListedLicense license = LicenseInfoFactory.getListedLicenseById(individualLicenseInfo.getId());
-                licenseId = license.getId();
-                licenseText = license.getLicenseText();
-            } else if (individualLicenseInfo instanceof ExtractedLicenseInfo) {
-                Optional<ExtractedLicenseInfo> extracted = licenseInfosExtractedSpdxDoc.stream()
-                        .filter(s -> s.getLicenseId().equals(individualLicenseInfo.getId())).findFirst();
-                if (extracted.isPresent()) {
-                    licenseId = extracted.get().getId();
-                    licenseText = extracted.get().getExtractedText();
-                } else {
-                    licenseText = "";
+                String[] licenses = cleanedExpression.split("\\s+(?i)(?:AND|OR)\\s+");
+
+                for (int i = 0; i < licenses.length; i++) {
+                    licenses[i] = licenses[i].trim();
+                    SoftwareComponentLicenseUsage usage= createUsageForLicense(licenses[i], licenses[i], null, softwareComponent, organization, licenseCache);
+                    context.getUsageLicenseCache().put(softwareComponent.getName(), usage);
                 }
-            } else {
-                licenseText = "";
+
+            }else {
+
+                for (org.cyclonedx.model.License lic : licenseChoice.getLicenses()) {
+                    String licenseId = lic.getId();
+                    if(licenseId.isEmpty()) licenseId = "Unknown";
+                    String licenseName = lic.getName();
+                    String licenseText = "";
+                    if (lic.getAttachmentText() != null) {
+                        AttachmentText attachment = lic.getAttachmentText();
+                        String content = attachment.getText();
+
+
+                        if (content != null) {
+                            if ("base64".equalsIgnoreCase(attachment.getEncoding())) {
+                                try {
+                                    byte[] decodedBytes = Base64.getDecoder().decode(content.trim());
+                                    licenseText = new String(decodedBytes, StandardCharsets.UTF_8);
+                                } catch (IllegalArgumentException e) {
+                                    licenseText = content;
+                                }
+                            } else {
+                                licenseText = content;
+                            }
+                        }
+                    }
+                    if(licenseDeclaration.isEmpty()){
+                        licenseDeclaration.append(licenseId);
+                    }else licenseDeclaration.append(" AND ").append(licenseId);
+
+                    SoftwareComponentLicenseUsage usage= createUsageForLicense(licenseId,licenseName,
+                            licenseText,softwareComponent,organization,licenseCache);
+                    context.getUsageLicenseCache().put(softwareComponent.getName(), usage);
+                }
             }
-
-            if (licenseId.isEmpty()) licenseId = "Unknown";
-
-
-            License licenseEntity = licenseCache.get(licenseId);
-
-            if (licenseEntity == null) {
-                licenseEntity = licenseCache.computeIfAbsent(licenseId,
-                        id -> licenseService.findOrCreateTemplateLicense(id, licenseText));
-                licenseCache.put(licenseId, licenseEntity);
-            }
-
-            SoftwareComponentLicenseUsage usage = new SoftwareComponentLicenseUsage();
-            usage.setTemplate(licenseEntity);
-            usage.setSoftwareComponent(softwareComponent);
-            if (licenseText!= null && !licenseText.equals(licenseEntity.getLicenseText())) {
-                usage.setUsageText(licenseText);
-                usage.setIsModified(true);
-            } else usage.setIsModified(false);
-            if (licenseId!= null && !licenseId.equals(licenseEntity.getLicenseType())) {
-                usage.setIsModified(true);
-            }
-            usage.setCustomName(licenseEntity.getLicenseName());
-            usage.setCurated(false);
-            usage.setOrganization(organization);
-
-            generatedUsages.add(usage);
 
 
         }
+        context.getLicenseCache().putAll(licenseCache);
 
-        return generatedUsages;
+        return licenseDeclaration.toString();
     }
 
-    private void parseLicenseText(LicenseChoice licenseChoice, List<AnyLicenseInfo> allLicenseInfos) throws InvalidSPDXAnalysisException {
-        switch (licenseChoice) {
-            case ConjunctiveLicenseSet conjunctiveLicenseSet -> {
-                for (AnyLicenseInfo member : conjunctiveLicenseSet.getMembers()) {
-                    parseLicenseText(member, allLicenseInfos);
-                }
-            }
-            case DisjunctiveLicenseSet disjunctiveLicenseSet -> {
-                for (AnyLicenseInfo member : disjunctiveLicenseSet.getMembers()) {
-                    parseLicenseText(member, allLicenseInfos);
-                }
-            }
-            case WithExceptionOperator withExceptionOperator -> parseLicenseText(withExceptionOperator.getLicense(), allLicenseInfos);
-            case SpdxListedLicense listed -> allLicenseInfos.add(listed);
-            case ExtractedLicenseInfo extracted -> allLicenseInfos.add(extracted);
-            //No action needed if there is no license
-            case SpdxNoneLicense ignored -> {
-            }
-            case SpdxNoAssertionLicense ignored -> {
-            }
-            case null, default -> log.info("Encountered unknown license type: {}", licenseChoice);
+    private SoftwareComponentLicenseUsage createUsageForLicense(String licenseId, String licenseName,  String licenseText,
+                                                                SoftwareComponent softwareComponent,
+                                                                Organization organization, Map<String, License> licenseCache) {
+        License licenseEntity = licenseCache.get(licenseId);
+
+        if (licenseEntity == null) {
+            licenseEntity = licenseCache.computeIfAbsent(licenseId,
+                    id -> licenseService.findOrCreateTemplateLicense(id, licenseText));
+            licenseCache.put(licenseId, licenseEntity);
         }
+
+        return softwareComponentLicenseUsageService.createOrFindSoftwareComponentLicenseUsage(licenseEntity, softwareComponent,
+                licenseText, licenseId, licenseName, organization);
+
     }
 
 
