@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.model.vexModels;
+package eu.occtet.boc.model.vexModels;
 
 public record VexMetadata(String timeStamp,
         VexComponent component) { }

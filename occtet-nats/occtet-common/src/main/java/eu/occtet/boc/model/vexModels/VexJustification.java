@@ -17,24 +17,27 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.model.vexModels;
+package eu.occtet.boc.model.vexModels;
 
-import io.jmix.core.metamodel.datatype.EnumClass;
 
-public enum VexAnalysisState implements EnumClass<String> {
-    not_affected("not_affected"),
-    affected("affected"),
-    in_triage("in_triage"),
-    resolved("resolved"),
-    resolved_with_pedigree("resolved_with_pedigree"),
-    exploitable("exploitable"),
-    false_positive("false_positive");
+public enum VexJustification  {
+    code_not_present("code_not_present"),
+    code_not_reachable("code_not_reachable"),
+    requires_configuration("requires_configuration"),
+    requires_dependency("requires_dependency"),
+    requires_environment("requires_environment"),
+    protected_by_compiler("protected_by_compiler"),
+    protected_at_runtime("protected_at_runtime"),
+    protected_at_network("protected_at_network"),
+    protected_by_mitigating_control("protected_by_mitigating_control");
 
     private final String id;
-    VexAnalysisState(String value){this.id= value;}
+    VexJustification (String value){this.id= value;}
 
-    @Override
+
     public String getId() {
         return id;
     }
+
+
 }

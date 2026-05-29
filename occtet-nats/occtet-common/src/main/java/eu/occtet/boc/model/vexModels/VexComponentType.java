@@ -17,28 +17,17 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.model.vexModels;
+package eu.occtet.boc.model.vexModels;
 
-import io.jmix.core.metamodel.datatype.EnumClass;
 
-public enum VexJustification implements EnumClass<String> {
-    code_not_present("code_not_present"),
-    code_not_reachable("code_not_reachable"),
-    requires_configuration("requires_configuration"),
-    requires_dependency("requires_dependency"),
-    requires_environment("requires_environment"),
-    protected_by_compiler("protected_by_compiler"),
-    protected_at_runtime("protected_at_runtime"),
-    protected_at_network("protected_at_network"),
-    protected_by_mitigating_control("protected_by_mitigating_control");
+
+public enum VexComponentType  {
+    application("application"), firmware("firmware"), device("device"), container("container"), platform("paltform");
 
     private final String id;
-    VexJustification (String value){this.id= value;}
+    VexComponentType (String value){this.id= value;}
 
-    @Override
     public String getId() {
         return id;
     }
-
-
 }

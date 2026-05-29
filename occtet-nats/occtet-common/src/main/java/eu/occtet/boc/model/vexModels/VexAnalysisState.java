@@ -17,7 +17,23 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.model.vexModels;
+package eu.occtet.boc.model.vexModels;
 
-public record VexComponent (
-    String  type, String name, String version){}
+
+public enum VexAnalysisState {
+    not_affected("not_affected"),
+    affected("affected"),
+    in_triage("in_triage"),
+    resolved("resolved"),
+    resolved_with_pedigree("resolved_with_pedigree"),
+    exploitable("exploitable"),
+    false_positive("false_positive");
+
+    private final String id;
+    VexAnalysisState(String value){this.id= value;}
+
+
+    public String getId() {
+        return id;
+    }
+}

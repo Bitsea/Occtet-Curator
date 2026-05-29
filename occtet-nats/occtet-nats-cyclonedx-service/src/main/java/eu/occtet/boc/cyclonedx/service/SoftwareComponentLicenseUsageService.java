@@ -19,6 +19,7 @@
 
 package eu.occtet.boc.cyclonedx.service;
 
+import eu.occtet.boc.cyclonedx.factory.SoftwareComponentLicenseUsageFactory;
 import eu.occtet.boc.dao.SoftwareComponentLicenseUsageRepository;
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.entity.Organization;
@@ -39,6 +40,8 @@ public class SoftwareComponentLicenseUsageService {
     private static final Logger log = LogManager.getLogger(SoftwareComponentLicenseUsageService.class);
     @Autowired
     private SoftwareComponentLicenseUsageRepository softwareComponentLicenseUsageRepository;
+    @Autowired
+    private SoftwareComponentLicenseUsageFactory softwareComponentLicenseUsageFactory;
 
     public SoftwareComponentLicenseUsage createOrFindSoftwareComponentLicenseUsage(License licenseEntity, SoftwareComponent softwareComponent,
                                                                                    String licenseText, String licenseId, String licenseName, Organization organization) {
@@ -54,33 +57,15 @@ public class SoftwareComponentLicenseUsageService {
                     .findFirst();
 
 
-            return matchingUsage.orElseGet(() -> createSoftwareComponentLicenseUsage(licenseEntity, softwareComponent, licenseText, licenseId, licenseName, organization));
+            return matchingUsage.orElseGet(() -> softwareComponentLicenseUsageFactory.createSoftwareComponentLicenseUsage(licenseEntity, softwareComponent, licenseText, licenseId, licenseName, organization));
 
         }else {
 
-            return createSoftwareComponentLicenseUsage(licenseEntity, softwareComponent, licenseText, licenseId, licenseName, organization);
+            return softwareComponentLicenseUsageFactory.createSoftwareComponentLicenseUsage(licenseEntity, softwareComponent, licenseText, licenseId, licenseName, organization);
         }
     }
 
-    private SoftwareComponentLicenseUsage createSoftwareComponentLicenseUsage(License licenseEntity, SoftwareComponent softwareComponent,
-                                                                              String licenseText, String licenseId, String licenseName, Organization organization){
-        SoftwareComponentLicenseUsage usage = new SoftwareComponentLicenseUsage();
-        usage.setTemplate(licenseEntity);
-        usage.setSoftwareComponent(softwareComponent);
-        if (licenseText != null && !licenseText.equals(licenseEntity.getLicenseText())) {
-            usage.setUsageText(licenseText);
-            usage.setIsModified(true);
-        } else usage.setIsModified(false);
-        if (licenseId != null && !licenseId.equals(licenseEntity.getLicenseType())) {
-            usage.setIsModified(true);
-        }
-        if (licenseEntity.getLicenseName() != null && !licenseEntity.getLicenseName().isEmpty()) {
-            usage.setCustomName(licenseEntity.getLicenseName());
-        } else usage.setCustomName(licenseName);
-        usage.setCurated(false);
-        usage.setOrganization(organization);
-        return usage;
-    }
+
 
 
 }

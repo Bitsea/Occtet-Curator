@@ -20,16 +20,14 @@
 package eu.occtet.bocfrontend.factory;
 
 import com.google.gson.Gson;
+import eu.occtet.boc.model.vexModels.VexVulnerability;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.VexData;
 import eu.occtet.bocfrontend.entity.Vulnerability;
-import eu.occtet.bocfrontend.model.vexModels.VexVulnerability;
-import eu.occtet.bocfrontend.model.vexModels.Vulnerabilites;
 import io.jmix.core.DataManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 

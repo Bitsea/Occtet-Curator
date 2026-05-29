@@ -17,9 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package eu.occtet.bocfrontend.model.vexModels;
+package eu.occtet.boc.model.vexModels;
 
-import java.util.List;
-
-public record Vulnerabilites(List<VexVulnerability> vulnerabilities) {
-}
+public record VexComponent (
+    String  type, String name, String version){}
