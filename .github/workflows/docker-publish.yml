@@ -6,7 +6,7 @@ on:
       - main
       - develop
     tags:
-      - 'v*'
+      - "v*"
   pull_request:
     branches:
       - main
@@ -30,14 +30,14 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
+          java-version: "21"
+          distribution: "temurin"
+          cache: "maven"
 
       - name: Set up Maven
         uses: stCarolas/setup-maven@v5
         with:
-          maven-version: '3.9.11'
+          maven-version: "3.9.11"
 
       - name: Configure Maven settings for GitHub Packages
         run: |
@@ -92,14 +92,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'gradle'
+          java-version: "21"
+          distribution: "temurin"
+          cache: "gradle"
 
       - name: Make gradlew executable
         run: chmod +x occtet-frontend/gradlew
@@ -129,7 +129,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    
+
     strategy:
       matrix:
         include:
@@ -138,48 +138,55 @@ jobs:
             context: ./occtet-frontend
             dockerfile: ./occtet-frontend/Dockerfile
             artifact: occtet-frontend-artifacts
-          
           # NATS services
           - name: occtet-nats-ai-copyrightfilter-service
             context: ./occtet-nats/occtet-nats-ai-copyrightfilter-service
             dockerfile: ./occtet-nats/occtet-nats-ai-copyrightfilter-service/Dockerfile
             artifact: occtet-nats-artifacts
-          
           - name: occtet-nats-ai-licensematcher-service
             context: ./occtet-nats/occtet-nats-ai-licensematcher-service
             dockerfile: ./occtet-nats/occtet-nats-ai-licensematcher-service/Dockerfile
             artifact: occtet-nats-artifacts
-          
           - name: occtet-nats-copyrightfilter-service
             context: ./occtet-nats/occtet-nats-copyrightfilter-service
             dockerfile: ./occtet-nats/occtet-nats-copyrightfilter-service/Dockerfile
             artifact: occtet-nats-artifacts
-          
           - name: occtet-nats-foss-report-service
             context: ./occtet-nats/occtet-nats-foss-report-service
             dockerfile: ./occtet-nats/occtet-nats-foss-report-service/Dockerfile
             artifact: occtet-nats-artifacts
-          
           - name: occtet-nats-licensematcher-service
             context: ./occtet-nats/occtet-nats-licensematcher-service
             dockerfile: ./occtet-nats/occtet-nats-licensematcher-service/Dockerfile
             artifact: occtet-nats-artifacts
-          
           - name: occtet-nats-spdx-service
             context: ./occtet-nats/occtet-nats-spdx-service
             dockerfile: ./occtet-nats/occtet-nats-spdx-service/Dockerfile
             artifact: occtet-nats-artifacts
-          
           - name: occtet-nats-template
             context: ./occtet-nats/occtet-nats-template
             dockerfile: ./occtet-nats/occtet-nats-template/Dockerfile
             artifact: occtet-nats-artifacts
-          
           - name: occtet-nats-vulnerability-service
             context: ./occtet-nats/occtet-nats-vulnerability-service
             dockerfile: ./occtet-nats/occtet-nats-vulnerability-service/Dockerfile
             artifact: occtet-nats-artifacts
-    
+          - name: occtet-nats-download-service
+            context: ./occtet-nats/occtet-nats-download-service
+            dockerfile: ./occtet-nats/occtet-nats-download-service/Dockerfile
+            artifact: occtet-nats-artifacts
+          - name: occtet-nats-ort-run-start-service
+            context: ./occtet-nats/occtet-nats-ort-run-start-service
+            dockerfile: ./occtet-nats/occtet-nats-ort-run-start-service/Dockerfile
+            artifact: occtet-nats-artifacts
+          - name: occtet-nats-process-run-service
+            context: ./occtet-nats/occtet-nats-process-run-service
+            dockerfile: ./occtet-nats/occtet-nats-process-run-service/Dockerfile
+            artifact: occtet-nats-artifacts
+          - name: occtet-nats-spdx-export-service
+            context: ./occtet-nats/occtet-nats-spdx-export-service
+            dockerfile: ./occtet-nats/occtet-nats-spdx-export-service/Dockerfile
+            artifact: occtet-nats-artifacts
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -195,17 +202,17 @@ jobs:
         with:
           name: occtet-nats-artifacts
           path: occtet-nats
-            
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Extract metadata (tags, labels)
         id: meta
         uses: docker/metadata-action@v5
@@ -219,14 +226,14 @@ jobs:
             type=semver,pattern={{major}}
             type=sha,prefix={{branch}}_
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-      
+
       - name: Debug - Show build context
         run: |
           echo "=== Build context: ${{ matrix.context }} ==="
           ls -la ${{ matrix.context }}/ || echo "Context not found"
           echo "=== Looking for JARs in context ==="
           find ${{ matrix.context }} -name "*.jar" -type f || echo "No JARs found"
-      
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -238,6 +245,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
-      
+
       - name: Image digest
         run: echo "Image published at ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.name }}"
