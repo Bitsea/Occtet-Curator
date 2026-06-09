@@ -1,0 +1,66 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.5.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-06-08T11:00:00Z",
+    "component": {
+      "bom-ref": "root-application",
+      "type": "application",
+      "name": "BocFrontend",
+      "version": "1.0.0"
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0?type=jar",
+      "type": "library",
+      "name": "jackson-databind",
+      "version": "2.13.0"
+    },
+    {
+      "bom-ref": "pkg:maven/org.springframework/spring-core@6.0.0?type=jar",
+      "type": "library",
+      "name": "spring-core",
+      "version": "6.0.0"
+    }
+  ],
+  "vulnerabilities": [
+    {
+      "id": "CVE-2020-25649",
+      "source": {
+        "name": "NVD",
+        "url": "https://nvd.nist.gov/vuln/detail/CVE-2020-25649"
+      },
+      "description": "com.fasterxml.jackson.core:jackson-databind is vulnerable to XML External Entity (XXE) Injection.",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "The vulnerable code path is never triggered in our architectural setup."
+      },
+      "affects": [
+        {
+          "ref": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0?type=jar"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-99999",
+      "source": {
+        "name": "GitHub Advisory Database"
+      },
+      "description": "Example mock vulnerability affecting Spring Core Framework.",
+      "analysis": {
+        "state": "in_triage",
+        "detail": "Currently checking if the exploitable method is actively invoked."
+      },
+      "affects": [
+        {
+          "ref": "pkg:maven/org.springframework/spring-core@6.0.0?type=jar"
+        }
+      ]
+    }
+  ]
+}

@@ -265,6 +265,12 @@
             </properties>
             <activation><activeByDefault>true</activeByDefault></activation>
         </profile>
+        <profile>
+            <id>test</id>
+            <properties>
+                <spring.profiles.active>test</spring.profiles.active>
+            </properties>
+        </profile>
     </profiles>
 
 </project>

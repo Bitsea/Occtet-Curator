@@ -17,15 +17,22 @@
  *  License-Filename: LICENSE
  */
 
-package eu.occtet.boc.dao;
+package eu.occtet.boc.cyclonedx.factory;
 
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.entity.VexData;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Component;
 
-import java.util.Optional;
+@Component
+public class VexDataFactory {
 
-public interface VexDataRepository extends JpaRepository<VexData, Long> {
-
-    Optional<VexData> findBySoftwareComponent(SoftwareComponent softwareComponent);
+    public VexData createVexData(String format, String specVersion, String serialNumber, Integer version, SoftwareComponent sc) {
+        VexData vexData = new VexData();
+        vexData.setBomFormat(format);
+        vexData.setSpecVersion(specVersion);
+        vexData.setSerialNumber(serialNumber);
+        vexData.setVersion(version);
+        vexData.setSoftwareComponent(sc);
+        return vexData;
+    }
 }

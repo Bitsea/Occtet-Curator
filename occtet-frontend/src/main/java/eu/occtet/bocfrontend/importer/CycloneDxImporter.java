@@ -87,7 +87,7 @@ public class CycloneDxImporter extends TaskParent {
         ByteArrayInputStream objectStoreInput = new ByteArrayInputStream(cyclonedxJson);
 
         ObjectMeta objectMeta = ObjectMeta.builder(filename)
-                .description("Spdxdocument for use by spdx-microservice")
+                .description("cycloneDx document for use by cyclonedx-microservice")
                 .chunkSize(32 * 1024)
                 .build();
 

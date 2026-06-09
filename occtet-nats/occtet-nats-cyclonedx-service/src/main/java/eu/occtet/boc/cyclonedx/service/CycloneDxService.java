@@ -159,7 +159,7 @@ public class CycloneDxService extends ProgressReportingService {
 
     private void refreshComponentCache(CycloneDxImportContext context) {
         log.debug("Refreshing component cache for project {}", context.getProject().getId());
-        List<SoftwareComponent> allItems = softwareComponentRepository.findAllByProject(context.getProject());
+        List<SoftwareComponent> allItems = softwareComponentRepository.findComponentsByProject(context.getProject());
 
         Map<String, SoftwareComponent> componentCache = allItems.stream()
                 .collect(Collectors.toMap(
