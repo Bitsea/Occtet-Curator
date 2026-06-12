@@ -36,6 +36,7 @@ public class CycloneDxImportContext {
     private final Project project;
 
     // Caches and State
+    //here we save with the bomref as key of the cyclone dx, in case purl does not exist
     private Map<String, SoftwareComponent> componentCache = new HashMap<>();
     private Map<String, SoftwareComponent> componentVulnerabilityCache = new HashMap<>();
 
@@ -46,8 +47,9 @@ public class CycloneDxImportContext {
     private Map<String, InventoryItem> inventoryCache = new HashMap<>();
 
     // Tracking Sets
-    private List<InventoryItem> inventoryItems = new ArrayList<>();
-    private Set<Long> mainInventoryItems = new HashSet<>();
+    Map<String, InventoryItem> itemComponentRefCache = new HashMap<>();
+    private Set<InventoryItem> inventoryItems = new HashSet<>();
+    private Set<InventoryItem> mainInventoryItems = new HashSet<>();
 
     public CycloneDxImportContext(Project project) {
         this.project = project;
@@ -90,19 +92,19 @@ public class CycloneDxImportContext {
         this.inventoryCache = inventoryCache;
     }
 
-    public List<InventoryItem> getInventoryItems() {
+    public Set<InventoryItem> getInventoryItems() {
         return inventoryItems;
     }
 
-    public void setInventoryItems(List<InventoryItem> inventoryItems) {
+    public void setInventoryItems(Set<InventoryItem> inventoryItems) {
         this.inventoryItems = inventoryItems;
     }
 
-    public Set<Long> getMainInventoryItems() {
+    public Set<InventoryItem> getMainInventoryItems() {
         return mainInventoryItems;
     }
 
-    public void setMainInventoryItems(Set<Long> mainInventoryItems) {
+    public void setMainInventoryItems(Set<InventoryItem> mainInventoryItems) {
         this.mainInventoryItems = mainInventoryItems;
     }
 
@@ -121,5 +123,13 @@ public class CycloneDxImportContext {
 
     public void setComponentVulnerabilityCache(Map<String, SoftwareComponent> componentVulnerabilityCache) {
         this.componentVulnerabilityCache = componentVulnerabilityCache;
+    }
+
+    public Map<String, InventoryItem> getItemComponentRefCache() {
+        return itemComponentRefCache;
+    }
+
+    public void setItemComponentRefCache(Map<String, InventoryItem> itemComponentRefCache) {
+        this.itemComponentRefCache = itemComponentRefCache;
     }
 }

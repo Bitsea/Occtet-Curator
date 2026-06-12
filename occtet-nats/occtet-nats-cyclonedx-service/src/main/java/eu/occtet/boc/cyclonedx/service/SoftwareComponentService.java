@@ -54,9 +54,6 @@ public class SoftwareComponentService {
         }
     }
 
-    public SoftwareComponent update(SoftwareComponent softwareComponent){
-        return softwareComponentRepository.save(softwareComponent);
-    }
 
 
 }

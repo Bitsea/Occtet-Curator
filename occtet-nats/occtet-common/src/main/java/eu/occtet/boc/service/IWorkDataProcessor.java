@@ -36,5 +36,6 @@ public interface IWorkDataProcessor {
     boolean process(DownloadServiceWorkData workData);
     boolean process(SpdxExportWorkData workData);
     boolean process(ORTProcessWorkData workData);
+    boolean process(CycloneDxWorkData workData);
 
 }

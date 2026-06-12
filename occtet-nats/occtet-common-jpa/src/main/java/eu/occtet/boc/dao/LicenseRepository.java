@@ -19,7 +19,10 @@
 package eu.occtet.boc.dao;
 
 import eu.occtet.boc.entity.License;
+import eu.occtet.boc.entity.Project;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -27,4 +30,9 @@ import java.util.List;
 @Repository
 public interface LicenseRepository extends JpaRepository<License,Long> {
     List<License> findByLicenseType(String licenseId);
+    @Query("SELECT DISTINCT u.template FROM SoftwareComponentLicenseUsage u " +
+            "WHERE u.softwareComponent IN (" +
+            "  SELECT i.softwareComponent FROM InventoryItem i WHERE i.project = :project" +
+            ")")
+    List<License> findLicensesByProject(@Param("project")Project project);
 }

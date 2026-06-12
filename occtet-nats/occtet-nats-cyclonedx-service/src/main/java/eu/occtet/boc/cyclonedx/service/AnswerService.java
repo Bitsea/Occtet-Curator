@@ -93,8 +93,8 @@ public class AnswerService {
      * @throws JetStreamApiException
      * @throws IOException
      */
-    public boolean prepareAnswers(List<InventoryItem> inventoryItems, boolean toCopyrightAi,
-                                  boolean toLicenseMatcher, Set<Long> mainInventoryItemIds
+    public boolean prepareAnswers(Set<InventoryItem> inventoryItems, boolean toCopyrightAi,
+                                  boolean toLicenseMatcher, Set<InventoryItem> mainInventoryItemIds
     ) throws JetStreamApiException, IOException {
             log.debug("prepare answer size {}", inventoryItems.size());
         for (InventoryItem inventoryItem : inventoryItems) {
@@ -130,7 +130,7 @@ public class AnswerService {
             sendToDownload(
                     inventoryItem.getProject().getId(),
                     inventoryItem.getId(),
-                    mainInventoryItemIds.contains(inventoryItem.getId())
+                    mainInventoryItemIds.contains(inventoryItem)
             );
 
         }

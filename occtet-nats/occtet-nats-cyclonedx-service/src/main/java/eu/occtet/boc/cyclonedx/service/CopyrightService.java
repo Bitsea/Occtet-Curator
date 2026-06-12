@@ -40,22 +40,6 @@ public class CopyrightService {
     @Autowired
     private CopyrightRepository copyrightRepository;
 
-    public Copyright findOrCreateCopyright(String copyrightString, Set<File> files, Organization organization){
-        List<Copyright> copyrights = copyrightRepository.findByCopyrightText(copyrightString);
-        Copyright copyright;
-        if (copyrights.isEmpty()) {
-            copyright = copyrightFactory.create(copyrightString, files, organization);
-        }else{
-            copyright= copyrights.getFirst();
-            for(File cl: files) {
-               if(! copyright.getFiles().contains(cl)){
-                   copyright.getFiles().add(cl);
-               }
-            }
-        }
-
-        return copyright;
-    }
 
     /**
      * Finds or creates a batch of {@link Copyright} entities based on the provided set of copyright texts.
@@ -66,21 +50,31 @@ public class CopyrightService {
      * @return a map where the keys are the copyright text strings and the values are the corresponding {@link Copyright} entities
      */
     @Transactional
-    public Map<String, Copyright> findOrCreateBatch(Set<String> copyrightTexts, Organization organization){
+    public Map<String, Copyright> findOrCreateBatch(Set<String> copyrightTexts, Organization organization, File file){
         Map<String, Copyright> cache = new HashMap<>();
         List<String> textList = new ArrayList<>(copyrightTexts);
 
         int batchSize = 1000;
+        Set<Copyright> toSave = new HashSet<>();
         for (int i = 0; i < textList.size(); i += batchSize) {
             List<String> batch = textList.subList(i, Math.min(textList.size(), i + batchSize));
             List<Copyright> found = copyrightRepository.findByCopyrightTextIn(batch);
-            found.forEach(c -> cache.put(c.getCopyrightText(), c));
+            found.forEach(c -> {
+                toSave.add(c);
+                cache.put(c.getCopyrightText(), c);
+            });
         }
+        //add new connection to file
+        if(file!= null)
+            toSave.forEach(c-> c.getFiles().add(file));
 
-        Set<Copyright> toSave = new HashSet<>();
+
         for (String text : copyrightTexts) {
             if (!cache.containsKey(text)) {
-                Copyright newCopyright = copyrightFactory.createTransient(text, new HashSet<>(), organization);
+                Copyright newCopyright =null;
+                if(file!= null)
+                    newCopyright = copyrightFactory.createTransient(text, Set.of(file), organization);
+                else newCopyright= copyrightFactory.createTransient(text, new HashSet<>(), organization);
                 toSave.add(newCopyright);
                 cache.put(text, newCopyright);
             }

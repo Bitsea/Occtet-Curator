@@ -20,6 +20,8 @@
 package eu.occtet.boc.cyclonedx.service.handler;
 
 import eu.occtet.boc.cyclonedx.service.SoftwareComponentLicenseUsageService;
+import eu.occtet.boc.dao.LicenseRepository;
+import eu.occtet.boc.dao.SoftwareComponentLicenseUsageRepository;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.License;
 import eu.occtet.boc.cyclonedx.context.CycloneDxImportContext;
@@ -51,6 +53,7 @@ public class LicenseHandler {
     private SoftwareComponentLicenseUsageService softwareComponentLicenseUsageService;
 
 
+
     public String createUsageLicenses(LicenseChoice licenseChoice,
                                                                   CycloneDxImportContext context,
                                                                   SoftwareComponent softwareComponent, Organization organization) {
@@ -59,6 +62,7 @@ public class LicenseHandler {
 
         StringBuilder licenseDeclaration= new StringBuilder();
         if (licenseChoice != null) {
+            log.debug("Processing license choice for component {}: {}", softwareComponent.getName(), licenseChoice);
             if (licenseChoice.getExpression() != null) {
                 Expression expression = licenseChoice.getExpression();
                 licenseDeclaration.append(expression.getValue());
@@ -111,6 +115,7 @@ public class LicenseHandler {
         }
         context.getLicenseCache().putAll(licenseCache);
 
+
         return licenseDeclaration.toString();
     }
 
@@ -124,6 +129,7 @@ public class LicenseHandler {
                     id -> licenseService.findOrCreateTemplateLicense(id, licenseText));
             licenseCache.put(licenseId, licenseEntity);
         }
+
 
         return softwareComponentLicenseUsageService.createOrFindSoftwareComponentLicenseUsage(licenseEntity, softwareComponent,
                 licenseText, licenseId, licenseName, organization);

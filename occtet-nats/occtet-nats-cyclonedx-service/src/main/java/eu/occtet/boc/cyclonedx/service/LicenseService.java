@@ -51,7 +51,7 @@ public class LicenseService {
             newTemplate.setLicenseText(templateText);
             newTemplate.setLicenseName(licenseId);
 
-            return licenseRepository.save(newTemplate);
+            return newTemplate;
         }
     }
 }

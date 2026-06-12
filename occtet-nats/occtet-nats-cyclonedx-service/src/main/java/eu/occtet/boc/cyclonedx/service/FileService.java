@@ -66,7 +66,6 @@ public class FileService {
 
         for (String path : files) {
 
-
             File fileEntity = existingMap.get(path);
 
             if (fileEntity != null) {

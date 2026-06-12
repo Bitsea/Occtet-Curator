@@ -53,6 +53,11 @@ public abstract class BaseWorkDataProcessor implements IWorkDataProcessor {
     }
 
     @Override
+    public boolean process(CycloneDxWorkData workData) {
+        return false;
+    }
+
+    @Override
     public boolean process(VulnerabilityServiceWorkData workData) {
         return false;
     }

@@ -25,10 +25,9 @@ import eu.occtet.boc.cyclonedx.service.handler.ComponentHandler;
 import eu.occtet.boc.cyclonedx.service.handler.VulnerabilityHandler;
 import eu.occtet.boc.dao.*;
 import eu.occtet.boc.entity.*;
-import eu.occtet.boc.model.SpdxWorkData;
+import eu.occtet.boc.model.CycloneDxWorkData;
 import eu.occtet.boc.service.ProgressReportingService;
 import eu.occtet.boc.cyclonedx.context.CycloneDxImportContext;
-import eu.occtet.boc.cyclonedx.exception.SpdxImportException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cyclonedx.model.Bom;
@@ -46,7 +45,6 @@ import java.util.stream.Collectors;
 public class CycloneDxService extends ProgressReportingService {
 
     private static final Logger log = LogManager.getLogger(CycloneDxService.class);
-
 
     @Autowired
     private ComponentHandler componentHandler;
@@ -68,28 +66,27 @@ public class CycloneDxService extends ProgressReportingService {
      * using spdxWorkdata because the same data is used for CycloneDx, easier to mantain one data model
      * @param workData
      * @return
-     * @throws SpdxImportException
      */
-    public boolean process(SpdxWorkData workData) throws SpdxImportException {
+    public boolean process(CycloneDxWorkData workData)  {
         log.debug("CycloneDxService: reads CycloneDx and creates entities to curate {}", workData.toString());
         return parseDocument(workData);
     }
 
     /**
-     * Takes spdxWorkData, extracts contained JSON and creates entities based on the deserialized CycloneDx document created from the JSON.
+     * Takes cycloneDxworkData, extracts contained JSON and creates entities based on the deserialized CycloneDx document created from the JSON.
      * If the entities are already present then no new ones will be created, however some of their attributes may change.
      *
-     * @param spdxWorkData
+     * @param cycloneDxWorkData
      * @return true if the entities where created successfully, false is any error occurred
      */
-    public boolean parseDocument(SpdxWorkData spdxWorkData) {
+    public boolean parseDocument(CycloneDxWorkData cycloneDxWorkData) {
         try {
-            log.info("now processing SPDX for project id: {}", spdxWorkData.getProjectId());
+            log.info("now processing CycloneDx for project id: {}", cycloneDxWorkData.getProjectId());
             notifyProgress(1, "init");
             // setup for spdx library need to be called once before any spdx model objects are accessed
 
-            Bom bom = loadCycloneDxDocument(spdxWorkData.getJsonBytes());
-            Project project = loadProject(spdxWorkData.getProjectId());
+            Bom bom = loadCycloneDxDocument(cycloneDxWorkData.getJsonBytes());
+            Project project = loadProject(cycloneDxWorkData.getProjectId());
             if (project == null) {
                 return false;
             }
@@ -100,13 +97,14 @@ public class CycloneDxService extends ProgressReportingService {
 
 
             notifyProgress(10, "converting CycloneDx");
-            refreshInventoryCache(context, true);
+            refreshInventoryCache(context);
             refreshComponentCache(context);
-            componentHandler.processAllPackages(context, (percent) -> notifyProgress(20 + percent, "processing packages"),bom);
+            componentHandler.processAllPackages(context, (percent) -> notifyProgress(20 + percent, "processing packages")
+                    ,bom, cycloneDxWorkData.isWithTestLibraries());
             vulnerabilityHandler.handleVulnerabilities(bom, context);
 
 
-            scheduleAnswerService(context, spdxWorkData);
+            scheduleAnswerService(context, cycloneDxWorkData);
 
             notifyProgress(100, "completed");
             return true;
@@ -140,12 +138,17 @@ public class CycloneDxService extends ProgressReportingService {
         return projectOptional.get();
     }
 
-    private void refreshInventoryCache(CycloneDxImportContext context, Boolean curated) {
+    /**
+     * we have a inventorycahce for curated inventoryitems so we can easily check if an item already exists,
+     * so we can reuse
+     *
+     * @param context
+     */
+    private void refreshInventoryCache(CycloneDxImportContext context) {
         log.debug("Refreshing inventory cache for project {}", context.getProject().getId());
-        List<InventoryItem> allItems = inventoryItemRepository.findAllByProject(context.getProject());
+        List<InventoryItem> allItems = inventoryItemRepository.findAllByProjectAndCurated(context.getProject(), true);
 
         Map<String, InventoryItem> inventoryCache = allItems.stream()
-                .filter(item -> item.getCurated() == curated)
                 .collect(Collectors.toMap(
                         InventoryItem::getInventoryName,
                         item -> item,
@@ -173,7 +176,7 @@ public class CycloneDxService extends ProgressReportingService {
         log.debug("Component cache refreshed. Mapped {} components.", componentCache.size());
     }
 
-    private void scheduleAnswerService(CycloneDxImportContext context, SpdxWorkData workData) {
+    private void scheduleAnswerService(CycloneDxImportContext context, CycloneDxWorkData workData) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {

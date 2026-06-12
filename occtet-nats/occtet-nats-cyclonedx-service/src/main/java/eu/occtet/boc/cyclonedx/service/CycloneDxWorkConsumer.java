@@ -22,10 +22,7 @@ package eu.occtet.boc.cyclonedx.service;
 
 import eu.occtet.boc.cyclonedx.exception.SpdxImportException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.model.BaseWorkData;
-import eu.occtet.boc.model.SpdxWorkData;
-import eu.occtet.boc.model.WorkTask;
-import eu.occtet.boc.model.WorkTaskStatus;
+import eu.occtet.boc.model.*;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.WorkConsumer;
 import io.nats.client.Connection;
@@ -65,29 +62,25 @@ public class CycloneDxWorkConsumer extends WorkConsumer {
 
             boolean result = workData.process(new BaseWorkDataProcessor() {
                 @Override
-                public boolean process(SpdxWorkData spdxWorkData) {
-                    log.debug("extract from SPDX json");
+                public boolean process(CycloneDxWorkData cycloneDxWorkData) {
+                    log.debug("extract from CycloneDx json");
                     try{
-                        ObjectStore objectStore = natsConnection.objectStore(spdxWorkData.getBucketName());
+                        ObjectStore objectStore = natsConnection.objectStore(cycloneDxWorkData.getBucketName());
                         ByteArrayOutputStream out = new ByteArrayOutputStream();
-                        objectStore.get(spdxWorkData.getJsonSpdx(), out);
+                        objectStore.get(cycloneDxWorkData.getJsonSpdx(), out);
                         byte[] spdxBytes = out.toByteArray();
                         //delete the object after we are done
-                        objectStore.delete(spdxWorkData.getJsonSpdx());
-                        spdxWorkData.setJsonBytes(spdxBytes);
+                        objectStore.delete(cycloneDxWorkData.getJsonSpdx());
+                        cycloneDxWorkData.setJsonBytes(spdxBytes);
                         cycloneDxService.setOnProgress((p, d)->{
                             log.debug("progress callback: {} {}", p, d);
                             notifyProgress(workTask.taskId(), workTask.name(), WorkTaskStatus.IN_PROGRESS, p, d);
                         });
-                        boolean res= cycloneDxService.process(spdxWorkData);
+                        boolean res= cycloneDxService.process(cycloneDxWorkData);
                         if(!res) notifyError(workTask.taskId(),workTask.name(), "error during processing");
                         else notifyCompleted(workTask.taskId(),workTask.name());
                         return res;
 
-                    } catch (SpdxImportException e) {
-                        log.error("Validation failed for SPDX import: {}", e.getMessage());
-                        notifyError(workTask.taskId(), workTask.name(), "Import Failed: " + e.getMessage());
-                        return false;
 
                     } catch (Exception e) {
                         log.error("System error processing SPDX", e);

@@ -26,12 +26,10 @@ import eu.occtet.boc.cyclonedx.service.CopyrightService;
 import eu.occtet.boc.cyclonedx.service.FileService;
 import eu.occtet.boc.cyclonedx.service.InventoryItemService;
 import eu.occtet.boc.cyclonedx.service.SoftwareComponentService;
+import eu.occtet.boc.entity.Copyright;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.cyclonedx.model.Bom;
-import org.cyclonedx.model.Component;
-import org.cyclonedx.model.ExternalReference;
-import org.cyclonedx.model.LicenseChoice;
+import org.cyclonedx.model.*;
 import org.cyclonedx.model.component.evidence.Occurrence;
 import org.spdx.core.InvalidSPDXAnalysisException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,23 +65,50 @@ public class ComponentHandler {
     private InventoryItemRepository inventoryItemRepository;
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
+    @Autowired
+    private LicenseRepository licenseRepository;
+    @Autowired
+    private SoftwareComponentLicenseUsageRepository softwareComponentLicenseUsageRepository;
 
-    public void processAllPackages(CycloneDxImportContext context, Consumer<Integer> progressCallback, Bom bom) {
+    public void processAllPackages(CycloneDxImportContext context, Consumer<Integer> progressCallback, Bom bom, Boolean withTestLibraries) {
 
-        try {
+
 
             int count = 0;
             Set<InventoryItem> inventoryItemsToSave = new HashSet<>();
             Set<SoftwareComponent> softwareComponentsToSave = new HashSet<>();
             Set<Copyright> copyrightsToSave = new HashSet<>();
+            Metadata metadata=  bom.getMetadata();
+            Component comp = metadata.getComponent();
+            InventoryItem mainParent= null;
+        try {
+            if (metadata != null && comp != null) {
+                mainParent = processAllComponents(copyrightsToSave, inventoryItemsToSave, softwareComponentsToSave, comp, context);
+            }
+        } catch (Exception e) {
+            log.error("Error processing metadata component: {}", e.getMessage(), e);
+        }
 
-            for (Component component : bom.getComponents()) {
-                //TODO use the caches here
-                processAllComponents(copyrightsToSave, inventoryItemsToSave, softwareComponentsToSave, component, context, 0);
+        if (bom.getComponents() == null) return;
 
+
+        for (Component component : bom.getComponents()) {
+
+            try {
+                boolean isExcluded = isExcluded(component);
+                if (!withTestLibraries && isExcluded) {
+                    continue;
+                }
+
+                // if something is going wrong it will be catched and logged, next component will be handled
+                processComponentRecursive(copyrightsToSave, inventoryItemsToSave, softwareComponentsToSave, component, context, 0, withTestLibraries, mainParent);
+
+            } catch (Exception e) {
+                log.error("Skipping component {} due to error: {}", component.getName(), e.getMessage(), e);
+            }
                 count++;
                 int percent = (int) ((40.0 * count) / bom.getComponents().size());
-                if (percent % 5 == 0) progressCallback.accept(percent);
+                if (percent % 5 == 0 && progressCallback!= null) progressCallback.accept(percent);
             }
 
             projectRepository.save(context.getProject());
@@ -96,53 +121,99 @@ public class ComponentHandler {
             if (!softwareComponentsToSave.isEmpty()) {
                 softwareComponentRepository.saveAll(softwareComponentsToSave);
             }
+            if(!context.getLicenseCache().isEmpty())
+                licenseRepository.saveAll(context.getLicenseCache().values());
+            if(!context.getUsageLicenseCache().isEmpty())
+                softwareComponentLicenseUsageRepository.saveAll(context.getUsageLicenseCache().values());
 
-        } catch (Exception e) {
-            log.error("Error retrieving cycloneDx object: {}", e.getMessage(), e);
+    }
+
+    /**
+     * recursive method to process components and their subcomponents, if there are any
+     * @param copyrightsToSave
+     * @param inventoryItemsToSave
+     * @param softwareComponentsToSave
+     * @param component
+     * @param context
+     * @param depth
+     * @param withTestLibraries
+     */
+    public void processComponentRecursive(Set<Copyright> copyrightsToSave, Set<InventoryItem> inventoryItemsToSave,
+                                           Set<SoftwareComponent> softwareComponentsToSave, Component component,
+                                           CycloneDxImportContext context, int depth, Boolean withTestLibraries, InventoryItem parentItem) {
+
+
+        // process component of current level
+        InventoryItem currentItem= processAllComponents(copyrightsToSave, inventoryItemsToSave, softwareComponentsToSave, component, context);
+
+        if (depth == 0) {
+            //sorting first level of components as main components, the rest are dependencies
+            context.getMainInventoryItems().add(currentItem);
+        }
+        //handle relation between children and parent
+        if (currentItem != null && parentItem != null) {
+            currentItem.setParent(parentItem);
+        }
+
+        // are there subcomponents?
+        if (component.getComponents() != null && !component.getComponents().isEmpty()) {
+            for (Component childComponent : component.getComponents()) {
+
+                //filtering if tests not needed
+                if (!withTestLibraries && isExcluded(childComponent)) {
+                    continue;
+                }
+
+                //recursion to go a level deeper
+                processComponentRecursive(copyrightsToSave, inventoryItemsToSave, softwareComponentsToSave,
+                        childComponent, context, depth + 1, withTestLibraries, currentItem);
+            }
         }
     }
 
-    private void processAllComponents(Set<Copyright> copyrightsToSave, Set<InventoryItem> inventoryItemsToSave, Set<SoftwareComponent> softwareComponentsToSave, Component component, CycloneDxImportContext context, int count) {
+    private boolean isExcluded(Component component) {
+        return component.getScope() != null && "excluded".equals(component.getScope().getScopeName());
+    }
+
+    private InventoryItem processAllComponents(Set<Copyright> copyrightsToSave, Set<InventoryItem> inventoryItemsToSave, Set<SoftwareComponent> softwareComponentsToSave, Component component, CycloneDxImportContext context) {
         try {
+
             //components in cyclonedx can also be files, so here a inventoryItem is automatically also created for a file
-            SoftwareComponent sc= null;
-            InventoryItem item = parseSinglePackage(component, context, copyrightsToSave, sc);
+            InventoryItem item = parseSinglePackage(component, context, copyrightsToSave);
             context.getInventoryItems().add(item);
             inventoryItemsToSave.add(item);
-            softwareComponentsToSave.add(sc);
-            if(count==0){
-                context.getMainInventoryItems().add(item.getId());
+            if (item.getSoftwareComponent() != null) {
+                softwareComponentsToSave.add(item.getSoftwareComponent());
             }
-            if(component.getComponents()!= null){
-                for(Component subComponent: component.getComponents()){
-                    processAllComponents(copyrightsToSave, inventoryItemsToSave, softwareComponentsToSave, subComponent, context, count++);
-                }
-            }
+            //to reference inventoryItem to the componentRef
+            context.getItemComponentRefCache().put(component.getBomRef(), item);
+
+
+            return item;
 
         } catch (Exception e) {
             log.error("Error retrieving cycloneDx object for component: {}", component.getPurl(), e);
+            return null;
         }
-
 
     }
 
-    public InventoryItem parseSinglePackage(Component component, CycloneDxImportContext context, Set<Copyright> copyrightsToSave, SoftwareComponent sc)
-            throws Exception {
+    private InventoryItem parseSinglePackage(Component component, CycloneDxImportContext context,
+                                            Set<Copyright> copyrightsToSave) {
 
-        List<OrtIssue> ortIssues= ortIssueRepository.findByProject(context.getProject());
+        List<OrtIssue> ortIssues = ortIssueRepository.findByProject(context.getProject());
         List<OrtViolation> ortViolations = ortViolationRepository.findByProject(context.getProject());
 
         log.info("Looking at package: {}", component.getPurl());
 
         String packageName = component.getName();
-        String version = component.getVersion();
-        List<Copyright> copyrights = new ArrayList<>();
+        String version = component.getVersion() != null ? component.getVersion() : "unknown";
 
-        sc = context.getComponentCache().get(component.getPurl());
+        SoftwareComponent sc = context.getComponentCache().get(component.getBomRef());
 
         if (sc == null) {
             sc = softwareComponentService.getOrCreateSoftwareComponent(packageName, version, context.getProject().getOrganization());
-            context.getComponentCache().put(component.getPurl(), sc);
+            context.getComponentCache().put(component.getBomRef(), sc);
 
         }
         //setting this always new for each sbom the value is different, needed later for sorting vulnerabilities etc
@@ -153,63 +224,51 @@ public class ComponentHandler {
         //get License from package
         LicenseChoice licenseChoices = component.getLicenses();
 
-        String packageLicenseString= licenseHandler.createUsageLicenses(licenseChoices, context,
+        String packageLicenseString = licenseHandler.createUsageLicenses(licenseChoices, context,
                 sc, context.getProject().getOrganization());
 
 
         String inventoryName = sc.getName();
-        if (!inventoryName.contains(component.getVersion())) inventoryName +=" "+ component.getVersion();
+        if (!inventoryName.contains(version)) inventoryName += " " + version;
         inventoryName += " (" + packageLicenseString + ")";
 
         InventoryItem inventoryItem;
-        if(!context.getInventoryCache().containsKey(inventoryName)) {
+        if (!context.getInventoryCache().containsKey(inventoryName)) {
             inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, sc,
                     context.getProject(),
                     context.getProject().getOrganization());
             inventoryItem.setCurated(false);
-        }else {
-            inventoryItem= context.getInventoryCache().get(inventoryName);
+
+        } else {
+            inventoryItem = context.getInventoryCache().get(inventoryName);
         }
 
+        inventoryItem.setSoftwareComponent(sc);
+        List<File> files = new ArrayList<>();
         inventoryItemService.sortViolationsAndIssues(ortIssues, ortViolations, inventoryItem);
 
-        if(component.getEvidence().getOccurrences()!= null){
-            handleFiles(component, inventoryItem, context);
+        if ((component.getEvidence() != null && component.getEvidence().getOccurrences() != null)
+                || (component.getType() != null && "file".equals(component.getType().getTypeName()))) {
+            files = handleFiles(component, inventoryItem);
         }
 
-        if (component.getCopyright() != null || component.getEvidence().getCopyright() != null) {
-            List<Copyright> copyrightList= handleCopyrights(component, context, copyrightsToSave);
+        //to keep track of current inventoryItems
+        context.getInventoryItems().add(inventoryItem);
+        File file= files.isEmpty() ? null : files.getFirst();
+
+        if (component.getCopyright() != null || (component.getEvidence()!= null && component.getEvidence().getCopyright() != null)) {
+            List<Copyright> copyrightList = handleCopyrights(component, context, copyrightsToSave, file);
             sc.setCopyrights(copyrightList);
-        } else {
-            sc.setCopyrights(new ArrayList<>(copyrights));
         }
 
-
-        //TODO discuss which type should be used here, we can only save one...
-        String vcsUrl = "";
-        String sourceUrl="";
         String downloadLocation = "";
 
         if (component.getExternalReferences() != null) {
             for (ExternalReference ref : component.getExternalReferences()) {
 
-                // 1. Prüfen, ob es sich um ein Version Control System (VCS) handelt
-                if (ref.getType() == ExternalReference.Type.VCS) {
-                    vcsUrl = ref.getUrl();
-                    break;
-                }else if(ref.getType()== ExternalReference.Type.SOURCE_DISTRIBUTION){
-                    sourceUrl= ref.getUrl();
-                }
-                    else {
-                        downloadLocation = ref.getUrl();
-                    }
-            }
-        }
+                downloadLocation = ref.getUrl();
 
-        if (!vcsUrl.isEmpty()) {
-            downloadLocation= vcsUrl;
-        }else if(!sourceUrl.isEmpty()) {
-            downloadLocation = sourceUrl;
+            }
         }
 
         sc.setDetailsUrl(downloadLocation);
@@ -217,41 +276,44 @@ public class ComponentHandler {
         log.info("created inventoryItem: {}", inventoryName);
         log.info("created softwareComponent: {}", component.getName());
 
-       //TODO main package handling? context.mainpackage
         return inventoryItem;
     }
 
-    private List<Copyright> handleCopyrights(Component component, CycloneDxImportContext context, Set<Copyright> copyrightsToSave){
+    private List<Copyright> handleCopyrights(Component component, CycloneDxImportContext context, Set<Copyright> copyrightsToSave,File file){
         Set<String> allCopyrightsTexts = new HashSet<>();
         allCopyrightsTexts.add(component.getCopyright());
 
         for (org.cyclonedx.model.Copyright copyright : component.getEvidence().getCopyright()) {
 
-
                 String copyrightText = copyright.getText();
                 allCopyrightsTexts.add(copyrightText);
         }
         Map<String, Copyright> copyrightMap = copyrightService.findOrCreateBatch(allCopyrightsTexts,
-                context.getProject().getOrganization());
+                context.getProject().getOrganization(), file);
 
 
         copyrightsToSave.addAll(copyrightMap.values());
         return new ArrayList<>(copyrightMap.values());
     }
 
-    private void handleFiles(Component component, InventoryItem inventoryItem, CycloneDxImportContext context) throws InvalidSPDXAnalysisException {
-        Set<String> allCopyrightsTexts = new HashSet<>();
-        allCopyrightsTexts.add(component.getCopyright());
+    private List<File> handleFiles(Component component, InventoryItem inventoryItem){
 
-        for(Occurrence occ: component.getEvidence().getOccurrences()) {
-            String filepath= occ.getLocation();
-            allCopyrightsTexts.add(filepath);
+        Set<String> allFilePaths= new HashSet<>();
+        if(("file").equals(component.getType().getTypeName())) {
+            allFilePaths.add(component.getName());
+        }
+        if(component.getEvidence() != null && component.getEvidence().getOccurrences() != null) {
+            for (Occurrence occ : component.getEvidence().getOccurrences()) {
+                String filepath = occ.getLocation();
+                allFilePaths.add(filepath);
+            }
         }
 
-        Map<String, File> locationMap = fileService.findOrCreateBatch(allCopyrightsTexts, inventoryItem);
+        Map<String, File> locationMap = fileService.findOrCreateBatch(allFilePaths, inventoryItem);
 
         Project project= inventoryItem.getProject();
         project.addFiles(new HashSet<>(locationMap.values()));
+        return new ArrayList<>(locationMap.values());
 
     }
 
