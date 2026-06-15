@@ -1,0 +1,105 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:6896b029-7982-4217-9c9c-b152d2f26795",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-06-09T10:15:30Z",
+    "component": {
+      "bom-ref": "pkg:maven/eu.occtet.boc/my-microservice@1.0.0?type=jar",
+      "type": "application",
+      "group": "eu.occtet.boc",
+      "name": "my-microservice",
+      "version": "1.0.0"
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:maven/org.apache.commons/commons-lang3@3.12.0?type=jar",
+      "type": "library",
+      "group": "org.apache.commons",
+      "name": "commons-lang3",
+      "version": "3.12.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b86566bf6c5476a8d0b2e8fb7a3c3b09337ff8c56fa98f45a0b415a7cf3df1ef"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "copyright": "Copyright 2001-2026 The Apache Software Foundation",
+      "evidence": {
+        "copyright": [
+          {
+            "text": "Copyright 2001-2026 The Apache Software Foundation"
+          },
+          {
+            "text": "Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements."
+          }
+        ]
+      },
+      "components": [
+        {
+          "bom-ref": "pkg:file/org.apache.commons/commons-lang3@3.12.0/StringUtils.class",
+          "type": "file",
+          "name": "StringUtils.class",
+          "hashes": [
+            {
+              "alg": "SHA-256",
+              "content": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:maven/org.slf4j/slf4j-api@2.0.7?type=jar",
+      "type": "library",
+      "group": "org.slf4j",
+      "name": "slf4j-api",
+      "version": "2.0.7",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "copyright": "Copyright (c) 2004-2026 QOS.ch",
+      "evidence": {
+        "copyright": [
+          {
+            "text": "Copyright (c) 2004-2026 QOS.ch. All rights reserved."
+          }
+        ]
+      }
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:maven/eu.occtet.boc/my-microservice@1.0.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.apache.commons/commons-lang3@3.12.0?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.apache.commons/commons-lang3@3.12.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.slf4j/slf4j-api@2.0.7?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.slf4j/slf4j-api@2.0.7?type=jar",
+      "dependsOn": []
+    }
+  ]
+}

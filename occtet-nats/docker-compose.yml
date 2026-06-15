@@ -154,7 +154,15 @@ services:
   spdx-service:
     image: occtet-nats-spdx-service:0.3.10-SNAPSHOT
     depends_on: *microservice-depends
-    networks: [mynet]
+    networks: [ mynet ]
+    restart: always
+    environment:
+      <<: *common-env
+
+  cyclonedx-service:
+    image: occtet-nats-cyclonedx-service:0.3.8-SNAPSHOT
+    depends_on: *microservice-depends
+    networks: [ mynet ]
     restart: always
     environment:
       <<: *common-env

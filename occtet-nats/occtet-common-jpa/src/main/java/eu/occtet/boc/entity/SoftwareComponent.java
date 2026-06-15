@@ -43,6 +43,9 @@ public class SoftwareComponent implements HasOrganization {
     @Column(name = "SOFTWARE_COMPONENT_NAME", nullable = false)
     private String name;
 
+    @Transient
+    private String bomRef;
+
     @Column(name = "VERSION", nullable = false)
     private String version;
 
@@ -225,13 +228,9 @@ public class SoftwareComponent implements HasOrganization {
         }
     }
 
-    public List<ComponentVulnerabilityLink> getVulnerabilityLinks() {
-        return vulnerabilityLinks;
-    }
 
-    public void setVulnerabilityLinks(List<ComponentVulnerabilityLink> vulnerabilityLinks) {
-        this.vulnerabilityLinks = vulnerabilityLinks;
-    }
+
+
 
     public List<Copyright> getCopyrights() {
         return copyrights;
@@ -251,7 +250,7 @@ public class SoftwareComponent implements HasOrganization {
 
     public void addLicenseUsage(SoftwareComponentLicenseUsage usage) {
         if (this.usageLicenses == null) {
-            this.usageLicenses = new ArrayList<>();
+            this.usageLicenses=new ArrayList<>();
         }
         this.usageLicenses.add(usage);
         usage.setSoftwareComponent(this);
@@ -261,10 +260,28 @@ public class SoftwareComponent implements HasOrganization {
         }
     }
 
+    public void addVulnerabilityLink(ComponentVulnerabilityLink link) {
+        if (this.vulnerabilityLinks == null) {
+            this.vulnerabilityLinks= new ArrayList<>();
+        }
+        this.vulnerabilityLinks.add(link);
+        link.setSoftwareComponent(this);
+
+    }
+
     public void removeLicenseUsage(SoftwareComponentLicenseUsage usage) {
         if (this.usageLicenses != null) {
             this.usageLicenses.remove(usage);
             usage.setSoftwareComponent(null);
         }
     }
+
+    public String getBomRef() {
+        return bomRef;
+    }
+
+    public void setBomRef(String bomRef) {
+        this.bomRef = bomRef;
+    }
+
 }

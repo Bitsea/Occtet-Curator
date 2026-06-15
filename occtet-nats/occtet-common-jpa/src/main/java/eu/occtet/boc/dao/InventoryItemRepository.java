@@ -37,6 +37,7 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
     List<InventoryItem> findBySpdxIdAndProject(String spdxID, Project project);
 
     List<InventoryItem> findAllByProject(Project project);
+    List<InventoryItem> findAllByProjectAndCurated(Project project, boolean curated);
 
     @Query("select distinct i from InventoryItem i join i.project p join i.softwareComponent sc where p.id = :projectId and sc.purl = :purl")
     List<InventoryItem> findByProjectIdAndSoftwareComponentPurl(@Param("projectId") Long projectId,

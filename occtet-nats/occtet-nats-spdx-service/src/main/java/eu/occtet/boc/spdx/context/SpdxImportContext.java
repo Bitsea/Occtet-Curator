@@ -134,7 +134,8 @@ public class SpdxImportContext {
         this.mainInventoryItems = mainInventoryItems;
     }
 
-    public Set<String> getMainPackageIds() {
+    public Set<String> getMainPackageIds()
+    {
         return mainPackageIds;
     }
 

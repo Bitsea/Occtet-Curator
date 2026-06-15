@@ -1,0 +1,108 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:abcd-1234-efgh-5678-integrationtest",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-06-10T11:15:00Z",
+    "component": {
+      "bom-ref": "project-root",
+      "type": "application",
+      "name": "IntegrationTestProject",
+      "version": "1.0.0"
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:maven/org.apache.commons/commons-lang3@3.12.0",
+      "type": "library",
+      "name": "commons-lang3",
+      "version": "3.12.0",
+      "purl": "pkg:maven/org.apache.commons/commons-lang3@3.12.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0",
+            "text": {
+              "contentType": "text/plain",
+              "content": "Apache License\nVersion 2.0, January 2004\nhttp://www.apache.org/licenses/\n\nTERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION..."
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "/workspace/target/lib/commons-lang3-3.12.0.jar"
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.15.2",
+      "type": "library",
+      "name": "jackson-databind",
+      "version": "2.15.2",
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.15.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "/workspace/target/lib/jackson-databind-2.15.2.jar"
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "file:src/utils/JsonSanitizer.java",
+      "type": "file",
+      "name": "src/utils/JsonSanitizer.java",
+      "description": "Eigene Source-Code-Datei ohne klassische PURL, aber mit Lizenz",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "text": {
+              "contentType": "text/plain",
+              "content": "MIT License\n\nCopyright (c) 2026 OCCTET\n\nPermission is hereby granted, free of charge, to any person obtaining a copy..."
+            }
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "file:src/service/handler/ComponentHandler.java",
+      "type": "file",
+      "name": "src/service/handler/ComponentHandler.java",
+      "description": "Ein weiteres Source-File im Audit-Scope",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause",
+            "text": {
+              "contentType": "text/plain",
+              "content": "Redistribution and use in source and binary forms, with or without modification, are permitted provided that..."
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "project-root",
+      "dependsOn": [
+        "pkg:maven/org.apache.commons/commons-lang3@3.12.0",
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.15.2",
+        "file:src/utils/JsonSanitizer.java",
+        "file:src/service/handler/ComponentHandler.java"
+      ]
+    }
+  ]
+}

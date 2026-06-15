@@ -102,6 +102,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     @ViewComponent
     private JmixButton parentButton;
     @ViewComponent
+    private JmixButton saveButton;
+    @ViewComponent
     private JmixButton softwareComponentButton;
     @ViewComponent
     private DropdownButton editLicense;
@@ -129,8 +131,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private InstanceLoader<InventoryItem> inventoryItemDlReuse;
     @ViewComponent
     private JmixComboBox<InventoryItem> parentField;
-    @ViewComponent
-    private CollectionLoader<SoftwareComponentLicenseUsage> licensesDl;
+
     @ViewComponent
     private CollectionLoader<Copyright> copyrightDl;
     @ViewComponent
@@ -150,10 +151,6 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private JmixButton downloadBtn;
     @ViewComponent
     private TextField downloadUrlTextField;
-    @ViewComponent
-    private JmixButton saveButton;
-
-
     @Autowired
     private DialogWindows dialogWindow;
     @Autowired
@@ -176,8 +173,6 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     @Autowired
     private CopyrightRepository copyrightRepository;
     @Autowired
-    private LicenseRepository licenseRepository;
-    @Autowired
     private DataManager dataManager;
     @Autowired
     private ProjectRepository projectRepository;
@@ -185,8 +180,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private Dialogs dialogs;
     @Autowired
     private NatsService natsService;
-    @Autowired
-    private EntityStates entityStates;
+
 
     public void activateAutocomplete() {
         log.info("on before show");
@@ -230,11 +224,9 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
         this.inventoryItem = dataManager.load(InventoryItem.class)
                 .id(inventoryItemId)
-                .fetchPlan(f ->f.addFetchPlan(FetchPlan.BASE)
-                        .add("softwareComponent")
+                .fetchPlan(f -> f.addFetchPlan(FetchPlan.BASE)
                         .add("project", pBuilder -> pBuilder.addFetchPlan(FetchPlan.BASE).add("projectName"))
                         .add("parent")
-                        .add("project")
                         .add("externalNotes")
                         .add("priority")
                         .add("linking")
@@ -243,38 +235,32 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                         .add("wasCombined")
                         .add("hasTodos")
                         .add("createdAt")
-                        .add("spdxId"))
+                        .add("spdxId")
+                        // Hier laden wir die SoftwareComponent direkt tiefen-vollständig!
+                        .add("softwareComponent", scPlan -> scPlan.addFetchPlan(FetchPlan.BASE)
+                                .add("detailsUrl")
+                                .add("purl")
+                                .add("curated")
+                                .add("licenseAiControlled")
+                                .add("usageLicenses", licPlan -> licPlan.addFetchPlan(FetchPlan.BASE).add("template"))
+                                .add("copyrights", FetchPlan.BASE)
+                                .add("vulnerabilityLinks", linkPlan -> linkPlan.addFetchPlan(FetchPlan.BASE)
+                                        .add("resolved")
+                                        .add("vulnerability", FetchPlan.BASE)
+                                )
+                        )
+                )
                 .one();
 
 
         this.inventoryItem = dataContext.merge(this.inventoryItem);
-        SoftwareComponent sc = inventoryItem.getSoftwareComponent();
 
-        if (sc != null && !entityStates.isNew(sc) &&
-                (!entityStates.isLoaded(sc, "usageLicenses") || !entityStates.isLoaded(sc, "copyrights"))) {
-
-            SoftwareComponent loadedSc = dataManager.load(SoftwareComponent.class)
-                    .id(this.inventoryItem.getSoftwareComponent().getId())
-                    .fetchPlan(f -> f.addAll("name",
-                            "version",
-                            "usageLicenses",
-                            "copyrights",
-                            "detailsUrl",
-                            "purl",
-                            "curated",
-                            "licenseAiControlled",
-                            "usageLicenses.template",
-                            "vulnerabilityLinks",
-                            "vulnerabilityLinks.vulnerability"))
-                    .one();
-            SoftwareComponent trackedSc = dataContext.merge(loadedSc);
-            // Swap lazy proxy for the fully loaded one
-            inventoryItem.setSoftwareComponent(trackedSc);
-        }
         // track instances !important for saving
         this.inventoryItem = dataContext.merge(inventoryItem);
         this.softwareComponent = this.inventoryItem.getSoftwareComponent();
-        softwareComponentDc.setItem(this.softwareComponent);
+        if (this.softwareComponent != null) {
+            softwareComponentDc.setItem(this.softwareComponent);
+        }
         parentField.setItems(inventoryItemRepository.findAll());
         parentField.setItemLabelGenerator(InventoryItem::getInventoryName);
         if (inventoryItem.getParent() != null) {
@@ -304,6 +290,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         editLicense.setEnabled(softwareComponent != null);
         activateAutocomplete();
         log.debug("Inventory Item Tab Fragment setup complete.");
+
     }
 
     /**
@@ -337,9 +324,13 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         Linking selectedLinking = linkingComboBox.getValue();
         this.inventoryItem.setLinking(Objects.requireNonNullElse(selectedLinking, Linking.NONE).getId());
 
+
         EntitySet savedEntities = dataContext.save();
 
         if (!savedEntities.isEmpty()) {
+            if (savedEntities.contains(inventoryItem)) {
+                this.inventoryItem = savedEntities.get(inventoryItem.getClass(), inventoryItem.getId());
+            }
             log.debug("Inventory Item {} had {} changes saved.", inventoryItem.getInventoryName(), savedEntities.size());
 
             notifications.create(messages.formatMessage(getClass(),
@@ -417,6 +408,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         }
     }
 
+
+
     @Supply(to = "licensesDataGrid.usageText", subject = "renderer")
     private Renderer<SoftwareComponentLicenseUsage> effectiveTextColumnRenderer() {
         //only first part of text is shown due nicer view
@@ -489,11 +482,17 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     @Subscribe(id = "removeLicenseButton")
     public void removeLicenses(ClickEvent<JmixButton> event) {
         Set<SoftwareComponentLicenseUsage> selectedLicenses = licensesDataGrid.getSelectedItems();
+        //trick eclipseLink
+        softwareComponent.getUsageLicenses().size();
 
         if (!selectedLicenses.isEmpty() && softwareComponent != null) {
             for (SoftwareComponentLicenseUsage license : selectedLicenses) {
-                softwareComponent.getUsageLicenses().remove(license);
+
+
                 licenseDc.getMutableItems().remove(license);
+                dataContext.remove(license);
+
+
             }
             infoMessage(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.notification.LicenseRemove"));
         }
@@ -698,8 +697,9 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
     private void updateLicensesFromInventoryItem(InventoryItem item){
         List<SoftwareComponentLicenseUsage> licenses = softwareComponentLicenseUsageRepository.findByInventoryItem(item);
-        licensesDl.setParameter("licensesList",licenses);
-        licensesDl.load();
+        licenseDc.setItems(
+                new ArrayList<>(licenses)
+        );
     }
 
 
@@ -860,9 +860,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     }
 
     private void setSaveButtonDirtyState(boolean hasChanges) {
-        // Framework bug workaround: Manually fetch the button if <suffix> broke the @ViewComponent injection
         if (this.saveButton == null) {
-            this.saveButton = (JmixButton) findComponent(this ,"saveButton").orElse(null);
+
         }
 
         if (this.saveButton == null) {

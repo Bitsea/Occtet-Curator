@@ -62,6 +62,9 @@ public class File {
     @Column(name = "DOCUMENT_ID", columnDefinition = "TEXT")
     private String documentId;
 
+    @Column(name = "LINE", columnDefinition = "TEXT")
+    private String line;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PARENT_ID")
     @OnDelete(DeletePolicy.CASCADE)
@@ -292,4 +295,11 @@ public class File {
         this.inventoryItems.add(item);
     }
 
+    public String getLine() {
+        return line;
+    }
+
+    public void setLine(String line) {
+        this.line = line;
+    }
 }

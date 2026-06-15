@@ -45,7 +45,8 @@ import eu.occtet.boc.service.IWorkDataProcessor;
         @JsonSubTypes.Type(value = SampleWorkData.class, name = "sample"),
         @JsonSubTypes.Type(value = VulnerabilityServiceWorkData.class, name = "vulnerability_task"),
         @JsonSubTypes.Type(value = DownloadServiceWorkData.class, name = "download_task"),
-        @JsonSubTypes.Type(value = SpdxExportWorkData.class, name = "export_task")
+        @JsonSubTypes.Type(value = SpdxExportWorkData.class, name = "export_task"),
+        @JsonSubTypes.Type(value = CycloneDxWorkData.class, name = "cyclonedx_import_task")
 })
 public abstract class BaseWorkData {
     private long taskId;

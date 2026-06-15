@@ -19,13 +19,19 @@
 
 package eu.occtet.boc.dao;
 
+import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.SoftwareComponent;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
 public interface SoftwareComponentRepository extends JpaRepository<SoftwareComponent, Long> {
 
     List<SoftwareComponent> findByNameAndVersion(String softwareName, String version);
+    @Query("SELECT s FROM SoftwareComponent s, Project p WHERE p.organization = s.organization AND p = :project")
+    List<SoftwareComponent> findComponentsByProject(@Param("project") Project project);
+
 
 }

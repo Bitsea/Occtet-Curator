@@ -53,6 +53,9 @@ public class File {
     @Column(name = "DOCUMENT_ID", columnDefinition = "TEXT")
     private String documentId;
 
+    @Column(name = "LINE", columnDefinition = "TEXT")
+    private String line;
+
     @ManyToMany(mappedBy = "files")
     private Set<Copyright> copyrights = new HashSet<>();
 
@@ -306,5 +309,13 @@ public class File {
             this.inventoryItems = new HashSet<>();
         }
         this.inventoryItems.add(item);
+    }
+
+    public String getLine() {
+        return line;
+    }
+
+    public void setLine(String line) {
+        this.line = line;
     }
 }

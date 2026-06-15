@@ -11,6 +11,7 @@ public record ConfigNatsProperties (
     String stream_subjects_config,
     String send_subject_ort_run,
     String send_subject_spdx,
+    String send_subject_cyclonedx,
     String send_subject_export,
     String send_subject_foss,
     String send_subject_vulnerabilities,

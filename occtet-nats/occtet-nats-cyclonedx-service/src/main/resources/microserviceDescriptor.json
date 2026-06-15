@@ -1,0 +1,7 @@
+{
+  "type": "descriptor",
+  "name": "occtet-nats-spdx-service",
+  "description": "A microservice for turning spdx json into entities",
+  "usesAI": false,
+  "acceptableWorkData": "SpdxWorkData"
+}
