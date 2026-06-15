@@ -160,7 +160,15 @@ services:
       <<: *common-env
 
   cyclonedx-service:
-    image: occtet-nats-cyclone-service:0.3.8-SNAPSHOT
+    image: occtet-nats-cyclonedx-service:0.3.8-SNAPSHOT
+    depends_on: *microservice-depends
+    networks: [ mynet ]
+    restart: always
+    environment:
+      <<: *common-env
+
+  cyclonedx-export-service:
+    image: occtet-nats-cyclonedx-export-service:0.3.8-SNAPSHOT
     depends_on: *microservice-depends
     networks: [ mynet ]
     restart: always

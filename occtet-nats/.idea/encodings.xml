@@ -16,6 +16,8 @@
     <file url="file://$PROJECT_DIR$/occtet-nats-ai-service/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/occtet-nats-copyrightfilter-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/occtet-nats-copyrightfilter-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/occtet-nats-cyclonedx-export-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/occtet-nats-cyclonedx-export-service/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/occtet-nats-cyclonedx-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/occtet-nats-cyclonedx-service/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/occtet-nats-download-service/src/main/java" charset="UTF-8" />
