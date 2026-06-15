@@ -46,10 +46,12 @@ public class SoftwareComponentLicenseUsageService {
     public SoftwareComponentLicenseUsage createOrFindSoftwareComponentLicenseUsage(License licenseEntity, SoftwareComponent softwareComponent,
                                                                                    String licenseText, String licenseId, String licenseName, Organization organization) {
         // load existing usages for template and component
+        log.debug("fetching usageLicense from DB");
         List<SoftwareComponentLicenseUsage> usageList = softwareComponentLicenseUsageRepository
                 .findAllBySoftwareComponentAndTemplate(softwareComponent, licenseEntity);
 
         if (!usageList.isEmpty()) {
+            log.debug("see if existing license matches name and text of already existing usageLicense");
             Optional<SoftwareComponentLicenseUsage> matchingUsage = usageList.stream()
                     .filter(usage -> {
 
@@ -100,6 +102,7 @@ public class SoftwareComponentLicenseUsageService {
         }
 
         // if not existing: new
+        log.debug("create new LicenseUsage");
         return softwareComponentLicenseUsageFactory.createSoftwareComponentLicenseUsage(
                 licenseEntity, softwareComponent, licenseText, licenseId, licenseName, organization);
     }

@@ -230,11 +230,9 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
         this.inventoryItem = dataManager.load(InventoryItem.class)
                 .id(inventoryItemId)
-                .fetchPlan(f ->f.addFetchPlan(FetchPlan.BASE)
-                        .add("softwareComponent")
+                .fetchPlan(f -> f.addFetchPlan(FetchPlan.BASE)
                         .add("project", pBuilder -> pBuilder.addFetchPlan(FetchPlan.BASE).add("projectName"))
                         .add("parent")
-                        .add("project")
                         .add("externalNotes")
                         .add("priority")
                         .add("linking")
@@ -243,38 +241,32 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                         .add("wasCombined")
                         .add("hasTodos")
                         .add("createdAt")
-                        .add("spdxId"))
+                        .add("spdxId")
+                        // Hier laden wir die SoftwareComponent direkt tiefen-vollständig!
+                        .add("softwareComponent", scPlan -> scPlan.addFetchPlan(FetchPlan.BASE)
+                                .add("detailsUrl")
+                                .add("purl")
+                                .add("curated")
+                                .add("licenseAiControlled")
+                                .add("usageLicenses", licPlan -> licPlan.addFetchPlan(FetchPlan.BASE).add("template"))
+                                .add("copyrights", FetchPlan.BASE)
+                                .add("vulnerabilityLinks", linkPlan -> linkPlan.addFetchPlan(FetchPlan.BASE)
+                                        .add("resolved")
+                                        .add("vulnerability", FetchPlan.BASE)
+                                )
+                        )
+                )
                 .one();
 
 
         this.inventoryItem = dataContext.merge(this.inventoryItem);
-        SoftwareComponent sc = inventoryItem.getSoftwareComponent();
 
-        if (sc != null && !entityStates.isNew(sc) &&
-                (!entityStates.isLoaded(sc, "usageLicenses") || !entityStates.isLoaded(sc, "copyrights"))) {
-
-            SoftwareComponent loadedSc = dataManager.load(SoftwareComponent.class)
-                    .id(this.inventoryItem.getSoftwareComponent().getId())
-                    .fetchPlan(f -> f.addAll("name",
-                            "version",
-                            "usageLicenses",
-                            "copyrights",
-                            "detailsUrl",
-                            "purl",
-                            "curated",
-                            "licenseAiControlled",
-                            "usageLicenses.template",
-                            "vulnerabilityLinks",
-                            "vulnerabilityLinks.vulnerability"))
-                    .one();
-            SoftwareComponent trackedSc = dataContext.merge(loadedSc);
-            // Swap lazy proxy for the fully loaded one
-            inventoryItem.setSoftwareComponent(trackedSc);
-        }
         // track instances !important for saving
         this.inventoryItem = dataContext.merge(inventoryItem);
         this.softwareComponent = this.inventoryItem.getSoftwareComponent();
-        softwareComponentDc.setItem(this.softwareComponent);
+        if (this.softwareComponent != null) {
+            softwareComponentDc.setItem(this.softwareComponent);
+        }
         parentField.setItems(inventoryItemRepository.findAll());
         parentField.setItemLabelGenerator(InventoryItem::getInventoryName);
         if (inventoryItem.getParent() != null) {
@@ -340,6 +332,9 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
         EntitySet savedEntities = dataContext.save();
 
         if (!savedEntities.isEmpty()) {
+            if (savedEntities.contains(inventoryItem)) {
+                this.inventoryItem = savedEntities.get(inventoryItem.getClass(), inventoryItem.getId());
+            }
             log.debug("Inventory Item {} had {} changes saved.", inventoryItem.getInventoryName(), savedEntities.size());
 
             notifications.create(messages.formatMessage(getClass(),

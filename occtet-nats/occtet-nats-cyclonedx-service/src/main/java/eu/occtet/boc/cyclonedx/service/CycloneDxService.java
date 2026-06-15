@@ -106,6 +106,7 @@ public class CycloneDxService extends ProgressReportingService {
             if(bom.getVulnerabilities() != null && !bom.getVulnerabilities().isEmpty()){
                 notifyProgress(80, "processing vulnerabilities");
                 vulnerabilityHandler.handleVulnerabilities(bom, context);
+                log.debug("processed vulnerabilities");
             }
 
             scheduleAnswerService(context, cycloneDxWorkData);

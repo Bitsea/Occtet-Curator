@@ -82,6 +82,7 @@ public class ComponentHandler {
             Component comp = metadata.getComponent();
             InventoryItem mainParent= null;
         try {
+            log.debug("handling metadata component");
             if (metadata != null && comp != null) {
                 mainParent = processAllComponents(copyrightsToSave, inventoryItemsToSave, softwareComponentsToSave, comp, context);
             }
@@ -93,6 +94,7 @@ public class ComponentHandler {
 
 
         for (Component component : bom.getComponents()) {
+            log.debug("going through all components of sbom");
 
             try {
                 boolean isExcluded = isExcluded(component);
@@ -110,6 +112,8 @@ public class ComponentHandler {
                 int percent = (int) ((40.0 * count) / bom.getComponents().size());
                 if (percent % 5 == 0 && progressCallback!= null) progressCallback.accept(percent);
             }
+
+        log.debug("saving all entities creating of sbom");
 
             projectRepository.save(context.getProject());
             if (!copyrightsToSave.isEmpty()) {
@@ -152,6 +156,7 @@ public class ComponentHandler {
         }
         //handle relation between children and parent
         if (currentItem != null && parentItem != null) {
+            log.debug("setting parent {}", parentItem.getInventoryName());
             currentItem.setParent(parentItem);
         }
 
@@ -234,6 +239,7 @@ public class ComponentHandler {
 
         InventoryItem inventoryItem;
         if (!context.getInventoryCache().containsKey(inventoryName)) {
+            log.debug("creating new inventoryItem");
             inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, sc,
                     context.getProject(),
                     context.getProject().getOrganization());
