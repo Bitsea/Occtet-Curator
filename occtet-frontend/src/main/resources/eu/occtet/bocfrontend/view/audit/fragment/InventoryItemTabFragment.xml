@@ -34,10 +34,14 @@
         </instance>
         <instance id="softwareComponentDc" class="eu.occtet.bocfrontend.entity.SoftwareComponent">
             <fetchPlan extends="_base">
-                <property name="vulnerabilityLinks" fetchPlan="_base">
-                    <property name="vulnerability" fetchPlan="_base"/>
+                <property name="usageLicenses" fetchPlan="_base">
+                    <property name="template" fetchPlan="_base">
+                    </property>
                 </property>
             </fetchPlan>
+            <loader id="softwareComponentDl"/>
+
+            <collection id="licenseDc" property="usageLicenses"/>
         </instance>
         <collection id="fileDc" class="eu.occtet.bocfrontend.entity.File">
             <fetchPlan extends="_base"/>
@@ -46,19 +50,6 @@
                 <![CDATA[
                     SELECT f FROM File f WHERE :inventoryItem MEMBER OF f.inventoryItems
                 ]]>
-                </query>
-            </loader>
-        </collection>
-        <collection id="licenseDc"
-                    class="eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage">
-            <fetchPlan extends="_base">
-                <property name="template" fetchPlan="_base">
-                        <property name="templateText"/>
-                </property>
-            </fetchPlan>
-            <loader id="licensesDl">
-                <query>
-                    <![CDATA[select e from SoftwareComponentLicenseUsage e where e in :licensesList]]>
                 </query>
             </loader>
         </collection>
@@ -144,14 +135,6 @@
             </tab>
             <tab id="licenseTab" label="msg://eu.occtet.bocfrontend.view.audit/auditView.licenses">
                 <vbox width="100%" height="100%" alignItems="CENTER">
-                    <hbox width="100%">
-                        <genericFilter id="genericFilterLicense" dataLoader="licensesDl" themeNames="small"
-                                       alignSelf="START" opened="false">
-                            <properties include=".*"/>
-                            <conditions> </conditions>
-                        </genericFilter>
-                        <simplePagination id="paginationLicense" dataLoader="licensesDl" alignSelf="END"/>
-                    </hbox>
                     <dataGrid id="licensesDataGrid"
                               width="100%"
                               height="20em"
