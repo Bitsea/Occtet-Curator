@@ -26,6 +26,7 @@
             <fetchPlan extends="_base">
                 <property name="softwareComponent" fetchPlan="_base"/>
                 <property name="parent" fetchPlan="_base">
+
                 </property>
 
             </fetchPlan>
@@ -52,6 +53,7 @@
                     class="eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage">
             <fetchPlan extends="_base">
                 <property name="template" fetchPlan="_base">
+                        <property name="templateText"/>
                 </property>
             </fetchPlan>
             <loader id="licensesDl">

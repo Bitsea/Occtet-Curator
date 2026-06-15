@@ -45,27 +45,64 @@ public class SoftwareComponentLicenseUsageService {
 
     public SoftwareComponentLicenseUsage createOrFindSoftwareComponentLicenseUsage(License licenseEntity, SoftwareComponent softwareComponent,
                                                                                    String licenseText, String licenseId, String licenseName, Organization organization) {
+        // load existing usages for template and component
+        List<SoftwareComponentLicenseUsage> usageList = softwareComponentLicenseUsageRepository
+                .findAllBySoftwareComponentAndTemplate(softwareComponent, licenseEntity);
 
-        List<SoftwareComponentLicenseUsage> usageList = softwareComponentLicenseUsageRepository.findAllBySoftwareComponentAndTemplate(softwareComponent, licenseEntity);
-        if (!usageList.isEmpty() ){
+        if (!usageList.isEmpty()) {
             Optional<SoftwareComponentLicenseUsage> matchingUsage = usageList.stream()
-                    .filter(usage ->
-                                    Objects.equals(usage.getEffectiveText(), licenseText) &&
-                                    Objects.equals(usage.getEffectiveName(), licenseName) &&
-                                    Objects.equals(usage.getTemplate().getLicenseType(), licenseId)
-                    )
+                    .filter(usage -> {
+
+                        //text matching
+                        String existingText = usage.getUsageText() != null ? usage.getUsageText().trim() : "";
+                        String incomingText = licenseText != null ? licenseText.trim() : "";
+                        String templateText = licenseEntity.getLicenseText() != null ? licenseEntity.getLicenseText().trim() : "";
+
+                        // is incoming text empty or only generic name?
+                        boolean incomingTextIsDefault = incomingText.isEmpty()
+                                || incomingText.equalsIgnoreCase(licenseId)
+                                || incomingText.equalsIgnoreCase(licenseName)
+                                || (licenseEntity.getLicenseName() != null && incomingText.equalsIgnoreCase(licenseEntity.getLicenseName().trim()));
+
+                        boolean textMatch;
+                        if (incomingTextIsDefault) {
+                            textMatch = existingText.isEmpty() || existingText.equals(templateText);
+                        } else {
+                            textMatch = existingText.equals(incomingText);
+                        }
+
+                        // name matching
+                        String existingName = usage.getCustomName() != null ? usage.getCustomName().trim() : "";
+                        String incomingName = (licenseName != null && !licenseName.equals("null")) ? licenseName.trim() : "";
+                        String templateName = licenseEntity.getLicenseName() != null ? licenseEntity.getLicenseName().trim() : "";
+
+                        //is incoming name empty or is it the id?
+                        boolean incomingNameIsDefault = incomingName.isEmpty() || incomingName.equalsIgnoreCase(licenseId);
+
+                        boolean nameMatch;
+                        if (incomingNameIsDefault) {
+                            // if no name provided, match empty DB field OR template name
+                            nameMatch = existingName.isEmpty()
+                                    || existingName.equalsIgnoreCase(templateName)
+                                    || existingName.equalsIgnoreCase(licenseId);
+                        } else {
+                            // if no custom name, it has to match
+                            nameMatch = existingName.equalsIgnoreCase(incomingName);
+                        }
+
+                        return textMatch && nameMatch;
+                    })
                     .findFirst();
 
-
-            return matchingUsage.orElseGet(() -> softwareComponentLicenseUsageFactory.createSoftwareComponentLicenseUsage(licenseEntity, softwareComponent, licenseText, licenseId, licenseName, organization));
-
-        }else {
-
-            return softwareComponentLicenseUsageFactory.createSoftwareComponentLicenseUsage(licenseEntity, softwareComponent, licenseText, licenseId, licenseName, organization);
+            if (matchingUsage.isPresent()) {
+                return matchingUsage.get();
+            }
         }
+
+        // if not existing: new
+        return softwareComponentLicenseUsageFactory.createSoftwareComponentLicenseUsage(
+                licenseEntity, softwareComponent, licenseText, licenseId, licenseName, organization);
     }
-
-
 
 
 }

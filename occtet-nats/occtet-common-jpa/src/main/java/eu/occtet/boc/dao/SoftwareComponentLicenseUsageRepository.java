@@ -20,6 +20,7 @@
 package eu.occtet.boc.dao;
 
 import eu.occtet.boc.entity.License;
+import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.entity.SoftwareComponentLicenseUsage;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -35,5 +36,8 @@ public interface SoftwareComponentLicenseUsageRepository extends JpaRepository<S
             "WHERE u.softwareComponent = :softwareComponent AND u.template = :template")
     List<SoftwareComponentLicenseUsage> findAllBySoftwareComponentAndTemplate(
             @Param("softwareComponent") SoftwareComponent softwareComponent,
-            @Param("template") License template
-    );}
+            @Param("template") License template);
+
+
+
+}

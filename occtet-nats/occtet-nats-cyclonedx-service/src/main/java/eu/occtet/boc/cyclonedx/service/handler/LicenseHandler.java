@@ -70,10 +70,18 @@ public class LicenseHandler {
 
                 String[] licenses = cleanedExpression.split("\\s+(?i)(?:AND|OR)\\s+");
 
-                for (int i = 0; i < licenses.length; i++) {
-                    licenses[i] = licenses[i].trim();
-                    SoftwareComponentLicenseUsage usage= createUsageForLicense(licenses[i], licenses[i], null, softwareComponent, organization, licenseCache);
-                    context.getUsageLicenseCache().put(softwareComponent.getName(), usage);
+                for (String license : licenses) {
+                    String licenseKeyId = license.trim();
+                    String cacheKey = softwareComponent.getName() + "_" + licenseKeyId;
+
+                    //see if already existing
+                    if (context.getUsageLicenseCache().containsKey(cacheKey)) {
+                        log.debug("Usage for component {} with license {} already in cache. Skipping.", softwareComponent.getName(), licenseKeyId);
+                        continue;
+                    }
+
+                    SoftwareComponentLicenseUsage usage = createUsageForLicense(licenseKeyId, licenseKeyId, null, softwareComponent, organization, licenseCache);
+                    context.getUsageLicenseCache().put(cacheKey, usage);
                 }
 
             }else {
@@ -105,9 +113,18 @@ public class LicenseHandler {
                         licenseDeclaration.append(licenseId);
                     }else licenseDeclaration.append(" AND ").append(licenseId);
 
+                    String targetIdForKey = "Unknown".equals(licenseId) && licenseName != null ? licenseName : licenseId;
+                    String cacheKey = softwareComponent.getName() + "_" + targetIdForKey;
+
+                    // Check duplicate
+                    if (context.getUsageLicenseCache().containsKey(cacheKey)) {
+                        log.debug("Usage for component {} with license {} already in cache. Skipping.", softwareComponent.getName(), targetIdForKey);
+                        continue;
+                    }
+
                     SoftwareComponentLicenseUsage usage= createUsageForLicense(licenseId,licenseName,
                             licenseText,softwareComponent,organization,licenseCache);
-                    context.getUsageLicenseCache().put(softwareComponent.getName(), usage);
+                    context.getUsageLicenseCache().put(cacheKey, usage);
                 }
             }
 

@@ -55,6 +55,8 @@ public class CycloneDxService extends ProgressReportingService {
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
     @Autowired
+    private SoftwareComponentLicenseUsageRepository softwareComponentLicenseUsageRepository;
+    @Autowired
     private AnswerService answerService;
     @Autowired
     private VulnerabilityHandler vulnerabilityHandler;
@@ -101,8 +103,10 @@ public class CycloneDxService extends ProgressReportingService {
             refreshComponentCache(context);
             componentHandler.processAllPackages(context, (percent) -> notifyProgress(20 + percent, "processing packages")
                     ,bom, cycloneDxWorkData.isWithTestLibraries());
-            vulnerabilityHandler.handleVulnerabilities(bom, context);
-
+            if(bom.getVulnerabilities() != null && !bom.getVulnerabilities().isEmpty()){
+                notifyProgress(80, "processing vulnerabilities");
+                vulnerabilityHandler.handleVulnerabilities(bom, context);
+            }
 
             scheduleAnswerService(context, cycloneDxWorkData);
 
@@ -175,6 +179,7 @@ public class CycloneDxService extends ProgressReportingService {
 
         log.debug("Component cache refreshed. Mapped {} components.", componentCache.size());
     }
+
 
     private void scheduleAnswerService(CycloneDxImportContext context, CycloneDxWorkData workData) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {

@@ -41,7 +41,7 @@ public class CycloneDxImportContext {
     private Map<String, SoftwareComponent> componentVulnerabilityCache = new HashMap<>();
 
     private Map<String, License> licenseCache = new HashMap<>();
-    //here we take the softwarecomponent name as key, because the same license can be used for multiple components, but a component can only have one usage license
+    //here we take the softwarecomponent name + license name as key
     private Map<String, SoftwareComponentLicenseUsage> usageLicenseCache = new HashMap<>();
     private Map<String, InventoryItem> fileToInventoryItemMap = new HashMap<>();
     private Map<String, InventoryItem> inventoryCache = new HashMap<>();

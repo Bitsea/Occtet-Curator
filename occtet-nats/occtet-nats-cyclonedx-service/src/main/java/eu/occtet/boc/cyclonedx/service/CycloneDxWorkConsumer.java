@@ -58,7 +58,8 @@ public class CycloneDxWorkConsumer extends WorkConsumer {
             WorkTask workTask = objectMapper.readValue(jsonData, WorkTask.class);
             log.debug("workTask: {}", workTask);
             BaseWorkData workData = workTask.workData();
-            log.debug("workData: {}", workTask);
+            log.debug("Could not process workData of type {}", workData.getClass().getName());
+            log.debug("workData: {}", workData);
 
             boolean result = workData.process(new BaseWorkDataProcessor() {
                 @Override
