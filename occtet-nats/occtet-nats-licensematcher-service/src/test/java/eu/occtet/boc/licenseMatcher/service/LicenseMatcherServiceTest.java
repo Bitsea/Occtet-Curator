@@ -20,11 +20,8 @@
 package eu.occtet.boc.licenseMatcher.service;
 
 
-import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.entity.*;
 
-import eu.occtet.boc.entity.Project;
-import eu.occtet.boc.entity.SoftwareComponent;
-import eu.occtet.boc.entity.UsageLicense;
 import eu.occtet.boc.model.ScannerSendWorkData;
 import io.nats.client.JetStreamApiException;
 import org.slf4j.Logger;
@@ -50,7 +47,7 @@ public class LicenseMatcherServiceTest {
     //@Test
     void callLicenseMatcherWithMatchingLicenses() throws JetStreamApiException, IOException {
         log.debug("Starting test: callLicenseMatcherWithMatchingLicenses");
-        UsageLicense license1 = new UsageLicense();
+        SoftwareComponentLicenseUsage license1 = new SoftwareComponentLicenseUsage();
 //        license1.setLicenseType("MIT");
 //        license1.setLicenseText("\n" +
 //                "\n" +
@@ -62,7 +59,8 @@ public class LicenseMatcherServiceTest {
         SoftwareComponent component = new SoftwareComponent();
         component.setUsageLicenses(List.of(license1));
         Project project = new Project();
-        InventoryItem item = new InventoryItem("InventoryName", project, component);
+        Organization organization= new Organization();
+        InventoryItem item = new InventoryItem("InventoryName", project, component,organization );
         item.setSoftwareComponent(component);
         ScannerSendWorkData workDataResponse = new ScannerSendWorkData(item.getId());
         licenseMatcherService.process(workDataResponse);
@@ -113,7 +111,8 @@ public class LicenseMatcherServiceTest {
         SoftwareComponent component = new SoftwareComponent();
    //     component.setLicenses(List.of(license1, license2));
         Project project = new Project();
-        InventoryItem item = new InventoryItem("InventoryName", project, component);
+        Organization organization= new Organization();
+        InventoryItem item = new InventoryItem("InventoryName", project, component, organization);
         item.setSoftwareComponent(component);
         ScannerSendWorkData workDataResponse = new ScannerSendWorkData(item.getId());
         licenseMatcherService.process(workDataResponse);
@@ -139,7 +138,8 @@ public class LicenseMatcherServiceTest {
         SoftwareComponent component = new SoftwareComponent();
 //        component.setLicenses(List.of(license1, license2));
         Project project = new Project();
-        InventoryItem item = new InventoryItem("InventoryName", project, component);
+        Organization organization= new Organization();
+        InventoryItem item = new InventoryItem("InventoryName", project, component, organization);
         item.setSoftwareComponent(component);
         ScannerSendWorkData workDataResponse = new ScannerSendWorkData(item.getId());
         licenseMatcherService.process(workDataResponse);
