@@ -19,6 +19,7 @@
 
 package eu.occtet.boc.export.service.handler;
 
+import org.cyclonedx.parsers.JsonParser;
 import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.SoftwareComponentLicenseUsageRepository;
@@ -33,8 +34,10 @@ import org.cyclonedx.model.License;
 import org.cyclonedx.model.component.evidence.Occurrence;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.cyclonedx.model.metadata.ToolInformation;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,10 +56,9 @@ public class ComponentHandler  extends ProgressReportingService {
     @Autowired
     private VexDataHandler vexDataHandler;
 
-    public Bom handleComponents(Project project, Bom bom, Boolean enriched){
-
-        // initialize metadata
-        Metadata metadata = new Metadata();
+    public Bom handleComponents(Project project, Consumer<Integer> progressCallback, Bom bom, Boolean enriched){
+        //get already created metadata from bom
+        Metadata metadata = bom.getMetadata();
 
         List<InventoryItem> inventoryItemList= inventoryItemRepository.findAllByProject(project);
         List<File> files= fileRepository.findAllByProject(project);
@@ -115,13 +117,16 @@ public class ComponentHandler  extends ProgressReportingService {
 
         log.debug("fetched all important entities from DB and mapped them");
 
+        if(progressCallback!= null)
+            progressCallback.accept(5);
+
         Component mainComponent;
 
         if (rootItems.size() == 1) {
             log.debug("one main component");
             // best case: there is a single main item
             log.debug("go through children");
-            mainComponent = mapInventoryItemToComponent(rootItems.getFirst(), childrenMap, filesMap, licenseMap, enriched);
+            mainComponent = mapInventoryItemToComponent(rootItems.getFirst(),progressCallback, childrenMap, filesMap, licenseMap, enriched);
             mainComponent.setType(Component.Type.APPLICATION);
 
             if (mainComponent.getComponents() != null) {
@@ -140,19 +145,16 @@ public class ComponentHandler  extends ProgressReportingService {
 
             log.debug("go through children");
             List<Component> childComponents = rootItems.stream()
-                    .map(rootItem -> mapInventoryItemToComponent(rootItem, childrenMap, filesMap, licenseMap, enriched))
+                    .map(rootItem -> mapInventoryItemToComponent(rootItem,progressCallback, childrenMap, filesMap, licenseMap, enriched))
                     .collect(Collectors.toList());
 
             bom.setComponents(childComponents);
         }
-
         metadata.setComponent(mainComponent);
-        bom.setMetadata(metadata);
 
         addVulnerabilities(bom,inventoryItemList, allProjectVexData, componentToItemsMap);
 
         return bom;
-
 
     }
 
@@ -164,8 +166,8 @@ public class ComponentHandler  extends ProgressReportingService {
      * @param item
      * @return
      */
-    private Component mapInventoryItemToComponent(InventoryItem item,Map<Long,
-            List<InventoryItem>> childrenMap, Map<Long, List<File>> filesMap, Map<Long, List<SoftwareComponentLicenseUsage>> licenseMap, boolean enrichLicenseText) {
+    private Component mapInventoryItemToComponent(InventoryItem item, Consumer<Integer> progressCallback,
+                                                  Map<Long, List<InventoryItem>> childrenMap, Map<Long, List<File>> filesMap, Map<Long, List<SoftwareComponentLicenseUsage>> licenseMap, boolean enrichLicenseText) {
         SoftwareComponent softComp = item.getSoftwareComponent();
         if (softComp == null) {
             return null;
@@ -188,12 +190,15 @@ public class ComponentHandler  extends ProgressReportingService {
         addLicenses(cdComponent, softComp, licenseMap, enrichLicenseText);
         addProperties(cdComponent, item);
 
+        if(progressCallback!= null)
+            progressCallback.accept(1);
+
         // recursion: we get the children very fast from this map
         List<InventoryItem> internalChildren = childrenMap.get(item.getId());
         if (internalChildren != null && !internalChildren.isEmpty()) {
             List<Component> childComponents = new ArrayList<>();
             for (InventoryItem childItem : internalChildren) {
-                Component childComponent = mapInventoryItemToComponent(childItem, childrenMap, filesMap, licenseMap, enrichLicenseText);
+                Component childComponent = mapInventoryItemToComponent(childItem,progressCallback, childrenMap, filesMap, licenseMap, enrichLicenseText);
                 if (childComponent != null) {
                     childComponents.add(childComponent);
                 }

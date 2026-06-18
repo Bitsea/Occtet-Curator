@@ -87,7 +87,10 @@ public class LicenseHandler {
             }else {
 
                 for (org.cyclonedx.model.License lic : licenseChoice.getLicenses()) {
-                    String licenseId = lic.getId();
+                    String licenseId ="";
+                    if(lic.getId()!= null)
+                         licenseId= lic.getId();
+                    else licenseId= lic.getName();
                     if(licenseId.isEmpty()) licenseId = "Unknown";
                     String licenseName = lic.getName();
                     String licenseText = "";

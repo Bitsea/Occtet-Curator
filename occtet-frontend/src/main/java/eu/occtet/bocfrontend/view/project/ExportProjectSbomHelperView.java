@@ -29,10 +29,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
-import eu.occtet.boc.model.SpdxExportWorkData;
-import eu.occtet.boc.model.WorkTask;
-import eu.occtet.boc.model.WorkTaskProgress;
-import eu.occtet.boc.model.WorkTaskStatus;
+import eu.occtet.boc.model.*;
 import eu.occtet.bocfrontend.config.ConfigNatsProperties;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.service.NatsService;
@@ -53,6 +50,8 @@ import io.jmix.flowui.model.KeyValueCollectionContainer;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.cyclonedx.model.Bom;
+import org.cyclonedx.parsers.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -212,22 +211,24 @@ public class ExportProjectSbomHelperView extends StandardView {
         String taskId = UUID.randomUUID().toString();
         long actualTimestamp = Instant.now().getEpochSecond();
 
-        SpdxExportWorkData spdxExportWorkData = new SpdxExportWorkData(
-                project.getDocumentID(),
-                project.getId(),
-                expectedObjectStoreKey,
-                enrichment
-        );
-
-        WorkTask workTask = new WorkTask(taskId, dynamicTaskName, "Export data to microservice to create new SPDX", actualTimestamp, spdxExportWorkData);
+        log.debug("expected objectKeyStore: {}", expectedObjectStoreKey);
 
         try {
-
-            byte[] messagePayload = MAPPER.writeValueAsBytes(workTask);
             if(sbomFormat.equals(SPDX_2_3)) {
-
+                SpdxExportWorkData spdxExportWorkData = new SpdxExportWorkData(
+                        project.getDocumentID(),
+                        project.getId(),
+                        expectedObjectStoreKey,
+                        enrichment
+                );
+                WorkTask workTask = new WorkTask(taskId, dynamicTaskName, "Export data to microservice to create new SPDX", actualTimestamp, spdxExportWorkData);
+                byte[] messagePayload = MAPPER.writeValueAsBytes(workTask);
                 natsService.sendWorkMessageToStream(natsProperties.send_subject_export(), messagePayload);
             }else if(sbomFormat.equals(CYCLONEDX_1_6)){
+                CycloneDxExportWorkData cycloneDxExportWorkData= generateCycloneDxExportWorkData(expectedObjectStoreKey, enrichment);
+                log.debug("show cyclone workdata: {}", cycloneDxExportWorkData.getObjectStoreKey());
+                WorkTask workTask = new WorkTask(taskId, dynamicTaskName, "Export data to microservice to create new CycloneDX", actualTimestamp, cycloneDxExportWorkData);
+                byte[] messagePayload = MAPPER.writeValueAsBytes(workTask);
                 natsService.sendWorkMessageToStream(natsProperties.send_subject_cyclonedx_export(), messagePayload);
             }
             activeTasks.put(taskId, dynamicTaskName + messages.getMessage("eu.occtet.bocfrontend.view" +
@@ -246,6 +247,54 @@ public class ExportProjectSbomHelperView extends StandardView {
                             ".project/exportProjectSbomHelperView.notification.taskFailed"))
                     .withThemeVariant(NotificationVariant.LUMO_ERROR).show();
         }
+    }
+
+    private CycloneDxExportWorkData generateCycloneDxExportWorkData(String expectedObjectStoreKey, boolean enrichment){
+
+        // get version and serialnumber via nats
+        String projectKeyPrefix = project.getProjectName() + "_" + project.getId();
+        List<String> previousExportKeys = natsService.getPreviousExportOfSameProject(projectKeyPrefix);
+
+        String serialNumber;
+        int nextVersion;
+
+        if (previousExportKeys == null || previousExportKeys.isEmpty()) {
+            serialNumber = "urn:uuid:" + UUID.randomUUID().toString();
+            nextVersion = 1;
+        } else {
+            nextVersion = previousExportKeys.size() + 1;
+
+            previousExportKeys.sort(Comparator.reverseOrder());
+            String latestKey = previousExportKeys.getFirst();
+
+            serialNumber = fetchSerialNumberFromExistingSbom(latestKey);
+        }
+        return new CycloneDxExportWorkData(serialNumber, project.getId(), nextVersion, expectedObjectStoreKey,enrichment );
+    }
+
+    /**
+     * helpermethod: loading last bom from nats
+     */
+    private String fetchSerialNumberFromExistingSbom(String latestKey) {
+        try {
+            byte[] fileData = natsService.getFileFromBucket(latestKey);
+
+            if (fileData == null) {
+                log.warn("olf sbom not found for key: {}", latestKey);
+                return "urn:uuid:" + UUID.randomUUID().toString();
+            }
+
+            JsonParser parser = new JsonParser();
+            Bom previousBom = parser.parse(fileData);
+
+            if (previousBom.getSerialNumber() != null) {
+                return previousBom.getSerialNumber();
+            }
+        } catch (Exception e) {
+            log.error("could not read SBOM, generate new one", e);
+        }
+
+        return "urn:uuid:" + UUID.randomUUID().toString();
     }
 
     @Subscribe("progressTimer")

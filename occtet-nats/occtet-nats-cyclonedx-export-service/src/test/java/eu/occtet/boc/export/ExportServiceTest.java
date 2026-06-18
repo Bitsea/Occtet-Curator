@@ -147,7 +147,7 @@ public class ExportServiceTest {
 
         // Act
         Bom incomingBom = new Bom();
-        Bom resultBom = componentHandler.handleComponents(project, incomingBom, true);
+        Bom resultBom = componentHandler.handleComponents(project,null, incomingBom, true);
 
         // Assert
         assertNotNull(resultBom);

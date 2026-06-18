@@ -1,0 +1,630 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.7",
+  "serialNumber": "urn:uuid:0743fb70-93d8-45d8-bb14-212fffebb909",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-06-12T10:09:56.073Z",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "name": "Curator Pro",
+          "version": "1.0",
+          "publisher": "Bitsea GmbH"
+        }
+      ]
+    },
+    "component": {
+      "type": "application",
+      "bom-ref": "project-4e177b00-61c4-4646-a034-193c2d526687",
+      "name": "testbed1",
+      "version": ""
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "e13ccdf3-4a40-4524-a0da-2e5c045ac64d",
+      "name": "com.fasterxml.jackson.core:jackson-databind",
+      "version": "2.9.8",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.8",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "d4797afe-78ff-4762-b2cc-842a968e61ee",
+      "name": "com.fasterxml.jackson.core:jackson-core",
+      "version": "2.13.2",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.2",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "9dfe83dc-3bd9-40b4-8346-5b46feaffd97",
+      "name": "org.apache.logging.log4j:log4j-core",
+      "version": "2.14.1",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "b4430823-0b7c-4444-8936-f6138277bc35",
+      "name": "org.apache.logging.log4j:log4j-api",
+      "version": "2.14.1",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.apache.logging.log4j/log4j-api@2.14.1",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "b753912d-d4bb-4a03-b096-9981f9cb73a9",
+      "name": "com.fasterxml.jackson.core:jackson-databind",
+      "version": "2.13.2.2",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.2.2",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "2e5bbbe1-49aa-4f61-8c67-8bfef0704f8d",
+      "name": "mysql:mysql-connector-java",
+      "version": "8.0.16",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/mysql/mysql-connector-java@8.0.16",
+      "licenses": [
+        {
+          "license": {
+            "name": "non-standard"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "9fe0e1d6-653e-4dc8-95c1-402950e32085",
+      "name": "org.apache.httpcomponents:httpcore",
+      "version": "4.4.13",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.apache.httpcomponents/httpcore@4.4.13",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "337a8aa9-6928-4332-8a99-0bde630eeefe",
+      "name": "commons-beanutils:commons-beanutils",
+      "version": "1.9.2",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/commons-beanutils/commons-beanutils@1.9.2",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "e1554aab-f2b8-4f7c-897f-9323e1da0faf",
+      "name": "commons-codec:commons-codec",
+      "version": "1.11",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/commons-codec/commons-codec@1.11",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "4d22ab9a-0df5-4311-8def-daf4b2fd2cd9",
+      "name": "commons-collections:commons-collections",
+      "version": "3.2.1",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/commons-collections/commons-collections@3.2.1",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "13691fe0-cef6-4a2a-b6fb-ebc01abfb8dc",
+      "name": "org.apache.httpcomponents:httpclient",
+      "version": "4.5.13",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.apache.httpcomponents/httpclient@4.5.13",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "31d2e9d4-2201-477a-9046-49ccd4c86772",
+      "name": "org.yaml:snakeyaml",
+      "version": "1.30",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.yaml/snakeyaml@1.30",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "50c47ccd-e892-439d-91df-c368bd7a4d90",
+      "name": "commons-logging:commons-logging",
+      "version": "1.2",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/commons-logging/commons-logging@1.2",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "51b40303-2e17-4a47-aefe-1a3de1d890f3",
+      "name": "com.fasterxml.jackson:jackson-bom",
+      "version": "2.13.2",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/com.fasterxml.jackson/jackson-bom@2.13.2",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "7e3850ed-1855-4c60-ab0b-83a7915dfd80",
+      "name": "org.dom4j:dom4j",
+      "version": "2.1.3",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.dom4j/dom4j@2.1.3",
+      "licenses": [
+        {
+          "license": {
+            "name": "non-standard"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "57f00700-03ee-4273-9725-ea9117136923",
+      "name": "org.jboss:jandex",
+      "version": "2.2.3.Final",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.jboss/jandex@2.2.3.Final",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "41d1a850-c3be-4312-950b-5b46ef86524f",
+      "name": "javax.activation:javax.activation-api",
+      "version": "1.2.0",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/javax.activation/javax.activation-api@1.2.0",
+      "licenses": [
+        {
+          "license": {
+            "name": "non-standard"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "58e54b62-7b39-4f92-bcf7-1f0baee0c280",
+      "name": "antlr:antlr",
+      "version": "2.7.7",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/antlr/antlr@2.7.7",
+      "licenses": [
+        {
+          "license": {
+            "name": "non-standard"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "4b3030b2-9ea8-440f-8bf1-84b1ea100ba1",
+      "name": "org.jvnet.staxex:stax-ex",
+      "version": "1.8",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.jvnet.staxex/stax-ex@1.8",
+      "licenses": [
+        {
+          "license": {
+            "name": "non-standard"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "3ae19c68-58b1-4413-a3ec-b24e982d7c9f",
+      "name": "ch.qos.logback:logback-classic",
+      "version": "1.2.3",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/ch.qos.logback/logback-classic@1.2.3",
+      "licenses": [
+        {
+          "license": {
+            "name": "non-standard"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "f35f1ca3-6815-41c9-9472-739e7b579c3b",
+      "name": "org.jboss.spec.javax.transaction:jboss-transaction-api_1.2_spec",
+      "version": "1.1.1.Final",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.jboss.spec.javax.transaction/jboss-transaction-api_1.2_spec@1.1.1.Final",
+      "licenses": [
+        {
+          "license": {
+            "name": "non-standard"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "72b2b68d-b027-414b-ba3a-69a3fc51943b",
+      "name": "org.glassfish.jaxb:txw2",
+      "version": "2.3.1",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.glassfish.jaxb/txw2@2.3.1",
+      "licenses": [
+        {
+          "license": {
+            "name": "non-standard"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "a4d1fb26-ccc3-4def-b8d5-ab01e013f3d8",
+      "name": "org.postgresql:postgresql",
+      "version": "42.2.5",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.postgresql/postgresql@42.2.5",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-2-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "2788f313-039d-4c2b-b17f-3c1dc8415d1c",
+      "name": "com.h2database:h2",
+      "version": "1.4.199",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/com.h2database/h2@1.4.199",
+      "licenses": [
+        {
+          "license": {
+            "name": "non-standard"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "4c94bc71-2022-481d-89c3-5ce5667e251e",
+      "name": "com.fasterxml.jackson.core:jackson-annotations",
+      "version": "2.13.2",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.2",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "c4d58a7e-8fce-46dd-b001-c20f3f707fed",
+      "name": "com.sun.xml.fastinfoset:FastInfoset",
+      "version": "1.2.15",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/com.sun.xml.fastinfoset/FastInfoset@1.2.15",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "367861a1-4a8d-4182-a000-7a8d66ca3fbe",
+      "name": "org.jboss.logging:jboss-logging",
+      "version": "3.4.1.Final",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.jboss.logging/jboss-logging@3.4.1.Final",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "7e15327f-984b-4f59-bb42-037dbbf533e5",
+      "name": "com.fasterxml:classmate",
+      "version": "1.5.1",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/com.fasterxml/classmate@1.5.1",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "7d960c69-172c-44fd-85f3-e37114f24ab7",
+      "name": "javax.xml.bind:jaxb-api",
+      "version": "2.3.1",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/javax.xml.bind/jaxb-api@2.3.1",
+      "licenses": [
+        {
+          "expression": "CDDL-1.1 AND GPL-2.0-with-classpath-exception"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "d921a782-115b-4e27-9f36-90a519d64941",
+      "name": "org.hibernate.common:hibernate-commons-annotations",
+      "version": "5.1.2.Final",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.hibernate.common/hibernate-commons-annotations@5.1.2.Final",
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPL-2.1-or-later"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "a1a99785-4aec-4813-9753-05aae736993c",
+      "name": "org.javassist:javassist",
+      "version": "3.27.0-GA",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.javassist/javassist@3.27.0-GA",
+      "licenses": [
+        {
+          "expression": "non-standard AND LGPL-2.1 AND Apache-2.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "12fb95ea-464d-4db3-bf65-dad75ac913f1",
+      "name": "com.sun.istack:istack-commons-runtime",
+      "version": "3.0.7",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/com.sun.istack/istack-commons-runtime@3.0.7",
+      "licenses": [
+        {
+          "expression": "CDDL-1.1 AND GPL-2.0-with-classpath-exception"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "ba61cacd-99ad-4513-b8ef-c380ec83320e",
+      "name": "org.slf4j:slf4j-api",
+      "version": "1.7.25",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.slf4j/slf4j-api@1.7.25",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "ee27a4a2-8dda-4299-aea5-11e1c5687476",
+      "name": "com.example.testbed:lib-core",
+      "version": "1.0.0",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/com.example.testbed/lib-core@1.0.0",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "65e63787-b6b2-41d6-a82f-7306c4b48cb1",
+      "name": "javax.persistence:javax.persistence-api",
+      "version": "2.2",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/javax.persistence/javax.persistence-api@2.2",
+      "licenses": [
+        {
+          "license": {
+            "name": "non-standard"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "f4888eaf-2a94-43dc-a4bf-40b1f5a79eaf",
+      "name": "net.bytebuddy:byte-buddy",
+      "version": "1.10.21",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/net.bytebuddy/byte-buddy@1.10.21",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "0b75852f-1b27-4f88-982b-5e29312db141",
+      "name": "ch.qos.logback:logback-core",
+      "version": "1.2.3",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/ch.qos.logback/logback-core@1.2.3",
+      "licenses": [
+        {
+          "license": {
+            "name": "non-standard"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "7d46adb7-8f62-4b48-98a5-45072b16e0ce",
+      "name": "com.google.guava:guava",
+      "version": "30.0-jre",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/com.google.guava/guava@30.0-jre",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "7bd52021-312b-4339-b300-3b89c05b6d00",
+      "name": "org.glassfish.jaxb:jaxb-runtime",
+      "version": "2.3.1",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.glassfish.jaxb/jaxb-runtime@2.3.1",
+      "licenses": [
+        {
+          "license": {
+            "name": "non-standard"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "6a1dae1e-a27d-4458-a015-793793cb9e69",
+      "name": "jira",
+      "version": "3.8.0",
+      "description": "Imported from Source Walker (vendored) (pypi)",
+      "purl": "pkg:pypi/jira@3.8.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "8f5d8612-8578-487f-9b40-c9b7c54810ae",
+      "name": "org.hibernate:hibernate-core",
+      "version": "5.4.30.Final",
+      "description": "Imported from Curator Pro Scanner (maven)",
+      "purl": "pkg:maven/org.hibernate/hibernate-core@5.4.30.Final",
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPL-2.1-or-later"
+          }
+        }
+      ]
+    }
+  ],
+  "dependencies": []
+}

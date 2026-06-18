@@ -21,10 +21,7 @@ package eu.occtet.boc.export.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.model.BaseWorkData;
-import eu.occtet.boc.model.SpdxExportWorkData;
-import eu.occtet.boc.model.WorkTask;
-import eu.occtet.boc.model.WorkTaskStatus;
+import eu.occtet.boc.model.*;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.WorkConsumer;
 import io.nats.client.Message;
@@ -58,11 +55,11 @@ CycloneDxExportWorkConsumer extends WorkConsumer {
 
             boolean result = workData.process(new BaseWorkDataProcessor() {
                 @Override
-                public boolean process(SpdxExportWorkData spdxExportWorkData) {
+                public boolean process(CycloneDxExportWorkData cycloneDxExportWorkData) {
                     exportService.setOnProgress((p,d)->{
                         notifyProgress(workTask.taskId(),workTask.name(), WorkTaskStatus.IN_PROGRESS,  p, d);
                     });
-                    return exportService.process(spdxExportWorkData);
+                    return exportService.process(cycloneDxExportWorkData);
                 }
             });
             log.debug("RESULT {}", result);

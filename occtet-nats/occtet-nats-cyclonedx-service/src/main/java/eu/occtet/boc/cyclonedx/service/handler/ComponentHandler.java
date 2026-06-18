@@ -72,8 +72,6 @@ public class ComponentHandler {
 
     public void processAllPackages(CycloneDxImportContext context, Consumer<Integer> progressCallback, Bom bom, Boolean withTestLibraries) {
 
-
-
             int count = 0;
             Set<InventoryItem> inventoryItemsToSave = new HashSet<>();
             Set<SoftwareComponent> softwareComponentsToSave = new HashSet<>();
@@ -150,10 +148,9 @@ public class ComponentHandler {
         // process component of current level
         InventoryItem currentItem= processAllComponents(copyrightsToSave, inventoryItemsToSave, softwareComponentsToSave, component, context);
 
-        if (depth == 0) {
-            //sorting first level of components as main components, the rest are dependencies
-            context.getMainInventoryItems().add(currentItem);
-        }
+        //cyclonedx has its own dependency section therefore all components are main here
+        context.getMainInventoryItems().add(currentItem);
+
         //handle relation between children and parent
         if (currentItem != null && parentItem != null) {
             log.debug("setting parent {}", parentItem.getInventoryName());
