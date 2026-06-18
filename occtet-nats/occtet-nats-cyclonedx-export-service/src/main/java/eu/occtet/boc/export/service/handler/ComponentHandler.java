@@ -24,6 +24,7 @@ import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.SoftwareComponentLicenseUsageRepository;
 import eu.occtet.boc.dao.VexDataRepository;
 import eu.occtet.boc.entity.*;
+import eu.occtet.boc.entity.Copyright;
 import eu.occtet.boc.service.ProgressReportingService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,9 +54,6 @@ public class ComponentHandler  extends ProgressReportingService {
     private VexDataHandler vexDataHandler;
 
     public Bom handleComponents(Project project, Bom bom, Boolean enriched){
-
-        //TODO handle copyrights
-        //TODO handle enrich licensetexts with copyrights
 
         // initialize metadata
         Metadata metadata = new Metadata();
@@ -123,7 +121,7 @@ public class ComponentHandler  extends ProgressReportingService {
             log.debug("one main component");
             // best case: there is a single main item
             log.debug("go through children");
-            mainComponent = mapInventoryItemToComponent(rootItems.getFirst(), childrenMap, filesMap, licenseMap);
+            mainComponent = mapInventoryItemToComponent(rootItems.getFirst(), childrenMap, filesMap, licenseMap, enriched);
             mainComponent.setType(Component.Type.APPLICATION);
 
             if (mainComponent.getComponents() != null) {
@@ -142,7 +140,7 @@ public class ComponentHandler  extends ProgressReportingService {
 
             log.debug("go through children");
             List<Component> childComponents = rootItems.stream()
-                    .map(rootItem -> mapInventoryItemToComponent(rootItem, childrenMap, filesMap, licenseMap))
+                    .map(rootItem -> mapInventoryItemToComponent(rootItem, childrenMap, filesMap, licenseMap, enriched))
                     .collect(Collectors.toList());
 
             bom.setComponents(childComponents);
@@ -167,7 +165,7 @@ public class ComponentHandler  extends ProgressReportingService {
      * @return
      */
     private Component mapInventoryItemToComponent(InventoryItem item,Map<Long,
-            List<InventoryItem>> childrenMap, Map<Long, List<File>> filesMap, Map<Long, List<SoftwareComponentLicenseUsage>> licenseMap) {
+            List<InventoryItem>> childrenMap, Map<Long, List<File>> filesMap, Map<Long, List<SoftwareComponentLicenseUsage>> licenseMap, boolean enrichLicenseText) {
         SoftwareComponent softComp = item.getSoftwareComponent();
         if (softComp == null) {
             return null;
@@ -185,8 +183,9 @@ public class ComponentHandler  extends ProgressReportingService {
         //add associated files
         List<File> associatedFiles = filesMap.get(item.getId());
         addFiles(cdComponent, associatedFiles);
+        addCopyrights(cdComponent, associatedFiles);
 
-        addLicenses(cdComponent, softComp, licenseMap);
+        addLicenses(cdComponent, softComp, licenseMap, enrichLicenseText);
         addProperties(cdComponent, item);
 
         // recursion: we get the children very fast from this map
@@ -194,7 +193,7 @@ public class ComponentHandler  extends ProgressReportingService {
         if (internalChildren != null && !internalChildren.isEmpty()) {
             List<Component> childComponents = new ArrayList<>();
             for (InventoryItem childItem : internalChildren) {
-                Component childComponent = mapInventoryItemToComponent(childItem, childrenMap, filesMap, licenseMap);
+                Component childComponent = mapInventoryItemToComponent(childItem, childrenMap, filesMap, licenseMap, enrichLicenseText);
                 if (childComponent != null) {
                     childComponents.add(childComponent);
                 }
@@ -241,7 +240,29 @@ public class ComponentHandler  extends ProgressReportingService {
         }
     }
 
-    private void addLicenses(Component cdComponent, SoftwareComponent softComp, Map<Long, List<SoftwareComponentLicenseUsage>> licenseMap){
+    private void addCopyrights(Component cdComponent,List<File> associatedFiles){
+        Set<String> uniqueCopyrightTexts = new LinkedHashSet<>();
+
+        // collect associated Copyrights from files
+        if (associatedFiles != null) {
+            associatedFiles.stream()
+                    .filter(Objects::nonNull)
+                    .flatMap(file -> file.getCopyrights().stream())
+                    .filter(cp -> cp != null && !Boolean.TRUE.equals(cp.getGarbage()))
+                    .map(Copyright::getCopyrightText)
+                    .filter(text -> text != null && !text.isBlank())
+                    .forEach(uniqueCopyrightTexts::add);
+        }
+
+        // if copyright found write to sbom
+        if (!uniqueCopyrightTexts.isEmpty()) {
+            String combinedCopyright = String.join("\n", uniqueCopyrightTexts);
+            cdComponent.setCopyright(combinedCopyright);
+        }
+    }
+
+    private void addLicenses(Component cdComponent, SoftwareComponent softComp,
+                             Map<Long, List<SoftwareComponentLicenseUsage>> licenseMap, boolean enrichLicenseText){
         log.debug("add licenses");
         List<SoftwareComponentLicenseUsage> usages = licenseMap.get(softComp.getId());
 
@@ -262,7 +283,14 @@ public class ComponentHandler  extends ProgressReportingService {
                     }
                     if(usage.getEffectiveText()!= null) {
                         AttachmentText attachmentText = new AttachmentText();
-                        attachmentText.setText(usage.getEffectiveText());
+                        String licenseText = usage.getEffectiveText();
+
+                        //if licenseText should be enriched with copyright
+                        if (enrichLicenseText && cdComponent.getCopyright() != null && !cdComponent.getCopyright().isBlank()) {
+                            licenseText = cdComponent.getCopyright() + "\n\n" + licenseText;
+                        }
+
+                        attachmentText.setText(licenseText);
                         cdLicense.setLicenseText(attachmentText);
                     }
 
