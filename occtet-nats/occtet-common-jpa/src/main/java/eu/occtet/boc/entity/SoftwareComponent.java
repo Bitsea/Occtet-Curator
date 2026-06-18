@@ -43,7 +43,7 @@ public class SoftwareComponent implements HasOrganization {
     @Column(name = "SOFTWARE_COMPONENT_NAME", nullable = false)
     private String name;
 
-    @Transient
+    @Column(name="BOM_REF")
     private String bomRef;
 
     @Column(name = "VERSION", nullable = false)
@@ -74,6 +74,9 @@ public class SoftwareComponent implements HasOrganization {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
     private Organization organization;
+
+    @Column(name = "ORIGIN_TYPE")
+    private String originType;
 
     public SoftwareComponent() {
     }
@@ -260,6 +263,10 @@ public class SoftwareComponent implements HasOrganization {
         }
     }
 
+    public List<ComponentVulnerabilityLink> getVulnerabilityLinks() {
+        return vulnerabilityLinks;
+    }
+
     public void addVulnerabilityLink(ComponentVulnerabilityLink link) {
         if (this.vulnerabilityLinks == null) {
             this.vulnerabilityLinks= new ArrayList<>();
@@ -284,4 +291,11 @@ public class SoftwareComponent implements HasOrganization {
         this.bomRef = bomRef;
     }
 
+    public String getOriginType() {
+        return originType;
+    }
+
+    public void setOriginType(String originType) {
+        this.originType = originType;
+    }
 }

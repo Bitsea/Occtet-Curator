@@ -224,6 +224,7 @@ public class ComponentHandler {
         //setting this always new for each sbom the value is different, needed later for sorting vulnerabilities etc
         sc.setBomRef(component.getBomRef());
         sc.setPurl(component.getPurl());
+        sc.setOriginType(component.getType().getTypeName());
         //to handle vulnerabilities later + faster
         context.getComponentVulnerabilityCache().put(component.getBomRef(), sc);
         //get License from package

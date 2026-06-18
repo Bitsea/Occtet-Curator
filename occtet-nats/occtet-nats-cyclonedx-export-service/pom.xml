@@ -23,7 +23,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>occtet-nats-cyclone-export-service</artifactId>
+    <artifactId>occtet-nats-cyclonedx-export-service</artifactId>
     <description>Occtet Nats service used to create new cyclonedx SBOM</description>
     <version>0.3.8-SNAPSHOT</version>
 
@@ -36,7 +36,7 @@
     </parent>
 
     <properties>
-        <start-class>eu.occtet.boc.export.SpdxExportApp</start-class>
+        <start-class>eu.occtet.boc.export.CycloneDxExportApp</start-class>
     </properties>
 
     <repositories>
@@ -90,6 +90,11 @@
             <version>${common-jpa-version}</version>
         </dependency>
         <dependency>
+            <groupId>org.cyclonedx</groupId>
+            <artifactId>cyclonedx-core-java</artifactId>
+            <version>12.2.0</version>
+        </dependency>
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback-version}</version>
@@ -120,11 +125,6 @@
             <version>2.22.0</version>
         </dependency>
         <dependency>
-            <groupId>org.spdx</groupId>
-            <artifactId>java-spdx-library</artifactId>
-            <version>2.0.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>5.10.2</version>
@@ -149,18 +149,6 @@
             <artifactId>hsqldb</artifactId>
             <version>2.7.4</version>
             <scope>test</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.spdx/spdx-jackson-store -->
-        <dependency>
-            <groupId>org.spdx</groupId>
-            <artifactId>spdx-jackson-store</artifactId>
-            <version>2.0.3</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.spdx/spdx-java-model-2_X -->
-        <dependency>
-            <groupId>org.spdx</groupId>
-            <artifactId>spdx-java-model-2_X</artifactId>
-            <version>1.0.1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <dependency>

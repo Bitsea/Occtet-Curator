@@ -104,6 +104,8 @@ public class CuratorTaskService {
                     natsService.sendWorkMessageToStream(natsProperties.send_subject_ort_run(), message.getBytes(Charset.defaultCharset()));
                 }else if(streamName.equals(natsProperties.send_subject_cyclonedx())) {
                     natsService.sendWorkMessageToStream(natsProperties.send_subject_cyclonedx(), message.getBytes(Charset.defaultCharset()));
+                }else if(streamName.equals(natsProperties.send_subject_cyclonedx_export())) {
+                    natsService.sendWorkMessageToStream(natsProperties.send_subject_cyclonedx_export(), message.getBytes(Charset.defaultCharset()));
                 }
                 else if(streamName.equals(natsProperties.send_subject_export())) {
                     natsService.sendWorkMessageToStream(natsProperties.send_subject_export(), message.getBytes(Charset.defaultCharset()));

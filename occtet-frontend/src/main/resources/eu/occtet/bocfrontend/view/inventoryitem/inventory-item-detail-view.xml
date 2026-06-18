@@ -27,7 +27,6 @@
             <fetchPlan extends="_base">
                 <property name="softwareComponent" fetchPlan="_base"/>
                 <property name="parent" fetchPlan="_base">
-                    <property name="inventoryName"/>
                 </property>
             </fetchPlan>
             <loader id="inventoryItemDl"/>
@@ -48,16 +47,21 @@
                         <vbox id="inventoryNameField" width="100%"/>
                         <hbox>
                             <comboBox id="projectField" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.project" required="true"/>
-                            <textField id="sizeField" property="size" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.size" width="10%"/>
-                            <textField id="linkingField" property="linking" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.linking" width="10%"/>
+                            <textField id="sizeField" property="size" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.size" width="10%"
+                                       dataContainer="inventoryItemDc"/>
+                            <textField id="linkingField" property="linking" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.linking" width="10%"
+                                       dataContainer="inventoryItemDc"/>
                             <hbox>
-                                <checkbox id="curatedField" property="curated" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.curated" alignSelf="END"/>
-                                <checkbox id="wasCombinedField" property="wasCombined" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.wasCombined" alignSelf="END"/>
+                                <checkbox id="curatedField" property="curated" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.curated" alignSelf="END"
+                                          dataContainer="inventoryItemDc"/>
+                                <checkbox id="wasCombinedField" property="wasCombined" label="msg://eu.occtet.bocfrontend.entity/InventoryItem.wasCombined" alignSelf="END"
+                                          dataContainer="inventoryItemDc"/>
                             </hbox>
                         </hbox>
                         <hbox width="100%">
                             <comboBox id="parentField" property="parent"
-                                       label="msg://eu.occtet.bocfrontend.entity/InventoryItem.parent" width="25em" css="margin-left: 30px"/>
+                                       label="msg://eu.occtet.bocfrontend.entity/InventoryItem.parent" width="25em" css="margin-left: 30px"
+                                      dataContainer="inventoryItemDc"/>
                             <button id="parentButton" text="msg://showParent"
                                     width="15em" alignSelf="END"/>
                         </hbox>

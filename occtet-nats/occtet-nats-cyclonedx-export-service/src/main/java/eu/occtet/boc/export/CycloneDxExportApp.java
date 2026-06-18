@@ -20,12 +20,11 @@
 package eu.occtet.boc.export;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.occtet.boc.export.service.SpdxExportWorkConsumer;
+import eu.occtet.boc.export.service.CycloneDxExportWorkConsumer;
 import eu.occtet.boc.model.MicroserviceDescriptor;
 import eu.occtet.boc.service.SystemHandler;
 import io.nats.client.Connection;
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +73,7 @@ public class CycloneDxExportApp {
     private static final Logger log = LoggerFactory.getLogger(CycloneDxExportApp.class);
 
     @Autowired
-    private SpdxExportWorkConsumer spdxExportWorkConsumer;
+    private CycloneDxExportWorkConsumer cycloneDxExportWorkConsumer;
 
     public static void main(String[] args) {
         SpringApplication.run(CycloneDxExportApp.class, args);
@@ -91,12 +90,12 @@ public class CycloneDxExportApp {
                 microserviceDescriptor.getName(), microserviceDescriptor.getVersion(), streamName );
 
         // create the systemhandler to respond to "hello", "status" and "exit" messages
-        systemHandler = new SystemHandler(natsConnection, microserviceDescriptor, spdxExportWorkConsumer);
+        systemHandler = new SystemHandler(natsConnection, microserviceDescriptor, cycloneDxExportWorkConsumer);
         systemHandler.subscribeToSystemSubject();
         // start listening for work
         executor.execute(()->{
             try {
-                spdxExportWorkConsumer.startHandlingMessages(natsConnection,microserviceDescriptor.getName(), streamName, workSubject);
+                cycloneDxExportWorkConsumer.startHandlingMessages(natsConnection,microserviceDescriptor.getName(), streamName, workSubject);
             } catch (Exception e) {
                 log.error("Could not start handling messages: ", e);
             }
@@ -110,7 +109,7 @@ public class CycloneDxExportApp {
 
     private void shutdownApplication() {
         System.out.println("shutting down Microservice: " + microserviceDescriptor.getName() );
-        spdxExportWorkConsumer.terminate();
+        cycloneDxExportWorkConsumer.terminate();
         Runtime.getRuntime().halt(0);
     }
 }

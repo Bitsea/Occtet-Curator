@@ -37,9 +37,9 @@ import java.nio.charset.StandardCharsets;
 
 @Service
 public class
-SpdxExportWorkConsumer extends WorkConsumer {
+CycloneDxExportWorkConsumer extends WorkConsumer {
 
-    private static final Logger log = LogManager.getLogger(SpdxExportWorkConsumer.class);
+    private static final Logger log = LogManager.getLogger(CycloneDxExportWorkConsumer.class);
 
     @Autowired
     private ExportService exportService;

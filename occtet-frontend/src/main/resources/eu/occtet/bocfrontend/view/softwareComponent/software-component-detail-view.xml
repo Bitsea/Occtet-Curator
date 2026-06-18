@@ -66,6 +66,7 @@
                         </hbox>
                         <textField id="url" property="detailsUrl" label="msg://eu.occtet.bocfrontend.entity/LicenseType.detailsUrl"/>
                         <textField id="purl" property="purl" label="msg://eu.occtet.bocfrontend.entity/OrtIssue.purl"/>
+                        <comboBox id="type" property="originType" label="msg://originType"/>
                         <checkbox id="curatedField" property="curated" label="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
                         <checkbox id="licenseAICurated" property="licenseAiControlled" label="msg://licenseAiControlled"/>
                     </formLayout>

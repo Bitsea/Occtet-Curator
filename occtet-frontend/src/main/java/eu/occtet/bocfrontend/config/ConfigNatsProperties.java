@@ -13,6 +13,7 @@ public record ConfigNatsProperties (
     String send_subject_spdx,
     String send_subject_cyclonedx,
     String send_subject_export,
+    String send_subject_cyclonedx_export,
     String send_subject_foss,
     String send_subject_vulnerabilities,
     String send_subject_ort_result,

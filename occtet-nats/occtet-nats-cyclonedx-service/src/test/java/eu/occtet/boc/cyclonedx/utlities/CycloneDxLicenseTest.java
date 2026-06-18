@@ -49,12 +49,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.InputStream;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
-import static org.mockito.ArgumentMatchers.any;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -76,8 +73,6 @@ import static org.mockito.ArgumentMatchers.any;
         "eu.occtet.boc.entity"
 })
 @ExtendWith(MockitoExtension.class)
-
-
 public class CycloneDxLicenseTest {
 
     private static final Logger log = LogManager.getLogger(CycloneDxLicenseTest.class);

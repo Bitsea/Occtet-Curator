@@ -38,6 +38,11 @@ public interface SoftwareComponentLicenseUsageRepository extends JpaRepository<S
             @Param("softwareComponent") SoftwareComponent softwareComponent,
             @Param("template") License template);
 
+    @Query("select lu from InventoryItem i " +
+            "join i.softwareComponent sc " +
+            "join sc.usageLicenses lu " +
+            "where i.project = :project")
+    List<SoftwareComponentLicenseUsage> findUsageByProject(@Param("project") Project project);
 
 
 }

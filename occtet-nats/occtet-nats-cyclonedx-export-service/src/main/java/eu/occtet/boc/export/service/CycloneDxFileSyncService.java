@@ -42,9 +42,9 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class SpdxFileSyncService {
+public class CycloneDxFileSyncService {
 
-    private static final Logger log = LogManager.getLogger(SpdxFileSyncService.class);
+    private static final Logger log = LogManager.getLogger(CycloneDxFileSyncService.class);
 
     @Autowired
     private FileRepository fileRepository;

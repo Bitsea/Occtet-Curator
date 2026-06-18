@@ -21,27 +21,46 @@
 
 package eu.occtet.boc.export;
 
-import eu.occtet.boc.dao.ProjectRepository;
-import eu.occtet.boc.dao.SpdxDocumentRootRepository;
-import eu.occtet.boc.entity.Organization;
-import eu.occtet.boc.entity.Project;
+import eu.occtet.boc.dao.*;
+import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.spdxV2.CreationInfoEntity;
 import eu.occtet.boc.entity.spdxV2.ExtractedLicensingInfoEntity;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.export.service.AnswerService;
 import eu.occtet.boc.export.service.ExportService;
-import eu.occtet.boc.export.service.MergeService;
+import eu.occtet.boc.export.service.handler.ComponentHandler;
+import eu.occtet.boc.export.service.handler.VexDataHandler;
 import eu.occtet.boc.model.SpdxExportWorkData;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.checkerframework.checker.units.qual.A;
+import org.cyclonedx.Version;
+import org.cyclonedx.exception.GeneratorException;
+import org.cyclonedx.generators.BomGeneratorFactory;
+import org.cyclonedx.generators.json.BomJsonGenerator;
+import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.Component;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -49,192 +68,125 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(MockitoExtension.class) // Aktiviert Mockito (kein Spring nötig!)
 public class ExportServiceTest {
 
+    // Die Klasse, die tatsächlich getestet wird, bekommt @InjectMocks
     @InjectMocks
-    private ExportService exportService;
+    private ComponentHandler componentHandler;
+
+    // Alle Abhängigkeiten, die der ComponentHandler braucht, werden als @Mock deklariert
+    @Mock
+    private InventoryItemRepository inventoryItemRepository;
+
+    @Spy
+    private VexDataHandler vexDataHandler;
 
     @Mock
-    private ProjectRepository projectRepository;
+    private FileRepository fileRepository;
 
     @Mock
-    private SpdxDocumentRootRepository spdxDocumentRootRepository;
+    private VexDataRepository vexDataRepository;
 
     @Mock
-    private AnswerService answerService;
+    private SoftwareComponentLicenseUsageRepository softwareComponentLicenseUsageRepository;
 
-    @Mock
-    private MergeService mergeService;
+    private static final Logger log = LogManager.getLogger(ExportServiceTest.class);
 
-    @Test
-    void process_ValidExportData_GeneratesAndPushesSbom() {
-        ReflectionTestUtils.setField(exportService, "toolName", "TestTool-1.0");
-
-        SpdxExportWorkData workData = new SpdxExportWorkData();
-        workData.setProjectId(100L);
-        workData.setSpdxDocumentId("https://test.uri/doc");
-        workData.setObjectStoreKey("sbom-export.json");
-
-        Project project = new Project("Export Project");
-        project.setId(100L);
-        project.setVersion("1.0.0");
-        project.setProjectContact("Jane Doe");
-        project.setCreatedAt(LocalDateTime.now());
-
-        Organization org = new Organization();
-        org.setOrganizationEmail("test@test.com");
-        org.setOrganizationName("Test Org");
-
-        project.setOrganization(org);
-
-        SpdxDocumentRoot documentRoot = getSpdxDocumentRoot();
-
-        when(projectRepository.findById(100L)).thenReturn(Optional.of(project));
-        when(spdxDocumentRootRepository.findByDocumentUri("https://test.uri/doc")).thenReturn(Optional.of(documentRoot));
-
-        doNothing().when(mergeService).mergeChangesToDocumentEntities(any(), any());
-
-        boolean result = exportService.process(workData);
-
-        assertTrue(result, "Export process should return true on success");
-
-        verify(mergeService, times(1)).mergeChangesToDocumentEntities(documentRoot, project);
-
-        // capture the byte[] created in the service
-        ArgumentCaptor<byte[]> byteCaptor = ArgumentCaptor.forClass(byte[].class);
-        verify(answerService, times(1)).putIntoBucket(eq("sbom-export.json"), byteCaptor.capture());
-
-        byte[] generatedPayload = byteCaptor.getValue();
-        assertTrue(generatedPayload.length > 0, "Generated JSON payload should not be empty");
-
-        String jsonString = new String(generatedPayload);
-        assertTrue(jsonString.contains("SPDXRef-DOCUMENT"), "JSON should contain the document SPDX reference");
-        assertTrue(jsonString.contains("Test Org"), "JSON should contain project organization");
-    }
-
-    @NotNull
-    private static SpdxDocumentRoot getSpdxDocumentRoot() {
-        CreationInfoEntity creationInfo = new CreationInfoEntity();
-        creationInfo.setCreated("2026-03-09T10:00:00Z");
-        creationInfo.setCreators("Tool: TestTool");
-
-        SpdxDocumentRoot documentRoot = new SpdxDocumentRoot();
-        documentRoot.setSpdxId("SPDXRef-DOCUMENT");
-        documentRoot.setSpdxVersion("SPDX-2.3");
-        documentRoot.setDataLicense("CC0-1.0");
-        documentRoot.setName("Export Doc");
-        documentRoot.setDocumentUri("https://test.uri/doc");
-        documentRoot.setCreationInfo(creationInfo);
-        return documentRoot;
-    }
 
     @Test
-    void process_ProjectNotFound_ReturnsFalse() {
-        SpdxExportWorkData workData = new SpdxExportWorkData();
-        workData.setProjectId(999L); // Non-existent ID
-        workData.setSpdxDocumentId("https://test.uri/doc");
+    void handleComponents_ShouldProcessVulnerabilitiesEvenWithoutVexData() throws GeneratorException {
+        // Arrange
+        Project project = new Project();
+        project.setProjectName("Test Project");
+        project.setVersion("1.0");
 
-        when(projectRepository.findById(999L)).thenReturn(Optional.empty());
+        SoftwareComponent softComp = new SoftwareComponent();
+        softComp.setId(42L);
+        softComp.setName("Log4j");
+        softComp.setVersion("2.14.1");
 
-        boolean result = exportService.process(workData);
+        InventoryItem item = new InventoryItem();
+        item.setId(100L);
+        item.setSoftwareComponent(softComp);
+        item.setInventoryName("log4j-item-ref");
 
-        assertFalse(result, "Export process should return false if the project is missing.");
-        verify(spdxDocumentRootRepository, never()).findByDocumentUri(anyString());
-        verify(mergeService, never()).mergeChangesToDocumentEntities(any(), any());
-    }
+        // connecting to vulnerability
+        ComponentVulnerabilityLink link = new ComponentVulnerabilityLink();
+        Vulnerability vuln = new Vulnerability();
+        vuln.setVulnerabilityId("CVE-2021-44228");
+        link.setVulnerability(vuln);
+        link.setSoftwareComponent(softComp);
 
-    @Test
-    void process_DocumentNotFound_ReturnsFalse() {
-        SpdxExportWorkData workData = new SpdxExportWorkData();
-        workData.setProjectId(100L);
-        workData.setSpdxDocumentId("https://missing.uri/doc");
+        softComp.addVulnerabilityLink(link);
 
-        Project project = new Project("Test Project");
+        SoftwareComponent softComp2 = new SoftwareComponent();
+        softComp2.setId(43L);
+        softComp2.setName("Spring-Core");
+        softComp2.setVersion("6.1.0");
 
-        when(projectRepository.findById(100L)).thenReturn(Optional.of(project));
-        when(spdxDocumentRootRepository.findByDocumentUri("https://missing.uri/doc")).thenReturn(Optional.empty());
+        InventoryItem item2 = new InventoryItem();
+        item2.setId(101L);
+        item2.setSoftwareComponent(softComp2);
+        item2.setInventoryName("spring-core-item-ref");
 
-        boolean result = exportService.process(workData);
+        ComponentVulnerabilityLink link2 = new ComponentVulnerabilityLink();
+        Vulnerability vuln2 = new Vulnerability();
+        vuln2.setVulnerabilityId("CVE-2024-22233");
+        link2.setVulnerability(vuln2);
+        link2.setSoftwareComponent(softComp2);
 
-        assertFalse(result, "Export process should return false if the document root is missing.");
-        verify(mergeService, never()).mergeChangesToDocumentEntities(any(), any());
-    }
+        softComp2.addVulnerabilityLink(link2);
 
-    @Test
-    void process_WithEnrichment_PrependsCopyrightsToExtractedLicense() {
-        ReflectionTestUtils.setField(exportService, "toolName", "TestTool-1.0");
+        // configure mocks
+        when(inventoryItemRepository.findAllByProjectAndCurated(project, true)).thenReturn(List.of(item, item2));
+        when(fileRepository.findAllByProject(project)).thenReturn(Collections.emptyList());
+        when(softwareComponentLicenseUsageRepository.findUsageByProject(project)).thenReturn(Collections.emptyList());
+        when(vexDataRepository.findBySoftwareComponentIds(anyList())).thenReturn(Collections.emptyList());
 
-        Organization org = new Organization();
-        org.setOrganizationName("Test Org");
 
-        SpdxExportWorkData workData = new SpdxExportWorkData();
-        workData.setProjectId(100L);
-        workData.setSpdxDocumentId("https://test.uri/doc");
-        workData.setObjectStoreKey("sbom-enriched-export.json");
-        workData.setEnrichment(true);
+        // Act
+        Bom incomingBom = new Bom();
+        Bom resultBom = componentHandler.handleComponents(project, incomingBom, true);
 
-        Project project = new Project("Enriched Export Project");
-        project.setId(100L);
-        project.setOrganization(org);
+        // Assert
+        assertNotNull(resultBom);
 
-        SpdxDocumentRoot documentRoot = getSpdxDocumentRoot();
+        BomJsonGenerator generator = BomGeneratorFactory.createJson(Version.VERSION_16, resultBom);
+        // generate json
+        String jsonString = generator.toJsonString();
 
-        ExtractedLicensingInfoEntity extractedLicense = new ExtractedLicensingInfoEntity();
-        extractedLicense.setLicenseId("LicenseRef-Custom1");
-        extractedLicense.setExtractedText("Original License Text");
-        documentRoot.setHasExtractedLicensingInfos(java.util.List.of(extractedLicense));
+        log.debug("show sbom: {}", jsonString);
 
-        eu.occtet.boc.entity.spdxV2.SpdxPackageEntity pkg = new eu.occtet.boc.entity.spdxV2.SpdxPackageEntity();
-        pkg.setSpdxId("SPDXRef-Package-1");
-        pkg.setName("Test-Package");
-        pkg.setLicenseConcluded("LicenseRef-Custom1");
-        pkg.setFilesAnalyzed(true);
-        pkg.setDownloadLocation("https://test.uri/doc");
-        pkg.setLicenseDeclared("NOASSERTION");
-        pkg.setCopyrightText("Copyright (C) 2026 Alice");
-        pkg.setChecksums(java.util.Collections.emptyList());
-        pkg.setExternalRefs(java.util.Collections.emptyList());
-        pkg.setVersionInfo("");
-        pkg.setHomepage("");
-        pkg.setSummary("");
-        pkg.setDescription("");
-        pkg.setOriginator("");
-        pkg.setSupplier("");
+        // first component check
+        assertNotNull(resultBom.getComponents());
+        assertEquals(2, resultBom.getComponents().size(), "there should be two components");
 
-        eu.occtet.boc.entity.spdxV2.PackageVerificationCodeEntity pkgCode = new eu.occtet.boc.entity.spdxV2.PackageVerificationCodeEntity();
-        pkgCode.setPackageVerificationCodeValue("");
-        pkg.setPackageVerificationCode(pkgCode);
+        Component cdComponent1 = resultBom.getComponents().getFirst();
+        assertEquals("Log4j", cdComponent1.getName());
+        assertEquals("2.14.1", cdComponent1.getVersion());
 
-        documentRoot.setPackages(java.util.List.of(pkg));
+        Component cdComponent2 = resultBom.getComponents().get(1);
+        assertEquals("Spring-Core", cdComponent2.getName());
+        assertEquals("6.1.0", cdComponent2.getVersion());
 
-        eu.occtet.boc.entity.spdxV2.SpdxFileEntity file = new eu.occtet.boc.entity.spdxV2.SpdxFileEntity();
-        file.setSpdxId("SPDXRef-File-1");
-        file.setFileName("test-file.java");
-        file.setLicenseConcluded("LicenseRef-Custom1");
-        file.setCopyrightText("Copyright (C) 2026 Bob");
-        file.setLicenseInfoInFiles(java.util.Collections.emptyList());
+        // 2. vulnerability check
+        assertNotNull(resultBom.getVulnerabilities());
+        assertEquals(2, resultBom.getVulnerabilities().size(), "Es sollten zwei Schwachstellen in der BOM sein");
+        assertEquals("CVE-2021-44228", resultBom.getVulnerabilities().get(0).getId());
+        assertEquals("CVE-2024-22233", resultBom.getVulnerabilities().get(1).getId());
 
-        eu.occtet.boc.entity.spdxV2.ChecksumEntity checksum = new eu.occtet.boc.entity.spdxV2.ChecksumEntity();
-        checksum.setAlgorithm("SHA1");
-        checksum.setChecksumValue("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
-        file.setChecksums(java.util.List.of(checksum));
-        documentRoot.setFiles(java.util.List.of(file));
+        org.cyclonedx.model.vulnerability.Vulnerability log4jVuln = resultBom.getVulnerabilities().stream()
+                .filter(v -> "CVE-2021-44228".equals(v.getId()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Log4j Schwachstelle nicht im BOM gefunden"));
 
-        when(projectRepository.findById(100L)).thenReturn(Optional.of(project));
-        when(spdxDocumentRootRepository.findByDocumentUri("https://test.uri/doc")).thenReturn(Optional.of(documentRoot));
-        doNothing().when(mergeService).mergeChangesToDocumentEntities(any(), any());
+        assertNotNull(log4jVuln.getAffects(), "affect should exist");
+        assertFalse(log4jVuln.getAffects().isEmpty());
+        assertEquals("log4j-item-ref", log4jVuln.getAffects().getFirst().getRef());
 
-        boolean result = exportService.process(workData);
-        assertTrue(result, "Export process should return true on success");
-
-        ArgumentCaptor<byte[]> byteCaptor = ArgumentCaptor.forClass(byte[].class);
-        verify(answerService, times(1)).putIntoBucket(eq("sbom-enriched-export.json"), byteCaptor.capture());
-
-        String jsonString = new String(byteCaptor.getValue());
-
-        assertTrue(jsonString.contains("Copyright (C) 2026 Alice"), "JSON should contain Alice's copyright");
-        assertTrue(jsonString.contains("Copyright (C) 2026 Bob"), "JSON should contain Bob's copyright");
-        assertTrue(jsonString.contains("Original License Text"), "JSON should contain the original extracted text");
+        // Verify
+        verify(vexDataHandler, times(1)).mapToCycloneDxVulnerability(eq(vuln), isNull(), anyList());
+        verify(vexDataHandler, times(1)).mapToCycloneDxVulnerability(eq(vuln2), isNull(), anyList());
     }
 }

@@ -22,10 +22,20 @@ package eu.occtet.boc.dao;
 import eu.occtet.boc.entity.SoftwareComponent;
 import eu.occtet.boc.entity.VexData;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface VexDataRepository extends JpaRepository<VexData, Long> {
 
     Optional<VexData> findBySoftwareComponent(SoftwareComponent softwareComponent);
+
+    @Query("select distinct v from VexData v " +
+            "left join fetch v.vulnerability " +
+            "where v.softwareComponent.id in :componentIds")
+    List<VexData> findBySoftwareComponentIds(@Param("componentIds") Collection<Long> componentIds);
+
 }
