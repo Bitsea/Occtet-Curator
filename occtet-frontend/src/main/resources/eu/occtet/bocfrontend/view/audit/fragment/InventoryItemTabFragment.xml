@@ -91,6 +91,7 @@
                             </actions>
                         </entityPicker>
                         <button id="softwareComponentButton" title="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.softwareComponent.button" icon="INFO_CIRCLE_O"/>
+                        <comboBox id="originType" property="softwareComponent.originType" title="msg://eu.occtet.bocfrontend.view.softwareComponent/originType" dataContainer="inventoryItemDc"/>
                     </hbox>
                     <hbox spacing="true" width="100%" alignItems="BASELINE">
                         <textField id="downloadUrlTextField" property="detailsUrl"

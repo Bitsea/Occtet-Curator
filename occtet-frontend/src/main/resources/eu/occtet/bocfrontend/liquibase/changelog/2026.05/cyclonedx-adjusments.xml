@@ -42,4 +42,5 @@
         </addColumn>
     </changeSet>
 
+
 </databaseChangeLog>

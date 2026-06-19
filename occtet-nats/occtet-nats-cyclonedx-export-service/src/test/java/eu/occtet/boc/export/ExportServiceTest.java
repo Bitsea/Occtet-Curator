@@ -40,6 +40,9 @@ import org.cyclonedx.generators.BomGeneratorFactory;
 import org.cyclonedx.generators.json.BomJsonGenerator;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Dependency;
+import org.cyclonedx.model.Metadata;
+import org.cyclonedx.parsers.JsonParser;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,10 +61,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -189,4 +194,91 @@ public class ExportServiceTest {
         verify(vexDataHandler, times(1)).mapToCycloneDxVulnerability(eq(vuln), isNull(), anyList());
         verify(vexDataHandler, times(1)).mapToCycloneDxVulnerability(eq(vuln2), isNull(), anyList());
     }
+
+
+
+
+    @Test
+    void testHandleComponents_ShouldExportDependencyGraphCorrectly() {
+        // 1. GIVEN: Create a project and mock the environment
+        Project project = new Project();
+        project.setProjectName("TestProject");
+        project.setVersion("1.0.0");
+
+        // Initialize empty baseline responses for auxiliary repositories
+        when(fileRepository.findAllByProject(project)).thenReturn(Collections.emptyList());
+        when(softwareComponentLicenseUsageRepository.findUsageByProject(project)).thenReturn(Collections.emptyList());
+        when(vexDataRepository.findBySoftwareComponentIds(anyList())).thenReturn(Collections.emptyList());
+
+        // Create core SoftwareComponents with IDs (required for internal mapping/grouping keys)
+        SoftwareComponent scMain = new SoftwareComponent(); scMain.setId(1L); scMain.setName("my-app");
+        SoftwareComponent scSpring = new SoftwareComponent(); scSpring.setId(2L); scSpring.setName("spring-core");
+        SoftwareComponent scLang = new SoftwareComponent(); scLang.setId(3L); scLang.setName("commons-lang3");
+
+        // Create InventoryItems with proper inventory names (which act as bom-ref tokens)
+        InventoryItem mainItem = new InventoryItem();
+        mainItem.setId(10L);
+        mainItem.setInventoryName("my-app 1.0.0");
+        mainItem.setSoftwareComponent(scMain);
+        mainItem.setParent(null); // Explicit root item
+
+        InventoryItem springItem = new InventoryItem();
+        springItem.setId(20L);
+        springItem.setInventoryName("spring-core 6.0.0");
+        springItem.setSoftwareComponent(scSpring);
+        springItem.setParent(mainItem); // Tree hierarchy structure
+
+        InventoryItem langItem = new InventoryItem();
+        langItem.setId(30L);
+        langItem.setInventoryName("commons-lang3 3.12.0");
+        langItem.setSoftwareComponent(scLang);
+        langItem.setParent(springItem); // Tree hierarchy structure
+
+        // Setup the outgoing dependency relationships (The Graph Logics)
+        mainItem.addDependencies(Set.of(springItem));
+        springItem.addDependencies(Set.of(langItem));
+        langItem.addDependencies(Collections.emptySet());
+
+        // Mock inventory repository to return all three simulated database rows
+        List<InventoryItem> dbInventoryItems = List.of(mainItem, springItem, langItem);
+        when(inventoryItemRepository.findAllByProject(project)).thenReturn(dbInventoryItems);
+
+        // Initialize target CycloneDX BOM containing empty metadata context
+        Bom incomingBom = new Bom();
+        incomingBom.setMetadata(new Metadata());
+
+        // 2. WHEN: Execute the handler method to transform entities into BOM fields
+        Bom resultBom = componentHandler.handleComponents(project, null, incomingBom, false);
+
+        // 3. THEN: Verify that the dependency matrix was compiled seamlessly
+        assertNotNull(resultBom, "The resulting BOM should not be null");
+        List<Dependency> bomDependencies = resultBom.getDependencies();
+        assertNotNull(bomDependencies, "BOM dependencies section should have been created");
+
+        // Since only 'my-app' and 'spring-core' declare dependencies, we expect exactly 2 root elements
+        assertEquals(2, bomDependencies.size(), "Should contain exactly 2 dependency nodes with children");
+
+        // Validate Node 1: my-app -> spring-core
+        Dependency mainNode = bomDependencies.stream()
+                .filter(d -> "my-app 1.0.0".equals(d.getRef()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Dependency root node for 'my-app 1.0.0' missing"));
+
+        assertNotNull(mainNode.getDependencies(), "Sub-dependencies of main app should not be null");
+        assertEquals(1, mainNode.getDependencies().size());
+        assertEquals("spring-core 6.0.0", mainNode.getDependencies().getFirst().getRef(),
+                "Main app should point to spring-core as child dependency");
+
+        // Validate Node 2: spring-core -> commons-lang3
+        Dependency springNode = bomDependencies.stream()
+                .filter(d -> "spring-core 6.0.0".equals(d.getRef()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Dependency root node for 'spring-core 6.0.0' missing"));
+
+        assertNotNull(springNode.getDependencies(), "Sub-dependencies of spring-core should not be null");
+        assertEquals(1, springNode.getDependencies().size());
+        assertEquals("commons-lang3 3.12.0", springNode.getDependencies().getFirst().getRef(),
+                "Spring-core should point to commons-lang3 as child dependency");
+    }
+
 }

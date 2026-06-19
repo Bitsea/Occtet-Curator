@@ -24,19 +24,17 @@ import eu.occtet.boc.config.TestEclipseLinkJpaConfiguration;
 import eu.occtet.boc.cyclonedx.context.CycloneDxImportContext;
 import eu.occtet.boc.cyclonedx.factory.*;
 import eu.occtet.boc.cyclonedx.service.*;
-import eu.occtet.boc.cyclonedx.service.handler.*;
+import eu.occtet.boc.cyclonedx.service.handler.ComponentHandler;
+import eu.occtet.boc.cyclonedx.service.handler.LicenseHandler;
+import eu.occtet.boc.cyclonedx.service.handler.VulnerabilityHandler;
 import eu.occtet.boc.dao.*;
 import eu.occtet.boc.entity.*;
-import eu.occtet.boc.model.vexModels.VexVulnerability;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cyclonedx.model.Bom;
-import org.cyclonedx.model.Component;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -49,8 +47,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.InputStream;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 
 
 @DataJpaTest
@@ -73,11 +73,11 @@ import java.util.Set;
         "eu.occtet.boc.entity"
 })
 @ExtendWith(MockitoExtension.class)
-public class CycloneDxLicenseTest {
+public class CycloneDxDependencyTest{
 
     private static final Logger log = LogManager.getLogger(CycloneDxLicenseTest.class);
 
-    private static final String TEST_FILE_NAME = "synthetic-cyclonedx-license.json";
+    private static final String TEST_FILE_NAME = "test-dependencies-cdx.json";
 
     @MockitoBean
     private AnswerService answerService;
@@ -126,49 +126,38 @@ public class CycloneDxLicenseTest {
     }
 
     @Test
-    public void testComponentHandler() {
-
+    void testProcessAllPackages_ShouldResolveDependencyGraphCorrectly() throws Exception {
         componentHandler.processAllPackages(context, null , bom, true);
 
 
         List<SoftwareComponent> components = softwareComponentRepository.findComponentsByProject(project);
         log.debug("Components size: {}", components.size());
-        Set<InventoryItem> inventoryItems = context.getInventoryItems();
-        List<License> licenses= context.getLicenseCache().values().stream().toList();
-        log.debug("Licenses size: {}", licenses.size());
+        Set<InventoryItem> savedItems = context.getInventoryItems();
 
+        // Since the main component (my-app) from the metadata typically ends up in context.getMainInventoryItems()
+        // and the other ones are located in bom.getComponents(), we check the extracted components here:
+        assertEquals(3, savedItems.size(), "Exactly 3 libraries should be in inventoryItemsToSave");
 
-        Assertions.assertFalse(licenses.isEmpty(), "Licenses for project should exist");
+        InventoryItem springCore = savedItems.stream()
+                .filter(item -> item.getInventoryName().contains("spring-core"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("spring-core not found"));
 
-        Assertions.assertNotNull(inventoryItems, "IventoryItems should not be null");
-        Assertions.assertNotNull(licenses, "license cache should not be null");
+        InventoryItem commonsLang = savedItems.stream()
+                .filter(item -> item.getInventoryName().contains("commons-lang3"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("commons-lang3 not found"));
 
-        Assertions.assertEquals(2, licenses.size());
-        Assertions.assertTrue(licenses.stream().anyMatch(license -> license.getLicenseType().equals("Apache-2.0")));
-        Assertions.assertTrue(licenses.stream().anyMatch(license -> license.getLicenseType().equals("MIT")));
+        InventoryItem mainApp = context.getMainInventoryItems().stream()
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Main component not found in context"));
 
-        Assertions.assertEquals(2, context.getUsageLicenseCache().size());
+        assertTrue(mainApp.getDependencies().size()==0, "Dependencies of mainApp must be 0");
 
-        Assertions.assertEquals(4, components.size());
-        Assertions.assertTrue(components.stream().anyMatch(component -> component.getName().equals("slf4j-api") &&
-                component.getVersion().equals("2.0.7")));
-        Assertions.assertTrue(components.stream().anyMatch(component -> component.getName().equals("my-microservice") &&
-                component.getVersion().equals("1.0.0")));
-        Assertions.assertTrue(components.stream().anyMatch(component -> component.getName().equals("StringUtils.class") &&
-                component.getVersion().equals("unknown")));
-        Assertions.assertTrue(components.stream().anyMatch(component -> component.getName().equals("commons-lang3") &&
-                component.getVersion().equals("3.12.0")));
+        assertNotNull(springCore.getDependencies(), "Dependencies of spring-core are not allowed to be null");
+        assertTrue(springCore.getDependencies().size()==1, "one dependency from spring-core");
+        assertTrue(springCore.getDependencies().stream().anyMatch(i-> i.getInventoryName().equals(commonsLang.getInventoryName())), "spring-core must declare commons-lang3 as a dependency");
 
-        Assertions.assertEquals(4, inventoryItems.size());
-        Assertions.assertTrue(inventoryItems.stream().anyMatch(item -> item.getInventoryName().contains("commons-lang3") &&
-                item.getInventoryName().contains("3.12.0") && item.getInventoryName().contains("Apache-2.0")));
-        Assertions.assertTrue(inventoryItems.stream().anyMatch(item -> item.getInventoryName().contains("my-microservice") &&
-                item.getInventoryName().contains("1.0.0")));
-        Assertions.assertTrue(inventoryItems.stream().anyMatch(item -> item.getInventoryName().contains("StringUtils.class") &&
-                item.getInventoryName().contains("unknown")));
-        Assertions.assertTrue(inventoryItems.stream().anyMatch(item -> item.getInventoryName().contains("slf4j-api") &&
-                item.getInventoryName().contains("2.0.7") && item.getInventoryName().contains("MIT")));
-
+        assertTrue(commonsLang.getDependencies() == null || commonsLang.getDependencies().isEmpty(), "commons-lang3 should have no sub-dependencies");
     }
-
 }

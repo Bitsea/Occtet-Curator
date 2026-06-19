@@ -115,6 +115,8 @@ public class ComponentHandler  extends ProgressReportingService {
             }
         }
 
+        addDependencySection(inventoryItemList, bom, rootItems);
+
         log.debug("fetched all important entities from DB and mapped them");
 
         if(progressCallback!= null)
@@ -351,7 +353,6 @@ public class ComponentHandler  extends ProgressReportingService {
 
                 Vulnerability vuln = link.getVulnerability();
 
-                // Aufruf deines VexDataHandlers (Wichtig: vex darf hier null sein)
                 org.cyclonedx.model.vulnerability.Vulnerability cdVuln =
                         vexDataHandler.mapToCycloneDxVulnerability(vuln, vex, affectedItems);
 
@@ -362,6 +363,37 @@ public class ComponentHandler  extends ProgressReportingService {
         if (!cdVulnerabilities.isEmpty()) {
             bom.setVulnerabilities(cdVulnerabilities);
         }
+    }
+
+
+    private void addDependencySection(List<InventoryItem> inventoryItemList, Bom bom, List<InventoryItem> rootItems){
+        log.debug("Building dependency section for CycloneDX BOM");
+        List<org.cyclonedx.model.Dependency> bomDependencies = new ArrayList<>();
+
+        for (InventoryItem item : inventoryItemList) {
+            // Wenn das Item funktionale Abhängigkeiten in der DB hinterlegt hat
+            if (item.getDependencies() != null && !item.getDependencies().isEmpty()) {
+
+                // Verwende den Item-Namen (oder getInventoryName()) als bom-ref, wie von dir definiert
+                String parentRef = item.getInventoryName();
+                org.cyclonedx.model.Dependency cycloneNode = new org.cyclonedx.model.Dependency(parentRef);
+
+                List<org.cyclonedx.model.Dependency> dependentChildren = new ArrayList<>();
+                for (InventoryItem targetDep : item.getDependencies()) {
+                    dependentChildren.add(new org.cyclonedx.model.Dependency(targetDep.getInventoryName()));
+                }
+
+                cycloneNode.setDependencies(dependentChildren);
+                bomDependencies.add(cycloneNode);
+            }
+        }
+
+
+        if (!bomDependencies.isEmpty()) {
+            bom.setDependencies(bomDependencies);
+            log.debug("Successfully added {} dependency nodes to the BOM", bomDependencies.size());
+        }
+
     }
 }
 

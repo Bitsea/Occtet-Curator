@@ -25,6 +25,8 @@ import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @JmixEntity
@@ -85,6 +87,9 @@ public class InventoryItem implements HasOrganization {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ORGANIZATION_ID")
     private Organization organization;
+
+    @ManyToMany
+    private Set<InventoryItem> dependencies = new HashSet<>();
 
     public InventoryItem(){
         this.createdAt = LocalDateTime.now();
@@ -246,5 +251,13 @@ public class InventoryItem implements HasOrganization {
 
     public void setOrganization(Organization organization) {
         this.organization = organization;
+    }
+
+    public Set<InventoryItem> getDependencies() {
+        return dependencies;
+    }
+
+    public void addDependencies(Set<InventoryItem> dependencies) {
+        this.dependencies.addAll(dependencies);
     }
 }
