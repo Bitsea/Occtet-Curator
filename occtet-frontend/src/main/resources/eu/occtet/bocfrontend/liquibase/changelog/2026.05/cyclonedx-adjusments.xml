@@ -32,4 +32,15 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="software-component-additions" author="leoni">
+        <addColumn tableName="SOFTWARE_COMPONENT">
+            <column name="ORIGIN_TYPE" type="text"/>
+        </addColumn>
+
+        <addColumn tableName="SOFTWARE_COMPONENT">
+            <column name="BOM_REF" type="text"/>
+        </addColumn>
+    </changeSet>
+
+
 </databaseChangeLog>

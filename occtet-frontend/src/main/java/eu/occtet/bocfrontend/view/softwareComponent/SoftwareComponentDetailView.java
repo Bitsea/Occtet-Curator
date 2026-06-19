@@ -21,6 +21,7 @@ package eu.occtet.bocfrontend.view.softwareComponent;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -82,7 +83,8 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
     private JmixButton removeCopyrightButton;
     @ViewComponent
     private JmixButton removeLicenseButton;
-
+    @ViewComponent
+    private ComboBox<String> type;
     @Autowired
     private DialogWindows dialogWindow;
     @Autowired
@@ -112,6 +114,7 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
         SoftwareComponent softwareComponent = getEditedEntity();
         licenseDc.setItems(softwareComponent.getUsageLicenses());
         copyrightDc.setItems(softwareComponent.getCopyrights());
+        type.setItems(List.of("file", "library"));
     }
 
     /**

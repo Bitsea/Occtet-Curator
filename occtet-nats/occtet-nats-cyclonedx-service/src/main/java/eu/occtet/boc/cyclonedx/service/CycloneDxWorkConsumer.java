@@ -47,6 +47,7 @@ public class CycloneDxWorkConsumer extends WorkConsumer {
     @Autowired
     private CycloneDxService cycloneDxService;
 
+
     @Override
     protected void handleMessage(Message msg) {
         try {

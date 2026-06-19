@@ -21,6 +21,7 @@ package eu.occtet.bocfrontend.view.project;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -28,10 +29,8 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
-import eu.occtet.boc.model.SpdxExportWorkData;
-import eu.occtet.boc.model.WorkTask;
-import eu.occtet.boc.model.WorkTaskProgress;
-import eu.occtet.boc.model.WorkTaskStatus;
+import eu.occtet.boc.model.*;
+import eu.occtet.bocfrontend.config.ConfigNatsProperties;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.service.NatsService;
 import eu.occtet.bocfrontend.service.WorkTaskProgressMonitor;
@@ -44,7 +43,6 @@ import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.checkbox.JmixCheckbox;
 import io.jmix.flowui.component.combobox.JmixComboBox;
-import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.download.Downloader;
 import io.jmix.flowui.facet.Timer;
 import io.jmix.flowui.kit.component.button.JmixButton;
@@ -52,6 +50,8 @@ import io.jmix.flowui.model.KeyValueCollectionContainer;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.cyclonedx.model.Bom;
+import org.cyclonedx.parsers.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -86,11 +86,8 @@ public class ExportProjectSbomHelperView extends StandardView {
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
-    @Value("${nats.send-subject-export}")
-    private String sendSubjectExport;
+    private final ConfigNatsProperties natsProperties;
 
-    @Value("${nats.object-store-ttl}")
-    private String natsObjectStoreTtl;
 
     @Autowired protected UiComponents uiComponents;
     @Autowired protected DataManager dataManager;
@@ -102,7 +99,6 @@ public class ExportProjectSbomHelperView extends StandardView {
     @Autowired private Dialogs dialogs;
 
     @ViewComponent private KeyValueCollectionContainer prevExportsDc;
-    @ViewComponent private DataGrid<KeyValueEntity> prevExportsDataGrid;
     @ViewComponent private JmixButton generateSbomButton;
     @ViewComponent private JmixComboBox<String> sbomFormatComboBox;
     @ViewComponent private Timer progressTimer;
@@ -113,7 +109,13 @@ public class ExportProjectSbomHelperView extends StandardView {
 
     private Project project;
     private String projectTaskPrefix;
+    private final static String SPDX_2_3= "SPDX 2.3";
+    private final static String CYCLONEDX_1_6= "CycloneDX 1.6";
     private final Map<String, String> activeTasks = new ConcurrentHashMap<>();
+
+    public ExportProjectSbomHelperView(ConfigNatsProperties natsProperties) {
+        this.natsProperties = natsProperties;
+    }
 
     /**
      * Injects the project context required for initiating the SBOM export.
@@ -127,26 +129,33 @@ public class ExportProjectSbomHelperView extends StandardView {
 
     @Subscribe
     protected void onInit(final InitEvent event) {
-        sbomFormatComboBox.setItems("SPDX 2.3");
+        log.debug("init");
+        sbomFormatComboBox.setItems(SPDX_2_3, CYCLONEDX_1_6);
         generateSbomButton.addClickListener(e ->
                 handleExport(project, sbomFormatComboBox.getValue(), enrichCopyrightCheckbox.getValue())
         );
 
         infoSpan.setText(String.format(messages.getMessage("eu.occtet.bocfrontend.view" +
-                ".project/exportProjectSbomHelperView.deletion.fino"), natsObjectStoreTtl));
+                ".project/exportProjectSbomHelperView.deletion.fino"), natsProperties.objectStoreTtl()));
     }
 
     @Subscribe
     protected void beforeShow(final BeforeShowEvent event) {
-        projectTaskPrefix = "SPDX_Export_" + project.getProjectName() + "_";
+
+
+        String spdxPrefix = "SPDX_Export_" + project.getProjectName() + "_";
+        String cycloneDxPrefix = "CycloneDX_Export_" + project.getProjectName() + "_";
 
         Map<String, WorkTaskProgress> globalProgress = workTaskProgressMonitor.getAllProgressMap();
         for (Map.Entry<String, WorkTaskProgress> entry : globalProgress.entrySet()) {
             String taskId = entry.getKey();
             WorkTaskProgress progress = entry.getValue();
 
-            if (progress.getName() != null && progress.getName().startsWith(projectTaskPrefix)) {
-                if (progress.getStatus() == WorkTaskStatus.IN_PROGRESS) {
+            if (progress.getName() != null) {
+                boolean isSpdxTask = progress.getName().startsWith(spdxPrefix);
+                boolean isCycloneDxTask = progress.getName().startsWith(cycloneDxPrefix);
+
+                if ((isSpdxTask || isCycloneDxTask) && progress.getStatus() == WorkTaskStatus.IN_PROGRESS) {
                     String resumingMsg = String.format(messages.getMessage("eu.occtet.bocfrontend.view" +
                             ".project/exportProjectSbomHelperView.task.resuming"), progress.getPercent());
                     activeTasks.put(taskId, progress.getName() + resumingMsg);
@@ -162,6 +171,19 @@ public class ExportProjectSbomHelperView extends StandardView {
         refreshDownloadsList();
         updateQueueSpan();
     }
+
+    @Subscribe("sbomFormatComboBox")
+    public void onSbomFormatComboBoxComponentValueChange(final AbstractField.ComponentValueChangeEvent<JmixComboBox<?>, ?> event) {
+        if(sbomFormatComboBox.getValue().equals(SPDX_2_3)) {
+            projectTaskPrefix = "SPDX_Export_" + project.getProjectName() + "_";
+        }else if(sbomFormatComboBox.getValue().equals(CYCLONEDX_1_6)){
+            projectTaskPrefix = "CycloneDX_Export_" + project.getProjectName() + "_";
+        }
+
+
+    }
+
+
 
     /**
      * Constructs and dispatches a new export task payload to the configured NATS subject.
@@ -189,19 +211,26 @@ public class ExportProjectSbomHelperView extends StandardView {
         String taskId = UUID.randomUUID().toString();
         long actualTimestamp = Instant.now().getEpochSecond();
 
-        SpdxExportWorkData spdxExportWorkData = new SpdxExportWorkData(
-                project.getDocumentID(),
-                project.getId(),
-                expectedObjectStoreKey,
-                enrichment
-        );
-
-        WorkTask workTask = new WorkTask(taskId, dynamicTaskName, "Export data to microservice to create new SPDX", actualTimestamp, spdxExportWorkData);
+        log.debug("expected objectKeyStore: {}", expectedObjectStoreKey);
 
         try {
-            byte[] messagePayload = MAPPER.writeValueAsBytes(workTask);
-            natsService.sendWorkMessageToStream(sendSubjectExport, messagePayload);
-
+            if(sbomFormat.equals(SPDX_2_3)) {
+                SpdxExportWorkData spdxExportWorkData = new SpdxExportWorkData(
+                        project.getDocumentID(),
+                        project.getId(),
+                        expectedObjectStoreKey,
+                        enrichment
+                );
+                WorkTask workTask = new WorkTask(taskId, dynamicTaskName, "Export data to microservice to create new SPDX", actualTimestamp, spdxExportWorkData);
+                byte[] messagePayload = MAPPER.writeValueAsBytes(workTask);
+                natsService.sendWorkMessageToStream(natsProperties.send_subject_export(), messagePayload);
+            }else if(sbomFormat.equals(CYCLONEDX_1_6)){
+                CycloneDxExportWorkData cycloneDxExportWorkData= generateCycloneDxExportWorkData(expectedObjectStoreKey, enrichment);
+                log.debug("show cyclone workdata: {}", cycloneDxExportWorkData.getObjectStoreKey());
+                WorkTask workTask = new WorkTask(taskId, dynamicTaskName, "Export data to microservice to create new CycloneDX", actualTimestamp, cycloneDxExportWorkData);
+                byte[] messagePayload = MAPPER.writeValueAsBytes(workTask);
+                natsService.sendWorkMessageToStream(natsProperties.send_subject_cyclonedx_export(), messagePayload);
+            }
             activeTasks.put(taskId, dynamicTaskName + messages.getMessage("eu.occtet.bocfrontend.view" +
                     ".project/exportProjectSbomHelperView.task.queued"));
             updateActiveTasksUI();
@@ -218,6 +247,54 @@ public class ExportProjectSbomHelperView extends StandardView {
                             ".project/exportProjectSbomHelperView.notification.taskFailed"))
                     .withThemeVariant(NotificationVariant.LUMO_ERROR).show();
         }
+    }
+
+    private CycloneDxExportWorkData generateCycloneDxExportWorkData(String expectedObjectStoreKey, boolean enrichment){
+
+        // get version and serialnumber via nats
+        String projectKeyPrefix = project.getProjectName() + "_" + project.getId();
+        List<String> previousExportKeys = natsService.getPreviousExportOfSameProject(projectKeyPrefix);
+
+        String serialNumber;
+        int nextVersion;
+
+        if (previousExportKeys == null || previousExportKeys.isEmpty()) {
+            serialNumber = "urn:uuid:" + UUID.randomUUID().toString();
+            nextVersion = 1;
+        } else {
+            nextVersion = previousExportKeys.size() + 1;
+
+            previousExportKeys.sort(Comparator.reverseOrder());
+            String latestKey = previousExportKeys.getFirst();
+
+            serialNumber = fetchSerialNumberFromExistingSbom(latestKey);
+        }
+        return new CycloneDxExportWorkData(serialNumber, project.getId(), nextVersion, expectedObjectStoreKey,enrichment );
+    }
+
+    /**
+     * helpermethod: loading last bom from nats
+     */
+    private String fetchSerialNumberFromExistingSbom(String latestKey) {
+        try {
+            byte[] fileData = natsService.getFileFromBucket(latestKey);
+
+            if (fileData == null) {
+                log.warn("olf sbom not found for key: {}", latestKey);
+                return "urn:uuid:" + UUID.randomUUID().toString();
+            }
+
+            JsonParser parser = new JsonParser();
+            Bom previousBom = parser.parse(fileData);
+
+            if (previousBom.getSerialNumber() != null) {
+                return previousBom.getSerialNumber();
+            }
+        } catch (Exception e) {
+            log.error("could not read SBOM, generate new one", e);
+        }
+
+        return "urn:uuid:" + UUID.randomUUID().toString();
     }
 
     @Subscribe("progressTimer")
@@ -301,7 +378,9 @@ public class ExportProjectSbomHelperView extends StandardView {
     }
 
     private void updateQueueSpan() {
-        long numOfQ = natsService.getNumbOfMsgQueued(sendSubjectExport);
+
+        long numOfQ = natsService.getNumbOfMsgQueued(natsProperties.send_subject_export())
+                +natsService.getNumbOfMsgQueued(natsProperties.send_subject_cyclonedx_export());
         if (numOfQ == 0) {
             currentlyInQueue.setText(messages.getMessage("eu.occtet.bocfrontend.view" +
                     ".project/exportProjectSbomHelperView.queue.empty"));

@@ -20,9 +20,11 @@
 package eu.occtet.bocfrontend.view.audit.fragment;
 
 
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -95,6 +97,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private CollectionContainer<SoftwareComponentLicenseUsage> licenseDc;
     @ViewComponent
     private CollectionContainer<Copyright> copyrightDc;
+    @ViewComponent
+    private ComboBox<String> originType;
     @ViewComponent
     private InstanceContainer<InventoryItem> inventoryItemDc;
     @ViewComponent
@@ -304,6 +308,7 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
         vulnerabilitytabfragment.setHostView(hostView);
         filesTabFragment.setHostView(hostView);
+        originType.setItems("library", "file");
     }
 
     public InventoryItem getInventoryItem() {
@@ -353,6 +358,13 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                     .show();
         }
     }
+
+    @Subscribe("originType")
+    public void onOriginTypeComponentValueChange(final AbstractField.ComponentValueChangeEvent<JmixComboBox<String>, String> event) {
+        softwareComponent.setOriginType(originType.getValue());
+    }
+
+
 
     /**
      * Opens a dialog to select and append existing licenses to the associated software component.

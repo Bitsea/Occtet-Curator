@@ -72,8 +72,6 @@ public class ComponentHandler {
 
     public void processAllPackages(CycloneDxImportContext context, Consumer<Integer> progressCallback, Bom bom, Boolean withTestLibraries) {
 
-
-
             int count = 0;
             Set<InventoryItem> inventoryItemsToSave = new HashSet<>();
             Set<SoftwareComponent> softwareComponentsToSave = new HashSet<>();
@@ -85,6 +83,7 @@ public class ComponentHandler {
             log.debug("handling metadata component");
             if (metadata != null && comp != null) {
                 mainParent = processAllComponents(copyrightsToSave, inventoryItemsToSave, softwareComponentsToSave, comp, context);
+                context.getMainInventoryItems().add(mainParent);
             }
         } catch (Exception e) {
             log.error("Error processing metadata component: {}", e.getMessage(), e);
@@ -112,6 +111,8 @@ public class ComponentHandler {
                 int percent = (int) ((40.0 * count) / bom.getComponents().size());
                 if (percent % 5 == 0 && progressCallback!= null) progressCallback.accept(percent);
             }
+
+        handleDependencies(bom, inventoryItemsToSave, mainParent);
 
         log.debug("saving all entities creating of sbom");
 
@@ -151,9 +152,9 @@ public class ComponentHandler {
         InventoryItem currentItem= processAllComponents(copyrightsToSave, inventoryItemsToSave, softwareComponentsToSave, component, context);
 
         if (depth == 0) {
-            //sorting first level of components as main components, the rest are dependencies
             context.getMainInventoryItems().add(currentItem);
         }
+
         //handle relation between children and parent
         if (currentItem != null && parentItem != null) {
             log.debug("setting parent {}", parentItem.getInventoryName());
@@ -178,6 +179,42 @@ public class ComponentHandler {
 
     private boolean isExcluded(Component component) {
         return component.getScope() != null && "excluded".equals(component.getScope().getScopeName());
+    }
+
+    private void handleDependencies(Bom bom, Set<InventoryItem> inventoryItemsToSave, InventoryItem mainParent){
+        //solve dependency tree
+        if (bom.getDependencies() != null && !bom.getDependencies().isEmpty()) {
+            log.debug("Resolving dependency graph for {} entries", bom.getDependencies().size());
+
+            // look-up map bom-ref -> item
+            Map<String, InventoryItem> bomRefToItemMap = new HashMap<>();
+
+            for (InventoryItem item : inventoryItemsToSave) {
+                if (item.getSoftwareComponent().getBomRef() != null) {
+                    bomRefToItemMap.put(item.getSoftwareComponent().getBomRef(), item);
+                }
+            }
+
+            // go through graph
+            for (org.cyclonedx.model.Dependency dependency : bom.getDependencies()) {
+                String parentRef = dependency.getRef();
+                InventoryItem parentItem = bomRefToItemMap.get(parentRef);
+
+                // if we know parent and it has declared dependency
+                if (parentItem != null && dependency.getDependencies() != null) {
+                    for (org.cyclonedx.model.Dependency childDependency : dependency.getDependencies()) {
+                        String childRef = childDependency.getRef();
+                        InventoryItem childItem = bomRefToItemMap.get(childRef);
+
+                        if (childItem != null) {
+                            // magic: fit parent to children
+                            parentItem.getDependencies().add(childItem);
+                            log.debug("Linked dependency: {} -> {}", parentItem.getInventoryName(), childItem.getInventoryName());
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private InventoryItem processAllComponents(Set<Copyright> copyrightsToSave, Set<InventoryItem> inventoryItemsToSave, Set<SoftwareComponent> softwareComponentsToSave, Component component, CycloneDxImportContext context) {
@@ -224,6 +261,7 @@ public class ComponentHandler {
         //setting this always new for each sbom the value is different, needed later for sorting vulnerabilities etc
         sc.setBomRef(component.getBomRef());
         sc.setPurl(component.getPurl());
+        sc.setOriginType(component.getType().getTypeName());
         //to handle vulnerabilities later + faster
         context.getComponentVulnerabilityCache().put(component.getBomRef(), sc);
         //get License from package

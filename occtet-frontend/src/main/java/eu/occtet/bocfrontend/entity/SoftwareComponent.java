@@ -49,7 +49,7 @@ public class SoftwareComponent implements HasOrganization {
     @InstanceName
     private String name;
 
-    @Transient
+    @Column(name="BOM_REF")
     private String bomRef;
 
     @Column(name = "VERSION", nullable = false)
@@ -85,6 +85,9 @@ public class SoftwareComponent implements HasOrganization {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ORGANIZATION_ID", nullable = false)
     private Organization organization;
+
+    @Column(name = "ORIGIN_TYPE")
+    private String originType;
 
 
     public SoftwareComponent(){
@@ -271,5 +274,13 @@ public class SoftwareComponent implements HasOrganization {
 
     public void setBomRef(String bomRef) {
         this.bomRef = bomRef;
+    }
+
+    public String getOriginType() {
+        return originType;
+    }
+
+    public void setOriginType(String originType) {
+        this.originType = originType;
     }
 }
