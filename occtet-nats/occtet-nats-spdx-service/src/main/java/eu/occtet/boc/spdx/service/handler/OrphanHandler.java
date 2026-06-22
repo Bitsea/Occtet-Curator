@@ -19,10 +19,7 @@
 
 package eu.occtet.boc.spdx.service.handler;
 
-import eu.occtet.boc.dao.CopyrightRepository;
-import eu.occtet.boc.dao.OrtIssueRepository;
-import eu.occtet.boc.dao.OrtViolationRepository;
-import eu.occtet.boc.dao.ProjectRepository;
+import eu.occtet.boc.dao.*;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
@@ -64,6 +61,8 @@ public class OrphanHandler {
     private OrtViolationRepository ortViolationRepository;
     @Autowired
     private ProjectRepository projectRepository;
+    @Autowired
+    private SoftwareComponentRepository softwareComponentRepository;
 
 
 
@@ -107,6 +106,7 @@ public class OrphanHandler {
                     copyrightService.findOrCreateBatch(allCopyrightTexts, context.getProject().getOrganization());
 
             Set<Copyright> copyrightsToSave = new HashSet<>();
+            Set<SoftwareComponent> softwareComponentsToSave = new HashSet<>();
 
             for (SpdxFile file : uniqueOrphans.values()) {
                 String filePath = file.getName().orElse("Unknown File");
@@ -158,12 +158,13 @@ public class OrphanHandler {
                 }
 
                 if(componentUpdated)
-                    softwareComponentService.update(component);
+                    softwareComponentsToSave.add(component);
 
                 context.getInventoryItems().add(inventoryItem);
             }
 
             if (!copyrightsToSave.isEmpty()) copyrightRepository.saveAll(copyrightsToSave);
+            if(!softwareComponentsToSave.isEmpty()) softwareComponentRepository.saveAll(softwareComponentsToSave);
             projectRepository.save(context.getProject());
 
             log.info("Finished processing orphan files.");
