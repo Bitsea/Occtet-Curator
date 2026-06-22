@@ -140,7 +140,7 @@ public class PackageHandler {
         SoftwareComponent component = context.getComponentCache().get(componentKey);
 
         if (component == null) {
-            component = softwareComponentService.getOrCreateSoftwareComponent(packageName, version, context.getProject().getOrganization());
+            component = softwareComponentService.getOrCreateSoftwareComponent(packageName, version, context.getProject().getOrganization(), "library");
             context.getComponentCache().put(componentKey, component);
         }
 
@@ -217,7 +217,7 @@ public class PackageHandler {
             }
         }
 
-        inventoryItemService.update(inventoryItem);
+        //inventoryItemService.update(inventoryItem);
         log.info("created inventoryItem: {}", inventoryName);
         log.info("created softwareComponent: {}", component.getName());
 

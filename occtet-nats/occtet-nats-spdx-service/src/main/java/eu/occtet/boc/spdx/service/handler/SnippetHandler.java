@@ -159,9 +159,10 @@ public class SnippetHandler {
 
             AnyLicenseInfo concluded = snippet.getLicenseConcluded();
             if (concluded != null && !concluded.isNoAssertion(concluded) && !concluded.isNoAssertion(concluded)) {
-                licenseHandler.createUsageLicenses(concluded, context,
+                Set<SoftwareComponentLicenseUsage> usages= licenseHandler.createUsageLicenses(concluded, context,
                         licenseInfosExtractedSpdxDoc,component, context.getProject().getOrganization());
                         componentUpdated = true;
+                        component.getUsageLicenses().addAll(usages);
             }
 
             if (componentUpdated) {

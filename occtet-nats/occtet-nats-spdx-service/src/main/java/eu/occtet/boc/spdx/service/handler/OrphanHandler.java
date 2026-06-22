@@ -111,7 +111,7 @@ public class OrphanHandler {
             for (SpdxFile file : uniqueOrphans.values()) {
                 String filePath = file.getName().orElse("Unknown File");
 
-                SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(filePath, "Standalone", context.getProject().getOrganization());
+                SoftwareComponent component = softwareComponentService.getOrCreateSoftwareComponent(filePath, "Standalone", context.getProject().getOrganization(), "file");
                 InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(filePath, component, context.getProject(), context.getProject().getOrganization());
                 boolean componentUpdated = false;
 
