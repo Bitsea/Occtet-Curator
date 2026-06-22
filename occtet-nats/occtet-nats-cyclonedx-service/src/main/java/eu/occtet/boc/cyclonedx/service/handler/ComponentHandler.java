@@ -254,14 +254,13 @@ public class ComponentHandler {
         SoftwareComponent sc = context.getComponentCache().get(component.getBomRef());
 
         if (sc == null) {
-            sc = softwareComponentService.getOrCreateSoftwareComponent(packageName, version, context.getProject().getOrganization());
+            sc = softwareComponentService.getOrCreateSoftwareComponent(packageName, version, context.getProject().getOrganization(), component.getType().getTypeName());
             context.getComponentCache().put(component.getBomRef(), sc);
 
         }
         //setting this always new for each sbom the value is different, needed later for sorting vulnerabilities etc
         sc.setBomRef(component.getBomRef());
         sc.setPurl(component.getPurl());
-        sc.setOriginType(component.getType().getTypeName());
         //to handle vulnerabilities later + faster
         context.getComponentVulnerabilityCache().put(component.getBomRef(), sc);
         //get License from package

@@ -32,7 +32,7 @@ public class SoftwareComponentFactory {
     @Autowired
     private SoftwareComponentRepository softwareComponentRepository;
 
-    public SoftwareComponent create(String softwareName, String version, Organization organization) {
-        return softwareComponentRepository.save(new SoftwareComponent(softwareName, version, organization));
+    public SoftwareComponent create(String softwareName, String version, Organization organization, String originType) {
+        return softwareComponentRepository.save(new SoftwareComponent(softwareName, version, organization, originType));
     }
 }
