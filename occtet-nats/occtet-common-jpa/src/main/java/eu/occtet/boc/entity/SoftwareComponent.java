@@ -82,12 +82,13 @@ public class SoftwareComponent implements HasOrganization {
     }
 
     public SoftwareComponent(String softwareName, String version,
-                             List<SoftwareComponentLicenseUsage> license, Organization organization) {
+                             List<SoftwareComponentLicenseUsage> license, Organization organization, String originType) {
         this.name = softwareName;
         this.version = version;
         this.usageLicenses = license;
         this.curated = false;
         this.organization= organization;
+        this.originType= originType;
     }
 
     public SoftwareComponent(String softwareName, String version,
@@ -100,12 +101,13 @@ public class SoftwareComponent implements HasOrganization {
         this.organization= organization;
     }
 
-    public SoftwareComponent(String softwareName, String version, Organization organization){
+    public SoftwareComponent(String softwareName, String version, Organization organization, String originType){
         this.name = softwareName;
         this.version = version;
         this.curated = false;
         this.usageLicenses = new ArrayList<>();
         this.organization= organization;
+        this.originType= originType;
     }
     public SoftwareComponent(
             String name,

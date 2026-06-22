@@ -44,11 +44,11 @@ public class SoftwareComponentService {
 
 
 
-    public SoftwareComponent getOrCreateSoftwareComponent(String softwareName, String version, Organization organization){
+    public SoftwareComponent getOrCreateSoftwareComponent(String softwareName, String version, Organization organization, String originType){
         List<SoftwareComponent> softwareComponent = softwareComponentRepository.findByNameAndVersion(
                 softwareName, version);
         if(softwareComponent.isEmpty()) {
-            return softwareComponentFactory.create(softwareName, version, organization);
+            return softwareComponentFactory.create(softwareName, version, organization, originType);
         } else {
             return softwareComponent.getFirst();
         }
