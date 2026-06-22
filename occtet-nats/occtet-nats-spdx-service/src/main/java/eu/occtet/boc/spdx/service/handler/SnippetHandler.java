@@ -19,6 +19,7 @@
 
 package eu.occtet.boc.spdx.service.handler;
 
+import eu.occtet.boc.dao.SoftwareComponentRepository;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.spdx.context.SpdxImportContext;
 import eu.occtet.boc.spdx.converter.SpdxConverter;
@@ -48,7 +49,7 @@ public class SnippetHandler {
     @Autowired
     SpdxConverter spdxConverter;
     @Autowired
-    private SoftwareComponentService softwareComponentService;
+    private SoftwareComponentRepository softwareComponentRepository;
     @Autowired
     private CopyrightService copyrightService;
 
@@ -71,10 +72,11 @@ public class SnippetHandler {
             Stream<SpdxSnippet> snippetStream = rawStream
                     .filter(obj -> obj instanceof SpdxSnippet)
                     .map(obj -> (SpdxSnippet) obj);
+            Set<SoftwareComponent> softwareComponentsToSave= new HashSet<>();
 
             snippetStream.forEach(snippet -> {
                 try {
-                    processSingleSnippet(snippet, context);
+                    processSingleSnippet(snippet, context, softwareComponentsToSave);
                 } catch (Exception e) {
                     log.error("Failed to process snippet: {}. Skipping...", snippet.getId(), e);
 
@@ -84,6 +86,7 @@ public class SnippetHandler {
                     }
                 }
             });
+            if(!softwareComponentsToSave.isEmpty()) softwareComponentRepository.saveAll(softwareComponentsToSave);
 
             log.info("Snippet processing completed.");
         }catch (InvalidSPDXAnalysisException e) {
@@ -95,12 +98,13 @@ public class SnippetHandler {
      * Creates an isolated transaction for a single snippet.
      * If this fails, only this specific snippet is rolled back.
      */
-    private void processSingleSnippet(SpdxSnippet snippet, SpdxImportContext context) {
+    private void processSingleSnippet(SpdxSnippet snippet, SpdxImportContext context, Set<SoftwareComponent> toSave) {
         spdxConverter.convertSnippets(snippet, context.getSpdxDocumentRoot());
 
         enrichComponentFromSnippet(
                 snippet,
-                context
+                context,
+                toSave
         );
     }
 
@@ -109,11 +113,10 @@ public class SnippetHandler {
      * copyright and license info found in the snippet.
      */
     private void enrichComponentFromSnippet(SpdxSnippet snippet,
-                                            SpdxImportContext context
-    ) {
+                                            SpdxImportContext context, Set<SoftwareComponent> toSave) {
 
         Map<String, InventoryItem> fileMap= context.getFileToInventoryItemMap();
-        Map<String, License> licenseCache= context.getLicenseCache();
+
         Collection<ExtractedLicenseInfo> licenseInfosExtractedSpdxDoc= context.getExtractedLicenseInfos();
         Organization organization = context.getProject().getOrganization();
 
@@ -166,7 +169,7 @@ public class SnippetHandler {
             }
 
             if (componentUpdated) {
-                softwareComponentService.update(component);
+                toSave.add(component);
             }
         } catch (InvalidSPDXAnalysisException e) {
             log.error("Failed to process snippet: {}. Skipping...", snippet.getId(), e);
