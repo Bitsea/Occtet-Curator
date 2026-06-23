@@ -101,7 +101,7 @@ public class MergeServiceTest {
 
         documentRoot.getPackages().add(documentPackage);
 
-        SoftwareComponent curatedComponent = new SoftwareComponent("updated-name", "2.0", new ArrayList<>(), org);
+        SoftwareComponent curatedComponent = new SoftwareComponent("updated-name", "2.0", org, "library");
         curatedComponent.setCurated(true);
         curatedComponent.setDetailsUrl("https://new-location.com");
 
@@ -155,7 +155,7 @@ public class MergeServiceTest {
         documentPackage.setName("original-name");
         documentRoot.getPackages().add(documentPackage);
 
-        SoftwareComponent uncuratedComponent = new SoftwareComponent("updated-name", "2.0", new ArrayList<>(), new Organization());
+        SoftwareComponent uncuratedComponent = new SoftwareComponent("updated-name", "2.0",  new Organization(), "library");
         uncuratedComponent.setCurated(false); // Flag is explicitly false
 
         InventoryItem item = new InventoryItem("InventoryNode", project, uncuratedComponent, org);

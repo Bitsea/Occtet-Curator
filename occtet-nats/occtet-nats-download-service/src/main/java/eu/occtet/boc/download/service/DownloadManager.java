@@ -114,6 +114,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
             if (softwareComponent.getDetailsUrl() != null) {
                 try {
                     URL durl = new URI(softwareComponent.getDetailsUrl()).toURL();
+                    log.debug("url: {}", durl);
 
                     List<DownloadStrategy> candidates = downloadStrategyFactory.findForUrl(durl, softwareComponent.getVersion());
 

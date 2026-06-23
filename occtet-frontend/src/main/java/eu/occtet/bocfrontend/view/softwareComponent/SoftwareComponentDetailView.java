@@ -66,6 +66,7 @@ import static com.vaadin.flow.component.notification.Notification.Position.TOP_C
 @EditedEntityContainer("softwareComponentDc")
 public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComponent> {
 
+
     private static final Logger log = LogManager.getLogger(SoftwareComponentDetailView.class);
 
     @ViewComponent
@@ -109,12 +110,19 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
     private boolean deleteCopyrightMode = false;
     private boolean deleteLicenseMode = false;
 
+
+    @Subscribe
+    public void onInit(final InitEvent event) {
+        type.setItems(List.of("file", "library", "application"));
+    }
+
+
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
         SoftwareComponent softwareComponent = getEditedEntity();
         licenseDc.setItems(softwareComponent.getUsageLicenses());
         copyrightDc.setItems(softwareComponent.getCopyrights());
-        type.setItems(List.of("file", "library"));
+
     }
 
     /**

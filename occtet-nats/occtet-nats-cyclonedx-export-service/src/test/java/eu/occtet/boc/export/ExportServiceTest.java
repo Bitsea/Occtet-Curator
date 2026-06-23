@@ -76,11 +76,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class) // Aktiviert Mockito (kein Spring nötig!)
 public class ExportServiceTest {
 
-    // Die Klasse, die tatsächlich getestet wird, bekommt @InjectMocks
+
     @InjectMocks
     private ComponentHandler componentHandler;
 
-    // Alle Abhängigkeiten, die der ComponentHandler braucht, werden als @Mock deklariert
     @Mock
     private InventoryItemRepository inventoryItemRepository;
 
@@ -144,14 +143,15 @@ public class ExportServiceTest {
         softComp2.addVulnerabilityLink(link2);
 
         // configure mocks
-        when(inventoryItemRepository.findAllByProjectAndCurated(project, true)).thenReturn(List.of(item, item2));
-        when(fileRepository.findAllByProject(project)).thenReturn(Collections.emptyList());
+        when(inventoryItemRepository.findAllByProject(project)).thenReturn(List.of(item, item2));        when(fileRepository.findAllByProject(project)).thenReturn(Collections.emptyList());
         when(softwareComponentLicenseUsageRepository.findUsageByProject(project)).thenReturn(Collections.emptyList());
         when(vexDataRepository.findBySoftwareComponentIds(anyList())).thenReturn(Collections.emptyList());
 
 
         // Act
         Bom incomingBom = new Bom();
+        Metadata metadata= new Metadata();
+        incomingBom.setMetadata(metadata);
         Bom resultBom = componentHandler.handleComponents(project,null, incomingBom, true);
 
         // Assert

@@ -46,6 +46,7 @@ import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.kit.action.ActionVariant;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.model.DataLoader;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -67,6 +68,8 @@ public class ProjectListView extends StandardListView<Project> {
 
     @ViewComponent
     private DataGrid<Project> projectsDataGrid;
+    @ViewComponent
+    private DataLoader projectsDl;
 
     @Autowired
     private UiComponents uiComponents;
@@ -153,6 +156,7 @@ public class ProjectListView extends StandardListView<Project> {
                         new DialogAction(DialogAction.Type.NO)
                 )
                 .open();
+
     }
 
     private void executeAsyncDeletion(Project project) {

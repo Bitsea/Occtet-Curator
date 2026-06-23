@@ -111,6 +111,7 @@ public class ExportProjectSbomHelperView extends StandardView {
     private String projectTaskPrefix;
     private final static String SPDX_2_3= "SPDX 2.3";
     private final static String CYCLONEDX_1_6= "CycloneDX 1.6";
+    private String sbomFormat="";
     private final Map<String, String> activeTasks = new ConcurrentHashMap<>();
 
     public ExportProjectSbomHelperView(ConfigNatsProperties natsProperties) {
@@ -132,7 +133,7 @@ public class ExportProjectSbomHelperView extends StandardView {
         log.debug("init");
         sbomFormatComboBox.setItems(SPDX_2_3, CYCLONEDX_1_6);
         generateSbomButton.addClickListener(e ->
-                handleExport(project, sbomFormatComboBox.getValue(), enrichCopyrightCheckbox.getValue())
+                handleExport(project, enrichCopyrightCheckbox.getValue())
         );
 
         infoSpan.setText(String.format(messages.getMessage("eu.occtet.bocfrontend.view" +
@@ -176,8 +177,10 @@ public class ExportProjectSbomHelperView extends StandardView {
     public void onSbomFormatComboBoxComponentValueChange(final AbstractField.ComponentValueChangeEvent<JmixComboBox<?>, ?> event) {
         if(sbomFormatComboBox.getValue().equals(SPDX_2_3)) {
             projectTaskPrefix = "SPDX_Export_" + project.getProjectName() + "_";
+            sbomFormat= SPDX_2_3;
         }else if(sbomFormatComboBox.getValue().equals(CYCLONEDX_1_6)){
             projectTaskPrefix = "CycloneDX_Export_" + project.getProjectName() + "_";
+            sbomFormat=CYCLONEDX_1_6;
         }
 
 
@@ -189,9 +192,8 @@ public class ExportProjectSbomHelperView extends StandardView {
      * Constructs and dispatches a new export task payload to the configured NATS subject.
      *
      * @param project    the project target for the SBOM generation
-     * @param sbomFormat the desired output format selected by the user
      */
-    private void handleExport(Project project, String sbomFormat, boolean enrichment) {
+    private void handleExport(Project project, boolean enrichment) {
         if (sbomFormat == null) {
             log.warn("Attempted to start export without an active format selection.");
             notifications.create(messages.getMessage("eu.occtet.bocfrontend.view" +
@@ -212,6 +214,7 @@ public class ExportProjectSbomHelperView extends StandardView {
         long actualTimestamp = Instant.now().getEpochSecond();
 
         log.debug("expected objectKeyStore: {}", expectedObjectStoreKey);
+        log.debug("SBOM format: {}", sbomFormat);
 
         try {
             if(sbomFormat.equals(SPDX_2_3)) {
@@ -223,6 +226,7 @@ public class ExportProjectSbomHelperView extends StandardView {
                 );
                 WorkTask workTask = new WorkTask(taskId, dynamicTaskName, "Export data to microservice to create new SPDX", actualTimestamp, spdxExportWorkData);
                 byte[] messagePayload = MAPPER.writeValueAsBytes(workTask);
+                log.debug("show spdx workdata: {}", spdxExportWorkData.getObjectStoreKey());
                 natsService.sendWorkMessageToStream(natsProperties.send_subject_export(), messagePayload);
             }else if(sbomFormat.equals(CYCLONEDX_1_6)){
                 CycloneDxExportWorkData cycloneDxExportWorkData= generateCycloneDxExportWorkData(expectedObjectStoreKey, enrichment);
