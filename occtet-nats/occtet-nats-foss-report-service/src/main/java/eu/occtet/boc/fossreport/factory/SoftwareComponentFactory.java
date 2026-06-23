@@ -50,9 +50,9 @@ public class SoftwareComponentFactory {
                     organization));
     }
 
-    public SoftwareComponent create(String softwareName, String version, Organization organization) {
+    public SoftwareComponent create(String softwareName, String version, Organization organization, String type) {
         log.debug("Creating Software Component with name: {} and version: {}", softwareName, version);
 
-        return softwareComponentRepository.save(new SoftwareComponent(softwareName,version,organization ));
+        return softwareComponentRepository.save(new SoftwareComponent(softwareName,version,organization, type ));
     }
 }

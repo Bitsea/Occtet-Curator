@@ -158,7 +158,7 @@ public class FossReportService extends ProgressReportingService {
 
             // Ensure that the parent inventory has a software Component
             SoftwareComponent parentSoftwareComponent =
-                    softwareComponentService.getOrCreateSoftwareComponent(parentComponentName, parentComponentVersion, project.getOrganization());
+                    softwareComponentService.getOrCreateSoftwareComponent(parentComponentName, parentComponentVersion, project.getOrganization(), "library");
 
             InventoryItem parentInventory = inventoryItemService.getOrCreateInventoryItem(parentInventoryName, parentSoftwareComponent, project);
 

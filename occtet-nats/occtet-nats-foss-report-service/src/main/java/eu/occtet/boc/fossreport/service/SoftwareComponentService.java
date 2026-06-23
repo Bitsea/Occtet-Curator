@@ -61,11 +61,11 @@ public class SoftwareComponentService {
         return softwareComponent;
     }
 
-    public SoftwareComponent getOrCreateSoftwareComponent(String softwareName, String version, Organization organization){
+    public SoftwareComponent getOrCreateSoftwareComponent(String softwareName, String version, Organization organization, String type){
         List<SoftwareComponent> softwareComponent = softwareComponentRepository.findByNameAndVersion(
                 softwareName, version);
         if(softwareComponent.isEmpty()) {
-            return softwareComponentFactory.create(softwareName, version, organization);
+            return softwareComponentFactory.create(softwareName, version, organization, type);
         } else {
             return softwareComponent.getFirst();
         }
