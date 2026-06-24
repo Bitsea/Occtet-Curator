@@ -27,7 +27,8 @@ public enum AppConfigType implements EnumClass<String>{
     STRING("string"),
     INTEGER("integer"),
     BOOLEAN("boolean"),
-    JSON_LIST("json_list");
+    JSON_LIST("json_list"),
+    ENCRYPTED_STRING("encrypted_string");
 
     private final String id;
 

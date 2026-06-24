@@ -31,7 +31,13 @@ public enum AppConfigKey implements EnumClass<String>{
             AppConfigType.STRING,
             "The base path to which project files will be downloaded."
     ),
-    ;
+    GENERAL_VULNERABILITY_DB_TOKEN(
+            AppConfigGroup.GENERAL + ".vulnerability_db_token",
+            "",
+            AppConfigType.ENCRYPTED_STRING,
+            "The API token used for authenticating with the VulnerableCode API."
+    );
+
 
 
     private final String id;
