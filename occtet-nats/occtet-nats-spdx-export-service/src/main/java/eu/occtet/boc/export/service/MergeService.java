@@ -83,11 +83,11 @@ public class MergeService {
                 }
 
                 // valid spdxId
-                String spdxId = inventoryItem.getSpdxId();
-                if (spdxId == null || spdxId.isEmpty()) {
-                    spdxId = "SPDXRef-Package-" + inventoryItem.getInventoryName();
-                    inventoryItem.setSpdxId(spdxId);
-                }
+
+                String spdxId = sanitizeSpdxId(inventoryItem.getInventoryName());
+                log.debug("spdxId {}", spdxId);
+                inventoryItem.setSpdxId(spdxId);
+
 
                 //is this package existing?
                 SpdxPackageEntity spdxPackageEntity = existingPackagesMap.get(spdxId);
@@ -151,9 +151,24 @@ public class MergeService {
 
         handleExtractedLicenses(spdxDocumentRoot, customLicensesToExtract, enrich);
         spdxDocumentRoot.setRelationships(newRelationshipsForDocument);
+        log.debug("set packages size {}", newListForDocument.size());
         spdxDocumentRoot.setPackages( newListForDocument);
         spdxDocumentRootRepository.save(spdxDocumentRoot);
         log.info("Successfully merged curated changes for project: {}", project.getProjectName());
+    }
+
+    private String sanitizeSpdxId(String input) {
+        if (input == null || input.isBlank()) {
+            return "SPDXRef-Package-" + UUID.randomUUID().toString();
+        }
+
+        String sanitized = input.replaceAll("[^a-zA-Z0-9.-]", "-");
+
+        sanitized = sanitized.replaceAll("-+", "-");
+        sanitized= sanitized.replaceAll("\\(", "-").replaceAll("\\)","");
+        sanitized = sanitized.replaceAll("^-|-$", "");
+
+        return "SPDXRef-Package-" + sanitized;
     }
 
     /**
@@ -195,8 +210,9 @@ public class MergeService {
         }
 
         if (softwareComponent.getUsageLicenses() != null && !softwareComponent.getUsageLicenses().isEmpty()) {
-            String concludedLicenses = formatLicenseExpression(softwareComponent.getUsageLicenses());
+            String concludedLicenses = formatLicenseExpression(softwareComponent.getUsageLicenses(), inventoryItem.getInventoryName());
             spdxPackageEntity.setLicenseConcluded(concludedLicenses);
+            spdxPackageEntity.setLicenseDeclared(concludedLicenses);
         }
 
         rebuildExternalReferences(spdxPackageEntity, softwareComponent);
@@ -234,11 +250,12 @@ public class MergeService {
      * helpermethod to dicern if license has to be exported with licenserref
      * because being custom/modified
      */
-    private boolean shouldTreatAsLicenseRef(SoftwareComponentLicenseUsage license, String identifier) {
-        if (Boolean.FALSE.equals(license.getTemplate().getIsSpdx()) || Boolean.TRUE.equals(license.getIsModified())) {
+    private boolean shouldTreatAsLicenseRef(SoftwareComponentLicenseUsage license) {
+        if (!license.getTemplate().getIsSpdx() || (!license.getUsageText().isEmpty() && !license.getUsageText().equals(license.getTemplate().getLicenseText()))) {
+            log.debug("license not spdx is spdx: {} license text: {}",!license.getTemplate().getIsSpdx(), !license.getUsageText().equals(license.getTemplate().getLicenseText() ));
             return true;
         }
-        return identifier.contains(" ") || !identifier.matches("^[A-Za-z0-9.-]+$");
+        return false;
     }
 
     /**
@@ -255,7 +272,7 @@ public class MergeService {
                 continue;
             }
             String identifier= getPreferredLicenseIdentifier(license);
-            if (shouldTreatAsLicenseRef(license,identifier)) {
+            if (shouldTreatAsLicenseRef(license)) {
                 ExtractedLicensingInfoEntity extractedInfo = new ExtractedLicensingInfoEntity();
                 extractedInfo.setSpdxDocument(spdxDocumentRoot);
                 extractedInfo.setLicenseId(generateLicenseRefId(license, identifier));
@@ -300,10 +317,11 @@ public class MergeService {
      * @param licenses The list of applied licenses.
      * @return The formatted license expression string (e.g., "MIT AND LicenseRef-12" or "NOASSERTION").
      */
-    private String formatLicenseExpression(Collection<SoftwareComponentLicenseUsage> licenses) {
+    private String formatLicenseExpression(Collection<SoftwareComponentLicenseUsage> licenses, String itemName) {
         if (licenses == null || licenses.isEmpty()) {
             return "NOASSERTION";
         }
+        String operator= extractOperatorFromItemName(itemName);
 
         List<String> validLicenses = licenses.stream()
                 .map(license -> {
@@ -312,7 +330,7 @@ public class MergeService {
                         return null;
                     }
 
-                    if (shouldTreatAsLicenseRef(license, identifier)) {
+                    if (shouldTreatAsLicenseRef(license)) {
                         return generateLicenseRefId(license, identifier);
                     }
 
@@ -324,12 +342,22 @@ public class MergeService {
         if (validLicenses.isEmpty()) {
             return "NOASSERTION";
         }
-        return String.join(" AND ", validLicenses);
+        log.debug("show license  {}", String.join(" "+operator+" ", validLicenses));
+        return String.join(" "+operator+" ", validLicenses);
+    }
+
+    private String extractOperatorFromItemName(String itemName) {
+        if (itemName == null) return "AND"; // default fallback
+        String upperName = itemName.toUpperCase();
+        if (upperName.contains(" OR ")) {
+            return "OR";
+        }
+        return "AND"; // standard
     }
 
 
     private String getPreferredLicenseIdentifier(SoftwareComponentLicenseUsage license) {
-        if (shouldTreatAsLicenseRef(license, " ")) {
+        if (shouldTreatAsLicenseRef(license)) {
             String effectiveName = license.getEffectiveName();
             if (effectiveName != null && !effectiveName.trim().isBlank() && !effectiveName.trim().equalsIgnoreCase("UNKNOWN")) {
                 return effectiveName.trim();
@@ -367,8 +395,13 @@ public class MergeService {
             }
             return "LicenseRef-" + sanitizedName;
         }
-            String type = license.getTemplate().getLicenseName() != null ? license.getTemplate().getLicenseName() : "custom-license";
-            return "LicenseRef-"+type;
+        String type ="";
+        if(license.getIsModified())
+            type = license.getTemplate().getLicenseName() != null ? license.getTemplate().getLicenseName() : "custom-license";
+        else
+            type = license.getTemplate().getLicenseType() != null ? license.getTemplate().getLicenseType() : "custom-license";
+
+        return "LicenseRef-"+type;
 
     }
 

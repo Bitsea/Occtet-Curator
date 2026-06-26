@@ -115,6 +115,7 @@ public class ExportService  extends ProgressReportingService  {
             spdxDocumentRoot.setSpdxId("SPDXRef-DOCUMENT");
             //this is the current spdx version we export
             spdxDocumentRoot.setSpdxVersion("2.3");
+            spdxDocumentRootRepository.save(spdxDocumentRoot);
 
             project.setDocumentID(spdxDocumentRoot.getDocumentUri());
             project = projectRepository.save(project);
@@ -123,9 +124,11 @@ public class ExportService  extends ProgressReportingService  {
             log.info("Merging changes to document entities of project: {}", project.getProjectName());
             mergeService.mergeChangesToDocumentEntities(spdxDocumentRoot, project, spdxExportWorkData.getEnrichment());
             notifyProgress(20, "merged changes to document entities");
+            log.debug("packages size from document {}", spdxDocumentRoot.getPackages().size());
 
             Boolean enriched = spdxExportWorkData.getEnrichment();
             log.debug("LicenseText enrichment with Copyright: {}",enriched);
+            log.debug("2 packages size from document {}", spdxDocumentRoot.getPackages().size());
 
             String documentUri = spdxDocumentRoot.getDocumentUri();
             SpdxDocument spdxDocument = new SpdxDocument(modelStore, documentUri, null, true);
@@ -144,6 +147,7 @@ public class ExportService  extends ProgressReportingService  {
             log.info("create ExternalDocumentRefs");
             addExternalRefs(spdxDocumentRoot, spdxDocument, modelStore, documentUri);
             notifyProgress(40,"created externalDocumentRefs");
+            log.debug("3 packages size from document {}", spdxDocumentRoot.getPackages().size());
 
             log.info("Creating file elements...");
             Set<String> processedFileIds = new HashSet<>();
@@ -180,7 +184,9 @@ public class ExportService  extends ProgressReportingService  {
             // Reconstruct the DESCRIBES relationships required by SPDX 2.3
             log.info("create DESCRIBES relationships");
             addingDescribesRelationships(spdxDocument, packages);
+            spdxDocument.setDocumentDescribes(new ArrayList<>(packages));
             notifyProgress(95, "added DESCRIBES relationships");
+
 
             try (ByteArrayOutputStream out = new ByteArrayOutputStream();
                  java.io.BufferedOutputStream bufferedOut = new java.io.BufferedOutputStream(out)
@@ -207,9 +213,10 @@ public class ExportService  extends ProgressReportingService  {
             return;
         }
 
-        log.info("create DESCRIBES relationships");
+        log.info("create DESCRIBES relationships size: {} ", convertedPackages.size());
         IModelStore modelStore = spdxDocument.getModelStore();
         String documentUri = spdxDocument.getDocumentUri();
+
 
         for (SpdxPackage targetElement : convertedPackages) {
             try {
@@ -353,8 +360,9 @@ public class ExportService  extends ProgressReportingService  {
                                           IModelStore modelStore,
                                           String documentUri,
                                           Map<String, SpdxElement> elementMap) {
-        log.trace("create pkg: {}", pkgEntity.getSpdxId());
+        log.debug("create pkg: {}", pkgEntity.getSpdxId());
         try {
+            log.debug("controlling license concluded {} and declared {}", pkgEntity.getLicenseConcluded(), pkgEntity.getLicenseDeclared());
             SpdxPackage.SpdxPackageBuilder builder = spdxDocument.createPackage(
                     pkgEntity.getSpdxId(),
                     pkgEntity.getName(),
@@ -372,12 +380,13 @@ public class ExportService  extends ProgressReportingService  {
 
             builder.setDownloadLocation(pkgEntity.getDownloadLocation());
 
-            if (!pkgEntity.getVersionInfo().isEmpty()) builder.setVersionInfo(pkgEntity.getVersionInfo());
-            if (!pkgEntity.getHomepage().isEmpty()) builder.setHomepage(pkgEntity.getHomepage());
-            if (!pkgEntity.getSummary().isEmpty()) builder.setSummary(pkgEntity.getSummary());
-            if (!pkgEntity.getDescription().isEmpty()) builder.setDescription(pkgEntity.getDescription());
-            if (!pkgEntity.getOriginator().isEmpty()) builder.setOriginator(pkgEntity.getOriginator());
-            if (!pkgEntity.getSupplier().isEmpty()) builder.setSupplier(pkgEntity.getSupplier());
+
+            if (pkgEntity.getVersionInfo() != null && !pkgEntity.getVersionInfo().isEmpty()) builder.setVersionInfo(pkgEntity.getVersionInfo());
+            if (pkgEntity.getHomepage() != null && !pkgEntity.getHomepage().isEmpty()) builder.setHomepage(pkgEntity.getHomepage());
+            if (pkgEntity.getSummary() != null && !pkgEntity.getSummary().isEmpty()) builder.setSummary(pkgEntity.getSummary());
+            if (pkgEntity.getDescription() != null && !pkgEntity.getDescription().isEmpty()) builder.setDescription(pkgEntity.getDescription());
+            if (pkgEntity.getOriginator() != null && !pkgEntity.getOriginator().isEmpty()) builder.setOriginator(pkgEntity.getOriginator());
+            if (pkgEntity.getSupplier() != null && !pkgEntity.getSupplier().isEmpty()) builder.setSupplier(pkgEntity.getSupplier());
 
             if (hasValidVerificationCode) {
                 SpdxPackageVerificationCode pkgVerificationCode = new SpdxPackageVerificationCode(modelStore, documentUri, SpdxConstantsCompatV2.CLASS_SPDX_VERIFICATIONCODE + pkgEntity.getPackageVerificationCode().getPackageVerificationCodeValue(), null, true);
