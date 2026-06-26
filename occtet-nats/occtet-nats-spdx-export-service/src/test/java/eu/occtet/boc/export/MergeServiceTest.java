@@ -112,7 +112,7 @@ public class MergeServiceTest {
         when(inventoryItemRepository.findBySpdxIdAndProject("SPDXRef-Package-1", project))
                 .thenReturn(List.of(item));
 
-        mergeService.mergeChangesToDocumentEntities(documentRoot, project);
+        mergeService.mergeChangesToDocumentEntities(documentRoot, project, true);
 
         assertEquals("updated-name", documentPackage.getName());
         assertEquals("2.0", documentPackage.getVersionInfo());
@@ -165,7 +165,7 @@ public class MergeServiceTest {
         when(inventoryItemRepository.findBySpdxIdAndProject("SPDXRef-Package-1", project))
                 .thenReturn(List.of(item));
 
-        mergeService.mergeChangesToDocumentEntities(documentRoot, project);
+        mergeService.mergeChangesToDocumentEntities(documentRoot, project, true);
 
         assertEquals("original-name", documentPackage.getName());
         verify(spdxFileSyncService, never()).synchronizeFiles(any(), any(), any());
@@ -184,7 +184,7 @@ public class MergeServiceTest {
         when(inventoryItemRepository.findBySpdxIdAndProject("SPDXRef-Orphan-Package", project))
                 .thenReturn(new ArrayList<>());
 
-        mergeService.mergeChangesToDocumentEntities(documentRoot, project);
+        mergeService.mergeChangesToDocumentEntities(documentRoot, project, true);
 
         verify(spdxDocumentRootRepository, times(1)).save(documentRoot);
     }

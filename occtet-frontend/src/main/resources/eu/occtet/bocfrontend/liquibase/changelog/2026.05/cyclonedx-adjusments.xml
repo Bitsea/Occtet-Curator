@@ -42,5 +42,11 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="drop-not-null-package-verification-code" author="boc">
+        <dropNotNullConstraint tableName="SPDX_PACKAGE_ENTITY"
+                               columnName="PACKAGE_VERIFICATION_CODE_ID"
+                               columnDataType="BIGINT"/>
+    </changeSet>
+
 
 </databaseChangeLog>

@@ -93,13 +93,13 @@ public class ExportServiceTest {
         when(projectRepository.findById(100L)).thenReturn(Optional.of(project));
         when(spdxDocumentRootRepository.findByDocumentUri("https://test.uri/doc")).thenReturn(Optional.of(documentRoot));
 
-        doNothing().when(mergeService).mergeChangesToDocumentEntities(any(), any());
+        //doNothing().when(mergeService).mergeChangesToDocumentEntities(any(), any(), any());
 
         boolean result = exportService.process(workData);
 
         assertTrue(result, "Export process should return true on success");
 
-        verify(mergeService, times(1)).mergeChangesToDocumentEntities(documentRoot, project);
+        verify(mergeService, times(1)).mergeChangesToDocumentEntities(documentRoot, project, true);
 
         // capture the byte[] created in the service
         ArgumentCaptor<byte[]> byteCaptor = ArgumentCaptor.forClass(byte[].class);
@@ -141,7 +141,7 @@ public class ExportServiceTest {
 
         assertFalse(result, "Export process should return false if the project is missing.");
         verify(spdxDocumentRootRepository, never()).findByDocumentUri(anyString());
-        verify(mergeService, never()).mergeChangesToDocumentEntities(any(), any());
+        verify(mergeService, never()).mergeChangesToDocumentEntities(any(), any(), any());
     }
 
     @Test
@@ -158,7 +158,7 @@ public class ExportServiceTest {
         boolean result = exportService.process(workData);
 
         assertFalse(result, "Export process should return false if the document root is missing.");
-        verify(mergeService, never()).mergeChangesToDocumentEntities(any(), any());
+        verify(mergeService, never()).mergeChangesToDocumentEntities(any(), any(), any());
     }
 
     @Test
@@ -223,7 +223,7 @@ public class ExportServiceTest {
 
         when(projectRepository.findById(100L)).thenReturn(Optional.of(project));
         when(spdxDocumentRootRepository.findByDocumentUri("https://test.uri/doc")).thenReturn(Optional.of(documentRoot));
-        doNothing().when(mergeService).mergeChangesToDocumentEntities(any(), any());
+        doNothing().when(mergeService).mergeChangesToDocumentEntities(any(), any(), any());
 
         boolean result = exportService.process(workData);
         assertTrue(result, "Export process should return true on success");

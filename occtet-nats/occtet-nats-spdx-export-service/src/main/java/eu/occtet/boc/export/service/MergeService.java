@@ -21,10 +21,13 @@ package eu.occtet.boc.export.service;
 
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.SpdxDocumentRootRepository;
+import eu.occtet.boc.dao.SpdxPackageRepository;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.spdxV2.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +49,8 @@ public class MergeService {
     private SpdxDocumentRootRepository spdxDocumentRootRepository;
     @Autowired
     private SpdxFileSyncService spdxFileSyncService;
+    @Autowired
+    private SpdxPackageRepository spdxPackageRepository;
 
     /**
      * Traverses the components within an SPDX document and applies the corresponding audited data.
@@ -53,30 +58,100 @@ public class MergeService {
      * Note: compatible with spdx version 2 entities
      */
     @Transactional
-    public void mergeChangesToDocumentEntities(SpdxDocumentRoot spdxDocumentRoot, Project project) {
+    public void mergeChangesToDocumentEntities(SpdxDocumentRoot spdxDocumentRoot, Project project, boolean enrich) {
         log.info("Starting to merge curated changes for project: {}", project.getProjectName());
         Set<SoftwareComponentLicenseUsage> customLicensesToExtract = new HashSet<>();
+        List<SpdxPackageEntity> newListForDocument= new ArrayList<>();
 
-        spdxDocumentRoot.setName(project.getProjectName());
+        List<RelationshipEntity> newRelationshipsForDocument = new ArrayList<>();
 
-        for (SpdxPackageEntity spdxPackageEntity : spdxDocumentRoot.getPackages()) {
-            try {
-                InventoryItem inventoryItem = inventoryItemRepository.findBySpdxIdAndProject(spdxPackageEntity.getSpdxId(), project).getFirst();
+        //"Source of Truth"
+        List<InventoryItem> allInventoryItems = inventoryItemRepository.findAllByProjectAndCurated(project, true);
+
+        //load into map -> faster
+        Map<String, SpdxPackageEntity> existingPackagesMap = spdxDocumentRoot.getPackages().stream()
+                .filter(p -> p.getSpdxId() != null)
+                .collect(Collectors.toMap(SpdxPackageEntity::getSpdxId, p -> p, (p1, p2) -> p1));
+        try {
+            // make new spdxpackage entity or update it
+            for (InventoryItem inventoryItem : allInventoryItems) {
+
                 SoftwareComponent softwareComponent = inventoryItem.getSoftwareComponent();
+                if (softwareComponent == null) {
+                    log.debug("Skip InventoryItem {} because it has no linked SoftwareComponent.", inventoryItem.getId());
+                    continue;
+                }
 
+                // valid spdxId
+                String spdxId = inventoryItem.getSpdxId();
+                if (spdxId == null || spdxId.isEmpty()) {
+                    spdxId = "SPDXRef-Package-" + inventoryItem.getInventoryName();
+                    inventoryItem.setSpdxId(spdxId);
+                }
+
+                //is this package existing?
+                SpdxPackageEntity spdxPackageEntity = existingPackagesMap.get(spdxId);
+                if (spdxPackageEntity == null) {
+                    log.debug("Creating new SpdxPackageEntity for newly discovered/imported Item: {}", spdxId);
+                    spdxPackageEntity = new SpdxPackageEntity();
+                    spdxPackageEntity.setSpdxId(spdxId);
+                    spdxPackageEntity.setDownloadLocation(softwareComponent.getDetailsUrl());
+                    // Initiale Metadaten setzen
+                    spdxPackageEntity.setName(softwareComponent.getName());
+                    spdxPackageEntity.setVersionInfo(softwareComponent.getVersion());
+                    spdxPackageEntity.setSpdxDocument(spdxDocumentRoot);
+                    spdxPackageRepository.save(spdxPackageEntity);
+                    spdxDocumentRoot.getPackages().add(spdxPackageEntity);
+                }
+                // enrich with data
                 handleSpdxPackageEntity(spdxPackageEntity, inventoryItem, softwareComponent);
 
-                if (softwareComponent != null && softwareComponent.getUsageLicenses() != null) {
+                if (softwareComponent.getUsageLicenses() != null) {
                     customLicensesToExtract.addAll(softwareComponent.getUsageLicenses());
                 }
-            } catch (NoSuchElementException e) {
-                log.debug("No inventoryItem was found for this package: {}, skip merging changes to document entities.", spdxPackageEntity.getSpdxId());
-            } catch (Exception e) {
-                log.warn("Unexpected error while resolving auditing entities for package: {}", spdxPackageEntity.getSpdxId(), e);
-            }
-        }
-        handleExtractedLicenses(spdxDocumentRoot, customLicensesToExtract);
 
+                newListForDocument.add(spdxPackageEntity);
+            }
+
+            log.info("Merging relationships for active inventory items...");
+            for (InventoryItem item : allInventoryItems) {
+                if (item.getSoftwareComponent() == null || item.getSpdxId() == null) continue;
+
+                String sourceSpdxId = item.getSpdxId();
+                log.debug("searching for relations");
+                // (Parent DEPENDS_ON Child)
+                if (item.getParent() != null && item.getParent().getSpdxId() != null) {
+                    RelationshipEntity parentRel = new RelationshipEntity();
+                    parentRel.setSpdxElementId(item.getParent().getSpdxId());
+                    parentRel.setRelatedSpdxElement(sourceSpdxId);
+                    parentRel.setRelationshipType("DEPENDS_ON");
+                    parentRel.setComment("Generated hierarchy dependency");
+                    newRelationshipsForDocument.add(parentRel);
+                }
+
+                //(Source DEPENDS_ON Target)
+                if (item.getDependencies() != null) {
+                    for (InventoryItem depItem : item.getDependencies()) {
+                        if (depItem.getSpdxId() != null) {
+                            RelationshipEntity depRel = new RelationshipEntity();
+                                depRel.setSpdxElementId(sourceSpdxId);
+                                depRel.setRelatedSpdxElement(depItem.getSpdxId());
+                                depRel.setRelationshipType("DEPENDS_ON");
+                                depRel.setComment("Generated component dependency");
+                                newRelationshipsForDocument.add(depRel);
+                            }
+                        }
+                    }
+                }
+
+
+            } catch (Exception e) {
+                log.warn("Unexpected error while merging inventory items", e);
+            }
+
+        handleExtractedLicenses(spdxDocumentRoot, customLicensesToExtract, enrich);
+        spdxDocumentRoot.setRelationships(newRelationshipsForDocument);
+        spdxDocumentRoot.setPackages( newListForDocument);
         spdxDocumentRootRepository.save(spdxDocumentRoot);
         log.info("Successfully merged curated changes for project: {}", project.getProjectName());
     }
@@ -104,8 +179,7 @@ public class MergeService {
         spdxPackageEntity.setVersionInfo(softwareComponent.getVersion());
 
         if (softwareComponent.getDetailsUrl() != null && !softwareComponent.getDetailsUrl().isBlank()) {
-            // fix once decided
-//            spdxPackageEntity.setHomepage(softwareComponent.getDetailsUrl());
+            spdxPackageEntity.setHomepage(softwareComponent.getDetailsUrl());
             spdxPackageEntity.setDownloadLocation(softwareComponent.getDetailsUrl());
         }
 
@@ -142,7 +216,6 @@ public class MergeService {
 
         if (softwareComponent.getPurl() != null && !softwareComponent.getPurl().isBlank()) {
             ExternalRefEntity purlRef = new ExternalRefEntity();
-            // FIX: Use underscore for the Java enum representation
             purlRef.setReferenceCategory("PACKAGE_MANAGER");
             purlRef.setReferenceType("purl");
             purlRef.setReferenceLocator(softwareComponent.getPurl());
@@ -158,25 +231,40 @@ public class MergeService {
     }
 
     /**
+     * helpermethod to dicern if license has to be exported with licenserref
+     * because being custom/modified
+     */
+    private boolean shouldTreatAsLicenseRef(SoftwareComponentLicenseUsage license, String identifier) {
+        if (Boolean.FALSE.equals(license.getTemplate().getIsSpdx()) || Boolean.TRUE.equals(license.getIsModified())) {
+            return true;
+        }
+        return identifier.contains(" ") || !identifier.matches("^[A-Za-z0-9.-]+$");
+    }
+
+    /**
      * Converts non-standard or modified licenses into extracted licensing info for the SPDX document.
      *
      * @param spdxDocumentRoot The root document entity.
      * @param collectedLicenses The aggregate set of all licenses utilized across components and files.
      */
-    private void handleExtractedLicenses(SpdxDocumentRoot spdxDocumentRoot, Set<SoftwareComponentLicenseUsage> collectedLicenses) {
+    private void handleExtractedLicenses(SpdxDocumentRoot spdxDocumentRoot, Set<SoftwareComponentLicenseUsage> collectedLicenses, boolean enrich) {
         List<ExtractedLicensingInfoEntity> newExtractedLicenses = new ArrayList<>();
 
         for (SoftwareComponentLicenseUsage license : collectedLicenses) {
             if (license.getTemplate().getLicenseName() != null && license.getTemplate().getLicenseName().trim().equalsIgnoreCase("UNKNOWN")) {
                 continue;
             }
-
-            if (Boolean.FALSE.equals(license.getTemplate().getIsSpdx()) ) {
+            String identifier= getPreferredLicenseIdentifier(license);
+            if (shouldTreatAsLicenseRef(license,identifier)) {
                 ExtractedLicensingInfoEntity extractedInfo = new ExtractedLicensingInfoEntity();
                 extractedInfo.setSpdxDocument(spdxDocumentRoot);
-                extractedInfo.setLicenseId(generateLicenseRefId(license));
-                extractedInfo.setName(license.getEffectiveName() != null ? license.getEffectiveName() : "Custom License");
-                extractedInfo.setExtractedText(license.getEffectiveText());
+                extractedInfo.setLicenseId(generateLicenseRefId(license, identifier));
+                if(enrich){
+                    String copyrights= aggregateValidCopyrights(license.getSoftwareComponent().getCopyrights());
+                    extractedInfo.setExtractedText(copyrights + "\n"+ license.getEffectiveText());
+                }else extractedInfo.setExtractedText(license.getEffectiveText());
+
+                extractedInfo.setName(license.getEffectiveName() != null ? license.getEffectiveName() : identifier);
                 newExtractedLicenses.add(extractedInfo);
             }
         }
@@ -187,7 +275,10 @@ public class MergeService {
                 spdxDocumentRoot.getHasExtractedLicensingInfos().add(newEntity);
             }
         }
+
     }
+
+
 
     /**
      * Formats a collection of valid copyrights into a unified text block.
@@ -215,16 +306,19 @@ public class MergeService {
         }
 
         List<String> validLicenses = licenses.stream()
-                .filter(license -> {
-                    String name = license.getEffectiveName();
-                    return name != null && !name.trim().equalsIgnoreCase("UNKNOWN") && !name.trim().isBlank();
-                })
                 .map(license -> {
-                    if (Boolean.FALSE.equals(license.getTemplate().getIsSpdx()) || Boolean.TRUE.equals(license.getIsModified())) {
-                        return generateLicenseRefId(license);
+                    String identifier = getPreferredLicenseIdentifier(license);
+                    if (identifier.isEmpty()) {
+                        return null;
                     }
-                    return license.getEffectiveName();
+
+                    if (shouldTreatAsLicenseRef(license, identifier)) {
+                        return generateLicenseRefId(license, identifier);
+                    }
+
+                    return identifier;
                 })
+                .filter(Objects::nonNull)
                 .toList();
 
         if (validLicenses.isEmpty()) {
@@ -233,18 +327,50 @@ public class MergeService {
         return String.join(" AND ", validLicenses);
     }
 
-    private String generateLicenseRefId(SoftwareComponentLicenseUsage license) {
-        if (license.getTemplate().getLicenseType() != null && !license.getEffectiveName().isBlank()) {
-            String sanitizedName = license.getEffectiveName().replaceAll("[^A-Za-z0-9.-]", "-");
+
+    private String getPreferredLicenseIdentifier(SoftwareComponentLicenseUsage license) {
+        if (shouldTreatAsLicenseRef(license, " ")) {
+            String effectiveName = license.getEffectiveName();
+            if (effectiveName != null && !effectiveName.trim().isBlank() && !effectiveName.trim().equalsIgnoreCase("UNKNOWN")) {
+                return effectiveName.trim();
+            }
+        }
+
+        // normal case
+        if (license.getTemplate() != null) {
+            String type = license.getTemplate().getLicenseType();
+            if (type != null && !type.trim().isBlank()
+                    && !type.trim().equalsIgnoreCase("UNKNOWN")
+                    && !type.trim().equalsIgnoreCase("non-standard")
+                    && !type.trim().equalsIgnoreCase("custom")) {
+                return type.trim();
+            }
+        }
+
+        // last fallback effective name
+        String effectiveName = license.getEffectiveName();
+        if (effectiveName != null && !effectiveName.trim().isBlank() && !effectiveName.trim().equalsIgnoreCase("UNKNOWN")) {
+            return effectiveName.trim();
+        }
+        return "Unknown";
+    }
+
+
+    private String generateLicenseRefId(SoftwareComponentLicenseUsage license, String identifier) {
+        if (!identifier.isEmpty()) {
+            String sanitizedName = identifier.replaceAll("[^A-Za-z0-9.-]", "-");
             sanitizedName = sanitizedName.replaceAll("-+", "-");
+            sanitizedName = sanitizedName.replaceAll("^-|-$", "");
 
             if (sanitizedName.startsWith("LicenseRef-")) {
                 return sanitizedName;
             }
-
             return "LicenseRef-" + sanitizedName;
         }
-        return "LicenseRef-custom-" + license.getTemplate().getLicenseType();
+            String type = license.getTemplate().getLicenseName() != null ? license.getTemplate().getLicenseName() : "custom-license";
+            return "LicenseRef-"+type;
+
     }
+
 
 }

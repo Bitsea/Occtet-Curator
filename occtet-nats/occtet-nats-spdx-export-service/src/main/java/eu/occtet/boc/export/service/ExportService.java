@@ -63,6 +63,8 @@ public class ExportService  extends ProgressReportingService  {
     AnswerService answerService;
     @Autowired
     private MergeService mergeService;
+    @Autowired
+    private jakarta.persistence.EntityManager entityManager;
 
     @Value("${sbom.spdx.creators.tool.name}")
     private String toolName;
@@ -94,21 +96,33 @@ public class ExportService  extends ProgressReportingService  {
                 log.error("Project with id {} not found", spdxExportWorkData.getProjectId());
                 return false;
             }
-            notifyProgress(10,"Project fetched");
-
-            log.info("fetching document with id: {}", spdxExportWorkData.getSpdxDocumentId());
-            Optional<SpdxDocumentRoot> spdxDocumentRootOpt = spdxDocumentRootRepository.findByDocumentUri(spdxExportWorkData.getSpdxDocumentId());
-            if (spdxDocumentRootOpt.isEmpty()){
-                log.error("Document with id {} not found", spdxExportWorkData.getSpdxDocumentId());
-                return false;
-            }
+            notifyProgress(10, "Project fetched");
 
             Project project = projectOpt.get();
-            SpdxDocumentRoot spdxDocumentRoot = spdxDocumentRootOpt.get();
+
+            log.info("fetching document with id: {}", spdxExportWorkData.getSpdxDocumentId());
+
+            log.error("Document with id {} not found", spdxExportWorkData.getSpdxDocumentId());
+            SpdxDocumentRoot spdxDocumentRoot = new SpdxDocumentRoot();
+            spdxDocumentRoot.setPackages(new ArrayList<>());
+            spdxDocumentRoot.setName(project.getProjectName());
+            //generated documentId for new document
+            spdxDocumentRoot.setDocumentUri("https://occtet.eu/spdx/" + project.getOrganization().getOrganizationName() + ":"
+                    + project.getProjectName() + "_" + project.getVersion() + "_" + java.util.UUID.randomUUID());
+            //this is the standard license for an spdx document!
+            spdxDocumentRoot.setDataLicense("CC0-1.0");
+            //standard document id
+            spdxDocumentRoot.setSpdxId("SPDXRef-DOCUMENT");
+            //this is the current spdx version we export
+            spdxDocumentRoot.setSpdxVersion("2.3");
+
+            project.setDocumentID(spdxDocumentRoot.getDocumentUri());
+            project = projectRepository.save(project);
+
 
             log.info("Merging changes to document entities of project: {}", project.getProjectName());
-            mergeService.mergeChangesToDocumentEntities(spdxDocumentRoot, project);
-            notifyProgress(20,"merged changes to document entities");
+            mergeService.mergeChangesToDocumentEntities(spdxDocumentRoot, project, spdxExportWorkData.getEnrichment());
+            notifyProgress(20, "merged changes to document entities");
 
             Boolean enriched = spdxExportWorkData.getEnrichment();
             log.debug("LicenseText enrichment with Copyright: {}",enriched);
@@ -121,74 +135,14 @@ public class ExportService  extends ProgressReportingService  {
             elementMap.put("SPDXRef-DOCUMENT", spdxDocument);
 
             log.info("create creationInfo");
-            String createAttributeTemplate = "%s: %s %s";
-            CreationInfoEntity creationInfoEntity = spdxDocumentRoot.getCreationInfo();
-            spdxDocument.setCreationInfo(
-                    spdxDocument.createCreationInfo(
-                            Arrays.asList(
-                                    String.format(createAttributeTemplate,
-                                            "Person",
-                                            project.getProjectContact(),
-                                            project.getContactEmail() != null ?
-                                                    "(" + project.getContactEmail() + ")" : "()"
-                                   ),
-                                    String.format(createAttributeTemplate,
-                                            "Organization",
-                                            project.getOrganization().getOrganizationName(),
-                                            project.getOrganization().getOrganizationEmail() != null ?
-                                                    "(" + project.getOrganization().getOrganizationEmail() + ")" : "()"
-                                    ),
-                                    String.format(createAttributeTemplate, "Tool", toolName, "")
-                            ),
-                            Instant.now().truncatedTo(ChronoUnit.SECONDS).toString())
-            );
-            Objects.requireNonNull(spdxDocument.getCreationInfo()).setLicenseListVersion(creationInfoEntity.getLicenseListVersion());
-            spdxDocument.setSpecVersion(Version.CURRENT_SPDX_VERSION);
-            spdxDocument.setName(spdxDocumentRoot.getName());
-            spdxDocument.setDataLicense(LicenseInfoFactory.parseSPDXLicenseStringCompatV2(
-                    spdxDocumentRoot.getDataLicense(), modelStore, documentUri, null));
+            addCreationInfo(spdxDocumentRoot, spdxDocument, project, modelStore, documentUri);
             notifyProgress(30,"created creationInfo");
 
-
             log.info("create extractedLicense info");
-            spdxDocumentRoot.getHasExtractedLicensingInfos().forEach(extractedLicense -> {
-                try {
-                    extractedLicense.setLicenseId(extractedLicense.getLicenseId().replaceAll("LicenseRef-", ""));
-                    ExtractedLicenseInfo extractedInfo = new ExtractedLicenseInfo(modelStore, documentUri, extractedLicense.getLicenseId(), null, true);
-
-                    String finalLicenseText = extractedLicense.getExtractedText();
-
-                    if (Boolean.TRUE.equals(enriched)) {
-                        log.debug("Enriching license {} with aggregated copyrights", extractedLicense.getLicenseId());
-
-                        String aggregatedCopyrights = aggregateCopyrightsForLicense(
-                                extractedLicense.getLicenseId(),
-                                spdxDocumentRoot
-                        );
-
-                        if (aggregatedCopyrights != null && !aggregatedCopyrights.isBlank()) {
-                            finalLicenseText = aggregatedCopyrights + "  \n\n  " + finalLicenseText;
-                        }
-                    }
-
-                    extractedInfo.setExtractedText(finalLicenseText);
-                    spdxDocument.addExtractedLicenseInfos(extractedInfo);
-                } catch (InvalidSPDXAnalysisException e) {
-                    log.error("Error adding extractedLicenseInfo", e);
-                }
-            });
+            addExtractedLicenseInfo(spdxDocumentRoot, spdxDocument, modelStore, documentUri);
 
             log.info("create ExternalDocumentRefs");
-            Collection<ExternalDocumentRef> externalRefs = new ArrayList<>();
-            spdxDocumentRoot.getExternalDocumentRefs().forEach(externalRef -> {
-                try {
-                    log.info("creating external ref for: {}", externalRef.getExternalDocumentId());
-                    externalRefs.add(new ExternalDocumentRef(modelStore, documentUri, externalRef.getExternalDocumentId(), null, true));
-                } catch (InvalidSPDXAnalysisException e) {
-                    log.error("Error adding external refs", e);
-                }
-            });
-            spdxDocument.setExternalDocumentRefs(externalRefs);
+            addExternalRefs(spdxDocumentRoot, spdxDocument, modelStore, documentUri);
             notifyProgress(40,"created externalDocumentRefs");
 
             log.info("Creating file elements...");
@@ -206,6 +160,7 @@ public class ExportService  extends ProgressReportingService  {
             log.debug("start converting packages");
             List<SpdxPackage> packages = new ArrayList<>();
             Set<String> processedPackageIds = new HashSet<>();
+
             for (SpdxPackageEntity pkgEntity : spdxDocumentRoot.getPackages()) {
                 if (!processedPackageIds.add(pkgEntity.getSpdxId())) continue;
 
@@ -219,59 +174,12 @@ public class ExportService  extends ProgressReportingService  {
 
             notifyProgress(70, packages.size() + "packages created");
 
-            spdxDocumentRoot.getRelationships().forEach(relationship -> {
-                try {
-                    log.trace("relationship: {} to {}", relationship.getSpdxElementId(),
-                            relationship.getRelatedSpdxElement());
-                    String uniqueRelationshipId = SpdxConstantsCompatV2.SPDX_ELEMENT_REF_PRENUM + "Relationship-" + UUID.randomUUID();
-                    Relationship spdxRelationship = new Relationship(modelStore, documentUri, uniqueRelationshipId, null, true);
-
-                    spdxRelationship.setRelationshipType(RelationshipType.valueOf(relationship.getRelationshipType()));
-                    spdxRelationship.setComment(relationship.getComment());
-
-                    SpdxElement relatedElement = elementMap.get(relationship.getRelatedSpdxElement());
-                    if (relatedElement != null) {
-                        spdxRelationship.setRelatedSpdxElement(relatedElement);
-                    } else {
-                        log.error("Could not find RELATED element with ID: {}", relationship.getRelatedSpdxElement());
-                        return;
-                    }
-
-                    SpdxElement sourceElement = elementMap.get(relationship.getSpdxElementId());
-                    if (sourceElement != null) {
-                        sourceElement.addRelationship(spdxRelationship);
-                    } else {
-                        log.error("Could not find SOURCE element for relationship: {}", relationship.getSpdxElementId());
-                    }
-
-                } catch (InvalidSPDXAnalysisException e) {
-                    log.error("Error adding relationship", e);
-                }
-            });
+            addRelations(spdxDocumentRoot, modelStore, documentUri, elementMap);
             notifyProgress(90,"added relationships");
 
             // Reconstruct the DESCRIBES relationships required by SPDX 2.3
             log.info("create DESCRIBES relationships");
-            if (spdxDocumentRoot.getSpdxDocumentDescribes() != null) {
-                for (String describesId : spdxDocumentRoot.getSpdxDocumentDescribes()) {
-                    try {
-                        SpdxElement targetElement = elementMap.get(describesId);
-                        if (targetElement != null) {
-                            String relId = SpdxConstantsCompatV2.SPDX_ELEMENT_REF_PRENUM + "Relationship-" + UUID.randomUUID();
-                            Relationship describesRel = new Relationship(modelStore, documentUri, relId, null, true);
-                            describesRel.setRelationshipType(RelationshipType.DESCRIBES);
-                            describesRel.setRelatedSpdxElement(targetElement);
-
-                            // Attach the relationship to the root document
-                            spdxDocument.addRelationship(describesRel);
-                        } else {
-                            log.warn("Could not find element {} to link as described by the document.", describesId);
-                        }
-                    } catch (InvalidSPDXAnalysisException e) {
-                        log.error("Error adding DESCRIBES relationship for: {}", describesId, e);
-                    }
-                }
-            }
+            addingDescribesRelationships(spdxDocument, packages);
             notifyProgress(95, "added DESCRIBES relationships");
 
             try (ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -291,6 +199,140 @@ public class ExportService  extends ProgressReportingService  {
             log.error("Unexpected error during SPDX creation", e);
             return false;
         }
+    }
+
+    private void addingDescribesRelationships(SpdxDocument spdxDocument,List<SpdxPackage> convertedPackages){
+        if (convertedPackages == null || convertedPackages.isEmpty()) {
+            log.warn("No packages available to be described by the document.");
+            return;
+        }
+
+        log.info("create DESCRIBES relationships");
+        IModelStore modelStore = spdxDocument.getModelStore();
+        String documentUri = spdxDocument.getDocumentUri();
+
+        for (SpdxPackage targetElement : convertedPackages) {
+            try {
+
+                String relId = SpdxConstantsCompatV2.SPDX_ELEMENT_REF_PRENUM + "Relationship-" + UUID.randomUUID();
+                Relationship describesRel = new Relationship(modelStore, documentUri, relId, null, true);
+                describesRel.setRelationshipType(RelationshipType.DESCRIBES);
+                describesRel.setRelatedSpdxElement(targetElement);
+
+                // Attach the relationship to the root document
+                spdxDocument.addRelationship(describesRel);
+
+                log.debug("Successfully added DESCRIBES relationship for active package: {}", targetElement.getId());
+            } catch (InvalidSPDXAnalysisException e) {
+                log.error("Error adding DESCRIBES relationship for: {}", targetElement.getId(), e);
+            }
+        }
+    }
+
+    private void addRelations(SpdxDocumentRoot spdxDocumentRoot, InMemSpdxStore modelStore, String documentUri, Map<String, SpdxElement> elementMap){
+        log.info("Adding relationships from database entities...");
+        spdxDocumentRoot.getRelationships().forEach(relationship -> {
+            try {
+                log.trace("relationship: {} to {}", relationship.getSpdxElementId(),
+                        relationship.getRelatedSpdxElement());
+                String uniqueRelationshipId = SpdxConstantsCompatV2.SPDX_ELEMENT_REF_PRENUM + "Relationship-" + UUID.randomUUID();
+                Relationship spdxRelationship = new Relationship(modelStore, documentUri, uniqueRelationshipId, null, true);
+
+                spdxRelationship.setRelationshipType(RelationshipType.valueOf(relationship.getRelationshipType()));
+                spdxRelationship.setComment(relationship.getComment());
+
+                SpdxElement relatedElement = elementMap.get(relationship.getRelatedSpdxElement());
+                if (relatedElement != null) {
+                    spdxRelationship.setRelatedSpdxElement(relatedElement);
+                } else {
+                    log.error("Could not find RELATED element with ID: {}", relationship.getRelatedSpdxElement());
+                    return;
+                }
+
+                SpdxElement sourceElement = elementMap.get(relationship.getSpdxElementId());
+                if (sourceElement != null) {
+                    sourceElement.addRelationship(spdxRelationship);
+                } else {
+                    log.error("Could not find SOURCE element for relationship: {}", relationship.getSpdxElementId());
+                }
+
+            } catch (InvalidSPDXAnalysisException e) {
+                log.error("Error adding relationship", e);
+            }
+        });
+    }
+
+    private void addCreationInfo(SpdxDocumentRoot spdxDocumentRoot, SpdxDocument spdxDocument, Project project,InMemSpdxStore modelStore, String documentUri ) throws InvalidSPDXAnalysisException {
+        String createAttributeTemplate = "%s: %s %s";
+        CreationInfoEntity creationInfoEntity;
+        if(spdxDocumentRoot.getCreationInfo()!= null)
+            creationInfoEntity = spdxDocumentRoot.getCreationInfo();
+        else creationInfoEntity= new CreationInfoEntity();
+        spdxDocument.setCreationInfo(
+                spdxDocument.createCreationInfo(
+                        Arrays.asList(
+                                String.format(createAttributeTemplate,
+                                        "Person",
+                                        project.getProjectContact(),
+                                        project.getContactEmail() != null ?
+                                                "(" + project.getContactEmail() + ")" : "()"
+                                ),
+                                String.format(createAttributeTemplate,
+                                        "Organization",
+                                        project.getOrganization().getOrganizationName(),
+                                        project.getOrganization().getOrganizationEmail() != null ?
+                                                "(" + project.getOrganization().getOrganizationEmail() + ")" : "()"
+                                ),
+                                String.format(createAttributeTemplate, "Tool", toolName, "")
+                        ),
+                        Instant.now().truncatedTo(ChronoUnit.SECONDS).toString())
+        );
+        Objects.requireNonNull(spdxDocument.getCreationInfo()).setLicenseListVersion(creationInfoEntity.getLicenseListVersion());
+        spdxDocument.setSpecVersion(Version.CURRENT_SPDX_VERSION);
+        spdxDocument.setName(spdxDocumentRoot.getName());
+        spdxDocument.setDataLicense(LicenseInfoFactory.parseSPDXLicenseStringCompatV2(
+                spdxDocumentRoot.getDataLicense(), modelStore, documentUri, null));
+    }
+
+    private void addExtractedLicenseInfo(SpdxDocumentRoot spdxDocumentRoot, SpdxDocument spdxDocument, InMemSpdxStore modelStore, String documentUri){
+        spdxDocumentRoot.getHasExtractedLicensingInfos().forEach(extractedLicense -> {
+            try {
+                String rawLicenseId = extractedLicense.getLicenseId();
+                if (rawLicenseId == null || rawLicenseId.isBlank()) {
+                    return;
+                }
+
+
+                String spdxValidId = rawLicenseId;
+                if (!spdxValidId.startsWith("LicenseRef-")) {
+                    spdxValidId = "LicenseRef-" + spdxValidId;
+                }
+
+
+                ExtractedLicenseInfo extractedInfo = new ExtractedLicenseInfo(modelStore, documentUri, spdxValidId, null, true);
+
+                String finalLicenseText = extractedLicense.getExtractedText();
+                extractedInfo.setName(extractedLicense.getName() != null ? extractedLicense.getName() : "Custom License");
+
+                extractedInfo.setExtractedText(finalLicenseText != null ? finalLicenseText : "No license text available.");
+                spdxDocument.addExtractedLicenseInfos(extractedInfo);
+            } catch (InvalidSPDXAnalysisException e) {
+                log.error("Error adding extractedLicenseInfo", e);
+            }
+        });
+    }
+
+    private void addExternalRefs(SpdxDocumentRoot spdxDocumentRoot, SpdxDocument spdxDocument, InMemSpdxStore modelStore, String documentUri ){
+        Collection<ExternalDocumentRef> externalRefs = new ArrayList<>();
+        spdxDocumentRoot.getExternalDocumentRefs().forEach(externalRef -> {
+            try {
+                log.info("creating external ref for: {}", externalRef.getExternalDocumentId());
+                externalRefs.add(new ExternalDocumentRef(modelStore, documentUri, externalRef.getExternalDocumentId(), null, true));
+            } catch (InvalidSPDXAnalysisException e) {
+                log.error("Error adding external refs", e);
+            }
+        });
+        spdxDocument.setExternalDocumentRefs(externalRefs);
     }
 
     /**
@@ -428,70 +470,6 @@ public class ExportService  extends ProgressReportingService  {
         } catch (Exception e) {
             log.error("Error creating SpdxFile: {}", fileEntity.getFileName(), e);
             return null;
-        }
-    }
-
-    /**
-     * Scans all packages and files in the document root to find copyrights associated
-     * with the given license ID.
-     */
-    private String aggregateCopyrightsForLicense(String licenseId, SpdxDocumentRoot spdxDocumentRoot) {
-        Set<String> uniqueCopyrights = new LinkedHashSet<>();
-
-        if (spdxDocumentRoot.getPackages() != null) {
-            for (SpdxPackageEntity pkg : spdxDocumentRoot.getPackages()) {
-                if (matchesLicense(licenseId, pkg.getLicenseConcluded()) ||
-                        matchesLicense(licenseId, pkg.getLicenseDeclared())) {
-                    addValidCopyright(uniqueCopyrights, pkg.getCopyrightText());
-                }
-            }
-        }
-
-        if (spdxDocumentRoot.getFiles() != null) {
-            for (SpdxFileEntity file : spdxDocumentRoot.getFiles()) {
-                boolean fileMatches = matchesLicense(licenseId, file.getLicenseConcluded());
-
-                if (!fileMatches && file.getLicenseInfoInFiles() != null) {
-                    for (String lic : file.getLicenseInfoInFiles()) {
-                        if (matchesLicense(licenseId, lic)) {
-                            fileMatches = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (fileMatches) {
-                    addValidCopyright(uniqueCopyrights, file.getCopyrightText());
-                }
-            }
-        }
-
-        if (uniqueCopyrights.isEmpty()) {
-            return null;
-        }
-
-        return String.join("\n", uniqueCopyrights);
-    }
-
-    /**
-     * Safely checks if an SPDX license expression contains our target license ID.
-     */
-    private boolean matchesLicense(String targetLicenseId, String licenseExpression) {
-        if (licenseExpression == null || licenseExpression.isEmpty() ||
-                "NONE".equals(licenseExpression) || "NOASSERTION".equals(licenseExpression)) {
-            return false;
-        }
-        return licenseExpression.contains(targetLicenseId);
-    }
-
-    /**
-     * Adds the copyright text to the set, ignoring blanks and SPDX null-equivalents.
-     */
-    private void addValidCopyright(Set<String> copyrights, String copyrightText) {
-        if (copyrightText != null && !copyrightText.isBlank() &&
-                !"NONE".equalsIgnoreCase(copyrightText.trim()) &&
-                !"NOASSERTION".equalsIgnoreCase(copyrightText.trim())) {
-            copyrights.add(copyrightText.trim());
         }
     }
 }
