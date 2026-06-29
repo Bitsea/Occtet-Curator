@@ -1,191 +1,161 @@
 /*
- *  Copyright (C) 2025 Bitsea GmbH
+ * Copyright (C) 2025 Bitsea GmbH
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
  *      https:www.apache.orglicensesLICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  *  SPDX-License-Identifier: Apache-2.0
  *  License-Filename: LICENSE
- *
- *
  */
 
 package eu.occtet.boc.export;
 
-import eu.occtet.boc.config.TestEclipseLinkJpaConfiguration;
 import eu.occtet.boc.dao.InventoryItemRepository;
 import eu.occtet.boc.dao.SpdxDocumentRootRepository;
-import eu.occtet.boc.entity.InventoryItem;
-import eu.occtet.boc.entity.Organization;
-import eu.occtet.boc.entity.Project;
-import eu.occtet.boc.entity.SoftwareComponent;
-import eu.occtet.boc.entity.spdxV2.CreationInfoEntity;
-import eu.occtet.boc.entity.spdxV2.PackageVerificationCodeEntity;
+import eu.occtet.boc.dao.SpdxPackageRepository;
+import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.spdxV2.SpdxDocumentRoot;
 import eu.occtet.boc.entity.spdxV2.SpdxPackageEntity;
 import eu.occtet.boc.export.service.MergeService;
 import eu.occtet.boc.export.service.SpdxFileSyncService;
-import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
-@DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@ActiveProfiles("test")
-@ContextConfiguration(classes = {
-        MergeService.class, TestEclipseLinkJpaConfiguration.class
-})
-@EnableJpaRepositories(basePackages = {"eu.occtet.boc.dao"})
-@EntityScan(basePackages = {"eu.occtet.boc.entity"})
-public class MergeServiceTest {
+@ExtendWith(MockitoExtension.class)
+class MergeServiceTest {
 
-    @Autowired
-    private MergeService mergeService;
-
-    @MockitoBean
+    @Mock
     private InventoryItemRepository inventoryItemRepository;
 
-    @MockitoBean
+    @Mock
+    private SpdxPackageRepository spdxPackageRepository;
+
+    @Mock
     private SpdxDocumentRootRepository spdxDocumentRootRepository;
 
-    @MockitoBean
+    @Mock
     private SpdxFileSyncService spdxFileSyncService;
 
+    @InjectMocks
+    private MergeService mergeService;
+
+    private Project project;
+    private SpdxDocumentRoot documentRoot;
+
+    @BeforeEach
+    void setUp() {
+        project = new Project("Test Project");
+        project.setId(100L);
+
+        documentRoot = new SpdxDocumentRoot();
+        documentRoot.setPackages(new ArrayList<>());
+        documentRoot.setFiles(new ArrayList<>());
+        documentRoot.setHasExtractedLicensingInfos(new ArrayList<>());
+        documentRoot.setRelationships(new ArrayList<>());
+    }
+
     @Test
-    void mergeChangesToDocumentEntities_WithCuratedComponent_UpdatesPackageEntity() {
-        Project project = new Project("Test Project");
-        project.setVersion("1.0.0");
-        project.setProjectContact("Jane Doe");
-        project.setCreatedAt(LocalDateTime.now());
+    void mergeChangesToDocumentEntities_WithCuratedItems_SuccessfullyTransformsToSpdx() {
+        // Setup: Source of Truth
+        Copyright copyrightAlice = new Copyright();
+        copyrightAlice.setCopyrightText("Copyright (C) 2026 Alice");
 
-        Organization org = new Organization();
-        org.setOrganizationEmail("test@test.com");
-        org.setOrganizationName("Test Org");
+        License customLicenseTemplate = new License();
+        customLicenseTemplate.setLicenseType("Custom1");
+        customLicenseTemplate.setLicenseName("Custom-MIT-Derivative");
+        customLicenseTemplate.setIsSpdx(false);
 
-        SpdxDocumentRoot documentRoot = getSpdxDocumentRoot();
+        SoftwareComponentLicenseUsage licenseUsage = new SoftwareComponentLicenseUsage();
+        licenseUsage.setTemplate(customLicenseTemplate);
+        licenseUsage.setUsageText("Original License Text");
+        licenseUsage.setIsModified(false);
 
-        PackageVerificationCodeEntity verificationCode = new PackageVerificationCodeEntity();
-        verificationCode.setPackageVerificationCodeValue("0000000000000000000000000000000000000000");
+        SoftwareComponent component = new SoftwareComponent();
+        component.setName("jackson-databind");
+        component.setVersion("2.15.2");
+        component.setDetailsUrl("https://github.com/fasterxml/jackson-databind");
+        component.setCopyrights(List.of(copyrightAlice));
+        component.setUsageLicenses(List.of(licenseUsage));
+        component.setCurated(true);
 
-        SpdxPackageEntity documentPackage = new SpdxPackageEntity();
-        documentPackage.setSpdxId("SPDXRef-Package-1");
-        documentPackage.setName("old-name");
-        documentPackage.setDownloadLocation("NOASSERTION");
-        documentPackage.setVersionInfo("1.0");
-        documentPackage.setPackageVerificationCodeEntity(verificationCode);
-        documentPackage.setSpdxDocument(documentRoot);
+        licenseUsage.setSoftwareComponent(component);
 
-        documentRoot.getPackages().add(documentPackage);
+        InventoryItem inventoryItem = new InventoryItem();
+        inventoryItem.setId(1L);
+        inventoryItem.setInventoryName("jackson-databind-2.15.2");
+        inventoryItem.setSoftwareComponent(component);
+        inventoryItem.setCurated(true);
 
-        SoftwareComponent curatedComponent = new SoftwareComponent("updated-name", "2.0", org, "library");
-        curatedComponent.setCurated(true);
-        curatedComponent.setDetailsUrl("https://new-location.com");
+        List<InventoryItem> mockInventory = List.of(inventoryItem);
 
-        InventoryItem item = new InventoryItem("InventoryNode", project, curatedComponent, org);
-        item.setCurated(true);
-        item.setSpdxId("SPDXRef-Package-1");
 
-        when(inventoryItemRepository.findBySpdxIdAndProject("SPDXRef-Package-1", project))
-                .thenReturn(List.of(item));
+        when(inventoryItemRepository.findAllByProjectAndCurated(project, true))
+                .thenReturn(mockInventory);
 
-        mergeService.mergeChangesToDocumentEntities(documentRoot, project);
 
-        assertEquals("updated-name", documentPackage.getName());
-        assertEquals("2.0", documentPackage.getVersionInfo());
-        assertEquals("https://new-location.com", documentPackage.getDownloadLocation());
-        assertEquals("Test Project", documentRoot.getName()); // Mergeservice overrides doc name with project name
+        when(spdxPackageRepository.save(any(SpdxPackageEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(spdxDocumentRootRepository.save(any(SpdxDocumentRoot.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        verify(spdxFileSyncService, times(1)).synchronizeFiles(eq(documentPackage), eq(item), eq(documentRoot));
+        mergeService.mergeChangesToDocumentEntities(documentRoot, project, true);
+
+
+        assertEquals(1, documentRoot.getPackages().size(), "Es sollte genau ein Package erzeugt werden");
+        SpdxPackageEntity generatedPkg = documentRoot.getPackages().getFirst();
+
+        assertEquals("jackson-databind", generatedPkg.getName());
+        assertEquals("2.15.2", generatedPkg.getVersionInfo());
+        assertEquals("https://github.com/fasterxml/jackson-databind", generatedPkg.getHomepage());
+        assertEquals("Copyright (C) 2026 Alice", generatedPkg.getCopyrightText());
+
+
+        assertEquals("SPDXRef-Package-jackson-databind-2.15.2", inventoryItem.getSpdxId(), "Die SpdxId am InventoryItem sollte gesetzt worden sein");
+
+
+        assertNotNull(documentRoot.getHasExtractedLicensingInfos());
+        assertFalse(documentRoot.getHasExtractedLicensingInfos().isEmpty());
+
+
+        verify(spdxFileSyncService, times(1))
+                .synchronizeFiles(eq(generatedPkg), eq(inventoryItem), eq(documentRoot));
+
         verify(spdxDocumentRootRepository, times(1)).save(documentRoot);
     }
 
-    @NotNull
-    private static SpdxDocumentRoot getSpdxDocumentRoot() {
-        CreationInfoEntity creationInfo = new CreationInfoEntity();
-        creationInfo.setCreated("2026-03-09T10:00:00Z");
-        creationInfo.setCreators("Tool: TestTool");
-
-        SpdxDocumentRoot documentRoot = new SpdxDocumentRoot();
-        documentRoot.setSpdxId("SPDXRef-DOCUMENT");
-        documentRoot.setSpdxVersion("SPDX-2.3");
-        documentRoot.setDataLicense("CC0-1.0");
-        documentRoot.setName("Old Document Name");
-        documentRoot.setDocumentUri("https://test.uri/doc");
-        documentRoot.setCreationInfo(creationInfo);
-        return documentRoot;
-    }
-
     @Test
-    void mergeChangesToDocumentEntities_ComponentNotCurated_SkipsUpdate() {
-        Project project = new Project("Test Project");
+    void mergeChangesToDocumentEntities_WithNonCuratedItem_ShouldSkipItem() {
+        InventoryItem nonCuratedItem = new InventoryItem();
+        nonCuratedItem.setCurated(false);
 
-        Organization org = new Organization();
-        org.setOrganizationEmail("test@test.com");
-        org.setOrganizationName("Test Org");
+        when(inventoryItemRepository.findAllByProjectAndCurated(project, true))
+                .thenReturn(List.of(nonCuratedItem));
 
-        SpdxDocumentRoot documentRoot = new SpdxDocumentRoot();
-        documentRoot.setSpdxId("SPDXRef-DOCUMENT");
+        mergeService.mergeChangesToDocumentEntities(documentRoot, project, true);
 
-        SpdxPackageEntity documentPackage = new SpdxPackageEntity();
-        documentPackage.setSpdxId("SPDXRef-Package-1");
-        documentPackage.setName("original-name");
-        documentRoot.getPackages().add(documentPackage);
-
-        SoftwareComponent uncuratedComponent = new SoftwareComponent("updated-name", "2.0",  new Organization(), "library");
-        uncuratedComponent.setCurated(false); // Flag is explicitly false
-
-        InventoryItem item = new InventoryItem("InventoryNode", project, uncuratedComponent, org);
-        item.setCurated(false);
-        item.setSpdxId("SPDXRef-Package-1");
-
-        when(inventoryItemRepository.findBySpdxIdAndProject("SPDXRef-Package-1", project))
-                .thenReturn(List.of(item));
-
-        mergeService.mergeChangesToDocumentEntities(documentRoot, project);
-
-        assertEquals("original-name", documentPackage.getName());
-        verify(spdxFileSyncService, never()).synchronizeFiles(any(), any(), any());
-    }
-
-    @Test
-    void mergeChangesToDocumentEntities_InventoryItemNotFound_CatchesExceptionAndContinues() {
-        Project project = new Project("Test Project");
-
-        SpdxDocumentRoot documentRoot = new SpdxDocumentRoot();
-
-        SpdxPackageEntity documentPackage = new SpdxPackageEntity();
-        documentPackage.setSpdxId("SPDXRef-Orphan-Package");
-        documentRoot.getPackages().add(documentPackage);
-
-        when(inventoryItemRepository.findBySpdxIdAndProject("SPDXRef-Orphan-Package", project))
-                .thenReturn(new ArrayList<>());
-
-        mergeService.mergeChangesToDocumentEntities(documentRoot, project);
-
-        verify(spdxDocumentRootRepository, times(1)).save(documentRoot);
+        assertTrue(documentRoot.getPackages().isEmpty(), "not curated inventoryItems should not be handled");
     }
 }

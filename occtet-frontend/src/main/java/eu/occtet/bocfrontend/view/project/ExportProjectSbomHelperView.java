@@ -234,6 +234,10 @@ public class ExportProjectSbomHelperView extends StandardView {
                 WorkTask workTask = new WorkTask(taskId, dynamicTaskName, "Export data to microservice to create new CycloneDX", actualTimestamp, cycloneDxExportWorkData);
                 byte[] messagePayload = MAPPER.writeValueAsBytes(workTask);
                 natsService.sendWorkMessageToStream(natsProperties.send_subject_cyclonedx_export(), messagePayload);
+            }else{
+                notifications.create(messages.getMessage("sbomformatMissing"))
+                        .withThemeVariant(NotificationVariant.LUMO_PRIMARY).show();
+                return;
             }
             activeTasks.put(taskId, dynamicTaskName + messages.getMessage("eu.occtet.bocfrontend.view" +
                     ".project/exportProjectSbomHelperView.task.queued"));

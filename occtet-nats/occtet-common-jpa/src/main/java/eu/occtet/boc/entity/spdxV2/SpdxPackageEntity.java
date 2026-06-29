@@ -82,8 +82,8 @@ public class SpdxPackageEntity {
     @CollectionTable(name = "package_license_info_from_files", joinColumns = @JoinColumn(name = "package_id"))
     private List<String> licenseInfoFromFiles;
 
-    @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "package_verification_code_id", unique = true, nullable = false)
+    @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "package_verification_code_id", unique = true, nullable = true)
     private PackageVerificationCodeEntity packageVerificationCodeEntity;
 
     @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL, orphanRemoval = true)
