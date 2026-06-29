@@ -61,7 +61,7 @@ public class Copyright implements HasOrganization {
             joinColumns = @JoinColumn(name = "COPYRIGHT_ID", referencedColumnName = "ID"),
             inverseJoinColumns = @JoinColumn(name = "FILE_ID", referencedColumnName = "ID"))
     @OnDelete(DeletePolicy.CASCADE)
-    private Set<File> files = new HashSet<>();;
+    private Set<File> files = new HashSet<>();
 
     @JoinTable(name = "COPYRIGHT_SOFTWARE_COMPONENT_USAGE_LICENSE_LINK",
             joinColumns = @JoinColumn(name = "COPYRIGHT_ID"),

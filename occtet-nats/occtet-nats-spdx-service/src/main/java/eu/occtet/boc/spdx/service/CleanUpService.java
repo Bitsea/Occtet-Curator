@@ -22,13 +22,18 @@ package eu.occtet.boc.spdx.service;
 import eu.occtet.boc.dao.AppConfigurationRepository;
 import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.dao.ProjectRepository;
+import eu.occtet.boc.entity.Copyright;
+import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.appconfigurations.AppConfigKey;
 import eu.occtet.boc.entity.appconfigurations.AppConfiguration;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -36,6 +41,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Stream;
 
 @Service
@@ -51,10 +57,14 @@ public class CleanUpService {
     private static final Logger log = LoggerFactory.getLogger(CleanUpService.class);
 
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     /**
      * Cleans up the file tree associated with the given project.
      * @param project
      */
+    @Transactional
     public void cleanUpFileTree(Project project) {
 
         String globalBasePath = appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH)
@@ -64,13 +74,22 @@ public class CleanUpService {
         Path projectDir = Paths.get(globalBasePath).resolve(folderName);
         deleteProjectDirectory(projectDir);
         log.debug("Cleaning up directory {}", projectDir);
+
         project.removeFiles();
         projectRepository.save(project);
-        //deleting all entities in the file tree associated with the project
+
+        List<File> filesToDelete = fileRepository.findAllByProject(project);
+
+        for (File file : filesToDelete) {
+            for (Copyright copyright : file.getCopyrights()) {
+                copyright.getFiles().remove(file);
+            }
+            file.getCopyrights().clear();
+        }
+
         fileRepository.deleteAllByProject(project);
 
-
-
+        entityManager.flush();
     }
 
     private void deleteProjectDirectory(Path projectRoot) {
