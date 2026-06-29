@@ -87,6 +87,8 @@ services:
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
       HTTPS_CA_CERT_PATH: /cacerts
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      ENCRYPTION_SALT: ${ENCRYPTION_SALT}
 #      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:8090/boc/ > /dev/null || exit 1"]
@@ -138,6 +140,8 @@ services:
     restart: always
     environment:
       <<: *common-env
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      ENCRYPTION_SALT: ${ENCRYPTION_SALT}
 
   ai-licensematcher-service:
     image: occtet-nats-ai-licensematcher-service:0.3.8-SNAPSHOT

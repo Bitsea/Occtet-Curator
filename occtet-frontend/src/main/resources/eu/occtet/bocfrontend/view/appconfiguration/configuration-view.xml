@@ -54,8 +54,10 @@
                 </formLayout>
             </tab>
 
-            <tab id="openSearch" label="msg://configurationView.tab.openSearch">
+            <tab id="openSearch" label="msg://vulnerabilityDB">
                 <formLayout id="openSearchForm">
+                    <passwordField id="vulnerabilityDBToken"
+                               label="msg://Apikey" width="100%"/>
                 </formLayout>
             </tab>
         </tabSheet>

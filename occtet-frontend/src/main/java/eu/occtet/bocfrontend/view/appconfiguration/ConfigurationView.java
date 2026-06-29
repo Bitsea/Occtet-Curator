@@ -23,10 +23,12 @@ package eu.occtet.bocfrontend.view.appconfiguration;
 
 
 import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.dao.AppConfigurationRepository;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
+import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigType;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfiguration;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.Messages;
@@ -56,7 +58,6 @@ public class ConfigurationView extends StandardView {
     private Fragments fragments;
     @Autowired
     private Messages messages;
-
     @ViewComponent
     private DataContext dataContext;
     @ViewComponent
@@ -64,10 +65,16 @@ public class ConfigurationView extends StandardView {
     @ViewComponent
     private TextField basePathField;
     @ViewComponent
+    private PasswordField vulnerabilityDBToken;
+    @ViewComponent
     private JmixTabSheet mainTabSheet;
 
     private Map<AppConfigKey, AppConfiguration> configMap = new HashMap<>();
     private String EDITOR_TAB_ID = "editor";
+
+
+    private final org.springframework.security.crypto.encrypt.TextEncryptor textEncryptor =
+            org.springframework.security.crypto.encrypt.Encryptors.text("secretPassword", "deadbeef12345678");
 
     @Subscribe
     public void onInit(InitEvent event) {
@@ -83,15 +90,40 @@ public class ConfigurationView extends StandardView {
         }
 
         bindField(AppConfigKey.GENERAL_BASE_PATH, basePathField);
+
+        bindField(AppConfigKey.GENERAL_VULNERABILITY_DB_TOKEN, vulnerabilityDBToken);
     }
 
     private void bindField(AppConfigKey key, com.vaadin.flow.component.AbstractField<?, String> field) {
         AppConfiguration config = configMap.get(key);
-        if (config != null) {
-            field.setValue(config.getValue() != null ? config.getValue() : "");
 
-            field.addValueChangeListener(e -> config.setValue(e.getValue()));
+        if (config == null) {
+            config = dataContext.create(AppConfiguration.class);
+            config.setConfigKey(key);
+            configMap.put(key, config);
         }
+
+        String storedValue = config.getValue() != null ? config.getValue() : "";
+        if (key.getType() == AppConfigType.ENCRYPTED_STRING && !storedValue.isEmpty()) {
+            try {
+                field.setValue(textEncryptor.decrypt(storedValue));
+            } catch (Exception e) {
+                field.setValue(storedValue);
+            }
+        } else {
+            field.setValue(storedValue);
+        }
+
+        // encrypt the value
+        AppConfiguration finalConfig = config;
+        field.addValueChangeListener(e -> {
+            String newValue = e.getValue();
+            if (key.getType() == AppConfigType.ENCRYPTED_STRING && newValue != null && !newValue.isEmpty()) {
+                finalConfig.setValue(textEncryptor.encrypt(newValue));
+            } else {
+                finalConfig.setValue(newValue);
+            }
+        });
     }
 
     /**
