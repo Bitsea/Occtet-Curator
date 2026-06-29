@@ -122,7 +122,11 @@ public class ExportService  extends ProgressReportingService  {
 
 
             log.info("Merging changes to document entities of project: {}", project.getProjectName());
-            mergeService.mergeChangesToDocumentEntities(spdxDocumentRoot, project, spdxExportWorkData.getEnrichment());
+            boolean enrichment=false;
+            if(null != spdxExportWorkData.getEnrichment()) {
+                enrichment= spdxExportWorkData.getEnrichment();
+            }
+            mergeService.mergeChangesToDocumentEntities(spdxDocumentRoot, project, enrichment);
             notifyProgress(20, "merged changes to document entities");
             log.debug("packages size from document {}", spdxDocumentRoot.getPackages().size());
 

@@ -40,6 +40,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -53,28 +54,29 @@ public class SpdxFileSyncServiceTest {
     @Mock
     private FileRepository fileRepository;
 
-    private Project project;
-    private InventoryItem inventoryItem;
-    private SpdxPackageEntity packageEntity;
-    private SpdxDocumentRoot documentRoot;
-
-    @BeforeEach
-    void setUp() {
-        Organization org = new Organization();
-
-        project = new Project("Test Project");
-        inventoryItem = new InventoryItem("LibNode", project, null, org);
-
-        packageEntity = new SpdxPackageEntity();
-        packageEntity.setSpdxId("SPDXRef-Package-1");
-
-        documentRoot = new SpdxDocumentRoot();
-        documentRoot.setSpdxId("SPDXRef-DOCUMENT");
-        documentRoot.setRelationships(new ArrayList<>());
-    }
 
     @Test
     void synchronizeFiles_WithSomeFilesDeleted_RemovesStaleRelationships() {
+        //1. SETUP DATABASE ENTITIES (Source of Truth)
+        Project project = new Project("Sync Project");
+        InventoryItem inventoryItem = new InventoryItem();
+        inventoryItem.setInventoryName("Test-Package");
+
+        File keptFile = new File();
+        keptFile.setPhysicalPath("/src/Keep.java");
+        keptFile.setDocumentId("SPDXRef-File-Keep");
+        keptFile.setProject(project);
+        keptFile.setInventoryItems(Set.of(inventoryItem));
+
+        //2. SETUP SPDX TARGET STRUCTURE (currently in spdx document)
+        SpdxDocumentRoot documentRoot = new SpdxDocumentRoot();
+        documentRoot.setFiles(new ArrayList<>());
+        documentRoot.setRelationships(new ArrayList<>());
+
+        SpdxPackageEntity packageEntity = new SpdxPackageEntity();
+        packageEntity.setSpdxId("SPDXRef-Package-1");
+        packageEntity.setFileNames(new ArrayList<>(List.of("SPDXRef-File-Keep", "SPDXRef-File-Deleted")));
+
         SpdxFileEntity keptFileEntity = new SpdxFileEntity();
         keptFileEntity.setSpdxId("SPDXRef-File-Keep");
 
@@ -97,13 +99,13 @@ public class SpdxFileSyncServiceTest {
         documentRoot.getRelationships().add(rel1);
         documentRoot.getRelationships().add(rel2);
 
-        File keptFile = new File(inventoryItem, "/src/Keep.java", project);
-        keptFile.setDocumentId("SPDXRef-File-Keep");
-
+        // --- 3. MOCKING ---
         when(fileRepository.findByInventoryItemsContaining(inventoryItem)).thenReturn(List.of(keptFile));
 
+        // --- 4. EXECUTION ---
         spdxFileSyncService.synchronizeFiles(packageEntity, inventoryItem, documentRoot);
 
+        // --- 5. ASSERTIONS ---
         assertEquals(1, packageEntity.getFileNames().size(), "Package should only contain 1 file");
         assertEquals("SPDXRef-File-Keep", packageEntity.getFileNames().getFirst());
 
@@ -116,6 +118,22 @@ public class SpdxFileSyncServiceTest {
 
     @Test
     void synchronizeFiles_WithAllFilesDeleted_ClearsFilesAndRelationships() {
+        //1. SETUP (Source of Truth)
+        InventoryItem inventoryItem = new InventoryItem();
+        inventoryItem.setInventoryName("Test-Package");
+
+        List<File> emptyDbFilesList = new ArrayList<>();
+
+        // 2. SETUP SPDX TARGET STRUCTURE (old content in SPDX-Dokument)
+        SpdxDocumentRoot documentRoot = new SpdxDocumentRoot();
+        documentRoot.setFiles(new ArrayList<>());
+        documentRoot.setRelationships(new ArrayList<>());
+
+        SpdxPackageEntity packageEntity = new SpdxPackageEntity();
+        packageEntity.setSpdxId("SPDXRef-Package-1");
+        packageEntity.setFileNames(new ArrayList<>(List.of("SPDXRef-File-Deleted")));
+        packageEntity.setFilesAnalyzed(true);
+
         SpdxFileEntity deletedFile = new SpdxFileEntity();
         deletedFile.setSpdxId("SPDXRef-File-Deleted");
         documentRoot.getFiles().add(deletedFile);
@@ -126,13 +144,13 @@ public class SpdxFileSyncServiceTest {
         rel1.setRelationshipType("CONTAINS");
         documentRoot.getRelationships().add(rel1);
 
-        packageEntity.setFileNames(new ArrayList<>(List.of("SPDXRef-File-Deleted")));
-        packageEntity.setFilesAnalyzed(true);
+        // --- 3. MOCKING ---
+        when(fileRepository.findByInventoryItemsContaining(inventoryItem)).thenReturn(emptyDbFilesList);
 
-        when(fileRepository.findByInventoryItemsContaining(inventoryItem)).thenReturn(new ArrayList<>());
-
+        // --- 4. EXECUTION ---
         spdxFileSyncService.synchronizeFiles(packageEntity, inventoryItem, documentRoot);
 
+        // --- 5. ASSERTIONS ---
         assertTrue(packageEntity.getFileNames().isEmpty(), "File names list should be cleared");
         assertFalse(packageEntity.getFilesAnalyzed(), "Files analyzed flag should be set to false");
         assertTrue(documentRoot.getRelationships().isEmpty(), "Relationships should be purged");
