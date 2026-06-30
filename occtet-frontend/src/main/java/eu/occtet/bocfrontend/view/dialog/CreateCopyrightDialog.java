@@ -49,8 +49,6 @@ public class CreateCopyrightDialog extends AbstractCreateContentDialog<Inventory
 
     private InventoryItem inventoryItem;
 
-    private SoftwareComponent softwareComponent;
-
     @ViewComponent
     private TextField copyrightNameField;
 

@@ -83,26 +83,23 @@ public class SoftwareComponentLicenseUsageListView extends StandardListView<Soft
     }
 
 
+
     @Subscribe(id = "projectComboBox")
     public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event) {
         if (event != null) {
             Project selectedProject = event.getValue();
-            if (selectedProject == null || messages.getMessage("Showall").equals(selectedProject.getProjectName())) {
-                List<SoftwareComponentLicenseUsage> softwareComponents = licenseRepository.findByIsModified(true);
-                loadLicenses(softwareComponents);
-                filterBox.setVisible(!softwareComponents.isEmpty());
-            } else {
-                List<SoftwareComponentLicenseUsage> licensesProject = licenseRepository.findByProjectAndModified(event.getValue(), true);
-                loadLicenses(licensesProject);
-                filterBox.setVisible(!licensesProject.isEmpty());
+
+            if (selectedProject != null && messages.getMessage("Showall").equals(selectedProject.getProjectName())) {
+                selectedProject = null;
             }
+
+            licensesDl.setParameter("project", selectedProject);
+            licensesDl.load();
+
+            filterBox.setVisible(!licensesDl.getContainer().getItems().isEmpty());
         }
     }
 
-    private void loadLicenses(List<SoftwareComponentLicenseUsage> licenses) {
-        licensesDl.setParameter("licenses", licenses);
-        licensesDl.load();
-    }
 
     @Supply(to = "licensesDataGrid.usageText", subject = "renderer")
     private Renderer<SoftwareComponentLicenseUsage> effectiveTextColumnRenderer() {

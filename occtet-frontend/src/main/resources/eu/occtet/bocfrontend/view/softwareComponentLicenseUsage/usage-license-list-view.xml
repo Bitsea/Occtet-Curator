@@ -30,8 +30,13 @@
             </fetchPlan>
             <loader id="licensesDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from SoftwareComponentLicenseUsage e
-                         where e in :licenses]]>
+                    <![CDATA[select distinct e from SoftwareComponentLicenseUsage e
+             join e.softwareComponent sc
+             join InventoryItem i on i.softwareComponent = sc
+             where e.usageText is not null
+             and length(e.usageText) > 0
+             and e.usageText <> e.template.templateText
+             and (:project is null or i.project = :project)]]>
                 </query>
             </loader>
         </collection>
