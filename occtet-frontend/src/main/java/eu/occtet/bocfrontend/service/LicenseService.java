@@ -25,6 +25,7 @@ import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
+import eu.occtet.bocfrontend.factory.TemplateLicenseFactory;
 import eu.occtet.bocfrontend.factory.UsageLicenseFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,30 +33,40 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class LicenseService {
 
     private static final Logger log = LogManager.getLogger(LicenseService.class);
-    private final LicenseRepository licenseRepository;
 
-    @Autowired
-    private InventoryItemService inventoryItemService;
     @Autowired
     private SoftwareComponentService softwareComponentService;
     @Autowired
-    private UsageLicenseFactory licenseFactory;
+    private UsageLicenseFactory usageFactory;
+    @Autowired
+    private TemplateLicenseFactory templateLicenseFactory;
 
-    public LicenseService(LicenseRepository licenseRepository) {
-        this.licenseRepository = licenseRepository;
-    }
 
     public List<SoftwareComponentLicenseUsage> findUsageLicensesByProject(Project project){
         List<SoftwareComponent> softwareComponents = softwareComponentService.findSoftwareComponentsByProject(project);
         List<SoftwareComponentLicenseUsage> licenses = new ArrayList<>();
         softwareComponents.forEach(sc->licenses.addAll(sc.getUsageLicenses()));
         return licenses;
+    }
+
+    public Map<License, SoftwareComponentLicenseUsage> createLicenseWithUsage(Integer priority, String licenseType, String licenseText,
+                                                                              String licenseName, String detailsUrl, boolean isSpdx, SoftwareComponent softwareComponent ){
+
+        License template = templateLicenseFactory.create(priority, licenseType, licenseText, licenseName, detailsUrl, isSpdx);
+
+        SoftwareComponentLicenseUsage usage = usageFactory.create("", false, false, softwareComponent, template);
+        Map<License, SoftwareComponentLicenseUsage> map= new HashMap<>();
+        map.put(template, usage);
+        return map;
+
     }
 
 

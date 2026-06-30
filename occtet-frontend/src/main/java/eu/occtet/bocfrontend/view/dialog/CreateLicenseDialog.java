@@ -29,13 +29,16 @@ import com.vaadin.flow.component.textfield.TextField;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
+import eu.occtet.bocfrontend.service.LicenseService;
 import io.jmix.core.Messages;
 import io.jmix.flowui.Notifications;
-import io.jmix.flowui.model.DataContext;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 
 @ViewController("createLicenseDialog")
@@ -78,7 +81,7 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
     @Autowired
     private Messages messages;
     @Autowired
-    private DataContext dataContext;
+    private LicenseService licenseService;
 
     private SoftwareComponentLicenseUsage createdUsage;
 
@@ -113,22 +116,14 @@ public class CreateLicenseDialog extends AbstractCreateContentDialog<SoftwareCom
 
             try {
 
-                License license = dataContext.create(License.class);
-                license.setPriority(Integer.valueOf(priority));
-                license.setLicenseType(licenseType);
-                license.setTemplateText(licenseText);
-                license.setLicenseName(licenseName);
-                license.setDetailsUrl(detailsUrl);
-                license.setIsSpdx(isSpdxField.getValue());
+                Map<License, SoftwareComponentLicenseUsage> licenseMap = licenseService.createLicenseWithUsage(
+                        Integer.valueOf(priority), licenseType, licenseText, licenseName, detailsUrl, isSpdxField.getValue(), this.softwareComponent);
+                Map.Entry<License, SoftwareComponentLicenseUsage> entry = licenseMap.entrySet().iterator().next();
 
-                createdUsage = dataContext.create(SoftwareComponentLicenseUsage.class);
-                createdUsage.setIsModified(isModifiedField.getValue());
-                createdUsage.setCurated(isCuratedField.getValue());
-                createdUsage.setTemplate(license);
-                createdUsage.setSoftwareComponent(this.softwareComponent);
+                License license = entry.getKey();
+                createdUsage = entry.getValue();
 
                 this.softwareComponent.addLicenseUsage(createdUsage);
-
 
                 log.debug("Created and added new license template and usage {} to softwareComponent", license.getLicenseName());
             close(StandardOutcome.SAVE);
