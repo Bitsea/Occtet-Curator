@@ -30,10 +30,16 @@ import eu.occtet.bocfrontend.dao.ProjectRepository;
 import eu.occtet.bocfrontend.dao.TemplateLicenseRepository;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.License;
+import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
+import eu.occtet.bocfrontend.factory.SoftwareComponentFactory;
+import eu.occtet.bocfrontend.service.LicenseService;
 import eu.occtet.bocfrontend.service.SPDXLicenseService;
 import eu.occtet.bocfrontend.view.main.MainView;
 import eu.occtet.bocfrontend.view.services.LicenseTextService;
+import io.jmix.core.DataManager;
+import io.jmix.core.FetchPlan;
 import io.jmix.core.Messages;
+import io.jmix.core.SaveContext;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.grid.DataGrid;
@@ -62,6 +68,7 @@ import java.util.stream.Collectors;
 @DialogMode(width = "80%", height = "80%")
 public class TemplateLicenseListView extends StandardListView<License> {
 
+
     private static final Logger log = LogManager.getLogger(TemplateLicenseListView.class);
 
     private static final int MAX_FULLTEXT_RESULTS = 50;
@@ -76,6 +83,8 @@ public class TemplateLicenseListView extends StandardListView<License> {
     private JmixComboBox<Project> projectComboBox;
     @ViewComponent
     private HorizontalLayout filterBox;
+    @Autowired
+    private LicenseService licenseService;
 
     @Autowired
     private SPDXLicenseService spdxLicenseService;
@@ -89,6 +98,8 @@ public class TemplateLicenseListView extends StandardListView<License> {
     private TemplateLicenseRepository licenseRepository;
     @Autowired
     private ProjectRepository projectRepository;
+    @Autowired
+    private DataManager dataManager;
 
     @Subscribe
     public void onInit(InitEvent event){
@@ -193,6 +204,19 @@ public class TemplateLicenseListView extends StandardListView<License> {
 
     private void loadLicenses(List<License> licenses){
         licensesDl.setParameter("licenses",licenses);
+        licensesDl.load();
+    }
+
+    @Subscribe(id = "removeButton", subject = "clickListener")
+    public void onRemoveButtonClick(final ClickEvent<JmixButton> event) {
+        Set<License> licenses = licensesDataGrid.getSelectedItems();
+
+        Set<Long> licenseIds = licenses.stream()
+                .map(License::getId)
+                .collect(Collectors.toSet());
+
+        licenseService.removeLicensesHard(licenseIds);
+
         licensesDl.load();
     }
 }

@@ -27,15 +27,21 @@ import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
 import eu.occtet.bocfrontend.factory.TemplateLicenseFactory;
 import eu.occtet.bocfrontend.factory.UsageLicenseFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class LicenseService {
@@ -48,7 +54,8 @@ public class LicenseService {
     private UsageLicenseFactory usageFactory;
     @Autowired
     private TemplateLicenseFactory templateLicenseFactory;
-
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public List<SoftwareComponentLicenseUsage> findUsageLicensesByProject(Project project){
         List<SoftwareComponent> softwareComponents = softwareComponentService.findSoftwareComponentsByProject(project);
@@ -67,6 +74,27 @@ public class LicenseService {
         map.put(template, usage);
         return map;
 
+    }
+
+
+    /**
+     * removes license and associated softwarecomponentusage from the db the hard way
+     * other way around this did not work out
+     * @param licenseIds
+     */
+    @Transactional
+    public void removeLicensesHard(Set<Long> licenseIds) {
+        if (licenseIds == null || licenseIds.isEmpty()) {
+            return;
+        }
+
+        entityManager.createQuery("DELETE FROM SoftwareComponentLicenseUsage u WHERE u.template.id IN :ids")
+                .setParameter("ids", licenseIds)
+                .executeUpdate();
+
+        entityManager.createQuery("DELETE FROM License l WHERE l.id IN :ids")
+                .setParameter("ids", licenseIds)
+                .executeUpdate();
     }
 
 

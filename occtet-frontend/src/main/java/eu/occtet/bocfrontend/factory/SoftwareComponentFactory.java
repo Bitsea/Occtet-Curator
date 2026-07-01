@@ -51,4 +51,5 @@ public class SoftwareComponentFactory {
     public SoftwareComponent create(String name, String version){
         return create(name, version, "", false, new ArrayList<>());
     }
+
 }
