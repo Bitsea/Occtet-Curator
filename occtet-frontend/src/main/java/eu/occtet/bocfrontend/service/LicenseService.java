@@ -25,7 +25,10 @@ import eu.occtet.bocfrontend.entity.License;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
+import eu.occtet.bocfrontend.factory.TemplateLicenseFactory;
 import eu.occtet.bocfrontend.factory.UsageLicenseFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.apache.logging.log4j.LogManager;
@@ -35,7 +38,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -45,6 +50,10 @@ public class LicenseService {
 
     @Autowired
     private SoftwareComponentService softwareComponentService;
+    @Autowired
+    private UsageLicenseFactory usageFactory;
+    @Autowired
+    private TemplateLicenseFactory templateLicenseFactory;
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -53,6 +62,18 @@ public class LicenseService {
         List<SoftwareComponentLicenseUsage> licenses = new ArrayList<>();
         softwareComponents.forEach(sc->licenses.addAll(sc.getUsageLicenses()));
         return licenses;
+    }
+
+    public Map<License, SoftwareComponentLicenseUsage> createLicenseWithUsage(Integer priority, String licenseType, String licenseText,
+                                                                              String licenseName, String detailsUrl, boolean isSpdx, SoftwareComponent softwareComponent ){
+
+        License template = templateLicenseFactory.create(priority, licenseType, licenseText, licenseName, detailsUrl, isSpdx);
+
+        SoftwareComponentLicenseUsage usage = usageFactory.create("", false, false, softwareComponent, template);
+        Map<License, SoftwareComponentLicenseUsage> map= new HashMap<>();
+        map.put(template, usage);
+        return map;
+
     }
 
 
