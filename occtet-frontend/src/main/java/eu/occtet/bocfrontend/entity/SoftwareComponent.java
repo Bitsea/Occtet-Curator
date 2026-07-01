@@ -67,11 +67,11 @@ public class SoftwareComponent implements HasOrganization {
 
 
     @OnDelete(DeletePolicy.CASCADE)
-    @OneToMany(mappedBy = "softwareComponent", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "softwareComponent", fetch = FetchType.LAZY)
     private List<SoftwareComponentLicenseUsage> usageLicenses = new ArrayList<>();
 
 
-    @OneToMany(mappedBy = "softwareComponent", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "softwareComponent", fetch = FetchType.LAZY)
     @OnDelete(DeletePolicy.CASCADE)
     private List<ComponentVulnerabilityLink> vulnerabilityLinks = new ArrayList<>();
 

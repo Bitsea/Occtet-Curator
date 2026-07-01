@@ -70,7 +70,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "(MIT OR Apache-2.0)"
           }
         }
       ],

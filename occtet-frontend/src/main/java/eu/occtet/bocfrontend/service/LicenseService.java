@@ -26,36 +26,54 @@ import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.SoftwareComponent;
 import eu.occtet.bocfrontend.entity.SoftwareComponentLicenseUsage;
 import eu.occtet.bocfrontend.factory.UsageLicenseFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class LicenseService {
 
     private static final Logger log = LogManager.getLogger(LicenseService.class);
-    private final LicenseRepository licenseRepository;
 
-    @Autowired
-    private InventoryItemService inventoryItemService;
     @Autowired
     private SoftwareComponentService softwareComponentService;
-    @Autowired
-    private UsageLicenseFactory licenseFactory;
-
-    public LicenseService(LicenseRepository licenseRepository) {
-        this.licenseRepository = licenseRepository;
-    }
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public List<SoftwareComponentLicenseUsage> findUsageLicensesByProject(Project project){
         List<SoftwareComponent> softwareComponents = softwareComponentService.findSoftwareComponentsByProject(project);
         List<SoftwareComponentLicenseUsage> licenses = new ArrayList<>();
         softwareComponents.forEach(sc->licenses.addAll(sc.getUsageLicenses()));
         return licenses;
+    }
+
+
+    /**
+     * removes license and associated softwarecomponentusage from the db the hard way
+     * other way around this did not work out
+     * @param licenseIds
+     */
+    @Transactional
+    public void removeLicensesHard(Set<Long> licenseIds) {
+        if (licenseIds == null || licenseIds.isEmpty()) {
+            return;
+        }
+
+        entityManager.createQuery("DELETE FROM SoftwareComponentLicenseUsage u WHERE u.template.id IN :ids")
+                .setParameter("ids", licenseIds)
+                .executeUpdate();
+
+        entityManager.createQuery("DELETE FROM License l WHERE l.id IN :ids")
+                .setParameter("ids", licenseIds)
+                .executeUpdate();
     }
 
 

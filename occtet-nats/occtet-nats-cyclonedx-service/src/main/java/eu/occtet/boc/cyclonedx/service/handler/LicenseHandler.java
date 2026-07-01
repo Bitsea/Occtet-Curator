@@ -64,6 +64,7 @@ public class LicenseHandler {
         if (licenseChoice != null) {
             log.debug("Processing license choice for component {}: {}", softwareComponent.getName(), licenseChoice);
             if (licenseChoice.getExpression() != null) {
+
                 Expression expression = licenseChoice.getExpression();
                 licenseDeclaration.append(expression.getValue());
                 String cleanedExpression = licenseDeclaration.toString().replaceAll("[()]", "");
@@ -71,6 +72,7 @@ public class LicenseHandler {
                 String[] licenses = cleanedExpression.split("\\s+(?i)(?:AND|OR)\\s+");
 
                 for (String license : licenses) {
+                    log.debug("expression {}",license.trim());
                     String licenseKeyId = license.trim();
                     String cacheKey = softwareComponent.getName() + "_" + licenseKeyId;
 
@@ -87,48 +89,57 @@ public class LicenseHandler {
             }else {
 
                 for (org.cyclonedx.model.License lic : licenseChoice.getLicenses()) {
-                    String licenseId ="";
+                    String licenseName ="";
                     if(lic.getId()!= null)
-                         licenseId= lic.getId();
-                    else licenseId= lic.getName();
-                    if(licenseId.isEmpty()) licenseId = "Unknown";
-                    String licenseName = lic.getName();
-                    String licenseText = "";
-                    if (lic.getAttachmentText() != null) {
-                        AttachmentText attachment = lic.getAttachmentText();
-                        String content = attachment.getText();
+                         licenseName= lic.getId();
+                    else licenseName= lic.getName();
+                    log.debug("licenseChoice id {}", licenseName);
+                    String cleanedExpression = licenseName.replaceAll("[()]", "");
+
+                    String[] licenses = cleanedExpression.split("\\s+(?i)(?:AND|OR)\\s+");
+
+                    for (String licenseId : licenses) {
 
 
-                        if (content != null) {
-                            if ("base64".equalsIgnoreCase(attachment.getEncoding())) {
-                                try {
-                                    byte[] decodedBytes = Base64.getDecoder().decode(content.trim());
-                                    licenseText = new String(decodedBytes, StandardCharsets.UTF_8);
-                                } catch (IllegalArgumentException e) {
-                                    licenseText = content;
+                            if (licenseId.isEmpty()) licenseId = "Unknown";
+                            String licName = lic.getName();
+                            String licenseText = "";
+                            if (lic.getAttachmentText() != null) {
+                                AttachmentText attachment = lic.getAttachmentText();
+                                String content = attachment.getText();
+
+
+                                if (content != null) {
+                                    if ("base64".equalsIgnoreCase(attachment.getEncoding())) {
+                                        try {
+                                            byte[] decodedBytes = Base64.getDecoder().decode(content.trim());
+                                            licenseText = new String(decodedBytes, StandardCharsets.UTF_8);
+                                        } catch (IllegalArgumentException e) {
+                                            licenseText = content;
+                                        }
+                                    } else {
+                                        licenseText = content;
+                                    }
                                 }
-                            } else {
-                                licenseText = content;
                             }
+                            if (licenseDeclaration.isEmpty()) {
+                                licenseDeclaration.append(licenseId);
+                            } else licenseDeclaration.append(" AND ").append(licenseId);
+
+                            String targetIdForKey = "Unknown".equals(licenseId) && licName != null ? licName : licenseId;
+                            String cacheKey = softwareComponent.getName() + "_" + targetIdForKey;
+
+                            // Check duplicate
+                            if (context.getUsageLicenseCache().containsKey(cacheKey)) {
+                                log.debug("Usage for component {} with license {} already in cache. Skipping.", softwareComponent.getName(), targetIdForKey);
+                                continue;
+                            }
+
+                            SoftwareComponentLicenseUsage usage = createUsageForLicense(licenseId, licName,
+                                    licenseText, softwareComponent, organization, licenseCache);
+                            context.getUsageLicenseCache().put(cacheKey, usage);
                         }
                     }
-                    if(licenseDeclaration.isEmpty()){
-                        licenseDeclaration.append(licenseId);
-                    }else licenseDeclaration.append(" AND ").append(licenseId);
-
-                    String targetIdForKey = "Unknown".equals(licenseId) && licenseName != null ? licenseName : licenseId;
-                    String cacheKey = softwareComponent.getName() + "_" + targetIdForKey;
-
-                    // Check duplicate
-                    if (context.getUsageLicenseCache().containsKey(cacheKey)) {
-                        log.debug("Usage for component {} with license {} already in cache. Skipping.", softwareComponent.getName(), targetIdForKey);
-                        continue;
-                    }
-
-                    SoftwareComponentLicenseUsage usage= createUsageForLicense(licenseId,licenseName,
-                            licenseText,softwareComponent,organization,licenseCache);
-                    context.getUsageLicenseCache().put(cacheKey, usage);
-                }
             }
 
 

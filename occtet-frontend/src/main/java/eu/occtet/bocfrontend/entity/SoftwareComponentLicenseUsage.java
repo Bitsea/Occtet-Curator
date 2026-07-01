@@ -21,6 +21,7 @@ package eu.occtet.bocfrontend.entity;
 
 import io.jmix.core.DeletePolicy;
 import io.jmix.core.entity.annotation.OnDelete;
+import io.jmix.core.entity.annotation.OnDeleteInverse;
 import io.jmix.core.metamodel.annotation.DependsOnProperties;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import io.jmix.core.metamodel.annotation.JmixProperty;
@@ -55,15 +56,18 @@ public class SoftwareComponentLicenseUsage implements HasOrganization {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "SOFTWARE_COMPONENT_ID")
+    @OnDeleteInverse(DeletePolicy.CASCADE)
     private SoftwareComponent softwareComponent;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "LICENSE_ID")
+    @OnDeleteInverse(DeletePolicy.CASCADE)
     private License template;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ORGANIZATION_ID")
+    @OnDeleteInverse(DeletePolicy.CASCADE)
     private Organization organization;
 
     @ManyToMany(mappedBy = "licenses")

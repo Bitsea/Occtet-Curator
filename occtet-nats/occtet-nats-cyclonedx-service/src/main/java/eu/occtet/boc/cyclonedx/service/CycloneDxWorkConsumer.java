@@ -20,7 +20,6 @@
 package eu.occtet.boc.cyclonedx.service;
 
 
-import eu.occtet.boc.cyclonedx.exception.SpdxImportException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.*;
 import eu.occtet.boc.service.BaseWorkDataProcessor;

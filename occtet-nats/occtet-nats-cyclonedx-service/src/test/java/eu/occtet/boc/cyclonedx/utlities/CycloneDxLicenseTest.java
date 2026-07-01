@@ -140,7 +140,7 @@ public class CycloneDxLicenseTest {
 
         Assertions.assertFalse(licenses.isEmpty(), "Licenses for project should exist");
 
-        Assertions.assertNotNull(inventoryItems, "IventoryItems should not be null");
+        Assertions.assertNotNull(inventoryItems, "InventoryItems should not be null");
         Assertions.assertNotNull(licenses, "license cache should not be null");
 
         Assertions.assertEquals(2, licenses.size());
