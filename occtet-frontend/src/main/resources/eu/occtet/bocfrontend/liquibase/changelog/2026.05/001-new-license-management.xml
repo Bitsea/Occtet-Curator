@@ -48,8 +48,10 @@
         </addColumn>
 
     </changeSet>
-    <changeSet id="license-entity" author="leoni">
-
+    <changeSet id="license-entity-1" author="leoni">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="SOFTWARE_COMPONENT_LICENSE_USAGE" columnName="CUSTOM_LICENSE_ID"/>
+        </preConditions>
         <dropColumn tableName="SOFTWARE_COMPONENT_LICENSE_USAGE" columnName="CUSTOM_LICENSE_ID"/>
 
     </changeSet>
