@@ -26,13 +26,27 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
 
-    <changeSet id="vulnerability-additions" author="leoni">
+    <changeSet id="vulnerability-additions-1" author="leoni">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="VULNERABILITY" columnName="DESCRIPTION"/>
+            </not>
+        </preConditions>
         <addColumn tableName="VULNERABILITY">
             <column name="DESCRIPTION" type="text"/>
         </addColumn>
     </changeSet>
 
-    <changeSet id="software-component-additions" author="leoni">
+    <changeSet id="software-component-additions-1" author="leoni">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="SOFTWARE_COMPONENT" columnName="ORIGIN_TYPE"/>
+            </not>
+            <not>
+                <columnExists tableName="SOFTWARE_COMPONENT" columnName="BOM_REF"/>
+            </not>
+        </preConditions>
+
         <addColumn tableName="SOFTWARE_COMPONENT">
             <column name="ORIGIN_TYPE" type="text"/>
         </addColumn>
@@ -42,7 +56,10 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="drop-not-null-package-verification-code" author="boc">
+    <changeSet id="drop-not-null-package-verification-code-1" author="boc">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="SPDX_PACKAGE_ENTITY" columnName="PACKAGE_VERIFICATION_CODE_ID"/>
+        </preConditions>
         <dropNotNullConstraint tableName="SPDX_PACKAGE_ENTITY"
                                columnName="PACKAGE_VERIFICATION_CODE_ID"
                                columnDataType="BIGINT"/>
