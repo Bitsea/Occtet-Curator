@@ -31,5 +31,9 @@ if [ -d "/cacerts" ]; then
     done
 fi
 
+ACTIVE_PROFILE=${SPRING_PROFILES_ACTIVE:-live}
+
 echo "Starting Spring Boot..."
-exec java -Dspring.profiles.active=live -jar /app.jar
+echo "Active Profile: $ACTIVE_PROFILE"
+
+exec java -Dspring.profiles.active="$ACTIVE_PROFILE" -jar /app.jar
