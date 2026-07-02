@@ -102,8 +102,7 @@ public class ProjectDetailView extends StandardDetailView<Project> {
 
     private static final Logger log = LogManager.getLogger(ProjectDetailView.class);
     List<Project> projects = new ArrayList<>();
-    @Autowired
-    private DataManager dataManager;
+
 
     @Subscribe
     protected void onInit(InitEvent event) {

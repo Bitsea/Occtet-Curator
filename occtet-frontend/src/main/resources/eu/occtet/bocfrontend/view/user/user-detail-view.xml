@@ -53,7 +53,10 @@
             <textField id="emailField" property="email"/>
             <comboBox id="timeZoneField" property="timeZoneId" clearButtonVisible="true"/>
             <checkbox id="activeField" property="active"/>
-            <comboBox id="organization" property="organization"/>
+            <comboBox id="organizationJmixComboBox"
+                      property="organization"
+                      label="msg://eu.occtet.bocfrontend.view.organization/organizationName"
+                      required="true" dataContainer="userDc"/>
         </formLayout>
         <hbox id="detailActions">
             <button id="saveAndCloseButton" action="saveAction"/>

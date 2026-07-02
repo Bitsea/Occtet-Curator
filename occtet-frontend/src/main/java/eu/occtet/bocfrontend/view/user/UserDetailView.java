@@ -62,25 +62,21 @@ public class UserDetailView extends StandardDetailView<User> {
     private EntityStates entityStates;
     @Autowired
     private PasswordEncoder passwordEncoder;
-    @Autowired
-    private JmixComboBox<Organization> organization;
+    @ViewComponent
+    private JmixComboBox<Organization> organizationJmixComboBox;
     @Autowired
     private OrganizationRepository organizationRepository;
 
-    @Subscribe
-    public void onInit(final InitEvent event) {
-        organization.setItems(organizationRepository.findAll());
-        if(this.getEditedEntity().getOrganization()!= null){
-            organization.setValue(this.getEditedEntity().getOrganization());
-        }
-        timeZoneField.setItems(List.of(TimeZone.getAvailableIDs()));
-    }
 
     @Subscribe
     public void onInitEntity(final InitEntityEvent<User> event) {
         usernameField.setReadOnly(false);
         passwordField.setVisible(true);
         confirmPasswordField.setVisible(true);
+
+        organizationJmixComboBox.setItems(organizationRepository.findAll());
+
+        timeZoneField.setItems(List.of(TimeZone.getAvailableIDs()));
     }
 
     @Subscribe
@@ -88,6 +84,11 @@ public class UserDetailView extends StandardDetailView<User> {
         if (entityStates.isNew(getEditedEntity())) {
             usernameField.focus();
         }
+        if(this.getEditedEntity().getOrganization()!= null){
+            organizationJmixComboBox.setValue(this.getEditedEntity().getOrganization());
+        }
+
+        organizationJmixComboBox.setItemLabelGenerator(Organization::getOrganizationName);
     }
 
     @Subscribe

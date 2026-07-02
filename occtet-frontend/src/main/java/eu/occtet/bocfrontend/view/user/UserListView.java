@@ -30,4 +30,6 @@ import io.jmix.flowui.view.*;
 @LookupComponent("usersDataGrid")
 @DialogMode(width = "64em")
 public class UserListView extends StandardListView<User> {
+
+
 }
