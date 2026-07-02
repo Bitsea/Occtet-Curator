@@ -19,5 +19,5 @@ WORKDIR /app
 # Kopiere das JAR-File ins Image
 COPY target/*.jar app.jar
 
-# Starte die Spring Boot Anwendung
-ENTRYPOINT ["java", "-Dspring.profiles.active=live","-jar", "app.jar"]
+# Starte die Spring Boot Anwendung, automatically using the profile defined in the .env file or fallback
+ENTRYPOINT ["java", "-jar", "app.jar"]

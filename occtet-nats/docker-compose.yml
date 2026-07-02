@@ -3,7 +3,8 @@
 # ORDER: db | nats -> Frontend -> Backend-microservices
 
 x-common-env: &common-env
-  SPRING_PROFILES_ACTIVE: live
+  #fallback profile is live if not set in .env file
+  SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-live}
   DB_URL: ${DB_URL}
   DB_USERNAME: ${DB_USERNAME}
   DB_PASSWORD: ${DB_PASSWORD}
