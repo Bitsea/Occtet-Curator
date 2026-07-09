@@ -1,0 +1,38 @@
+name: AppSecAI Security Analysis
+
+on:
+  workflow_dispatch:
+
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  OPENGREP_VERSION: 'v1.16.1'
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    env:
+      PROCESSING_MODE: group_cc
+      AUTO_CREATE_PRS: 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download OpenGrep
+        run: |
+          curl -sL "https://github.com/opengrep/opengrep/releases/download/${OPENGREP_VERSION}/opengrep_manylinux_x86" -o opengrep
+          chmod +x opengrep
+
+      - name: Run OpenGrep
+        run: |
+          ./opengrep scan --sarif --sarif-output=opengrep-results.sarif --config auto . || true
+
+      - name: AppSecAI Vulnerability Analysis
+        uses: AppSecureAI/automation-action@v1
+        with:
+          file: opengrep-results.sarif
