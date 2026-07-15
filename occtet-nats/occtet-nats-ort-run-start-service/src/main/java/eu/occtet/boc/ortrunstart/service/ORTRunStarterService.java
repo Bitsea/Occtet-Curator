@@ -142,6 +142,7 @@ public class ORTRunStarterService {
                 log.debug("Organization {} not found, creating it", orgaName);
                 PostOrganization po = new PostOrganization();
                 po.setName(orgaName);
+                po.setDescription("");
                 orga = organizationsApi.postOrganization(po);
             } else {
                 log.debug("Organization {} found", orgaName);
