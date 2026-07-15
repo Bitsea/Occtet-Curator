@@ -142,7 +142,7 @@ public class ProcessOrtRunTask  {
     private ApiClient getApiClient() {
         try {
             OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl(), cacertPath, ortProperties.tokenUrl(), ortProperties.clientId());
-            AuthService authService = new AuthService(ortProperties.tokenUrl(), cacertPath);
+            AuthService authService = new AuthService(ortProperties.tokenUrl(), cacertPath, ortProperties.clientSecret());
             log.info("connection with ORT on {}", ortProperties.baseUrl());
             log.info("connection URL {}", ortProperties.tokenUrl());
             TokenResponse tokenResponse = null;

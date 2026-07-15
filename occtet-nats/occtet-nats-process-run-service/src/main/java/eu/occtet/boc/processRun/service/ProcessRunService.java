@@ -97,7 +97,7 @@ public class ProcessRunService {
         log.debug("Start processing run with id {}", runId);
 
         OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl(), cacertPath, ortProperties.tokenUrl(), ortProperties.clientId());
-        AuthService authService = new AuthService(ortProperties.tokenUrl(), cacertPath);
+        AuthService authService = new AuthService(ortProperties.tokenUrl(), cacertPath, ortProperties.clientSecret());
 
         TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
