@@ -26,17 +26,16 @@
             <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} -%kvp- %msg%n</pattern>
         </encoder>
     </appender>
-    <property resource="application-common-live.properties" />
-    <appender name="DB" class="ch.qos.logback.classic.db.DBAppender">
-        <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
-            <driverClass>org.postgresql.Driver</driverClass>
-            <url>${spring.datasource.url}</url>
-            <user>${spring.datasource.username}</user>
-            <password>${spring.datasource.password}</password>
-        </connectionSource>
-    </appender>
-
     <springProfile name="live">
+        <property resource="application-common-live.properties" />
+        <appender name="DB" class="ch.qos.logback.classic.db.DBAppender">
+            <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+                <driverClass>org.postgresql.Driver</driverClass>
+                <url>${spring.datasource.url}</url>
+                <user>${spring.datasource.username}</user>
+                <password>${spring.datasource.password}</password>
+            </connectionSource>
+        </appender>
         <root level="error">
             <appender-ref ref="DB" />
             <appender-ref ref="STDOUT" />
