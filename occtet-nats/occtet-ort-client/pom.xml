@@ -29,7 +29,7 @@
     </parent>
 
     <artifactId>occtet-ort-client</artifactId>
-    <version>${ort-client-version}</version>
+    <version>0.3.4-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
