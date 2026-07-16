@@ -60,32 +60,36 @@ public class MainView extends StandardMainView {
         User sessionUser = (User) currentAuthentication.getUser();
         log.info("Checking organization assignment for user: {} is admin: {}", sessionUser.getUsername(), userService.isAdmin());
         if (sessionUser.getOrganization() == null) {
-            User freshDbUser = dataManager.load(User.class)
+            dataManager.load(User.class)
                     .id(sessionUser.getId())
-                    .one();
-            if (freshDbUser.getOrganization() != null) {
-                sessionUser.setOrganization(freshDbUser.getOrganization());
-                notifications.create(messages.getMessage("mainView.organizationAssigned"))
-                        .withType(Notifications.Type.SUCCESS)
-                        .withPosition(Notification.Position.TOP_CENTER)
-                        .withDuration(3000)
-                        .show();
-                UI.getCurrent().getPage().reload();
-            }
+                    .optional()
+                    .ifPresent(freshDbUser -> {
+                        if (freshDbUser.getOrganization() != null) {
+                            sessionUser.setOrganization(freshDbUser.getOrganization());
+                            notifications.create(messages.getMessage("mainView.organizationAssigned"))
+                                    .withType(Notifications.Type.SUCCESS)
+                                    .withPosition(Notification.Position.TOP_CENTER)
+                                    .withDuration(3000)
+                                    .show();
+                            UI.getCurrent().getPage().reload();
+                        }
+                    });
         } else if (sessionUser.getOrganization() != null && !userService.isAdmin()) {
-            User freshDbUser = dataManager.load(User.class)
+            dataManager.load(User.class)
                     .id(sessionUser.getId())
-                    .one();
-            if (freshDbUser.getOrganization() == null) {
-                notifications.create(messages.formatMessage("mainView.organizationRemoved",
-                                sessionUser.getOrganization().getOrganizationName()))
-                        .withType(Notifications.Type.SUCCESS)
-                        .withPosition(Notification.Position.TOP_CENTER)
-                        .withDuration(3000)
-                        .show();
-                sessionUser.setOrganization(null);
-                UI.getCurrent().getPage().reload();
-            }
+                    .optional()
+                    .ifPresent(freshDbUser -> {
+                        if (freshDbUser.getOrganization() == null) {
+                            notifications.create(messages.formatMessage("mainView.organizationRemoved",
+                                            sessionUser.getOrganization().getOrganizationName()))
+                                    .withType(Notifications.Type.SUCCESS)
+                                    .withPosition(Notification.Position.TOP_CENTER)
+                                    .withDuration(3000)
+                                    .show();
+                            sessionUser.setOrganization(null);
+                            UI.getCurrent().getPage().reload();
+                        }
+                    });
         }
     }
 }
