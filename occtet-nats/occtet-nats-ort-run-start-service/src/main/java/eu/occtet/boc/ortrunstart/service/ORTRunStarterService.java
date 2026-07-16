@@ -77,7 +77,7 @@ public class ORTRunStarterService {
         AuthService authService = new AuthService(ortProperties.tokenUrl(), cacertPath, ortProperties.clientSecret());
         log.info("authcall on keycloak with clientId {} username {} password {}", ortProperties.clientId(), ortProperties.username(), ortProperties.password().substring(0,2)+"..." );
 
-        TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
+        TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "openid");
         // DEBUG - decode JWT payload to inspect claims
         if (tokenResponse.accessToken != null) {
             String[] parts = tokenResponse.accessToken.split("\\.");
