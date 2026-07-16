@@ -78,6 +78,18 @@ public class ORTRunStarterService {
         log.info("authcall on keycloak with clientId {} username {} password {}", ortProperties.clientId(), ortProperties.username(), ortProperties.password().substring(0,2)+"..." );
 
         TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
+        // DEBUG - decode JWT payload to inspect claims
+        if (tokenResponse.accessToken != null) {
+            String[] parts = tokenResponse.accessToken.split("\\.");
+            if (parts.length >= 2) {
+                String payload = new String(java.util.Base64.getUrlDecoder().decode(
+                    parts[1].length() % 4 == 0 ? parts[1] : parts[1] + "=".repeat(4 - parts[1].length() % 4)
+                ));
+                log.info("DEBUG JWT payload: {}", payload);
+            }
+        } else {
+            log.warn("DEBUG accessToken is NULL in TokenResponse");
+        }
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
 
         // how to access organizations api
