@@ -11145,6 +11145,10 @@
             }, {
               "$ref" : "#/components/schemas/UserDisplayName"
             } ]
+          },
+          "ortServerVersion" : {
+            "type" : [ "null", "string" ],
+            "title" : "String"
           }
         },
         "required" : [ "createdAt", "id", "index", "jobs", "labels", "organizationId", "productId", "repositoryId", "revision", "status" ],
