@@ -99,7 +99,7 @@ public class ProcessRunService {
         OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl(), cacertPath, ortProperties.tokenUrl(), ortProperties.clientId());
         AuthService authService = new AuthService(ortProperties.tokenUrl(), cacertPath, ortProperties.clientSecret());
 
-        TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
+        TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "openid");
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
 
         RunsApi runsApi = new RunsApi(apiClient);

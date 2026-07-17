@@ -147,7 +147,7 @@ public class ProcessOrtRunTask  {
             log.info("connection URL {}", ortProperties.tokenUrl());
             TokenResponse tokenResponse = null;
 
-            tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
+            tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "openid");
 
 
             return ortClientService.createApiClient(tokenResponse);
