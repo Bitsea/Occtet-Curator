@@ -67,7 +67,7 @@ dependencies {
     // and install the nats-common library into your local maven repository using 'mvn install' as explained
     // in the README of the occtet-nats project
     implementation 'eu.occtet.boc:occtet-common:0.3.18-SNAPSHOT'
-    implementation 'eu.occtet.boc:occtet-ort-client:0.3.3-SNAPSHOT'
+    implementation 'eu.occtet.boc:occtet-ort-client:0.3.4-SNAPSHOT'
 
     implementation("org.cyclonedx:cyclonedx-core-java:12.2.0")
 

@@ -20,10 +20,7 @@
 package eu.occtet.bocfrontend.service;
 
 import eu.occtet.bocfrontend.entity.*;
-import eu.occtet.bocfrontend.factory.InventoryItemFactory;
-import eu.occtet.bocfrontend.factory.LicenseFactory;
-import eu.occtet.bocfrontend.factory.ProjectFactory;
-import eu.occtet.bocfrontend.factory.SoftwareComponentFactory;
+import eu.occtet.bocfrontend.factory.*;
 import eu.occtet.bocfrontend.test_support.AuthenticatedAsAdmin;
 import io.jmix.chartsflowui.kit.component.model.series.mark.MarkLine;
 import io.jmix.core.DataManager;
@@ -58,12 +55,12 @@ public class SoftwareVexComponentServiceTest {
     @Autowired
     private ProjectFactory projectFactory;
     @Autowired
-    private LicenseFactory licenseFactory;
+    private UsageLicenseFactory licenseFactory;
     @Autowired
     private DataManager dataManager;
 
     Project project;
-    License license;
+    SoftwareComponentLicenseUsage license;
     InventoryItem item1;
     InventoryItem item2;
     SoftwareComponent softwareComponent1;
@@ -73,9 +70,8 @@ public class SoftwareVexComponentServiceTest {
     @BeforeEach
     void setUp() {
         project = projectFactory.create("SoftwareComponentServiceTestProject", dataManager.create(Organization.class));
-        license = licenseFactory.create("SoftwareComponentServiceTestLicenseType",
-                "SoftwareComponentServiceTestLicenseText","SoftwareComponentServiceTestLicenseName");
-        List<License> licenses = new ArrayList<>(List.of(license));
+        license = licenseFactory.create("TestText", false,false);
+        List<SoftwareComponentLicenseUsage> licenses = new ArrayList<>(List.of(license));
         softwareComponent1 = softwareComponentFactory.create("SoftwareComponentServiceTestSc1", "1.0",
                 "",true,licenses);
         softwareComponent2 = softwareComponentFactory.create("SoftwareComponentServiceTestSc2", "2.0",

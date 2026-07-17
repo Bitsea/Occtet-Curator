@@ -79,12 +79,12 @@ public class ProcessOrtRunTask  {
                 if (!pagedSearch.getData().isEmpty()) {
                     log.debug("Got {} finished runs", pagedSearch.getData().size());
 
-                    sendRuns(pagedSearch, 1234L);//organization.getId());
+                    sendRuns(pagedSearch);
                 } else log.debug("No finished runs found");
 
                 if (!pagedSearchWithIssues.getData().isEmpty()) {
-                    log.debug("Got {} finished_with_issues runs", pagedSearch.getData().size());
-                    sendRuns(pagedSearchWithIssues, 1234L);
+                    log.debug("Got {} finished_with_issues runs", pagedSearchWithIssues.getData().size());
+                    sendRuns(pagedSearchWithIssues);
                 } else log.debug("No finished_with_issues runs found");
             } catch (Exception e) {
                 log.error("ORT API not reachable, could not fetch runs", e);
@@ -120,9 +120,9 @@ public class ProcessOrtRunTask  {
 
     }
 
-    private void sendRuns(PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch, Long orgaId){
+    private void sendRuns(PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch){
         OrtRunSummary ortRunSummary = pagedSearch.getData().getFirst();
-        if (ortRunSummary != null && !processedRuns.contains(ortRunSummary.getId()) && ortRunSummary.getOrganizationId().equals(orgaId)) {
+        if (ortRunSummary != null && !processedRuns.contains(ortRunSummary.getId())) {
             Long summaryId = ortRunSummary.getId();
             processedRuns.add(summaryId);
             log.info("Found new finished ORT run with id {}", summaryId);
@@ -163,9 +163,9 @@ public class ProcessOrtRunTask  {
     public void updateProcessedRuns(){
 
         if(!processedRuns.isEmpty()) {
-            //delete alle runs from list, just not the recent one, so it will not processed over and over again
+            //delete all runs from list, just not the recent one, so it will not processed over and over again
             processedRuns.subList(0, processedRuns.size() - 1).clear();
-            log.debug("controll run {}, cleared processedRuns list, now size is {}", processedRuns.getFirst(), processedRuns.size());
+            log.debug("control run {}, cleared processedRuns list, now size is {}", processedRuns.getFirst(), processedRuns.size());
         }
     }
 
