@@ -107,7 +107,7 @@ jobs:
       - name: Build with Gradle
         run: |
           cd occtet-frontend
-          ./gradlew -Pvaadin.productionMode=true bootJar \
+          ./gradlew -Pvaadin.productionMode=true bootJar --refresh-dependencies \
             -PgithubUsername=${{ github.actor }} \
             -PgithubToken=${{ secrets.GITHUB_TOKEN }}
         env:
