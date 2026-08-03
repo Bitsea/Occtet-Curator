@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record ConfigOrtProperties (
 
     String clientId,
+    String clientSecret,
     String tokenUrl,
     String username,
     String password,

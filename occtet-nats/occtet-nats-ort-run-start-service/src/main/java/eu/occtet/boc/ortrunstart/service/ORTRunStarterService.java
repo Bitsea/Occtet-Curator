@@ -74,10 +74,22 @@ public class ORTRunStarterService {
         String orgaName= project.getOrganization().getOrganizationName();
         log.info("connection with ORT on {}, add. cacerts from {}", ortProperties.baseUrl(), cacertPath);
         OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl(), cacertPath, ortProperties.tokenUrl(), ortProperties.clientId());
-        AuthService authService = new AuthService(ortProperties.tokenUrl(), cacertPath);
+        AuthService authService = new AuthService(ortProperties.tokenUrl(), cacertPath, ortProperties.clientSecret());
         log.info("authcall on keycloak with clientId {} username {} password {}", ortProperties.clientId(), ortProperties.username(), ortProperties.password().substring(0,2)+"..." );
 
-        TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "offline_access");
+        TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "openid");
+        // DEBUG - decode JWT payload to inspect claims
+        if (tokenResponse.accessToken != null) {
+            String[] parts = tokenResponse.accessToken.split("\\.");
+            if (parts.length >= 2) {
+                String payload = new String(java.util.Base64.getUrlDecoder().decode(
+                    parts[1].length() % 4 == 0 ? parts[1] : parts[1] + "=".repeat(4 - parts[1].length() % 4)
+                ));
+                log.info("DEBUG JWT payload: {}", payload);
+            }
+        } else {
+            log.warn("DEBUG accessToken is NULL in TokenResponse");
+        }
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
 
         // how to access organizations api
@@ -142,6 +154,7 @@ public class ORTRunStarterService {
                 log.debug("Organization {} not found, creating it", orgaName);
                 PostOrganization po = new PostOrganization();
                 po.setName(orgaName);
+                po.setDescription(orgaName);
                 orga = organizationsApi.postOrganization(po);
             } else {
                 log.debug("Organization {} found", orgaName);

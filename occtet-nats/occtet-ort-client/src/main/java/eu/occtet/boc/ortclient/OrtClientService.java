@@ -43,7 +43,7 @@ public class OrtClientService {
     private String ortBaseUrl;
     private String keycloakTokenUrl;
     private String clientId;
-    private String scope="offline_access";
+    private String scope="openid";
     private String cacertPath;
 
 

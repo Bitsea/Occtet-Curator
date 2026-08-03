@@ -49,6 +49,8 @@ public class AuthService {
 
     private String cacertPath;
 
+    private String clientSecret;
+
     private static final Logger log = LogManager.getLogger(AuthService.class);
 
 
@@ -59,6 +61,11 @@ public class AuthService {
     public AuthService(@Nonnull String tokenEndpointUrl, String cacertPath) {
         this.tokenEndpointUrl = tokenEndpointUrl;
         this.cacertPath= cacertPath;
+    }
+
+    public AuthService(@Nonnull String tokenEndpointUrl, String cacertPath, String clientSecret) {
+        this(tokenEndpointUrl, cacertPath);
+        this.clientSecret = clientSecret;
     }
 
 
@@ -97,7 +104,8 @@ public class AuthService {
                 "client_id", clientId,
                 "username", username,
                 "password", password,
-                scope != null ? "scope" : null, scope
+                scope != null ? "scope" : null, scope,
+                (clientSecret != null && !clientSecret.isEmpty()) ? "client_secret" : null, clientSecret
         );
 
         HttpRequest.Builder reqBuilder = HttpRequest.newBuilder()
