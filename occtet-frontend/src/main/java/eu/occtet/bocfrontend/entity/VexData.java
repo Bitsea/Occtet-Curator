@@ -21,7 +21,9 @@ package eu.occtet.bocfrontend.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.jmix.core.DeletePolicy;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
+import io.jmix.core.entity.annotation.OnDelete;
 import io.jmix.core.metamodel.annotation.JmixEntity;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
