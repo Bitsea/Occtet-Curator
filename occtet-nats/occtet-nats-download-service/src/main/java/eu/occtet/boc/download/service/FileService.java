@@ -206,12 +206,14 @@ public class FileService {
             }
 
             // Scenario 2
-            fileEntity = filesInSpdxService.get(artifactPath);
-            if (fileEntity != null) {
+            Map.Entry<String, File> spdxEntry = findSpdxEntityEntry(artifactPath, filesInSpdxService);
+            if (spdxEntry != null) {
+                String spdxKey = spdxEntry.getKey();
+                fileEntity = spdxEntry.getValue();
 
-                log.trace("Found pre-created SPDX entity for artifact path: {} - updating with " +
+                log.trace("Found pre-created SPDX entity for artifact path: {} (matched with: {}) - updating with " +
                                 "physical path: {}",
-                        artifactPath, physicalPath);
+                        spdxKey, artifactPath, physicalPath);
                 fileEntity = fileFactory.updateFileEntity(
                         fileEntity,
                         project,
@@ -221,7 +223,7 @@ public class FileService {
                         file.isDirectory(),
                         parentEntity);
 
-                filesInSpdxService.remove(artifactPath);
+                filesInSpdxService.remove(spdxKey);
                 filesInFileService.put(physicalPath, fileEntity);
 
                 addToBatch(fileEntity, batchBuffer, batchSize);
@@ -339,5 +341,66 @@ public class FileService {
         } catch (IllegalArgumentException e) {
             return file.getName();
         }
+    }
+
+    /**
+     * Attempts to find a matching pre-created SPDX file entity for the given calculated artifact path.
+     * <p>
+     * Handles:
+     * 1. Exact match (e.g., "test.c" -> "test.c")
+     * 2. Normalized match (e.g., "./test.c", "/test.c" -> "test.c")
+     * 3. Archive-wrapper stripped match (e.g., "package-5.0.0/test.c" -> "test.c" or "package-5.0.0/src/test.c" -> "src/test.c")
+     *
+     * @param artifactPath the artifact path calculated relative to the scanned directory
+     * @param filesInSpdxService map of existing SPDX entities by their recorded artifact path
+     * @return Map.Entry containing the matching SPDX key and File entity, or null if no match found
+     */
+    private Map.Entry<String, File> findSpdxEntityEntry(String artifactPath, Map<String, File> filesInSpdxService) {
+        if (filesInSpdxService == null || filesInSpdxService.isEmpty() || artifactPath == null) {
+            return null;
+        }
+
+        // 1. Direct match
+        File exact = filesInSpdxService.get(artifactPath);
+        if (exact != null) {
+            return Map.entry(artifactPath, exact);
+        }
+
+        String normalizedArtifactPath = normalizePath(artifactPath);
+
+        // 2. Normalized match & 3. Stripped wrapper match
+        Map.Entry<String, File> prefixStrippedMatch = null;
+
+        for (Map.Entry<String, File> entry : filesInSpdxService.entrySet()) {
+            String spdxPath = normalizePath(entry.getKey());
+
+            // Check normalized exact match
+            if (spdxPath.equals(normalizedArtifactPath)) {
+                return entry;
+            }
+
+            // Check stripped top-level archive wrapper (e.g. "package-5.0.0/test.c" -> "test.c")
+            int firstSlash = spdxPath.indexOf('/');
+            if (firstSlash != -1) {
+                String strippedSpdxPath = spdxPath.substring(firstSlash + 1);
+                if (strippedSpdxPath.equals(normalizedArtifactPath)) {
+                    prefixStrippedMatch = entry;
+                }
+            }
+        }
+
+        return prefixStrippedMatch;
+    }
+
+    private String normalizePath(String path) {
+        if (path == null) return "";
+        String normalized = FilenameUtils.separatorsToUnix(path).trim();
+        while (normalized.startsWith("./")) {
+            normalized = normalized.substring(2);
+        }
+        while (normalized.startsWith("/")) {
+            normalized = normalized.substring(1);
+        }
+        return normalized;
     }
 }

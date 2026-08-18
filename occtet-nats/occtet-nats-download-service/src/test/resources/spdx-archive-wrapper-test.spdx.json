@@ -1,0 +1,121 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "2026-08-18T00:00:00Z",
+    "creators" : [ "Tool: occtet-test-generator" ],
+    "licenseListVersion" : "3.27"
+  },
+  "name" : "SPDX Archive Wrapper Stripping Test",
+  "dataLicense" : "CC0-1.0",
+  "documentNamespace" : "http://spdx.org/spdxdocs/occtet-archive-wrapper-test-001",
+  "documentDescribes" : [ "SPDXRef-Package-test-app-1.0.0" ],
+  "packages" : [
+    {
+      "SPDXID" : "SPDXRef-Package-test-app-1.0.0",
+      "name" : "test-app",
+      "versionInfo" : "1.0.0",
+      "downloadLocation" : "NONE",
+      "filesAnalyzed" : false,
+      "homepage" : "NONE",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseDeclared" : "MIT",
+      "copyrightText" : "NONE"
+    },
+    {
+      "SPDXID" : "SPDXRef-Package-lib-sample-5.0.0",
+      "name" : "lib-sample",
+      "versionInfo" : "5.0.0",
+      "downloadLocation" : "https://github.com/example/lib-sample/archive/v5.0.0.tar.gz",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE_MANAGER",
+          "referenceType" : "purl",
+          "referenceLocator" : "pkg:generic/lib-sample@5.0.0"
+        }
+      ],
+      "filesAnalyzed" : true,
+      "hasFiles" : [
+        "SPDXRef-File-test-c",
+        "SPDXRef-File-main-c",
+        "SPDXRef-File-license"
+      ],
+      "homepage" : "https://github.com/example/lib-sample",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseDeclared" : "MIT",
+      "licenseInfoFromFiles" : [ "MIT" ],
+      "copyrightText" : "Copyright (c) 2026 Sample Author",
+      "packageVerificationCode" : {
+        "packageVerificationCodeValue" : "0123456789abcdef0123456789abcdef01234567"
+      }
+    }
+  ],
+  "files" : [
+    {
+      "SPDXID" : "SPDXRef-File-test-c",
+      "fileName" : "lib-sample-5.0.0/test.c",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "MIT" ],
+      "copyrightText" : "Copyright (c) 2026 Sample Author",
+      "checksums" : [
+        {
+          "algorithm" : "SHA1",
+          "checksumValue" : "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+        }
+      ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-main-c",
+      "fileName" : "lib-sample-5.0.0/src/main.c",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "MIT" ],
+      "copyrightText" : "Copyright (c) 2026 Sample Author",
+      "checksums" : [
+        {
+          "algorithm" : "SHA1",
+          "checksumValue" : "e5cbf47a32b6e1ee74e402b4d8d1720d20ef39f8"
+        }
+      ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-license",
+      "fileName" : "./lib-sample-5.0.0/LICENSE",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "MIT" ],
+      "copyrightText" : "Copyright (c) 2026 Sample Author",
+      "checksums" : [
+        {
+          "algorithm" : "SHA1",
+          "checksumValue" : "2b88831d3d63b27b9c9f0b5d12224177d54a5ef8"
+        }
+      ]
+    }
+  ],
+  "relationships" : [
+    {
+      "spdxElementId" : "SPDXRef-DOCUMENT",
+      "relationshipType" : "DESCRIBES",
+      "relatedSpdxElement" : "SPDXRef-Package-test-app-1.0.0"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-test-app-1.0.0",
+      "relationshipType" : "DEPENDS_ON",
+      "relatedSpdxElement" : "SPDXRef-Package-lib-sample-5.0.0"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-lib-sample-5.0.0",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-test-c"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-lib-sample-5.0.0",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-main-c"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-lib-sample-5.0.0",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-license"
+    }
+  ]
+}
