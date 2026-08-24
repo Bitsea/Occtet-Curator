@@ -20,6 +20,7 @@
 package eu.occtet.boc.spdx.service;
 
 import eu.occtet.boc.dao.AppConfigurationRepository;
+import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.Copyright;
@@ -41,7 +42,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Service
@@ -53,6 +56,8 @@ public class CleanUpService {
     private AppConfigurationRepository appConfigurationRepository;
     @Autowired
     private ProjectRepository projectRepository;
+    @Autowired
+    private CopyrightRepository copyrightRepository;
 
     private static final Logger log = LoggerFactory.getLogger(CleanUpService.class);
 
@@ -75,21 +80,33 @@ public class CleanUpService {
         deleteProjectDirectory(projectDir);
         log.debug("Cleaning up directory {}", projectDir);
 
+        // Unlink files from project in memory
         project.removeFiles();
         projectRepository.save(project);
 
         List<File> filesToDelete = fileRepository.findAllByProject(project);
 
+        Set<Copyright> modifiedCopyrights = new HashSet<>();
         for (File file : filesToDelete) {
+            // Skip any transient files without a primary key
+            if (file.getId() == null) continue;
+
             for (Copyright copyright : file.getCopyrights()) {
-                copyright.getFiles().remove(file);
+                copyright.getFiles().removeIf(f -> f == null || f.getId() == null || f.getId().equals(file.getId()));
+                modifiedCopyrights.add(copyright);
             }
             file.getCopyrights().clear();
         }
 
-        fileRepository.deleteAllByProject(project);
+        if (!modifiedCopyrights.isEmpty()) {
+            copyrightRepository.saveAll(modifiedCopyrights);
+        }
+
+        // Direct JPQL bulk delete without loading transient entities into UnitOfWork
+        fileRepository.deleteByProjectBulk(project);
 
         entityManager.flush();
+        entityManager.clear();
     }
 
     private void deleteProjectDirectory(Path projectRoot) {

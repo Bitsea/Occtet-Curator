@@ -31,13 +31,17 @@ public class FileFactory {
     private static final Logger log = LoggerFactory.getLogger(FileFactory.class);
 
     public File create(String artifactPath, String fileName, Project project, InventoryItem inventoryItem) {
-        log.debug("Creating file with name {} for project {} for inventory item {}", fileName,
-                project.getProjectName(), inventoryItem.getInventoryName());
-        return new File(
+//        log.debug("Creating file with name {} for project {} for inventory item {}", fileName,
+//                project.getProjectName(), inventoryItem.getInventoryName());
+        File file = new File(
                 artifactPath,
                 project,
                 fileName,
                 inventoryItem);
+        // projectPath is non-nullable; use artifactPath as a placeholder until
+        // the download service fills in the correct value via updateFileEntity().
+        file.setProjectPath(artifactPath);
+        return file;
     }
 
 

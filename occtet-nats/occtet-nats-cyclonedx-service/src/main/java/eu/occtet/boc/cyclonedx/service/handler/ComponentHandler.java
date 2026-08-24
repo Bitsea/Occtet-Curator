@@ -112,7 +112,7 @@ public class ComponentHandler {
                 if (percent % 5 == 0 && progressCallback!= null) progressCallback.accept(percent);
             }
 
-        handleDependencies(bom, inventoryItemsToSave, mainParent);
+        handleDependencies(bom, inventoryItemsToSave);
 
         log.debug("saving all entities creating of sbom");
 
@@ -181,7 +181,7 @@ public class ComponentHandler {
         return component.getScope() != null && "excluded".equals(component.getScope().getScopeName());
     }
 
-    private void handleDependencies(Bom bom, Set<InventoryItem> inventoryItemsToSave, InventoryItem mainParent){
+    private void handleDependencies(Bom bom, Set<InventoryItem> inventoryItemsToSave){
         //solve dependency tree
         if (bom.getDependencies() != null && !bom.getDependencies().isEmpty()) {
             log.debug("Resolving dependency graph for {} entries", bom.getDependencies().size());

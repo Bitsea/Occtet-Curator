@@ -89,38 +89,41 @@ public class DownloadManager extends BaseWorkDataProcessor {
                     .orElseThrow(() -> new RuntimeException("InventoryItem with id " + data.getInventoryItemId() + " not found"));
             SoftwareComponent softwareComponent = inventoryItem.getSoftwareComponent();
             if (softwareComponent == null) throw new RuntimeException("SoftwareComponent for InventoryItem with id " + data.getInventoryItemId() + " not found");
-
+            log.debug("processing inventoryItem {}", inventoryItem.getInventoryName());
             boolean isMainPkg = Boolean.TRUE.equals(data.getIsMainPackage());
 
             // calc base project path (e.g., /data/Project_101)
             projectBaseDir = calculateTargetPath(baseResolvedPath, project.getProjectName(), project.getId());
-
             // Structure: [project] / [dependencies?] / [component_name] / [version]
-            Path workingPath = projectBaseDir;
 
-            if (!isMainPkg) {
-                log.debug("Resolving dependencies folder for item {}", data.getInventoryItemId());
-                workingPath = workingPath.resolve(FileConstants.DEPENDENCIES_FOLDER_NAME);
+            if (isMainPkg) {
+                log.debug("InventoryItem {} is marked as main package, using project base directory for download", inventoryItem.getInventoryName());
+                finalComponentDir = projectBaseDir;
+            } else {
+                log.debug("InventoryItem {} is marked as dependency, using dependencies folder for download", inventoryItem.getInventoryName());
+                Path workingPath = projectBaseDir.resolve(FileConstants.DEPENDENCIES_FOLDER_NAME);
+
+                String canonicalName = resolveCanonicalDirectoryName(softwareComponent);
+                String safeSoftwareComponentName = sanitizeFilename(canonicalName, "unknown_component_" + data.getInventoryItemId());
+                String safeComponentVersion = sanitizeFilename(softwareComponent.getVersion(), "unknown_version");
+
+                finalComponentDir = workingPath.resolve(safeSoftwareComponentName).resolve(safeComponentVersion);
             }
-            String canonicalName = resolveCanonicalDirectoryName(softwareComponent);
-            String safeSoftwareComponentName = sanitizeFilename(canonicalName, "unknown_component_" + data.getInventoryItemId());
 
-            String safeComponentVersion = sanitizeFilename(softwareComponent.getVersion(), "unknown_version");
-
-            finalComponentDir = workingPath.resolve(safeSoftwareComponentName).resolve(safeComponentVersion);
-
-            // Process download
             // Attempt using downloadLocation
-            if (softwareComponent.getDetailsUrl() != null) {
+            if (softwareComponent.getDetailsUrl() != null && !softwareComponent.getDetailsUrl().isBlank()) {
+                log.debug("Attempting dowload for url: {} and version: {}", softwareComponent.getDetailsUrl(), softwareComponent.getVersion());
                 try {
-                    URL durl = new URI(softwareComponent.getDetailsUrl()).toURL();
+                    String rawUrl = softwareComponent.getDetailsUrl().trim();
+                    String cleanUrl = rawUrl.startsWith("git+") ? rawUrl.substring(4) : rawUrl;
+                    URL durl = new URI(cleanUrl).toURL();
                     log.debug("url: {}", durl);
 
                     List<DownloadStrategy> candidates = downloadStrategyFactory.findForUrl(durl, softwareComponent.getVersion());
-
+                    log.debug("are there strategies? {}", candidates.size());
                     for (DownloadStrategy strategy : candidates) {
                         try {
-                            log.info("Attempting download via URL using {}", strategy.getClass().getSimpleName());
+                            log.debug("Attempting download via URL using {}", strategy.getClass().getSimpleName());
                             downloadedPath = strategy.download(durl, softwareComponent.getVersion(), finalComponentDir);
 
                             if (downloadedPath != null) {
@@ -137,6 +140,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
             }
             // Attempt using PURL
             if (softwareComponent.getPurl() != null && downloadedPath == null){
+                log.debug("purl not null, but donwloadpath");
                 try {
                     PackageURL purl = new PackageURL(softwareComponent.getPurl());
                     List<DownloadStrategy> candidates = downloadStrategyFactory.findForPurl(purl);
@@ -156,6 +160,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
             }
             // Attempt using name/version
             if (softwareComponent.getName() != null && downloadedPath == null){
+                log.debug("download via name/version");
                 try {
                     List<DownloadStrategy> candidates = downloadStrategyFactory.findForName(softwareComponent.getName(), softwareComponent.getVersion());
 
@@ -175,7 +180,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
             }
 
             if (downloadedPath == null){
-                log.error("All download strategies failed for item {}", data.getInventoryItemId());
+                log.error("All download strategies failed for item {}", inventoryItem.getInventoryName());
                 String updatedNotes = inventoryItem.getExternalNotes();
                 updatedNotes += ExternalNotesConstants.SECTION_SEPARATOR +
                         ExternalNotesConstants.WARNING_AUDITOR_ATTENTION_REQ + 
@@ -185,7 +190,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
                 inventoryItem.setExternalNotes(updatedNotes);
                 inventoryItem.setHasTodos(true);
                 inventoryItemRepository.save(inventoryItem);
-                log.debug("InventoryItem '{}' audit notes updated with WARNING message: {}", inventoryItem.getId(),
+                log.debug("InventoryItem '{}' audit notes updated with WARNING message: {}", inventoryItem.getInventoryName(),
                         updatedNotes);
                 return false;
             }
@@ -205,7 +210,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
             log.error("Process failed: {}", e.getMessage());
             return false;
         } finally {
-            if (downloadedPath != null) {
+            if (downloadedPath != null && Files.isRegularFile(downloadedPath)) {
                 log.debug("Cleaning up, deleting the source archive: {}", downloadedPath.getFileName());
                 try {
                     Files.deleteIfExists(downloadedPath);

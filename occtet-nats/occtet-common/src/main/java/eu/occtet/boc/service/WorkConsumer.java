@@ -34,63 +34,65 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-
 public abstract class WorkConsumer implements InformativeService {
 
     private static final Logger log = LoggerFactory.getLogger(WorkConsumer.class);
 
     protected WorkerStatus workerStatus = WorkerStatus.INIT;
-    protected int progressPercent=0;
-    protected String statusDetails="";
+    protected int progressPercent = 0;
+    protected String statusDetails = "";
 
     protected Connection natsConnection;
 
-    private boolean poisonPill=false;
+    private boolean poisonPill = false;
 
-    public void startHandlingMessages(Connection natsConnection, String myServiceName, String streamName, String workSubject) throws IOException, JetStreamApiException {
+    public void startHandlingMessages(Connection natsConnection, String myServiceName, String streamName,
+            String workSubject) throws IOException, JetStreamApiException {
         this.natsConnection = natsConnection;
         JetStream js = natsConnection.jetStream();
         StreamContext streamContext = js.getStreamContext(streamName);
         ConsumerConfiguration config = ConsumerConfiguration.builder()
-                .durable(myServiceName+"-consumer")
-                .deliverGroup(myServiceName+"-group")
+                .durable(myServiceName + "-consumer")
+                .deliverGroup(myServiceName + "-group")
                 .ackPolicy(AckPolicy.Explicit)
+                .ackWait(java.time.Duration.ofMinutes(10))
                 .filterSubject(workSubject)
                 .build();
         ConsumerContext consumerContext = streamContext.createOrUpdateConsumer(config);
-        workerStatus= WorkerStatus.IDLE;
+        workerStatus = WorkerStatus.IDLE;
 
         log.debug("startHandlingMessages called, listening on stream {} for subject {}", streamName, workSubject);
 
-        while(natsConnection.getStatus() != Connection.Status.CLOSED) {
+        while (natsConnection.getStatus() != Connection.Status.CLOSED) {
             try (FetchConsumer fetchConsumer = consumerContext.fetchMessages(1)) {
-                Message msg= fetchConsumer.nextMessage();
+                Message msg = fetchConsumer.nextMessage();
                 if (msg != null) {
                     log.debug("received message on subject... {}", msg.getSubject());
 
-                    workerStatus=WorkerStatus.WORKING;
+                    workerStatus = WorkerStatus.WORKING;
                     handleMessage(msg);
 
                     msg.ack();
                 }
             } catch (Exception e) {
                 log.warn("error handling message: {}", e.getMessage());
-            }
-            finally {
-                workerStatus=WorkerStatus.IDLE;
+            } finally {
+                workerStatus = WorkerStatus.IDLE;
             }
             // if someone wants us to stop, we stop
-            if(poisonPill) return;
+            if (poisonPill)
+                return;
         }
     }
 
     public void terminate() {
         log.debug("shutting down WorkConsumer");
-        poisonPill=true;
+        poisonPill = true;
     }
 
     /**
      * Implement this method to handle incoming messages
+     * 
      * @param msg
      */
     protected abstract void handleMessage(Message msg);
@@ -108,9 +110,11 @@ public abstract class WorkConsumer implements InformativeService {
         notifyProgress(taskId, taskName, WorkTaskStatus.ERROR, progressPercent, details);
     }
 
-    protected void notifyProgress(String taskId, String taskName, WorkTaskStatus status, int progressPercent, String details) {
+    protected void notifyProgress(String taskId, String taskName, WorkTaskStatus status, int progressPercent,
+            String details) {
         this.progressPercent = progressPercent;
-        ProgressSystemMessage progressSystemMessage = new ProgressSystemMessage(taskId, taskName, status, progressPercent, details);
+        ProgressSystemMessage progressSystemMessage = new ProgressSystemMessage(taskId, taskName, status,
+                progressPercent, details);
         String message = null;
         try {
             message = (new ObjectMapper()).writerFor(ProgressSystemMessage.class)
@@ -121,8 +125,6 @@ public abstract class WorkConsumer implements InformativeService {
         log.debug("notifying progress: taskId {} has now progress {}", taskId, progressPercent);
         natsConnection.publish("system", message.getBytes(StandardCharsets.UTF_8));
     }
-
-
 
     @Override
     public WorkerStatus getWorkerStatus() {
