@@ -304,11 +304,15 @@ public class File {
         }
     }
 
+    // IMPORTANT for synchronisation
     public void addInventoryItem(InventoryItem item) {
-        if (this.inventoryItems == null) {
-            this.inventoryItems = new HashSet<>();
-        }
         this.inventoryItems.add(item);
+        item.getFiles().add(this); //synchronisation of in-memory of inventoryItem and file
+    }
+
+    public void removeInventoryItem(InventoryItem item) {
+        this.inventoryItems.remove(item);
+        item.getFiles().remove(this);
     }
 
     public String getLine() {

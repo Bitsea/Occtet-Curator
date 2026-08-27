@@ -48,6 +48,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 public class DownloadManager extends BaseWorkDataProcessor {
@@ -68,156 +69,194 @@ public class DownloadManager extends BaseWorkDataProcessor {
     @Override
     @Transactional
     public boolean process(DownloadServiceWorkData data) {
-        log.info("Starting download process");
+        log.info("Starting download process for project ID {}, item ID {}", data.getProjectId(), data.getInventoryItemId());
 
         Path downloadedPath = null;
-        Path projectBaseDir = null; // project root folder
-        Path finalComponentDir = null; // Component folder
-
-        try{
-            AppConfiguration globalBasePath = appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH)
-                    .orElseThrow(() -> new RuntimeException("System base path is not set in the configuration"));
-            if (globalBasePath.getValue() == null || globalBasePath.getValue().isBlank())
-                throw new RuntimeException("System base path is not set in the configuration");
-
-            Path baseResolvedPath = storagePathResolver.resolveSystemPath(globalBasePath.getValue());
-            log.debug("UI path '{}' resolved to '{}' for current profile", globalBasePath.getValue(), baseResolvedPath);
+        try {
+            Path baseResolvedPath = resolveBaseSystemPath();
 
             Project project = projectRepository.findById(data.getProjectId())
                     .orElseThrow(() -> new RuntimeException("Project with id " + data.getProjectId() + " not found"));
             InventoryItem inventoryItem = inventoryItemRepository.findById(data.getInventoryItemId())
                     .orElseThrow(() -> new RuntimeException("InventoryItem with id " + data.getInventoryItemId() + " not found"));
             SoftwareComponent softwareComponent = inventoryItem.getSoftwareComponent();
-            if (softwareComponent == null) throw new RuntimeException("SoftwareComponent for InventoryItem with id " + data.getInventoryItemId() + " not found");
-            log.debug("processing inventoryItem {}", inventoryItem.getInventoryName());
+            if (softwareComponent == null) {
+                throw new RuntimeException("SoftwareComponent for InventoryItem with id " + data.getInventoryItemId() + " not found");
+            }
+
             boolean isMainPkg = Boolean.TRUE.equals(data.getIsMainPackage());
+            Path projectBaseDir = calculateTargetPath(baseResolvedPath, project.getProjectName(), project.getId());
 
-            // calc base project path (e.g., /data/Project_101)
-            projectBaseDir = calculateTargetPath(baseResolvedPath, project.getProjectName(), project.getId());
-            // Structure: [project] / [dependencies?] / [component_name] / [version]
-
-            if (isMainPkg) {
-                log.debug("InventoryItem {} is marked as main package, using project base directory for download", inventoryItem.getInventoryName());
-                finalComponentDir = projectBaseDir;
-            } else {
-                log.debug("InventoryItem {} is marked as dependency, using dependencies folder for download", inventoryItem.getInventoryName());
-                Path workingPath = projectBaseDir.resolve(FileConstants.DEPENDENCIES_FOLDER_NAME);
-
-                String canonicalName = resolveCanonicalDirectoryName(softwareComponent);
-                String safeSoftwareComponentName = sanitizeFilename(canonicalName, "unknown_component_" + data.getInventoryItemId());
-                String safeComponentVersion = sanitizeFilename(softwareComponent.getVersion(), "unknown_version");
-
-                finalComponentDir = workingPath.resolve(safeSoftwareComponentName).resolve(safeComponentVersion);
+            // main-repo already exists, skip download and just create entities from existing files
+            if (isMainPkg && isProjectDirectoryAlreadyPopulated(projectBaseDir)) {
+                log.info("Main repository code already exists in {}. Skipping duplicate download for item {}", projectBaseDir, inventoryItem.getId());
+                fileService.createEntitiesFromPath(project, projectBaseDir, projectBaseDir.toString(), inventoryItem);
+                return true;
             }
 
-            // Attempt using downloadLocation
-            if (softwareComponent.getDetailsUrl() != null && !softwareComponent.getDetailsUrl().isBlank()) {
-                log.debug("Attempting dowload for url: {} and version: {}", softwareComponent.getDetailsUrl(), softwareComponent.getVersion());
-                try {
-                    String rawUrl = softwareComponent.getDetailsUrl().trim();
-                    String cleanUrl = rawUrl.startsWith("git+") ? rawUrl.substring(4) : rawUrl;
-                    URL durl = new URI(cleanUrl).toURL();
-                    log.debug("url: {}", durl);
 
-                    List<DownloadStrategy> candidates = downloadStrategyFactory.findForUrl(durl, softwareComponent.getVersion());
-                    log.debug("are there strategies? {}", candidates.size());
-                    for (DownloadStrategy strategy : candidates) {
-                        try {
-                            log.debug("Attempting download via URL using {}", strategy.getClass().getSimpleName());
-                            downloadedPath = strategy.download(durl, softwareComponent.getVersion(), finalComponentDir);
+            Path finalComponentDir = resolveTargetDirectory(data.getInventoryItemId(), softwareComponent,isMainPkg, projectBaseDir);
 
-                            if (downloadedPath != null) {
-                                break;
-                            }
-                        } catch (Exception e) {
-                            log.warn("Strategy {} failed to download. Trying next strategy... Error: {}",
-                                    strategy.getClass().getSimpleName(), e.getMessage());
-                        }
-                    }
-                } catch (Exception e) {
-                    log.warn("Critical error resolving URL strategies: {}", e.getMessage());
-                }
-            }
-            // Attempt using PURL
-            if (softwareComponent.getPurl() != null && downloadedPath == null){
-                log.debug("purl not null, but donwloadpath");
-                try {
-                    PackageURL purl = new PackageURL(softwareComponent.getPurl());
-                    List<DownloadStrategy> candidates = downloadStrategyFactory.findForPurl(purl);
+            // check strategies for download
+            downloadedPath = executeDownloadStrategies( softwareComponent, finalComponentDir);
 
-                    for (DownloadStrategy strategy : candidates) {
-                        try {
-                            log.info("Attempting download via PURL using {}", strategy.getClass().getSimpleName());
-                            downloadedPath = strategy.download(purl, finalComponentDir);
-                            if (downloadedPath != null) break;
-                        } catch (Exception e) {
-                            log.warn("Strategy {} failed. Error: {}", strategy.getClass().getSimpleName(), e.getMessage());
-                        }
-                    }
-                } catch (Exception e) {
-                    log.warn("Failed to process PURL: {}", e.getMessage());
-                }
-            }
-            // Attempt using name/version
-            if (softwareComponent.getName() != null && downloadedPath == null){
-                log.debug("download via name/version");
-                try {
-                    List<DownloadStrategy> candidates = downloadStrategyFactory.findForName(softwareComponent.getName(), softwareComponent.getVersion());
-
-                    for (DownloadStrategy strategy : candidates) {
-                        try {
-                            log.info("Attempting download via Name lookup using {}", strategy.getClass().getSimpleName());
-                            downloadedPath = strategy.download(softwareComponent.getName(),
-                                    softwareComponent.getVersion(), finalComponentDir);
-                            if (downloadedPath != null) break;
-                        } catch (Exception e) {
-                            log.warn("Strategy {} failed. Error: {}", strategy.getClass().getSimpleName(), e.getMessage());
-                        }
-                    }
-                } catch (Exception e) {
-                    log.warn("Failed to process Name lookup: {}", e.getMessage());
-                }
-            }
-
-            if (downloadedPath == null){
-                log.error("All download strategies failed for item {}", inventoryItem.getInventoryName());
-                String updatedNotes = inventoryItem.getExternalNotes();
-                updatedNotes += ExternalNotesConstants.SECTION_SEPARATOR +
-                        ExternalNotesConstants.WARNING_AUDITOR_ATTENTION_REQ + 
-                        ExternalNotesConstants.DOWNLOAD_SERVICE_FAILURE_MSG +
-                        "\nAffected download URL: " + softwareComponent.getDetailsUrl() +
-                        ExternalNotesConstants.SECTION_SEPARATOR;
-                inventoryItem.setExternalNotes(updatedNotes);
-                inventoryItem.setHasTodos(true);
-                inventoryItemRepository.save(inventoryItem);
-                log.debug("InventoryItem '{}' audit notes updated with WARNING message: {}", inventoryItem.getInventoryName(),
-                        updatedNotes);
+            if (downloadedPath == null) {
+                handleDownloadFailure(inventoryItem, softwareComponent);
                 return false;
             }
 
-            if (Files.isRegularFile(downloadedPath)){
+            if (Files.isRegularFile(downloadedPath)) {
                 archiveService.unpack(downloadedPath, finalComponentDir);
             }
 
-            fileService.createEntitiesFromPath(
-                    project,
-                    finalComponentDir,
-                    projectBaseDir.toString()
-            );
-
+            fileService.createEntitiesFromPath(project, finalComponentDir, projectBaseDir.toString(), inventoryItem);
+            inventoryItemRepository.save(inventoryItem);
             return true;
+
         } catch (Exception e) {
-            log.error("Process failed: {}", e.getMessage());
+            log.error("Process failed: {}", e.getMessage(), e);
             return false;
         } finally {
-            if (downloadedPath != null && Files.isRegularFile(downloadedPath)) {
-                log.debug("Cleaning up, deleting the source archive: {}", downloadedPath.getFileName());
+            cleanupTempArchive(downloadedPath);
+        }
+    }
+
+    private Path resolveBaseSystemPath() {
+        AppConfiguration globalBasePath = appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH)
+                .orElseThrow(() -> new RuntimeException("System base path is not set in the configuration"));
+
+        if (globalBasePath.getValue() == null || globalBasePath.getValue().isBlank()) {
+            throw new RuntimeException("System base path is not set in the configuration");
+        }
+
+        Path resolved = storagePathResolver.resolveSystemPath(globalBasePath.getValue());
+        log.debug("UI path '{}' resolved to '{}'", globalBasePath.getValue(), resolved);
+        return resolved;
+    }
+
+    private Path resolveTargetDirectory(Long inventoryItemId, SoftwareComponent component, boolean isMainPkg, Path projectBaseDir) {
+        if (isMainPkg) {
+            log.debug("Using project base directory for main package download: {}", projectBaseDir);
+            return projectBaseDir;
+        }
+
+        Path workingPath = projectBaseDir.resolve(FileConstants.DEPENDENCIES_FOLDER_NAME);
+        String canonicalName = resolveCanonicalDirectoryName(component);
+        String safeComponentName = sanitizeFilename(canonicalName, "unknown_component_" + inventoryItemId);
+        String safeComponentVersion = sanitizeFilename(component.getVersion(), "unknown_version");
+
+        return workingPath.resolve(safeComponentName).resolve(safeComponentVersion);
+    }
+
+
+    private Path executeDownloadStrategies( SoftwareComponent component, Path targetDir) {
+        Path downloadedPath = tryDownloadViaUrl( component, targetDir);
+
+        if (downloadedPath == null && component.getPurl() != null) {
+            downloadedPath = tryDownloadViaPurl(component, targetDir);
+        }
+
+        if (downloadedPath == null && component.getName() != null) {
+            downloadedPath = tryDownloadViaName(component, targetDir);
+        }
+
+        return downloadedPath;
+    }
+
+    private Path tryDownloadViaUrl(SoftwareComponent component, Path targetDir) {
+        if (component.getDetailsUrl() == null || component.getDetailsUrl().isBlank()) return null;
+
+        try {
+            String rawUrl = component.getDetailsUrl().trim();
+            String cleanUrl = rawUrl.startsWith("git+") ? rawUrl.substring(4) : rawUrl;
+            URL durl = new URI(cleanUrl).toURL();
+
+            List<DownloadStrategy> candidates = downloadStrategyFactory.findForUrl(durl, component.getVersion());
+            for (DownloadStrategy strategy : candidates) {
                 try {
-                    Files.deleteIfExists(downloadedPath);
-                } catch (IOException ioe) {
-                    log.warn("Failed to delete temporary file {} after failed download: {}", downloadedPath, ioe.getMessage());
+                    log.debug("Attempting download via URL using {}", strategy.getClass().getSimpleName());
+                    Path path = strategy.download(durl, component.getVersion(), targetDir);
+                    if (path != null) return path;
+                } catch (Exception e) {
+                    log.warn("Strategy {} failed: {}", strategy.getClass().getSimpleName(), e.getMessage());
                 }
             }
+        } catch (Exception e) {
+            log.warn("Critical error resolving URL strategies: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    private Path tryDownloadViaPurl(SoftwareComponent component, Path targetDir) {
+        try {
+            PackageURL purl = new PackageURL(component.getPurl());
+            List<DownloadStrategy> candidates = downloadStrategyFactory.findForPurl(purl);
+            for (DownloadStrategy strategy : candidates) {
+                try {
+                    log.info("Attempting download via PURL using {}", strategy.getClass().getSimpleName());
+                    Path path = strategy.download(purl, targetDir);
+                    if (path != null) return path;
+                } catch (Exception e) {
+                    log.warn("Strategy {} failed: {}", strategy.getClass().getSimpleName(), e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to process PURL: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    private Path tryDownloadViaName(SoftwareComponent component, Path targetDir) {
+        try {
+            List<DownloadStrategy> candidates = downloadStrategyFactory.findForName(component.getName(), component.getVersion());
+            for (DownloadStrategy strategy : candidates) {
+                try {
+                    log.info("Attempting download via Name lookup using {}", strategy.getClass().getSimpleName());
+                    Path path = strategy.download(component.getName(), component.getVersion(), targetDir);
+                    if (path != null) return path;
+                } catch (Exception e) {
+                    log.warn("Strategy {} failed: {}", strategy.getClass().getSimpleName(), e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to process Name lookup: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    private void handleDownloadFailure(InventoryItem inventoryItem, SoftwareComponent component) {
+        log.error("All download strategies failed for item {}", inventoryItem.getInventoryName());
+
+        String existingNotes = inventoryItem.getExternalNotes() != null ? inventoryItem.getExternalNotes() : "";
+        String updatedNotes = existingNotes + ExternalNotesConstants.SECTION_SEPARATOR +
+                ExternalNotesConstants.WARNING_AUDITOR_ATTENTION_REQ +
+                ExternalNotesConstants.DOWNLOAD_SERVICE_FAILURE_MSG +
+                "\nAffected download URL: " + component.getDetailsUrl() +
+                ExternalNotesConstants.SECTION_SEPARATOR;
+
+        inventoryItem.setExternalNotes(updatedNotes);
+        inventoryItem.setHasTodos(true);
+        inventoryItemRepository.save(inventoryItem);
+    }
+
+    private void cleanupTempArchive(Path downloadedPath) {
+        if (downloadedPath != null && Files.isRegularFile(downloadedPath)) {
+            log.debug("Cleaning up temporary archive file: {}", downloadedPath.getFileName());
+            try {
+                Files.deleteIfExists(downloadedPath);
+            } catch (IOException ioe) {
+                log.warn("Failed to delete temporary file {}: {}", downloadedPath, ioe.getMessage());
+            }
+        }
+    }
+
+    private boolean isProjectDirectoryAlreadyPopulated(Path projectBaseDir) {
+        if (!Files.exists(projectBaseDir)) return false;
+        try (Stream<Path> stream = Files.list(projectBaseDir)) {
+            // ignore the dependencies folder, check if any other files or directories exist
+            return stream.anyMatch(path -> !path.getFileName().toString().equals(FileConstants.DEPENDENCIES_FOLDER_NAME));
+        } catch (IOException e) {
+            return false;
         }
     }
 
@@ -248,7 +287,6 @@ public class DownloadManager extends BaseWorkDataProcessor {
 
         String url = component.getDetailsUrl();
         if (url != null && !url.isBlank()) {
-            // https://github.com/Bitsea/-> Occtet-Curator <-
             String clean = url.trim();
             if (clean.endsWith("/")) clean = clean.substring(0, clean.length() - 1);
             if (clean.endsWith(".git")) clean = clean.substring(0, clean.length() - 4);

@@ -36,6 +36,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+import java.util.Comparator;
+
 
 /**
  * Strategy for cloning Git repositories (GitHub, GitLab, Bitbucket, self-hosted Git, etc.)
@@ -53,6 +55,10 @@ public class GitCloneStrategy implements DownloadStrategy {
         if (durl == null) return false;
         String urlString = durl.toString().toLowerCase();
         boolean canHandle = urlString.contains(".git") ||
+                urlString.contains("github.com") ||
+                urlString.contains("gitlab.com") ||
+                urlString.endsWith(".git") ||
+                urlString.startsWith("git@") ||
                 urlString.startsWith("git://") ||
                 urlString.startsWith("http://") ||
                 urlString.startsWith("https://");
@@ -79,7 +85,6 @@ public class GitCloneStrategy implements DownloadStrategy {
         String cloneUrl = rawUrl;
         String ref = version;
 
-        // If URL contains @ separator for ref/commit (e.g. https://github.com/org/repo.git@commitHash)
         if (rawUrl.contains("@") && !rawUrl.startsWith("git@") && !rawUrl.startsWith("ssh://git@")) {
             int atIndex = rawUrl.lastIndexOf('@');
             cloneUrl = rawUrl.substring(0, atIndex);
@@ -126,27 +131,28 @@ public class GitCloneStrategy implements DownloadStrategy {
         try {
             boolean cloneSuccess = false;
 
-            // 1. Try shallow clone with specific branch/tag if ref is provided
-            if (ref != null && !ref.isBlank() && !"NONE".equalsIgnoreCase(ref) && !"NOASSERTION".equalsIgnoreCase(ref)) {
-                log.info("Attempting shallow clone with branch/tag: {}", ref);
-                List<String> shallowBranchCmd = List.of("git", "clone", "--depth", "1", "--branch", ref, cloneUrl, sandboxDir.toString());
-                int exitCode = runProcess(shallowBranchCmd, null);
-                if (exitCode == 0) {
-                    cloneSuccess = true;
-                } else {
-                    log.warn("Shallow clone with --branch {} failed (might be a commit SHA). Falling back to full clone + checkout...", ref);
-                    FileSystemUtils.deleteRecursively(sandboxDir);
+            // 1. Try shallow clone with direct ref or v-prefix ref
+            if (isValidRef(ref)) {
+                for (String candidateRef : getRefCandidates(ref)) {
+                    log.info("Attempting shallow clone with branch/tag: {}", candidateRef);
+                    List<String> shallowBranchCmd = List.of("git", "clone", "--depth", "1", "--branch", candidateRef, cloneUrl, sandboxDir.toString());
+                    int exitCode = runProcess(shallowBranchCmd, null);
+                    if (exitCode == 0) {
+                        cloneSuccess = true;
+                        break;
+                    }
+                    deleteRecursivelySafe(sandboxDir);
                     Files.createDirectories(sandboxDir);
                 }
             }
 
-            // 2. If branch clone failed or no branch ref, clone with depth and checkout ref
+            // 2. Full clone fallback + checkout
             if (!cloneSuccess) {
                 log.info("Attempting clone of {}", cloneUrl);
                 List<String> cloneCmd = List.of("git", "clone", "--depth", "50", cloneUrl, sandboxDir.toString());
                 int exitCode = runProcess(cloneCmd, null);
                 if (exitCode != 0) {
-                    FileSystemUtils.deleteRecursively(sandboxDir);
+                    deleteRecursivelySafe(sandboxDir);
                     Files.createDirectories(sandboxDir);
                     List<String> fullCloneCmd = List.of("git", "clone", cloneUrl, sandboxDir.toString());
                     exitCode = runProcess(fullCloneCmd, null);
@@ -155,31 +161,41 @@ public class GitCloneStrategy implements DownloadStrategy {
                     }
                 }
 
-                if (ref != null && !ref.isBlank() && !"NONE".equalsIgnoreCase(ref) && !"NOASSERTION".equalsIgnoreCase(ref)) {
-                    log.info("Checking out ref: {}", ref);
-                    List<String> checkoutCmd = List.of("git", "checkout", ref);
-                    int checkoutExit = runProcess(checkoutCmd, sandboxDir);
-                    if (checkoutExit != 0) {
+                if (isValidRef(ref)) {
+                    boolean checkoutSuccess = false;
+                    for (String candidateRef : getRefCandidates(ref)) {
+                        log.info("Checking out ref: {}", candidateRef);
+                        List<String> checkoutCmd = List.of("git", "checkout", candidateRef);
+                        if (runProcess(checkoutCmd, sandboxDir) == 0) {
+                            checkoutSuccess = true;
+                            break;
+                        }
+                    }
+                    if (!checkoutSuccess) {
                         log.warn("Failed to checkout ref {}, using default cloned branch", ref);
                     }
                 }
             }
 
-            // 3. Remove .git folder so Git metadata is not indexed in file tree
-            Path gitDir = sandboxDir.resolve(".git");
-            if (Files.exists(gitDir)) {
-                log.debug("Removing .git metadata directory from sandbox");
-                FileSystemUtils.deleteRecursively(gitDir);
-            }
-
-            // 4. Move files from sandbox to targetDirectory
+            // 3. Move contents excluding .git folder
             moveContents(sandboxDir, targetDirectory);
             log.info("Successfully cloned and moved repository contents to {}", targetDirectory);
 
             return targetDirectory;
         } finally {
-            FileSystemUtils.deleteRecursively(sandboxDir);
+            deleteRecursivelySafe(sandboxDir);
         }
+    }
+
+    private boolean isValidRef(String ref) {
+        return ref != null && !ref.isBlank() && !"NONE".equalsIgnoreCase(ref) && !"NOASSERTION".equalsIgnoreCase(ref);
+    }
+
+    private List<String> getRefCandidates(String ref) {
+        if (ref.startsWith("v") || ref.startsWith("V")) {
+            return List.of(ref, ref.substring(1));
+        }
+        return List.of(ref, "v" + ref);
     }
 
     private void moveContents(Path source, Path target) throws IOException {
@@ -188,6 +204,10 @@ public class GitCloneStrategy implements DownloadStrategy {
         }
         try (Stream<Path> stream = Files.list(source)) {
             for (Path srcPath : stream.toList()) {
+                // Ignore .git directory during copy/move
+                if (".git".equals(srcPath.getFileName().toString())) {
+                    continue;
+                }
                 Path destinationPath = target.resolve(srcPath.getFileName());
                 if (Files.isDirectory(srcPath)) {
                     moveContents(srcPath, Files.createDirectories(destinationPath));
@@ -195,6 +215,22 @@ public class GitCloneStrategy implements DownloadStrategy {
                     Files.move(srcPath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
                 }
             }
+        }
+    }
+
+    private void deleteRecursivelySafe(Path path) {
+        if (path == null || !Files.exists(path)) return;
+        try (Stream<Path> walk = Files.walk(path)) {
+            walk.sorted(Comparator.reverseOrder()).forEach(p -> {
+                try {
+                    p.toFile().setWritable(true); // Clear read-only attribute for Windows
+                    Files.deleteIfExists(p);
+                } catch (IOException e) {
+                    log.warn("Failed to delete temp path: {}", p, e);
+                }
+            });
+        } catch (IOException e) {
+            log.warn("Failed to walk directory for deletion: {}", path, e);
         }
     }
 

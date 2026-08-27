@@ -38,6 +38,7 @@ import org.spdx.library.model.v2.license.AnyLicenseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -68,6 +69,8 @@ public class PackageHandler {
     private ProjectRepository projectRepository;
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
+    @Autowired
+    private SoftwareComponentRepository softwareComponentRepository;
 
     public void processAllPackages(SpdxImportContext context, Consumer<Integer> progressCallback) {
         SpdxDocument doc = context.getSpdxDocument();
@@ -128,6 +131,9 @@ public class PackageHandler {
             if (!inventoryItemsToSave.isEmpty()) {
                 inventoryItemRepository.saveAll(inventoryItemsToSave);
             }
+            if (!context.getComponentCache().isEmpty()) {
+                softwareComponentRepository.saveAll(context.getComponentCache().values());
+            }
 
         } catch (InvalidSPDXAnalysisException e) {
             log.error("Error retrieving SPDX object for URI: {}", e.getMessage(), e);
@@ -135,64 +141,105 @@ public class PackageHandler {
     }
 
     public InventoryItem parseSinglePackage(SpdxPackage spdxPackage, SpdxImportContext context,
-            Set<Copyright> copyrightsToSave)
-            throws Exception {
-
-        List<OrtIssue> ortIssues = ortIssueRepository.findByProject(context.getProject());
-        List<OrtViolation> ortViolations = ortViolationRepository.findByProject(context.getProject());
+                                            Set<Copyright> copyrightsToSave) throws Exception {
 
         log.info("Looking at package: {}", spdxPackage.getId());
         spdxConverter.convertPackage(spdxPackage, context.getSpdxDocumentRoot(), context.getPackageLookupMap());
 
-        String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
-        String version = spdxPackage.getVersionInfo().orElse("");
-        List<Copyright> copyrights = new ArrayList<>();
+        boolean isMainPackage = context.getMainPackageIds().contains(spdxPackage.getId());
 
-        String componentKey = packageName + ":" + version;
-        SoftwareComponent component = context.getComponentCache().get(componentKey);
+        // 1. SoftwareComponent & Lizenzen verarbeiten
+        SoftwareComponent component = resolveSoftwareComponent(spdxPackage, context);
+        AnyLicenseInfo spdxLicense = resolvePackageLicense(spdxPackage, context, component);
 
-        if (component == null) {
-            component = softwareComponentService.getOrCreateSoftwareComponent(packageName, version,
-                    context.getProject().getOrganization(), "library");
-            context.getComponentCache().put(componentKey, component);
-        }
+        // 2. InventoryItem erstellen und konfigurieren (inkl. isMain Flag)
+        InventoryItem inventoryItem = createAndConfigureInventoryItem(spdxPackage, component, spdxLicense, isMainPackage, context);
 
-        // get License from package
-        AnyLicenseInfo spdxPkgLicense = spdxPackage.getLicenseConcluded();
-        if (spdxPkgLicense == null || spdxPkgLicense.isNoAssertion(spdxPkgLicense)) {
-            spdxPkgLicense = spdxPackage.getLicenseDeclared();
-        }
+        // 3. Dateien sammeln und Copyrights verarbeiten
+        Set<SpdxFile> packageFiles = collectAllPackageFiles(spdxPackage);
+        processFilesAndCopyrights(packageFiles, inventoryItem, component, context, copyrightsToSave);
 
-        licenseHandler.createUsageLicenses(spdxPkgLicense, context,
-                context.getExtractedLicenseInfos(), component, context.getProject().getOrganization());
+        // 4. Download-Location auflösen (mit URI-Validierung & Repo-URL Fallback)
+        String downloadUrl = resolveDownloadLocation(spdxPackage, isMainPackage, context);
+        component.setDetailsUrl(downloadUrl);
+
+        // 5. PURL extrahieren
+        extractAndSetPurl(spdxPackage, component);
+
+        log.info("Successfully processed inventoryItem: {} (isMain={})", inventoryItem.getInventoryName(), isMainPackage);
+        return inventoryItem;
+    }
+    private String resolveDownloadLocation(SpdxPackage spdxPackage, boolean isMainPackage, SpdxImportContext context) {
+       try {
+           String location = spdxPackage.getDownloadLocation().orElse("");
+
+           if (!isValidDownloadLocation(location)) {
+               location = findRelatedDownloadLocation(spdxPackage);
+           }
+
+           // Fallback auf die Repository-URL des Projekts für das Main-Package
+           if (!isValidDownloadLocation(location) && isMainPackage) {
+               String projectRepoUrl = context.getProject().getRepositoryURL();
+               if (isValidDownloadLocation(projectRepoUrl)) {
+                   location = projectRepoUrl;
+                   log.info("Using project repository URL '{}' as fallback for main package {}", location, spdxPackage.getId());
+               }
+           }
+
+           return isValidDownloadLocation(location) ? location : null;
+       }catch (Exception e) {
+           log.warn("Error resolving download location for package {}: {}", spdxPackage.getId(), e.getMessage());
+           return null;
+       }
+    }
+
+
+    private InventoryItem createAndConfigureInventoryItem(SpdxPackage spdxPackage, SoftwareComponent component,
+                                                          AnyLicenseInfo spdxPkgLicense, boolean isMainPackage, SpdxImportContext context) {
 
         String packageLicenseString = spdxPkgLicense != null ? spdxPkgLicense.toString() : "";
-
         String inventoryName = spdxPackage.getId().replaceAll("(?i)^SPDXRef-[^-]+-[^-]+-", "");
-        if (!inventoryName.contains(component.getVersion()))
+        if (!inventoryName.contains(component.getVersion())) {
             inventoryName += component.getVersion();
+        }
         inventoryName += " (" + packageLicenseString + ")";
 
-        InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(inventoryName, component,
-                context.getProject(),
-                context.getProject().getOrganization());
+        InventoryItem inventoryItem = inventoryItemService.getOrCreateInventoryItem(
+                inventoryName, component, context.getProject(), context.getProject().getOrganization());
+
         inventoryItem.setSpdxId(spdxPackage.getId());
         inventoryItem.setCurated(false);
 
+
+        if (isMainPackage) {
+            log.debug("Main package {} identified, registering inventoryItem {}", spdxPackage.getId(), inventoryItem.getId());
+            context.getMainInventoryItems().add(inventoryItem.getId());
+            if(!inventoryItem.getSoftwareComponent().getVersion().equals(context.getProject().getVersion())){
+                inventoryItem.getSoftwareComponent().setVersion(context.getProject().getVersion());
+            }
+        }
+
+        List<OrtIssue> ortIssues = ortIssueRepository.findByProject(context.getProject());
+        List<OrtViolation> ortViolations = ortViolationRepository.findByProject(context.getProject());
         inventoryItemService.sortViolationsAndIssues(ortIssues, ortViolations, inventoryItem);
 
+        return inventoryItem;
+    }
+
+    private Set<SpdxFile> collectAllPackageFiles(SpdxPackage spdxPackage) {
+        try {
         Set<SpdxFile> packageFiles = new HashSet<>(spdxPackage.getFiles());
 
-        try {
-            // 1. direct contains data from main package
+
+            // Direct CONTAINS files
             spdxPackage.getRelationships().stream()
                     .filter(this::isContainsRelationship)
                     .map(this::getRelatedElementOrNull)
-                    .filter(element -> element instanceof SpdxFile)
+                    .filter(SpdxFile.class::isInstance)
                     .map(SpdxFile.class::cast)
                     .forEach(packageFiles::add);
 
-            // 2. generated packages (e.g., -vcs, -source-artifact) that contain files
+            // Files via GENERATED_FROM (-vcs, -source-artifact)
             spdxPackage.getRelationships().stream()
                     .filter(r -> {
                         try {
@@ -202,34 +249,59 @@ public class PackageHandler {
                         }
                     })
                     .map(this::getRelatedElementOrNull)
-                    .filter(element -> element instanceof SpdxPackage)
+                    .filter(SpdxPackage.class::isInstance)
                     .map(SpdxPackage.class::cast)
                     .forEach(relatedPkg -> {
                         try {
-                            // data directly from the related package
                             packageFiles.addAll(relatedPkg.getFiles());
-
-                            // data from the related package's CONTAINS relationships
                             relatedPkg.getRelationships().stream()
                                     .filter(this::isContainsRelationship)
                                     .map(this::getRelatedElementOrNull)
-                                    .filter(e -> e instanceof SpdxFile)
+                                    .filter(SpdxFile.class::isInstance)
                                     .map(SpdxFile.class::cast)
                                     .forEach(packageFiles::add);
-
-                            log.debug("Merged source files from related package: {}", relatedPkg.getId());
                         } catch (Exception e) {
-                            log.warn("Error resolving files from related source package {}", relatedPkg.getId(), e);
+                            log.warn("Error resolving files from related package {}", relatedPkg.getId(), e);
                         }
                     });
-
+            return packageFiles;
         } catch (Exception e) {
             log.warn("Error resolving relationships for package {}", spdxPackage.getId(), e);
+            return new HashSet<>();
         }
 
+
+    }
+
+    private SoftwareComponent resolveSoftwareComponent(SpdxPackage spdxPackage, SpdxImportContext context) throws Exception {
+        String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
+        String version = spdxPackage.getVersionInfo().orElse("");
+        String componentKey = packageName + ":" + version;
+
+        SoftwareComponent component = context.getComponentCache().get(componentKey);
+        if (component == null) {
+            component = softwareComponentService.getOrCreateSoftwareComponent(
+                    packageName, version, context.getProject().getOrganization(), "library");
+            context.getComponentCache().put(componentKey, component);
+        }
+        return component;
+    }
+
+    private AnyLicenseInfo resolvePackageLicense(SpdxPackage spdxPackage, SpdxImportContext context, SoftwareComponent component) throws Exception {
+        AnyLicenseInfo spdxLicense = spdxPackage.getLicenseConcluded();
+        if (spdxLicense == null || spdxLicense.isNoAssertion(spdxLicense)) {
+            spdxLicense = spdxPackage.getLicenseDeclared();
+        }
+        licenseHandler.createUsageLicenses(spdxLicense, context,
+                context.getExtractedLicenseInfos(), component, context.getProject().getOrganization());
+        return spdxLicense;
+    }
+
+    private void processFilesAndCopyrights(Set<SpdxFile> packageFiles, InventoryItem inventoryItem,
+                                           SoftwareComponent component, SpdxImportContext context, Set<Copyright> copyrightsToSave) {
+
         inventoryItem.setSize(packageFiles.size());
-        log.info("Converting {} files ({} explicit, {} total)",
-                spdxPackage.getFiles().size(), spdxPackage.getFiles().size(), packageFiles.size());
+        log.info("Converting {} total files for item {}", packageFiles.size(), inventoryItem.getInventoryName());
 
         packageFiles.forEach(f -> {
             spdxConverter.convertFile(f, context.getSpdxDocumentRoot());
@@ -237,6 +309,7 @@ public class PackageHandler {
             context.getProcessedFileIds().add(f.getId());
         });
 
+        List<Copyright> copyrights = new ArrayList<>();
         try {
             copyrights = parseFiles(packageFiles, inventoryItem, context, copyrightsToSave);
         } catch (InvalidSPDXAnalysisException e) {
@@ -244,40 +317,26 @@ public class PackageHandler {
         }
 
         if (component.getCopyrights() == null) {
-            component.setCopyrights(new ArrayList<>(copyrights)); // Copy to new list
+            component.setCopyrights(new ArrayList<>(copyrights));
         } else {
             Set<Copyright> uniqueCopyrights = new HashSet<>(component.getCopyrights());
             uniqueCopyrights.addAll(copyrights);
             component.setCopyrights(new ArrayList<>(uniqueCopyrights));
         }
+    }
 
-        String downloadLocation = spdxPackage.getDownloadLocation().orElse("");
-        if (!isValidDownloadLocation(downloadLocation)) {
-            downloadLocation = findRelatedDownloadLocation(spdxPackage);
-        }
-        if (isValidDownloadLocation(downloadLocation)) {
-            component.setDetailsUrl(downloadLocation);
-        } else {
-            component.setDetailsUrl(null);
-        }
-
-
-        List<ExternalRef> externalRefs = spdxPackage.getExternalRefs().stream().toList();
-        for (ExternalRef externalRef : externalRefs) {
-            if (externalRef.getReferenceType().getIndividualURI().endsWith("purl")) {
-                component.setPurl(externalRef.getReferenceLocator());
-                log.info("Found purl: {} for Component: {}", externalRef.getReferenceLocator(), component.getName());
+    private void extractAndSetPurl(SpdxPackage spdxPackage, SoftwareComponent component) {
+        try {
+            for (ExternalRef externalRef : spdxPackage.getExternalRefs()) {
+                if (externalRef.getReferenceType().getIndividualURI().endsWith("purl")) {
+                    component.setPurl(externalRef.getReferenceLocator());
+                    log.info("Found purl: {} for Component: {}", externalRef.getReferenceLocator(), component.getName());
+                    break;
+                }
             }
+        } catch (Exception e) {
+            log.warn("Failed to process external refs for PURL: {}", e.getMessage());
         }
-
-        log.info("created inventoryItem: {}", inventoryName);
-        log.info("created softwareComponent: {}", component.getName());
-
-        if (context.getMainPackageIds().contains(spdxPackage.getId())) {
-            context.getMainInventoryItems().add(inventoryItem.getId());
-        }
-
-        return inventoryItem;
     }
 
     private List<Copyright> parseFiles(Set<SpdxFile> packageFiles, InventoryItem inventoryItem,
@@ -363,8 +422,25 @@ public class PackageHandler {
     }
 
     private boolean isValidDownloadLocation(String location) {
-        return location != null && !location.isBlank()
-                && !"NONE".equalsIgnoreCase(location)
-                && !"NOASSERTION".equalsIgnoreCase(location);
+        if (location == null || location.isBlank()) return false;
+
+        String cleanLocation = location.trim();
+        if ("NONE".equalsIgnoreCase(cleanLocation) || "NOASSERTION".equalsIgnoreCase(cleanLocation)) {
+            return false;
+        }
+
+        // git+ temporarily removing
+        if (cleanLocation.startsWith("git+")) {
+            cleanLocation = cleanLocation.substring(4);
+        }
+
+        try {
+            URI uri = new URI(cleanLocation);
+            //  http, https, git, ssh
+            return uri.getScheme() != null && !uri.getScheme().isBlank();
+        } catch (Exception e) {
+            log.warn("Invalid URL syntax found: {}", location);
+            return false;
+        }
     }
 }

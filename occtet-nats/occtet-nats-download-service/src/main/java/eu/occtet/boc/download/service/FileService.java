@@ -72,18 +72,16 @@ public class FileService {
      * @param projectPath   the location of the downloaded project
      */
     @Transactional
-    public void createEntitiesFromPath(Project project, Path rootPath,
-                                       String projectPath) {
+    public void createEntitiesFromPath(Project project, Path rootPath, String projectPath, InventoryItem inventoryItem) {
         long start = System.currentTimeMillis();
         try {
-
             List<File> existingFiles = fileRepository.findAllByProject(project);
             log.debug("Loaded {} existing File entities for project {}", existingFiles.size(), project.getId());
 
-            Map<String, File> filesCreatedInSpdxService = new HashMap<>(); // uses artifact path as key
-            Map<String, File> filesCreatedOrUpdatedInFileService = new HashMap<>(); // uses physical path as key
+            Map<String, File> filesCreatedInSpdxService = new HashMap<>();
+            Map<String, File> filesCreatedOrUpdatedInFileService = new HashMap<>();
 
-            for (File file : existingFiles){
+            for (File file : existingFiles) {
                 if (file.getArtifactPath() != null && file.getPhysicalPath() == null)
                     filesCreatedInSpdxService.put(file.getArtifactPath(), file);
                 else if (file.getPhysicalPath() != null)
@@ -105,10 +103,11 @@ public class FileService {
                     rootDirectory.getParentFile(),
                     filesCreatedOrUpdatedInFileService,
                     batchBuffer,
-                    projectPath);
+                    projectPath,
+                    inventoryItem);
 
-            String calculatedArtifactPath = getRelativePath(rootPath, rootDirectory); // Relative to scan anchor
-            String calculatedProjectPath = getRelativePath(projectParentAnchor, rootDirectory); // Relative to Project root
+            String calculatedArtifactPath = getRelativePath(rootPath, rootDirectory);
+            String calculatedProjectPath = getRelativePath(projectParentAnchor, rootDirectory);
             String rootPhysicalPath = rootDirectory.getAbsolutePath();
 
             File rootEntity = filesCreatedOrUpdatedInFileService.get(rootPhysicalPath);
@@ -123,6 +122,9 @@ public class FileService {
                         true,
                         parentForRoot
                 );
+                if (inventoryItem != null) {
+                    rootEntity.getInventoryItems().add(inventoryItem);
+                }
                 project.addFile(rootEntity);
                 filesCreatedOrUpdatedInFileService.put(rootPhysicalPath, rootEntity);
                 addToBatch(rootEntity, batchBuffer, BATCHSIZE);
@@ -137,7 +139,8 @@ public class FileService {
                     filesCreatedInSpdxService,
                     BATCHSIZE,
                     rootPath,
-                    projectParentAnchor
+                    projectParentAnchor,
+                    inventoryItem
             );
 
             if (!batchBuffer.isEmpty()) {
@@ -153,6 +156,7 @@ public class FileService {
             throw new RuntimeException("Scan failed", e);
         }
     }
+
 
     /**
      * Recursively scans a directory and creates/updates File entities.
@@ -175,19 +179,14 @@ public class FileService {
                          Map<String, File> filesInSpdxService,
                          int batchSize,
                          Path relativeAnchor,
-                         Path projectRootAnchor) {
+                         Path projectRootAnchor,
+                         InventoryItem inventoryItem) {
 
         java.io.File[] files = directory.listFiles();
-        if (files == null) {
-            log.debug("No files found in directory {}", directory.getAbsolutePath());
-            return;
-        }
+        if (files == null) return;
 
         for (java.io.File file : files) {
-            if (shouldIgnore(file)) {
-                log.debug("Ignoring file {}", file.getAbsolutePath());
-                continue;
-            }
+            if (shouldIgnore(file)) continue;
 
             String physicalPath = file.getAbsolutePath();
             String artifactPath = getRelativePath(relativeAnchor, file);
@@ -195,67 +194,59 @@ public class FileService {
 
             File fileEntity = filesInFileService.get(physicalPath);
 
-            // Scenario 1
+            // file already existing
             if (fileEntity != null) {
-                log.trace("Reusing existing file entity: {}", physicalPath);
-                if (file.isDirectory()){
+                if (inventoryItem != null) {
+                    fileEntity.getInventoryItems().add(inventoryItem);
+                }
+                if (file.isDirectory()) {
                     scanDir(project, file, fileEntity, batchBuffer, filesInFileService, filesInSpdxService,
-                            batchSize, relativeAnchor, projectRootAnchor);
+                            batchSize, relativeAnchor, projectRootAnchor, inventoryItem);
                 }
                 continue;
             }
 
-            // Scenario 2
+            // Scenario 2: SPDX Pre-created Match
             Map.Entry<String, File> spdxEntry = findSpdxEntityEntry(artifactPath, filesInSpdxService);
             if (spdxEntry != null) {
                 String spdxKey = spdxEntry.getKey();
                 fileEntity = spdxEntry.getValue();
 
-                log.trace("Found pre-created SPDX entity for artifact path: {} (matched with: {}) - updating with " +
-                                "physical path: {}",
-                        spdxKey, artifactPath, physicalPath);
                 fileEntity = fileFactory.updateFileEntity(
-                        fileEntity,
-                        project,
-                        file.getName(),
-                        physicalPath,
-                        projectPath,
-                        file.isDirectory(),
-                        parentEntity);
+                        fileEntity, project, file.getName(), physicalPath, projectPath, file.isDirectory(), parentEntity);
+
+                if (inventoryItem != null) {
+                    fileEntity.getInventoryItems().add(inventoryItem);
+                }
 
                 filesInSpdxService.remove(spdxKey);
                 filesInFileService.put(physicalPath, fileEntity);
-
                 addToBatch(fileEntity, batchBuffer, batchSize);
 
-                if (file.isDirectory()){
+                if (file.isDirectory()) {
                     scanDir(project, file, fileEntity, batchBuffer, filesInFileService, filesInSpdxService,
-                            batchSize, relativeAnchor, projectRootAnchor);
+                            batchSize, relativeAnchor, projectRootAnchor, inventoryItem);
                 }
                 continue;
             }
 
-            // Scenario 3
-            log.trace("Creating new File entity: {}", physicalPath);
+            // make new file
             fileEntity = fileFactory.createWithoutInventoryItem(
-                    project,
-                    file.getName(),
-                    physicalPath,
-                    projectPath,
-                    artifactPath,
-                    file.isDirectory(),
-                    parentEntity
-            );
+                    project, file.getName(), physicalPath, projectPath, artifactPath, file.isDirectory(), parentEntity);
+            if (inventoryItem != null) {
+                fileEntity.getInventoryItems().add(inventoryItem);
+            }
+
             project.addFile(fileEntity);
             filesInFileService.put(physicalPath, fileEntity);
             addToBatch(fileEntity, batchBuffer, batchSize);
-            if (file.isDirectory()){
+
+            if (file.isDirectory()) {
                 scanDir(project, file, fileEntity, batchBuffer, filesInFileService, filesInSpdxService,
-                        batchSize, relativeAnchor, projectRootAnchor);
+                        batchSize, relativeAnchor, projectRootAnchor, inventoryItem);
             }
         }
     }
-
 
     /**
      * Ensures that all parent directories in the hierarchy exist as File entities.
@@ -265,25 +256,17 @@ public class FileService {
                                        java.io.File directory,
                                        Map<String, File> filesInFileService,
                                        List<File> batchBuffer,
-                                       String projectPath) {
-        if (directory == null) {
-            return null;
-        }
+                                       String projectPath,
+                                       InventoryItem inventoryItem) {
+        if (directory == null) return null;
         String currentPhysicalPath = directory.getAbsolutePath();
-        log.trace("Ensuring parent hierarchy for path: {}", currentPhysicalPath);
 
-        if (!currentPhysicalPath.startsWith(projectPath)) {
-            log.trace("Path outside project scope, stopping");
-            return null;
-        }
-        if (currentPhysicalPath.equals(projectPath)) {
-            log.trace("Reached project root, stopping");
+        if (!currentPhysicalPath.startsWith(projectPath) || currentPhysicalPath.equals(projectPath)) {
             return null;
         }
 
         File existingFile = filesInFileService.get(currentPhysicalPath);
         if (existingFile != null) {
-            log.trace("Parent directory already exists: {}", currentPhysicalPath);
             return existingFile;
         }
 
@@ -295,30 +278,21 @@ public class FileService {
         String relativeProjectPath = getRelativePath(projectParentAnchor, directory);
 
         File parentFile = ensureParentHierarchy(
-                project,
-                directory.getParentFile(),
-                filesInFileService,
-                batchBuffer,
-                projectPath);
+                project, directory.getParentFile(), filesInFileService, batchBuffer, projectPath, inventoryItem);
 
-        log.debug("Creating parent directory entity: {} (artifactPath: {})",
-                directory.getName(), artifactPath);
         File newEntity = fileFactory.createWithoutInventoryItem(
-                project,
-                directory.getName(),
-                currentPhysicalPath,
-                relativeProjectPath,
-                artifactPath,
-                true,
-                parentFile
-        );
+                project, directory.getName(), currentPhysicalPath, relativeProjectPath, artifactPath, true, parentFile);
+
+        if (inventoryItem != null) {
+            newEntity.getInventoryItems().add(inventoryItem);
+        }
+
         project.addFile(newEntity);
         filesInFileService.put(currentPhysicalPath, newEntity);
-        addToBatch(newEntity, batchBuffer, 500);
+        addToBatch(newEntity, batchBuffer, BATCHSIZE);
 
         return newEntity;
     }
-
 
 
     private void addToBatch(File entity, List<File> batch, int batchSize) {
