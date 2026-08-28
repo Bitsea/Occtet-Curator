@@ -278,8 +278,22 @@ public class DownloadManager extends BaseWorkDataProcessor {
         if (component.getPurl() != null && !component.getPurl().isBlank()) {
             try {
                 PackageURL purl = new PackageURL(component.getPurl());
-                log.debug("Choosing PURL name as component name: {}", purl.getName());
-                return purl.getName();
+                String purlName = purl.getName();
+
+                // go-specific correction: if the PURL name is just a major version (e.g., "v1"),
+                // use the last segment of the namespace instead
+                if ("golang".equalsIgnoreCase(purl.getType()) && purlName != null && purlName.matches("^v\\d+$")) {
+                    String namespace = purl.getNamespace();
+                    if (namespace != null && !namespace.isBlank()) {
+                        int lastSlash = namespace.lastIndexOf('/');
+                        purlName = (lastSlash != -1) ? namespace.substring(lastSlash + 1) : namespace;
+                        log.debug("Adjusted Golang PURL name from major version to: {}", purlName);
+                    }
+                } else {
+                    log.debug("Choosing PURL name as component name: {}", purlName);
+                }
+
+                return purlName;
             } catch (Exception e) {
                 log.warn("Invalid PURL for component {}: {}", component.getId(), e.getMessage());
             }
