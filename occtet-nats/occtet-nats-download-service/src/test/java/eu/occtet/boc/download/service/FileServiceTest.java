@@ -25,6 +25,7 @@ import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.dao.OrganizationRepository;
 import eu.occtet.boc.download.factory.FileFactory;
 import eu.occtet.boc.entity.File;
+import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.Project;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,7 +97,7 @@ class FileServiceTest {
 
         String projectPathString = projectRoot.toAbsolutePath().toString();
 
-        fileService.createEntitiesFromPath(testProject, projectRoot, projectPathString);
+        fileService.createEntitiesFromPath(testProject, projectRoot, projectPathString, new InventoryItem());
 
         List<File> files = fileRepository.findAll();
         assertEquals(4, files.size());
@@ -122,7 +123,7 @@ class FileServiceTest {
 
         String projectPathString = projectRoot.toAbsolutePath().toString();
 
-        fileService.createEntitiesFromPath(testProject, libFolder, projectPathString);
+        fileService.createEntitiesFromPath(testProject, libFolder, projectPathString, new InventoryItem());
 
         List<File> files = fileRepository.findAll();
 
@@ -156,7 +157,7 @@ class FileServiceTest {
         spdxEntityPlaceholder = fileRepository.saveAndFlush(spdxEntityPlaceholder);
         Long originalId = spdxEntityPlaceholder.getId();
 
-        fileService.createEntitiesFromPath(testProject, projectRoot, projectPathString);
+        fileService.createEntitiesFromPath(testProject, projectRoot, projectPathString, new InventoryItem());
 
         List<File> allFiles = fileRepository.findAll();
 
@@ -168,5 +169,66 @@ class FileServiceTest {
         assertEquals(originalId, updatedFile.getId());
         assertNotNull(updatedFile.getPhysicalPath());
         assertEquals(projectRoot.resolve("LICENSE").toAbsolutePath().toString(), updatedFile.getPhysicalPath());
+    }
+
+    @Test
+    void testUpdateExistingSpdxEntityWhenArchiveWrapperStripped(@TempDir Path tempDir) throws IOException {
+        // Structure on disk:
+        // tempDir/projectRoot
+        //    |-- dependencies/
+        //        |-- package/
+        //            |-- 5.0.0/
+        //                |-- test.c
+        //
+        // Scenario:
+        // SPDX import pre-creates a File entity with artifactPath = "package-5.0.0/test.c" linked to an InventoryItem.
+        // DownloadService uncompressed the archive and ArchiveService stripped the "package-5.0.0" folder wrapper,
+        // so test.c is physically stored directly in ".../dependencies/package/5.0.0/test.c".
+        // When scanning from rootPath ".../dependencies/package/5.0.0", calculated artifactPath is "test.c".
+
+        Path projectRoot = Files.createDirectories(tempDir.resolve("projectRoot"));
+        Path depFolder = Files.createDirectories(projectRoot.resolve("dependencies"));
+        Path packageFolder = Files.createDirectories(depFolder.resolve("package").resolve("5.0.0"));
+        Path physicalFile = Files.createFile(packageFolder.resolve("test.c"));
+        String projectPathString = projectRoot.toAbsolutePath().toString();
+
+        InventoryItem inventoryItem = new InventoryItem();
+        inventoryItem.setInventoryName("package");
+        inventoryItem.setProject(testProject);
+        inventoryItem.setOrganization(testProject.getOrganization());
+        InventoryItem savedInventoryItem = entityManager.persistAndFlush(inventoryItem);
+        Long expectedInventoryItemId = savedInventoryItem.getId();
+
+        File spdxEntityPlaceholder = new File();
+        spdxEntityPlaceholder.setProject(testProject);
+        spdxEntityPlaceholder.setFileName("test.c");
+        spdxEntityPlaceholder.setArtifactPath("package-5.0.0/test.c");
+        spdxEntityPlaceholder.setPhysicalPath(null);
+        spdxEntityPlaceholder.setIsDirectory(false);
+        spdxEntityPlaceholder.addInventoryItem(savedInventoryItem);
+        spdxEntityPlaceholder = fileRepository.saveAndFlush(spdxEntityPlaceholder);
+        Long originalSpdxId = spdxEntityPlaceholder.getId();
+
+        fileService.createEntitiesFromPath(testProject, packageFolder, projectPathString, new InventoryItem());
+
+        List<File> testCFiles = fileRepository.findAll().stream()
+                .filter(f -> "test.c".equals(f.getFileName()))
+                .toList();
+
+        // 1. Should not create duplicate File entities for test.c
+        assertEquals(1, testCFiles.size(), "Should only have one File entity for test.c");
+
+        File updatedFile = testCFiles.getFirst();
+
+        // 2. The existing SPDX entity should be reused and updated
+        assertEquals(originalSpdxId, updatedFile.getId(), "SPDX File entity ID should be preserved");
+        assertNotNull(updatedFile.getPhysicalPath(), "Physical path should be populated");
+        assertEquals(physicalFile.toAbsolutePath().toString(), updatedFile.getPhysicalPath());
+
+        // 3. Inventory item link should still be present on the updated file
+        assertNotNull(updatedFile.getInventoryItems(), "Inventory items should not be null");
+        assertFalse(updatedFile.getInventoryItems().isEmpty(), "Inventory items should remain linked to the updated file");
+        assertTrue(updatedFile.getInventoryItems().stream().anyMatch(item -> item.getId().equals(expectedInventoryItemId)),
+                "The original InventoryItem should be linked to the updated file");
     }
 }

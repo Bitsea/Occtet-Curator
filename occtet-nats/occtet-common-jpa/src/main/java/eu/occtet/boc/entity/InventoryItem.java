@@ -88,6 +88,17 @@ public class InventoryItem implements HasOrganization {
     @ManyToMany
     private Set<InventoryItem> dependencies = new HashSet<>();
 
+    @ManyToMany(mappedBy = "inventoryItems")
+    private Set<File> files = new HashSet<>();
+
+    public Set<File> getFiles() {
+        return files;
+    }
+
+    public void setFiles(Set<File> files) {
+        this.files = files;
+    }
+
     public InventoryItem() {
         this.createdAt = LocalDateTime.now();
     }

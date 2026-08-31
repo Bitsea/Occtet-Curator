@@ -43,4 +43,8 @@ public interface FileRepository extends JpaRepository<File, Long> {
     @Query("delete from File f where f.project = :project")
     void deleteAllByProject(@Param("project") Project project);
 
+    @Modifying
+    @Query("DELETE FROM File f WHERE f.project = :project")
+    void deleteByProjectBulk(@Param("project") Project project);
+
 }

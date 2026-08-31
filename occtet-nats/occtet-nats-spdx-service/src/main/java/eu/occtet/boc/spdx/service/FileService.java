@@ -54,8 +54,8 @@ public class FileService {
      */
     @Transactional
     public Map<String, File> findOrCreateBatch(Map<String, String> fileToSpdxIdMap, InventoryItem inventoryItem) {
-        log.debug("Create Batch of File entities for InventoryItem id={} with {} paths",
-                inventoryItem.getId(), fileToSpdxIdMap.size());
+       // log.debug("Create Batch of File entities for InventoryItem id={} with {} paths",
+       //         inventoryItem.getId(), fileToSpdxIdMap.size());
 
         List<File> toSave = new ArrayList<>();
         Map<String, File> cache = new HashMap<>();
@@ -88,8 +88,8 @@ public class FileService {
                 }
                 String name = path.substring(p + 1);
 
-                log.debug("Creating new File entity for path {} with name {} for InventoryItem id={}",
-                        path, name, inventoryItem.getInventoryName());
+              //  log.debug("Creating new File entity for path {} with name {} for InventoryItem id={}",
+              //          path, name, inventoryItem.getInventoryName());
 
                 File newLoc = filefactory.create(path, name, inventoryItem.getProject(), inventoryItem);
                 newLoc.setDocumentId(spdxId);

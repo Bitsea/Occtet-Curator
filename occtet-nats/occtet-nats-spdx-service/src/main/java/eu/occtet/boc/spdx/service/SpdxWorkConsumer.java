@@ -19,7 +19,6 @@
 
 package eu.occtet.boc.spdx.service;
 
-
 import eu.occtet.boc.spdx.exception.SpdxImportException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.BaseWorkData;
@@ -54,7 +53,6 @@ public class SpdxWorkConsumer extends WorkConsumer {
     protected void handleMessage(Message msg) {
         try {
 
-
             String jsonData = new String(msg.getData(), StandardCharsets.UTF_8);
             log.debug("handleMessage called json: {}", jsonData);
             ObjectMapper objectMapper = new ObjectMapper();
@@ -67,21 +65,28 @@ public class SpdxWorkConsumer extends WorkConsumer {
                 @Override
                 public boolean process(SpdxWorkData spdxWorkData) {
                     log.debug("extract from SPDX json");
-                    try{
+                    try {
                         ObjectStore objectStore = natsConnection.objectStore(spdxWorkData.getBucketName());
                         ByteArrayOutputStream out = new ByteArrayOutputStream();
                         objectStore.get(spdxWorkData.getJsonSpdx(), out);
                         byte[] spdxBytes = out.toByteArray();
-                        //delete the object after we are done
-                        objectStore.delete(spdxWorkData.getJsonSpdx());
+
                         spdxWorkData.setJsonBytes(spdxBytes);
-                        spdxService.setOnProgress((p,d)->{
+                        spdxService.setOnProgress((p, d) -> {
                             log.debug("progress callback: {} {}", p, d);
                             notifyProgress(workTask.taskId(), workTask.name(), WorkTaskStatus.IN_PROGRESS, p, d);
                         });
-                        boolean res= spdxService.process(spdxWorkData);
-                        if(!res) notifyError(workTask.taskId(),workTask.name(), "error during processing");
-                        else notifyCompleted(workTask.taskId(),workTask.name());
+                        boolean res = spdxService.process(spdxWorkData);
+                        if (res) {
+                            try {
+                                objectStore.delete(spdxWorkData.getJsonSpdx());
+                            } catch (Exception ex) {
+                                log.warn("Could not delete processed object from object store: {}", ex.getMessage());
+                            }
+                            notifyCompleted(workTask.taskId(), workTask.name());
+                        } else {
+                            notifyError(workTask.taskId(), workTask.name(), "error during processing");
+                        }
                         return res;
 
                     } catch (SpdxImportException e) {
@@ -97,14 +102,12 @@ public class SpdxWorkConsumer extends WorkConsumer {
                 }
             });
             log.debug("RESULT {}", result);
-            if(!result){
+            if (!result) {
                 log.error("Could not process workData of type {}", workData.getClass().getName());
             }
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
 
     }
 }

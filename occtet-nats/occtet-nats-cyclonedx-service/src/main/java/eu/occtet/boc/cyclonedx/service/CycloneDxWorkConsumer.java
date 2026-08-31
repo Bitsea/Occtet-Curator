@@ -84,7 +84,7 @@ public class CycloneDxWorkConsumer extends WorkConsumer {
 
 
                     } catch (Exception e) {
-                        log.error("System error processing SPDX", e);
+                        log.error("System error processing cyclonedx sbom", e);
                         notifyError(workTask.taskId(), workTask.name(), "Internal System Error");
                         return false;
                     }

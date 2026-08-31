@@ -37,7 +37,7 @@ import org.spdx.core.InvalidSPDXAnalysisException;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.library.SpdxModelFactory;
 import org.spdx.library.model.v2.*;
-import org.spdx.library.model.v2.license.*;
+import org.spdx.library.model.v2.enumerations.RelationshipType;
 import org.spdx.storage.simple.InMemSpdxStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -176,9 +176,23 @@ public class SpdxService extends ProgressReportingService {
 
     private void initDocumentDescribes(SpdxImportContext context) {
         try {
-            context.getSpdxDocument().getDocumentDescribes().stream()
-                    .map(SpdxElement::getId)
-                    .forEach(context.getMainPackageIds()::add);
+            SpdxDocument doc = context.getSpdxDocument();
+
+            // 1. Check direct documentDescribes
+            if (doc.getDocumentDescribes() != null) {
+                doc.getDocumentDescribes().stream()
+                        .map(SpdxElement::getId)
+                        .forEach(context.getMainPackageIds()::add);
+            }
+            // 2. Check relationships on the document for the main package
+            if (doc.getRelationships() != null) {
+                for (Relationship rel : doc.getRelationships()) {
+                    if (rel.getRelationshipType() == RelationshipType.DESCRIBES) {
+                        rel.getRelatedSpdxElement().ifPresent(el -> context.getMainPackageIds().add(el.getId()));
+                        log.debug("main package found {}", rel.getRelatedSpdxElement().get().getName());
+                    }
+                }
+            }
         } catch (InvalidSPDXAnalysisException e) {
             log.warn("Could not read DocumentDescribes: {}", e.getMessage());
         }
