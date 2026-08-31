@@ -73,6 +73,7 @@
     </data>
     <actions>
         <action id="saveAction"/>
+        <action id="deleteAction"/>
     </actions>
     <content>
         <tabSheet id="mainTabSheet" width="100%" height="100%">
@@ -281,7 +282,8 @@
                 </hbox>
             </tab>
             <suffix>
-                <hbox>
+                <hbox spacing="true">
+                    <button id="deleteButton" text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.auditNotes.delete" themeNames="error small" icon="TRASH" action="deleteAction"/>
                     <button id="saveButton" text="msg://eu.occtet.bocfrontend.view/inventoryTabFragment.tabSheet.auditNotes.save" themeNames="primary small" action="saveAction"/>
                 </hbox>
             </suffix>

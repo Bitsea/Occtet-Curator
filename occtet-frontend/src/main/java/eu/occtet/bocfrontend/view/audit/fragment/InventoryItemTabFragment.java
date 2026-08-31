@@ -43,9 +43,11 @@ import eu.occtet.bocfrontend.view.dialog.*;
 import eu.occtet.bocfrontend.view.inventoryitem.InventoryItemDetailView;
 import eu.occtet.bocfrontend.view.softwareComponent.SoftwareComponentDetailView;
 import eu.occtet.bocfrontend.view.softwareComponentLicenseUsage.SoftwareComponentLicenseUsageDetailView;
+import eu.occtet.bocfrontend.service.InventoryItemService;
 import io.jmix.core.*;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Dialogs;
+import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.app.inputdialog.DialogActions;
@@ -184,6 +186,8 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     private Dialogs dialogs;
     @Autowired
     private NatsService natsService;
+    @Autowired
+    private InventoryItemService inventoryItemService;
 
 
     public void activateAutocomplete() {
@@ -357,6 +361,59 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                     .withPosition(Notification.Position.BOTTOM_END)
                     .show();
         }
+    }
+
+    /**
+     * Handles the delete action triggered by the user.
+     * Prompts for confirmation and, if confirmed, safely removes the inventory item,
+     * closes the tab, and refreshes the AuditView.
+     *
+     * @param event the event object captured when the deleteAction is triggered
+     */
+    @Subscribe("deleteAction")
+    public void onDeleteAction(ActionPerformedEvent event) {
+        if (inventoryItem == null) {
+            return;
+        }
+
+        dialogs.createOptionDialog()
+                .withHeader(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.delete.dialog.header"))
+                .withText(messages.formatMessage(
+                        "eu.occtet.bocfrontend.view",
+                        "inventoryTabFragment.delete.dialog.text",
+                        inventoryItem.getInventoryName() != null ? inventoryItem.getInventoryName() : ""
+                ))
+                .withActions(
+                        new DialogAction(DialogAction.Type.YES)
+                                .withText(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.delete.dialog.confirm"))
+                                .withHandler(actionEvent -> {
+                                    Project project = inventoryItem.getProject();
+                                    String itemName = inventoryItem.getInventoryName() != null ? inventoryItem.getInventoryName() : "";
+                                    Long itemId = inventoryItem.getId();
+                                    dataContext.evict(inventoryItem);
+                                    inventoryItemService.deleteInventoryItemById(itemId, itemName);
+
+                                    notifications.create(messages.formatMessage(
+                                                    "eu.occtet.bocfrontend.view",
+                                                    "inventoryTabFragment.delete.success",
+                                                    itemName
+                                            ))
+                                            .withPosition(Notification.Position.BOTTOM_END)
+                                            .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
+                                            .withCloseable(true)
+                                            .show();
+
+                                    if (hostView instanceof AuditView auditView) {
+                                        auditView.getTabManager().closeInventoryItemTab(inventoryItem);
+                                        if (project != null) {
+                                            auditView.refreshInventoryItemDc(project);
+                                        }
+                                    }
+                                }),
+                        new DialogAction(DialogAction.Type.NO)
+                                .withText(messages.getMessage("eu.occtet.bocfrontend.view/inventoryTabFragment.delete.dialog.cancel"))
+                )
+                .open();
     }
 
     @Subscribe("originType")
