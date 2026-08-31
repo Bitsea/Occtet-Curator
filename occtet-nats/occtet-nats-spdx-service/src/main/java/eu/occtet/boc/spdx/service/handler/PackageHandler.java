@@ -131,6 +131,15 @@ public class PackageHandler {
             if (!inventoryItemsToSave.isEmpty()) {
                 inventoryItemRepository.saveAll(inventoryItemsToSave);
             }
+
+            // Register the main item's DB ID now that all entities are persisted.
+            // This must happen after saveAll() so that getId() is non-null.
+            if (context.getMainItem() != null && context.getMainItem().getId() != null) {
+                context.getMainInventoryItems().add(context.getMainItem().getId());
+                log.debug("Registered main inventory item ID {} into context", context.getMainItem().getId());
+            } else {
+                log.warn("Main item could not be registered: item is null or has no DB ID yet");
+            }
             if (!context.getComponentCache().isEmpty()) {
                 softwareComponentRepository.saveAll(context.getComponentCache().values());
             }
@@ -148,27 +157,29 @@ public class PackageHandler {
 
         boolean isMainPackage = context.getMainPackageIds().contains(spdxPackage.getId());
 
-        // 1. SoftwareComponent & Lizenzen verarbeiten
+
+        // component & licenses
         SoftwareComponent component = resolveSoftwareComponent(spdxPackage, context);
         AnyLicenseInfo spdxLicense = resolvePackageLicense(spdxPackage, context, component);
 
-        // 2. InventoryItem erstellen und konfigurieren (inkl. isMain Flag)
+        // create or retrieve InventoryItem for this package
         InventoryItem inventoryItem = createAndConfigureInventoryItem(spdxPackage, component, spdxLicense, isMainPackage, context);
 
-        // 3. Dateien sammeln und Copyrights verarbeiten
+        // collect data
         Set<SpdxFile> packageFiles = collectAllPackageFiles(spdxPackage);
         processFilesAndCopyrights(packageFiles, inventoryItem, component, context, copyrightsToSave);
 
-        // 4. Download-Location auflösen (mit URI-Validierung & Repo-URL Fallback)
+        // resolve dowload url, fallback to project repo url if main package and no valid download location found
         String downloadUrl = resolveDownloadLocation(spdxPackage, isMainPackage, context);
         component.setDetailsUrl(downloadUrl);
 
-        // 5. PURL extrahieren
+        // extract purl
         extractAndSetPurl(spdxPackage, component);
 
         log.info("Successfully processed inventoryItem: {} (isMain={})", inventoryItem.getInventoryName(), isMainPackage);
         return inventoryItem;
     }
+
     private String resolveDownloadLocation(SpdxPackage spdxPackage, boolean isMainPackage, SpdxImportContext context) {
        try {
            String location = spdxPackage.getDownloadLocation().orElse("");
@@ -177,7 +188,7 @@ public class PackageHandler {
                location = findRelatedDownloadLocation(spdxPackage);
            }
 
-           // Fallback auf die Repository-URL des Projekts für das Main-Package
+           // fallback repo-url
            if (!isValidDownloadLocation(location) && isMainPackage) {
                String projectRepoUrl = context.getProject().getRepositoryURL();
                if (isValidDownloadLocation(projectRepoUrl)) {
@@ -212,11 +223,15 @@ public class PackageHandler {
 
 
         if (isMainPackage) {
-            log.debug("Main package {} identified, registering inventoryItem {}", spdxPackage.getId(), inventoryItem.getId());
-            context.getMainInventoryItems().add(inventoryItem.getId());
+            // Note: inventoryItem.getId() may still be null here (entity not yet persisted).
+            // The ID is registered into context.mainInventoryItems after saveAll() in processAllPackages().
+            context.setMainItem(inventoryItem);
             if(!inventoryItem.getSoftwareComponent().getVersion().equals(context.getProject().getVersion())){
                 inventoryItem.getSoftwareComponent().setVersion(context.getProject().getVersion());
             }
+        }else {
+            inventoryItem.setParent(context.getMainItem());
+            context.getMainItem().getDependencies().add(inventoryItem);
         }
 
         List<OrtIssue> ortIssues = ortIssueRepository.findByProject(context.getProject());
@@ -373,7 +388,7 @@ public class PackageHandler {
             File loc = locationMap.get(path);
             Copyright copyright = copyrightMap.get(copyrightText);
             if (loc != null && copyright != null) {
-                log.debug("Associating copyright '{}' with file '{}'", copyrightText, path);
+                //log.debug("Associating copyright '{}' with file '{}'", copyrightText, path);
                 copyright.getFiles().add(loc);
                 copyrightsToSave.add(copyright);
             }

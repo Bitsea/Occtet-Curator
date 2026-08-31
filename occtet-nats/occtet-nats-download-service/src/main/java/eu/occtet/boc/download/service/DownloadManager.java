@@ -85,7 +85,7 @@ public class DownloadManager extends BaseWorkDataProcessor {
             }
 
             boolean isMainPkg = Boolean.TRUE.equals(data.getIsMainPackage());
-            Path projectBaseDir = calculateTargetPath(baseResolvedPath, project.getProjectName(), project.getId());
+            Path projectBaseDir = calculateTargetPath(baseResolvedPath, project.getProjectName(), project.getVersion());
 
             // main-repo already exists, skip download and just create entities from existing files
             if (isMainPkg && isProjectDirectoryAlreadyPopulated(projectBaseDir)) {
@@ -106,7 +106,13 @@ public class DownloadManager extends BaseWorkDataProcessor {
             }
 
             if (Files.isRegularFile(downloadedPath)) {
-                archiveService.unpack(downloadedPath, finalComponentDir);
+                try {
+                    archiveService.unpack(downloadedPath, finalComponentDir);
+                } catch (Exception e) {
+                    log.error("Failed to unpack downloaded file for item {}: {}", inventoryItem.getInventoryName(), e.getMessage());
+                    handleDownloadFailure(inventoryItem, softwareComponent);
+                    return false;
+                }
             }
 
             fileService.createEntitiesFromPath(project, finalComponentDir, projectBaseDir.toString(), inventoryItem);
@@ -260,8 +266,9 @@ public class DownloadManager extends BaseWorkDataProcessor {
         }
     }
 
-    private Path calculateTargetPath(Path baseResolvedPath, String projectName, Long projectId) {
-        String folderName = projectName + "_" + projectId;
+    private Path calculateTargetPath(Path baseResolvedPath, String projectName, String projectVersion) {
+        String safeVersion = sanitizeFilename(projectVersion, "unknown_version");
+        String folderName = projectName + "_" + safeVersion;
         return baseResolvedPath.resolve(folderName);
     }
 

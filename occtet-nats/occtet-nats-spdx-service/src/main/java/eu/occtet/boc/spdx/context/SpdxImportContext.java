@@ -48,6 +48,7 @@ public class SpdxImportContext {
     // Tracking Sets
     private List<InventoryItem> inventoryItems = new ArrayList<>();
     private Set<Long> mainInventoryItems = new HashSet<>();
+    private InventoryItem mainItem;
     private Set<String> mainPackageIds = new HashSet<>();
     private Set<String> processedFileIds = new HashSet<>();
     private Map<String, List<Relationship>> packageRelationships = new HashMap<>();
@@ -157,5 +158,13 @@ public class SpdxImportContext {
 
     public void setPackageRelationships(Map<String, List<Relationship>> packageRelationships) {
         this.packageRelationships = packageRelationships;
+    }
+
+    public InventoryItem getMainItem() {
+        return mainItem;
+    }
+
+    public void setMainItem(InventoryItem mainItem) {
+        this.mainItem = mainItem;
     }
 }

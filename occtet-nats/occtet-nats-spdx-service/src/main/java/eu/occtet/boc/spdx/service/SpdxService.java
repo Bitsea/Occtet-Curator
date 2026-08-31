@@ -184,11 +184,12 @@ public class SpdxService extends ProgressReportingService {
                         .map(SpdxElement::getId)
                         .forEach(context.getMainPackageIds()::add);
             }
-            // 2. Check relationships on the document
+            // 2. Check relationships on the document for the main package
             if (doc.getRelationships() != null) {
                 for (Relationship rel : doc.getRelationships()) {
                     if (rel.getRelationshipType() == RelationshipType.DESCRIBES) {
                         rel.getRelatedSpdxElement().ifPresent(el -> context.getMainPackageIds().add(el.getId()));
+                        log.debug("main package found {}", rel.getRelatedSpdxElement().get().getName());
                     }
                 }
             }
