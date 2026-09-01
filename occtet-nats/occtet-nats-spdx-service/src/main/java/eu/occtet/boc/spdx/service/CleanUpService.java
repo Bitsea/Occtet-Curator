@@ -70,23 +70,23 @@ public class CleanUpService {
      * @param project
      */
     public void cleanUpFileTree(Project project) {
-
         String globalBasePath = appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH)
                 .map(AppConfiguration::getValue)
                 .orElseThrow(() -> new RuntimeException("General Base Path not configured!"));
         String folderName = project.getProjectName() + "_" + project.getVersion();
         Path projectDir = Paths.get(globalBasePath).resolve(folderName);
+        if (!Files.exists(projectDir) || isDirectoryEmpty(projectDir)) {
+            log.debug("Directory {} does not exist or is empty. Skipping filesystem cleanup.", projectDir);
+        } else {
+            log.debug("Starting cleanup for project directory: {}", projectDir);
+            deleteProjectDirectory(projectDir);
 
-        log.info("Starting cleanup for project directory: {}", projectDir);
+            project.removeFiles();
+            projectRepository.save(project);
 
-        deleteProjectDirectory(projectDir);
-
-        project.removeFiles();
-        projectRepository.save(project);
-
-        deleteFilesBatched(project);
-
-        log.info("Finished synchronous cleanup for project: {}", project.getProjectName());
+            deleteFilesBatched(project);
+            log.info("Finished cleanup for project: {}", project.getProjectName());
+        }
     }
 
     /**
@@ -155,14 +155,18 @@ public class CleanUpService {
         } while (deletedCount >= batchSize);
     }
 
-    private Path calculateTargetPath(Path baseResolvedPath, String projectName, String projectVersion) {
-        String safeVersion = sanitizeFilename(projectVersion, "unknown_version");
-        String folderName = projectName + "_" + safeVersion;
-        return baseResolvedPath.resolve(folderName);
-    }
-
-    private String sanitizeFilename(String input, String fallback) {
-        if (input == null || input.isBlank()) return fallback;
-        return input.replaceAll(SAFE_FILENAME_REGEX, "_");
+    /**
+     * Checks if a directory is empty in O(1) time without loading directory content into memory.
+     */
+    private boolean isDirectoryEmpty(Path path) {
+        if (!Files.isDirectory(path)) {
+            return true;
+        }
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(path)) {
+            return !dirStream.iterator().hasNext();
+        } catch (IOException e) {
+            log.warn("Failed to check if directory is empty: {}, assuming not empty to be safe.", path, e);
+            return false;
+        }
     }
 }
