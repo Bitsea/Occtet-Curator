@@ -29,11 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
@@ -47,48 +47,115 @@ public class CleanUpService {
     @Autowired
     private ProjectRepository projectRepository;
 
+    private static final String SAFE_FILENAME_REGEX = "[^a-zA-Z0-9.\\-_]";
+
     private static final Logger log = LoggerFactory.getLogger(CleanUpService.class);
 
-
     /**
-     * Cleans up the file tree associated with the given project.
+     * Cleans up the file tree associated with the given project
+     * Executes fully before returning to ensure no race conditions with subsequent file creations.
      * @param project
      */
     public void cleanUpFileTree(Project project) {
-
         String globalBasePath = appConfigurationRepository.findByConfigKey(AppConfigKey.GENERAL_BASE_PATH)
                 .map(AppConfiguration::getValue)
                 .orElseThrow(() -> new RuntimeException("General Base Path not configured!"));
-        String folderName = project.getProjectName() + "_" + project.getId();
+        String folderName = project.getProjectName() + "_" + project.getVersion();
         Path projectDir = Paths.get(globalBasePath).resolve(folderName);
-        deleteProjectDirectory(projectDir);
-        log.debug("Cleaning up directory {}", projectDir);
-        project.removeFiles();
-        projectRepository.save(project);
-        //deleting all entities in the file tree associated with the project
-        fileRepository.deleteAllByProject(project);
+        if (!Files.exists(projectDir) || isDirectoryEmpty(projectDir)) {
+            log.debug("Directory {} does not exist or is empty. Skipping filesystem cleanup.", projectDir);
+        } else {
+            log.debug("Starting cleanup for project directory: {}", projectDir);
+            deleteProjectDirectory(projectDir);
 
+            project.removeFiles();
+            projectRepository.save(project);
 
-
+            deleteFilesBatched(project);
+            log.info("Finished cleanup for project: {}", project.getProjectName());
+        }
     }
 
+    /**
+     * Memory-safe directory deletion using FileVisitor (O(1) memory overhead).
+     */
     private void deleteProjectDirectory(Path projectRoot) {
-        if (!Files.exists(projectRoot)) {
+        if (projectRoot == null || !Files.exists(projectRoot)) {
             return;
         }
 
-        try (Stream<Path> walk = Files.walk(projectRoot)) {
-            walk.sorted(Comparator.reverseOrder())
-                    .forEach(path -> {
-                        try {
-                            Files.deleteIfExists(path);
-                        } catch (IOException e) {
-                            log.error("Failed to delete file or directory: {}, exception: {}", path, e.getMessage());
-                        }
-                    });
+        try {
+            Files.walkFileTree(projectRoot, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    try {
+                        Files.delete(file);
+                    } catch (NoSuchFileException ignored) {
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    try {
+                        Files.delete(dir);
+                    } catch (NoSuchFileException ignored) {
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                    log.warn("Could not access file during cleanup: {}, error: {}", file, exc != null ? exc.getMessage() : "unknown");
+                    return FileVisitResult.CONTINUE;
+                }
+            });
         } catch (IOException e) {
-            log.error("Failed to walk through the project directory: {} exception: {}", projectRoot, e.getMessage());
+            log.error("Failed to walk/delete through the project directory: {} exception: {}", projectRoot, e.getMessage());
             throw new RuntimeException("Failed to delete project directory " + projectRoot, e);
         }
     }
+
+    /**
+     * Deletes file entities in chunks to prevent transaction timeouts and memory overflow.
+     */
+    @Transactional
+    public void deleteFilesBatched(Project project) {
+        if (project == null || project.getId() == null) {
+            return;
+        }
+        Long projectId = project.getId();
+
+        // 1. Delete associated link records from join tables first to avoid FK constraint violations
+        fileRepository.deleteCopyrightFileLinksByProject(projectId);
+        fileRepository.deleteInventoryItemFileLinksByProject(projectId);
+
+        // 2. Unlink parent-child relationships within the file table
+        fileRepository.unlinkParentsByProject(projectId);
+
+        // 3. Delete file rows in batches to prevent locking tables for too long and transaction timeouts
+        int batchSize = 5000;
+        int deletedCount;
+
+        do {
+            deletedCount = fileRepository.deleteBatchByProject(projectId, batchSize);
+        } while (deletedCount >= batchSize);
+    }
+
+
+    /**
+     * Checks if a directory is empty in O(1) time without loading directory content into memory.
+     */
+    private boolean isDirectoryEmpty(Path path) {
+        if (!Files.isDirectory(path)) {
+            return true;
+        }
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(path)) {
+            return !dirStream.iterator().hasNext();
+        } catch (IOException e) {
+            log.warn("Failed to check if directory is empty: {}, assuming not empty to be safe.", path, e);
+            return false;
+        }
+    }
+
 }

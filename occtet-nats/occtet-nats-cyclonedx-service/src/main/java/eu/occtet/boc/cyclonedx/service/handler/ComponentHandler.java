@@ -87,7 +87,8 @@ public class ComponentHandler {
 
                 mainParent = processAllComponents(copyrightsToSave, inventoryItemsToSave, softwareComponentsToSave, comp, context);
                 context.getMainInventoryItems().add(mainParent);
-                mainParent.getSoftwareComponent().setDetailsUrl(context.getProject().getRepositoryURL());
+                if(mainParent != null && mainParent.getSoftwareComponent() != null && context.getProject().getRepositoryURL() != null && !context.getProject().getRepositoryURL().isEmpty())
+                    mainParent.getSoftwareComponent().setDetailsUrl(context.getProject().getRepositoryURL());
             }
         } catch (Exception e) {
             log.error("Error processing metadata component: {}", e.getMessage(), e);

@@ -47,4 +47,20 @@ public interface FileRepository extends JpaRepository<File, Long> {
     @Query("DELETE FROM File f WHERE f.project = :project")
     void deleteByProjectBulk(@Param("project") Project project);
 
+    @Modifying
+    @Query(value = "DELETE FROM copyright_file_link WHERE file_id IN (SELECT id FROM file WHERE project_id = ?1)", nativeQuery = true)
+    int deleteCopyrightFileLinksByProject(@Param("projectId") Long projectId);
+
+    @Modifying
+    @Query(value = "DELETE FROM file_inventory_item_link WHERE file_id IN (SELECT id FROM file WHERE project_id = ?1)", nativeQuery = true)
+    int deleteInventoryItemFileLinksByProject(@Param("projectId") Long projectId);
+
+    @Modifying
+    @Query(value = "UPDATE file SET parent_id = NULL WHERE project_id = ?1", nativeQuery = true)
+    int unlinkParentsByProject(@Param("projectId") Long projectId);
+
+    @Modifying
+    @Query(value = "DELETE FROM file WHERE id IN (SELECT id FROM file WHERE project_id = ?1 LIMIT ?2)", nativeQuery = true)
+    int deleteBatchByProject(@Param("projectId") Long projectId, @Param("limit") int limit);
+
 }
