@@ -328,6 +328,9 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
      */
     @Subscribe("saveAction")
     public void onSaveAction(ActionPerformedEvent event) {
+
+        this.inventoryItem = dataContext.merge(this.inventoryItem);
+
         this.inventoryItem.setExternalNotes(autocompleteAuditNotes.getValue());
         this.inventoryItem.setInventoryName(autocompleteInventoryName.getValue());
         Linking selectedLinking = linkingComboBox.getValue();
