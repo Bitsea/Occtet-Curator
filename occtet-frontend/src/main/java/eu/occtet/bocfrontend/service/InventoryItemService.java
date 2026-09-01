@@ -28,6 +28,13 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import eu.occtet.bocfrontend.entity.File;
+import eu.occtet.bocfrontend.entity.OrtIssue;
+import eu.occtet.bocfrontend.entity.OrtViolation;
+import io.jmix.core.FetchPlan;
+import io.jmix.core.Id;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.*;
 
 @Service
@@ -87,6 +94,100 @@ public class InventoryItemService {
                 }
             }
         }
+    }
+
+    /**
+     * Safely deletes an InventoryItem by removing all associations:
+     * - Unlinks child inventory items
+     * - Removes from dependencies of other inventory items
+     * - Removes from files' inventoryItems association
+     * - Clears foreign key references in ORT issues and violations
+     * - Deletes the inventory item entity
+     *
+     * @param item the inventory item to delete
+     */
+    @Transactional
+    public void deleteInventoryItem(InventoryItem item) {
+        if (item == null || item.getId() == null) {
+            return;
+        }
+        deleteInventoryItemById(item.getId(), item.getInventoryName());
+    }
+
+    /**
+     * Safely deletes an InventoryItem by its ID.
+     *
+     * @param itemId the ID of the inventory item to delete
+     * @param itemName the name for logging (optional)
+     */
+    @Transactional
+    public void deleteInventoryItemById(Long itemId, String itemName) {
+        if (itemId == null) {
+            return;
+        }
+        log.info("Deleting inventory item with id: {} ({})", itemId, itemName);
+
+        // 1. Unlink child inventory items
+        List<InventoryItem> children = dataManager.load(InventoryItem.class)
+                .query("select i from InventoryItem i where i.parent.id = :itemId")
+                .parameter("itemId", itemId)
+                .fetchPlan(fp -> fp.addFetchPlan(FetchPlan.BASE).add("parent"))
+                .list();
+        for (InventoryItem child : children) {
+            child.setParent(null);
+            dataManager.save(child);
+        }
+
+        // 2. Unlink dependencies in other inventory items
+        List<InventoryItem> dependingItems = dataManager.load(InventoryItem.class)
+                .query("select distinct i from InventoryItem i join i.dependencies d where d.id = :itemId")
+                .parameter("itemId", itemId)
+                .fetchPlan(fp -> fp.addFetchPlan(FetchPlan.BASE).add("dependencies"))
+                .list();
+        for (InventoryItem dep : dependingItems) {
+            if (dep.getDependencies() != null) {
+                dep.getDependencies().removeIf(depItem -> depItem != null && Objects.equals(depItem.getId(), itemId));
+                dataManager.save(dep);
+            }
+        }
+
+        // 3. Unlink files
+        List<File> files = dataManager.load(File.class)
+                .query("select distinct f from File f join f.inventoryItems i where i.id = :itemId")
+                .parameter("itemId", itemId)
+                .fetchPlan(fp -> fp.addFetchPlan(FetchPlan.BASE).add("inventoryItems"))
+                .list();
+        for (File file : files) {
+            if (file.getInventoryItems() != null) {
+                file.getInventoryItems().removeIf(invItem -> invItem != null && Objects.equals(invItem.getId(), itemId));
+                dataManager.save(file);
+            }
+        }
+
+        // 4. Unlink ORT issues
+        List<OrtIssue> ortIssues = dataManager.load(OrtIssue.class)
+                .query("select o from OrtIssue o where o.inventoryItem.id = :itemId")
+                .parameter("itemId", itemId)
+                .fetchPlan(fp -> fp.addFetchPlan(FetchPlan.BASE).add("inventoryItem"))
+                .list();
+        for (OrtIssue issue : ortIssues) {
+            issue.setInventoryItem(null);
+            dataManager.save(issue);
+        }
+
+        // 5. Unlink ORT violations
+        List<OrtViolation> ortViolations = dataManager.load(OrtViolation.class)
+                .query("select o from OrtViolation o where o.inventoryItem.id = :itemId")
+                .parameter("itemId", itemId)
+                .fetchPlan(fp -> fp.addFetchPlan(FetchPlan.BASE).add("inventoryItem"))
+                .list();
+        for (OrtViolation violation : ortViolations) {
+            violation.setInventoryItem(null);
+            dataManager.save(violation);
+        }
+
+        // 6. Delete the item itself using ID
+        dataManager.remove(Id.of(itemId, InventoryItem.class));
     }
 
 }

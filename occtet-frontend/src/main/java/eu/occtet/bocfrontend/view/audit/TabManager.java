@@ -260,23 +260,53 @@ public class TabManager {
     /**
      * Closes the specified InventoryItem tab.
      */
-    private void closeInventoryItemTab(InventoryItem item) {
+    public void closeInventoryItemTab(InventoryItem item) {
         Tab tab = openInventoryTabs.remove(item);
+        if (tab == null && item != null && item.getId() != null) {
+            Optional<Map.Entry<InventoryItem, Tab>> match = openInventoryTabs.entrySet().stream()
+                    .filter(entry -> Objects.equals(entry.getKey().getId(), item.getId()))
+                    .findFirst();
+            if (match.isPresent()) {
+                tab = match.get().getValue();
+                openInventoryTabs.remove(match.get().getKey());
+            }
+        }
         if (tab != null) {
             inventoryItemTabSheet.remove(tab);
-            log.debug("Closed inventory item tab: {}", item.getInventoryName());
+            log.debug("Closed inventory item tab: {}", item != null ? item.getInventoryName() : "unknown");
+        }
+        if (inventoryItemTabSheet.getTabCount() == 0) {
+            inventoryItemTabSection.setVisible(false);
+            if (Objects.equals(mainTabSheet.getSelectedTab(), inventoryItemTabSection)) {
+                mainTabSheet.setSelectedTab(mainTabSheet.getTabAt(0));
+            }
         }
         onTabChangeCallback.accept(getActiveTabIdentifier());
     }
 
     /**
-     * Closes the specified FileTreeNode tab.
+     * Closes the specified File tab.
      */
-    private void closeFileTab(File file) {
+    public void closeFileTab(File file) {
         Tab tab = openFileTabs.remove(file);
+        if (tab == null && file != null && file.getId() != null) {
+            Optional<Map.Entry<File, Tab>> match = openFileTabs.entrySet().stream()
+                    .filter(entry -> Objects.equals(entry.getKey().getId(), file.getId()))
+                    .findFirst();
+            if (match.isPresent()) {
+                tab = match.get().getValue();
+                openFileTabs.remove(match.get().getKey());
+            }
+        }
         if (tab != null) {
             filesTabSheet.remove(tab);
-            log.debug("Closed file tab: {}", file.getFileName());
+            log.debug("Closed file tab: {}", file != null ? file.getFileName() : "unknown");
+        }
+        if (filesTabSheet.getTabCount() == 0) {
+            filesTabSection.setVisible(false);
+            if (Objects.equals(mainTabSheet.getSelectedTab(), filesTabSection)) {
+                mainTabSheet.setSelectedTab(mainTabSheet.getTabAt(0));
+            }
         }
         onTabChangeCallback.accept(getActiveTabIdentifier());
     }
