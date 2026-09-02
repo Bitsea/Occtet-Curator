@@ -75,18 +75,32 @@ public class CleanUpService {
                 .orElseThrow(() -> new RuntimeException("General Base Path not configured!"));
         String folderName = project.getProjectName() + "_" + project.getVersion();
         Path projectDir = Paths.get(globalBasePath).resolve(folderName);
-        if (!Files.exists(projectDir) || isDirectoryEmpty(projectDir)) {
-            log.debug("Directory {} does not exist or is empty. Skipping filesystem cleanup.", projectDir);
-        } else {
-            log.debug("Starting cleanup for project directory: {}", projectDir);
-            deleteProjectDirectory(projectDir);
+        boolean hasFilesOnDisk = Files.exists(projectDir) && !isDirectoryEmpty(projectDir);
+        boolean hasFilesInDb = fileRepository.existsByProject(project);
 
+        if (!hasFilesOnDisk && !hasFilesInDb) {
+            log.debug("Directory {} does not exist or is empty. Skipping filesystem cleanup.", projectDir);
+        }
+        log.info("Starting cleanup for project {} (Filesystem: {}, DB: {})",
+                project.getProjectName(), hasFilesOnDisk, hasFilesInDb);
+
+        // clean up data system
+        if (hasFilesOnDisk) {
+            log.debug("Deleting project directory from disk: {}", projectDir);
+            deleteProjectDirectory(projectDir);
+        } else {
+            log.debug("Directory {} is empty or does not exist. Skipping disk cleanup.", projectDir);
+        }
+
+        // clean up DB
+        if (hasFilesInDb) {
+            log.debug("Deleting file records from database for project: {}", project.getProjectName());
             project.removeFiles();
             projectRepository.save(project);
-
             deleteFilesBatched(project);
-            log.info("Finished cleanup for project: {}", project.getProjectName());
         }
+
+        log.info("Finished cleanup for project: {}", project.getProjectName());
     }
 
     /**

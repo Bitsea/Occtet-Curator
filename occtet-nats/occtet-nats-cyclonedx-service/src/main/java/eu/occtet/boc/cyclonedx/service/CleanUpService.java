@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -46,6 +47,8 @@ public class CleanUpService {
     private AppConfigurationRepository appConfigurationRepository;
     @Autowired
     private ProjectRepository projectRepository;
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     private static final String SAFE_FILENAME_REGEX = "[^a-zA-Z0-9.\\-_]";
 
@@ -62,18 +65,32 @@ public class CleanUpService {
                 .orElseThrow(() -> new RuntimeException("General Base Path not configured!"));
         String folderName = project.getProjectName() + "_" + project.getVersion();
         Path projectDir = Paths.get(globalBasePath).resolve(folderName);
-        if (!Files.exists(projectDir) || isDirectoryEmpty(projectDir)) {
-            log.debug("Directory {} does not exist or is empty. Skipping filesystem cleanup.", projectDir);
-        } else {
-            log.debug("Starting cleanup for project directory: {}", projectDir);
-            deleteProjectDirectory(projectDir);
 
+        boolean hasFilesOnDisk = Files.exists(projectDir) && !isDirectoryEmpty(projectDir);
+        boolean hasFilesInDb = fileRepository.existsByProject(project);
+
+        if (!hasFilesOnDisk && !hasFilesInDb) {
+            log.debug("Directory {} does not exist or is empty. Skipping filesystem cleanup.", projectDir);
+        }log.info("Starting cleanup for project {} (Filesystem: {}, DB: {})",
+                project.getProjectName(), hasFilesOnDisk, hasFilesInDb);
+
+        // clean up data system
+        if (hasFilesOnDisk) {
+            log.debug("Deleting project directory from disk: {}", projectDir);
+            deleteProjectDirectory(projectDir);
+        } else {
+            log.debug("Directory {} is empty or does not exist. Skipping disk cleanup.", projectDir);
+        }
+
+        // clean up DB
+        if (hasFilesInDb) {
+            log.debug("Deleting file records from database for project: {}", project.getProjectName());
             project.removeFiles();
             projectRepository.save(project);
-
             deleteFilesBatched(project);
-            log.info("Finished cleanup for project: {}", project.getProjectName());
         }
+
+        log.info("Finished cleanup for project: {}", project.getProjectName());
     }
 
     /**
@@ -117,29 +134,60 @@ public class CleanUpService {
     }
 
     /**
-     * Deletes file entities in chunks to prevent transaction timeouts and memory overflow.
+     * Deletes all file-related records completely in batches.
+     * NO @Transactional annotation here to allow committing each batch individually!
      */
-    @Transactional
     public void deleteFilesBatched(Project project) {
         if (project == null || project.getId() == null) {
             return;
         }
         Long projectId = project.getId();
+        log.info("Starting fully batched deletion for project ID: {}", projectId);
 
-        // 1. Delete associated link records from join tables first to avoid FK constraint violations
-        fileRepository.deleteCopyrightFileLinksByProject(projectId);
-        fileRepository.deleteInventoryItemFileLinksByProject(projectId);
+        int batchSize = 10000; // for pure sql query this size is ideal
+        int affectedCount;
 
-        // 2. Unlink parent-child relationships within the file table
-        fileRepository.unlinkParentsByProject(projectId);
-
-        // 3. Delete file rows in batches to prevent locking tables for too long and transaction timeouts
-        int batchSize = 5000;
-        int deletedCount;
-
+        // delete copyright file links in batches
+        log.debug("Deleting copyright file links in batches...");
         do {
-            deletedCount = fileRepository.deleteBatchByProject(projectId, batchSize);
-        } while (deletedCount >= batchSize);
+            Integer count = transactionTemplate.execute(status ->
+                    fileRepository.deleteCopyrightFileLinksBatchByProject(projectId, batchSize)
+            );
+            affectedCount = count != null ? count : 0;
+            log.debug("Deleted {} copyright links in batch for project ID: {}", affectedCount, projectId);
+        } while (affectedCount >= batchSize);
+
+        // delete inventory item file links in batches
+        log.debug("Deleting inventory item file links in batches...");
+        do {
+            Integer count = transactionTemplate.execute(status ->
+                    fileRepository.deleteInventoryItemFileLinksBatchByProject(projectId, batchSize)
+            );
+            affectedCount = count != null ? count : 0;
+            log.debug("Deleted {} inventory links in batch for project ID: {}", affectedCount, projectId);
+        } while (affectedCount >= batchSize);
+
+        // delete parent-child relationships in batches
+        log.debug("Unlinking parent-child relationships in batches...");
+        do {
+            Integer count = transactionTemplate.execute(status ->
+                    fileRepository.unlinkParentsBatchByProject(projectId, batchSize)
+            );
+            affectedCount = count != null ? count : 0;
+            log.debug("Unlinked {} parent-child relations in batch for project ID: {}", affectedCount, projectId);
+        } while (affectedCount >= batchSize);
+
+        // delete file records in batches
+        log.debug("Deleting file records in batches...");
+        do {
+            Integer count = transactionTemplate.execute(status ->
+                    fileRepository.deleteBatchByProject(projectId, batchSize)
+            );
+            affectedCount = count != null ? count : 0;
+            log.debug("Deleted {} file records in batch for project ID: {}", affectedCount, projectId);
+        } while (affectedCount >= batchSize);
+
+        log.info("Finished fully batched deletion for project ID: {}", projectId);
     }
 
 
