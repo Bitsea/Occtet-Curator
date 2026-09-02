@@ -20,30 +20,22 @@
 package eu.occtet.boc.spdx.service;
 
 import eu.occtet.boc.dao.AppConfigurationRepository;
-import eu.occtet.boc.dao.CopyrightRepository;
 import eu.occtet.boc.dao.FileRepository;
 import eu.occtet.boc.dao.ProjectRepository;
-import eu.occtet.boc.entity.Copyright;
-import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.appconfigurations.AppConfigKey;
 import eu.occtet.boc.entity.appconfigurations.AppConfiguration;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 @Service
@@ -55,17 +47,13 @@ public class CleanUpService {
     private AppConfigurationRepository appConfigurationRepository;
     @Autowired
     private ProjectRepository projectRepository;
-
-    private static final String SAFE_FILENAME_REGEX = "[^a-zA-Z0-9.\\-_]";
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     private static final Logger log = LoggerFactory.getLogger(CleanUpService.class);
 
-
-    @PersistenceContext
-    private EntityManager entityManager;
-
     /**
-     * Cleans up the file tree associated with the given project synchronously.
+     * Cleans up the file tree associated with the given project
      * Executes fully before returning to ensure no race conditions with subsequent file creations.
      * @param project
      */
@@ -75,13 +63,13 @@ public class CleanUpService {
                 .orElseThrow(() -> new RuntimeException("General Base Path not configured!"));
         String folderName = project.getProjectName() + "_" + project.getVersion();
         Path projectDir = Paths.get(globalBasePath).resolve(folderName);
+
         boolean hasFilesOnDisk = Files.exists(projectDir) && !isDirectoryEmpty(projectDir);
         boolean hasFilesInDb = fileRepository.existsByProject(project);
 
         if (!hasFilesOnDisk && !hasFilesInDb) {
             log.debug("Directory {} does not exist or is empty. Skipping filesystem cleanup.", projectDir);
-        }
-        log.info("Starting cleanup for project {} (Filesystem: {}, DB: {})",
+        }log.info("Starting cleanup for project {} (Filesystem: {}, DB: {})",
                 project.getProjectName(), hasFilesOnDisk, hasFilesInDb);
 
         // clean up data system
@@ -144,30 +132,62 @@ public class CleanUpService {
     }
 
     /**
-     * Deletes file entities in chunks to prevent transaction timeouts and memory overflow.
+     * Deletes all file-related records completely in batches.
+     * NO @Transactional annotation here to allow committing each batch individually!
      */
-    @Transactional
     public void deleteFilesBatched(Project project) {
         if (project == null || project.getId() == null) {
             return;
         }
         Long projectId = project.getId();
+        log.info("Starting fully batched deletion for project ID: {}", projectId);
 
-        // 1. Delete associated link records from join tables first to avoid FK constraint violations
-        fileRepository.deleteCopyrightFileLinksByProject(projectId);
-        fileRepository.deleteInventoryItemFileLinksByProject(projectId);
+        int batchSize = 10000; // for pure sql query this size is ideal
+        int affectedCount;
 
-        // 2. Unlink parent-child relationships within the file table
-        fileRepository.unlinkParentsByProject(projectId);
-
-        // 3. Delete file rows in batches to prevent locking tables for too long and transaction timeouts
-        int batchSize = 5000;
-        int deletedCount;
-
+        // delete copyright file links in batches
+        log.debug("Deleting copyright file links in batches...");
         do {
-            deletedCount = fileRepository.deleteBatchByProject(projectId, batchSize);
-        } while (deletedCount >= batchSize);
+            Integer count = transactionTemplate.execute(status ->
+                    fileRepository.deleteCopyrightFileLinksBatchByProject(projectId, batchSize)
+            );
+            affectedCount = count != null ? count : 0;
+            log.debug("Deleted {} copyright links in batch for project ID: {}", affectedCount, projectId);
+        } while (affectedCount >= batchSize);
+
+        // delete inventory item file links in batches
+        log.debug("Deleting inventory item file links in batches...");
+        do {
+            Integer count = transactionTemplate.execute(status ->
+                    fileRepository.deleteInventoryItemFileLinksBatchByProject(projectId, batchSize)
+            );
+            affectedCount = count != null ? count : 0;
+            log.debug("Deleted {} inventory links in batch for project ID: {}", affectedCount, projectId);
+        } while (affectedCount >= batchSize);
+
+        // delete parent-child relationships in batches
+        log.debug("Unlinking parent-child relationships in batches...");
+        do {
+            Integer count = transactionTemplate.execute(status ->
+                    fileRepository.unlinkParentsBatchByProject(projectId, batchSize)
+            );
+            affectedCount = count != null ? count : 0;
+            log.debug("Unlinked {} parent-child relations in batch for project ID: {}", affectedCount, projectId);
+        } while (affectedCount >= batchSize);
+
+        // delete file records in batches
+        log.debug("Deleting file records in batches...");
+        do {
+            Integer count = transactionTemplate.execute(status ->
+                    fileRepository.deleteBatchByProject(projectId, batchSize)
+            );
+            affectedCount = count != null ? count : 0;
+            log.debug("Deleted {} file records in batch for project ID: {}", affectedCount, projectId);
+        } while (affectedCount >= batchSize);
+
+        log.info("Finished fully batched deletion for project ID: {}", projectId);
     }
+
 
     /**
      * Checks if a directory is empty in O(1) time without loading directory content into memory.
@@ -183,4 +203,5 @@ public class CleanUpService {
             return false;
         }
     }
+
 }

@@ -50,8 +50,6 @@ public class CleanUpService {
     @Autowired
     private TransactionTemplate transactionTemplate;
 
-    private static final String SAFE_FILENAME_REGEX = "[^a-zA-Z0-9.\\-_]";
-
     private static final Logger log = LoggerFactory.getLogger(CleanUpService.class);
 
     /**
