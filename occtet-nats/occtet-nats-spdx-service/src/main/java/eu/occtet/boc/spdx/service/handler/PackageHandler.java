@@ -229,7 +229,7 @@ public class PackageHandler {
             if(!inventoryItem.getSoftwareComponent().getVersion().equals(context.getProject().getVersion())){
                 inventoryItem.getSoftwareComponent().setVersion(context.getProject().getVersion());
             }
-        }else {
+        }else if(context.getMainItem() != null) {
             inventoryItem.setParent(context.getMainItem());
             context.getMainItem().getDependencies().add(inventoryItem);
         }
