@@ -26,12 +26,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface SoftwareComponentRepository extends JpaRepository<SoftwareComponent, Long> {
 
     List<SoftwareComponent> findByNameAndVersion(String softwareName, String version);
     @Query("SELECT s FROM SoftwareComponent s, Project p WHERE p.organization = s.organization AND p = :project")
     List<SoftwareComponent> findComponentsByProject(@Param("project") Project project);
+    Optional<SoftwareComponent> findByPurl(String purl);
 
 
 }

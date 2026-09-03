@@ -20,9 +20,11 @@
 package eu.occtet.boc.cyclonedx.service;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import eu.occtet.boc.entity.InventoryItem;
+import eu.occtet.boc.entity.Vulnerability;
 import eu.occtet.boc.model.DownloadServiceWorkData;
 import eu.occtet.boc.model.ScannerSendWorkData;
 import eu.occtet.boc.model.VulnerabilityServiceWorkData;
@@ -41,6 +43,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -96,46 +99,63 @@ public class AnswerService {
     public boolean prepareAnswers(Set<InventoryItem> inventoryItems, boolean toCopyrightAi,
                                   boolean toLicenseMatcher, Set<InventoryItem> mainInventoryItemIds
     ) throws JetStreamApiException, IOException {
-            log.debug("prepare answer size {}", inventoryItems.size());
+
+        log.debug("prepare answer size {}", inventoryItems.size());
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+
+        LocalDateTime now = LocalDateTime.now();
+        long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
+
+        List<String> purlsForVulnerability = new ArrayList<>();
+
         for (InventoryItem inventoryItem : inventoryItems) {
             log.debug("SEND inventoryId {} inventoryName {}", inventoryItem.getId(), inventoryItem.getInventoryName());
             ScannerSendWorkData sendWorkData = new ScannerSendWorkData(inventoryItem.getId());
-            LocalDateTime now = LocalDateTime.now();
-            long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
+
             log.debug("scannerWorkData: {}", sendWorkData.toString());
             if (toCopyrightAi) {
-                WorkTask workTask = new WorkTask(UUID.randomUUID().toString(),"copyrightfilter", "send processed inventory item from spdx microservice to copyrightFilter", actualTimestamp, sendWorkData);
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+                WorkTask workTask = new WorkTask(UUID.randomUUID().toString(),"copyrightfilter", "send processed inventory item from cyclonedx microservice to copyrightFilter", actualTimestamp, sendWorkData);
                 String message = mapper.writeValueAsString(workTask);
                 log.debug("sending message to copyrightfilter service: {}", message);
                 natsStreamSenderCopyrightFilter().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
             }
             if (toLicenseMatcher) {
-                WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "licensematcher", "send processed inventory item from spdx microservice to licenseMatcher", actualTimestamp, sendWorkData);
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+                WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "licensematcher", "send processed inventory item from cyclonedx microservice to licenseMatcher", actualTimestamp, sendWorkData);
                 String message = mapper.writeValueAsString(workTask);
                 log.debug("sending message to licenseMatcher service: {}", message);
                 natsStreamSenderLicenseMatcher().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
             }
 
-            VulnerabilityServiceWorkData vulnerabilityWorkData= new VulnerabilityServiceWorkData(inventoryItem.getSoftwareComponent().getId());
-            WorkTask workTask = new WorkTask(UUID.randomUUID().toString(),"vulnerability", "send processed softwareComponent from spdx microservice to vulnerabilityService", actualTimestamp, vulnerabilityWorkData);
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-            String message = mapper.writeValueAsString(workTask);
-            log.debug("sending message to vulnerability service: {}", message);
-            natsStreamSenderVulnerabilities().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
+            if (inventoryItem.getSoftwareComponent() != null && inventoryItem.getSoftwareComponent().getPurl() != null) {
+                purlsForVulnerability.add(inventoryItem.getSoftwareComponent().getPurl());
+            }
+
             sendToDownload(
                     inventoryItem.getProject().getId(),
                     inventoryItem.getId(),
                     mainInventoryItemIds.contains(inventoryItem)
             );
-
         }
 
+        // 4. Gesammelte PURLs an den Vulnerability-Service senden
+        if (!purlsForVulnerability.isEmpty()) {
+            sendPurlsToVulnerabilityService(purlsForVulnerability, actualTimestamp, mapper);
+        }
+
+
         return true;
+    }
+
+    private void sendPurlsToVulnerabilityService(List<String> purls, long actualTimestamp, ObjectMapper mapper) throws IOException, JetStreamApiException {
+        VulnerabilityServiceWorkData vulnerabilityWorkData = new VulnerabilityServiceWorkData(purls);
+        WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "vulnerability",
+                "send processed purls from cyclonedx microservice to vulnerabilityService", actualTimestamp, vulnerabilityWorkData);
+        String message = mapper.writeValueAsString(workTask);
+        log.debug("sending message to vulnerability service: {}", message);
+        natsStreamSenderVulnerabilities().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
+
     }
 
     /**
