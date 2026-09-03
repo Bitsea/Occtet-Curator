@@ -139,9 +139,11 @@ public class AnswerService {
             );
         }
 
-        // 4. Gesammelte PURLs an den Vulnerability-Service senden
-        if (!purlsForVulnerability.isEmpty()) {
-            sendPurlsToVulnerabilityService(purlsForVulnerability, actualTimestamp, mapper);
+        // batching: divide the list of purls into smaller batches to avoid sending too much data at once
+        int batchSize = 100;
+        for (int i = 0; i < purlsForVulnerability.size(); i += batchSize) {
+            List<String> batch = purlsForVulnerability.subList(i, Math.min(i + batchSize, purlsForVulnerability.size()));
+            sendPurlsToVulnerabilityService(batch, actualTimestamp, mapper);
         }
 
 
