@@ -376,7 +376,7 @@ public class SoftwareComponentDetailView extends StandardDetailView<SoftwareComp
         CuratorTask task = curatorTaskFactory.create(project, importName, UPDATE_VULNERS_CURATOR_TASK_TYPE);
 
         VulnerabilityServiceWorkData vulnerabilityServiceWorkData =
-                new VulnerabilityServiceWorkData(getEditedEntity().getId());
+                new VulnerabilityServiceWorkData(List.of(getEditedEntity().getPurl()));
 
         boolean res = curatorTaskService.saveAndRunTask(task,vulnerabilityServiceWorkData,"sending software component to vulnerability microservice",sendSubjectVulnerabilities );
         notifications.create(messages.getMessage("eu.occtet.bocfrontend.view.softwareComponent/notification.updateData"))
