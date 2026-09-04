@@ -188,7 +188,7 @@ public class FossReportService extends ProgressReportingService {
 
             log.info("Finished generating data.");
 
-            sendVulnerbilityToStream(inventoryItem);
+            sendVulnerbilityToStream(List.of(inventoryItem.getSoftwareComponent().getPurl()));
             notifyProgress(90, "sending results to next services");
             // send inventory item to next step in workflow
             ScannerSendWorkData workDataResponse = new ScannerSendWorkData(inventoryItem.getId());
@@ -204,11 +204,11 @@ public class FossReportService extends ProgressReportingService {
         return true;
     }
 
-    private void sendVulnerbilityToStream(InventoryItem inventoryItem) throws IOException, JetStreamApiException {
+    private void sendVulnerbilityToStream(List<String> purls) throws IOException, JetStreamApiException {
 
         // send software id to vulnerability microservice
         VulnerabilityServiceWorkData vulnerabilityServiceWorkData =
-                new VulnerabilityServiceWorkData(inventoryItem.getSoftwareComponent().getId());
+                new VulnerabilityServiceWorkData(purls);
         WorkTask workTask = new WorkTask(
                 UUID.randomUUID().toString(), "vulnerability-service",
                 "sending software component to vulnerability microservice",
