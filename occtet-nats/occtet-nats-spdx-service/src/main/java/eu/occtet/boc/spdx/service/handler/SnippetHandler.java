@@ -61,35 +61,42 @@ public class SnippetHandler {
         log.info("Starting snippet processing...");
 
         try {
+
             Stream<?> rawStream = SpdxModelFactory.getSpdxObjects(
                     context.getSpdxDocument().getModelStore(),
                     context.getSpdxDocument().getCopyManager(),
                     SpdxConstantsCompatV2.CLASS_SPDX_SNIPPET,
-                    context.getSpdxDocument().getDocumentUri(),
+                    null,
                     null
             );
 
-            Stream<SpdxSnippet> snippetStream = rawStream
-                    .filter(obj -> obj instanceof SpdxSnippet)
-                    .map(obj -> (SpdxSnippet) obj);
-            Set<SoftwareComponent> softwareComponentsToSave= new HashSet<>();
+            List<SpdxSnippet> snippets = rawStream
+                    .filter(SpdxSnippet.class::isInstance)
+                    .map(SpdxSnippet.class::cast)
+                    .toList();
 
-            snippetStream.forEach(snippet -> {
+            Set<SoftwareComponent> softwareComponentsToSave = new HashSet<>();
+
+            for (SpdxSnippet snippet : snippets) {
                 try {
                     processSingleSnippet(snippet, context, softwareComponentsToSave);
                 } catch (Exception e) {
-                    log.error("Failed to process snippet: {}. Skipping...", snippet.getId(), e);
+                    String snippetId = snippet.getId();
+                    log.error("Failed to process snippet: {}. Skipping...", snippetId, e);
 
-                    if (context.getSpdxDocumentRoot().getSnippets() != null) {
+                    if (context.getSpdxDocumentRoot().getSnippets() != null && snippetId != null) {
                         context.getSpdxDocumentRoot().getSnippets()
-                                .removeIf(s -> s.getSpdxId() != null && s.getSpdxId().equals(snippet.getId()));
+                                .removeIf(s -> snippetId.equals(s.getSpdxId()));
                     }
                 }
-            });
-            if(!softwareComponentsToSave.isEmpty()) softwareComponentRepository.saveAll(softwareComponentsToSave);
+            }
 
-            log.info("Snippet processing completed.");
-        }catch (InvalidSPDXAnalysisException e) {
+            if (!softwareComponentsToSave.isEmpty()) {
+                softwareComponentRepository.saveAll(softwareComponentsToSave);
+            }
+
+            log.info("Snippet processing completed. Processed {} snippets.", snippets.size());
+        } catch (InvalidSPDXAnalysisException e) {
             log.error("Failed to process snippets. Skipping...", e);
         }
     }

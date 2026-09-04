@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.spdx.core.InvalidSPDXAnalysisException;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.library.SpdxModelFactory;
 import org.spdx.library.model.v2.SpdxDocument;
@@ -147,13 +148,13 @@ public class SpdxHandlerTest {
     public void testPackageHandler_ShouldProcessSpecificPackage() {
         packageHandler.processAllPackages(context, (p) -> {});
 
-        String targetSpdxId = "SPDXRef-Package-Maven-pkg7-grp-pkg7-0.0.1-source-artifact";
+        String targetSpdxId = "SPDXRef-Package-Maven-pkg7-grp-pkg7-0.0.1";
         Optional<InventoryItem> itemOpt = inventoryItemRepository.findBySpdxIdAndProject(targetSpdxId, project).stream().findFirst();
 
         Assertions.assertTrue(itemOpt.isPresent(), "Pkg7 source artifact should be created");
         InventoryItem item = itemOpt.get();
 
-        Assertions.assertTrue(item.getInventoryName().contains("pkg7-grp-pkg7-0.0.1-source-artifact"));
+        Assertions.assertTrue(item.getInventoryName().contains("pkg7-grp-pkg7-0.0.1"));
         Assertions.assertTrue(item.getInventoryName().contains("GPL-2.0-only WITH NOASSERTION"));
 
         SoftwareComponent component = item.getSoftwareComponent();
@@ -167,7 +168,7 @@ public class SpdxHandlerTest {
 
 
         InventoryItem pkg7Item = inventoryItemRepository.findBySpdxIdAndProject(
-                        "SPDXRef-Package-Maven-pkg7-grp-pkg7-0.0.1-source-artifact", project)
+                        "SPDXRef-Package-Maven-pkg7-grp-pkg7-0.0.1", project)
                 .stream().findFirst().orElseThrow();
 
         SoftwareComponent pkg7Comp = pkg7Item.getSoftwareComponent();
@@ -213,7 +214,7 @@ public class SpdxHandlerTest {
 
 
     @Test
-    public void testSnippetHandler_ShouldEnrichFileWithSnippetData() {
+    public void testSnippetHandler_ShouldEnrichFileWithSnippetData() throws InvalidSPDXAnalysisException {
         packageHandler.processAllPackages(context, (p) -> {});
 
         snippetHandler.processAllSnippets(context);
