@@ -37,7 +37,8 @@
     </actions>
     <layout>
         <vbox id="form" height="100%" width="100%">
-            <textField id="contextField" property="context" dataContainer="suggestionDc" label="msg://context" width="60%"
+            <comboBox id="contextField"
+                      property="context" dataContainer="suggestionDc" label="msg://context" width="60%"
             requiredMessage="msg://requieredmessage"/>
             <textArea id="sentenceField" property="sentence" dataContainer="suggestionDc"
                       label="msg://eu.occtet.bocfrontend.view.suggestion/Sentence" width="60%"/>
