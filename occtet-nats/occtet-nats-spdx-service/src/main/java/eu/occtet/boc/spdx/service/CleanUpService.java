@@ -25,6 +25,8 @@ import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.appconfigurations.AppConfigKey;
 import eu.occtet.boc.entity.appconfigurations.AppConfiguration;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +51,8 @@ public class CleanUpService {
     private ProjectRepository projectRepository;
     @Autowired
     private TransactionTemplate transactionTemplate;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private static final Logger log = LoggerFactory.getLogger(CleanUpService.class);
 
@@ -86,6 +90,13 @@ public class CleanUpService {
             project.removeFiles();
             projectRepository.save(project);
             deleteFilesBatched(project);
+
+            // cache must be cleared to avoid stale data issues in subsequent operations
+            entityManager.flush(); // close write operations to the database
+            entityManager.clear(); // persistence context cleared
+
+            // invalidate l2 cache to ensure no stale data is served in future queries
+            entityManager.getEntityManagerFactory().getCache().evictAll();
         }
 
         log.info("Finished cleanup for project: {}", project.getProjectName());
