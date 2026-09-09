@@ -69,6 +69,7 @@ public class ConfigurationView extends StandardView {
     @ViewComponent
     private JmixTabSheet mainTabSheet;
 
+
     private Map<AppConfigKey, AppConfiguration> configMap = new HashMap<>();
     private String EDITOR_TAB_ID = "editor";
 

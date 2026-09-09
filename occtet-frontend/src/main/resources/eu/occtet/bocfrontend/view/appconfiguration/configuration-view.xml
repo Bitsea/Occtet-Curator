@@ -56,7 +56,8 @@
 
             <tab id="openSearch" label="msg://vulnerabilityDB">
                 <formLayout id="openSearchForm">
-                    <passwordField id="vulnerabilityDBToken"
+                    <paragraph text="msg://apiKeyDescription"/>
+                     <passwordField id="vulnerabilityDBToken"
                                label="msg://Apikey" width="100%"/>
                 </formLayout>
             </tab>
