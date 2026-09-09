@@ -55,11 +55,16 @@
             </tab>
 
             <tab id="openSearch" label="msg://vulnerabilityDB">
-                <formLayout id="openSearchForm">
-                    <paragraph text="msg://apiKeyDescription"/>
-                     <passwordField id="vulnerabilityDBToken"
+                <vbox width="100%">
+                    <hbox>
+                        <nativeLabel text="msg://apiKeyDescription"/>
+                    </hbox>
+
+                    <hbox width="60%">
+                        <passwordField id="vulnerabilityDBToken"
                                label="msg://Apikey" width="100%"/>
-                </formLayout>
+                    </hbox>
+                </vbox>
             </tab>
         </tabSheet>
 
