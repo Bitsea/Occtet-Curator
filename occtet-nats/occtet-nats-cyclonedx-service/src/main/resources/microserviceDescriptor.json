@@ -1,7 +1,7 @@
 {
   "type": "descriptor",
-  "name": "occtet-nats-spdx-service",
-  "description": "A microservice for turning spdx json into entities",
+  "name": "occtet-nats-cyclonedx-service",
+  "description": "A microservice for turning cycloneDx json into entities",
   "usesAI": false,
-  "acceptableWorkData": "SpdxWorkData"
+  "acceptableWorkData": "CycloneDxWorkData"
 }

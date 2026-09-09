@@ -1,7 +1,7 @@
 {
   "type": "descriptor",
-  "name": "occtet-nats-spdx-export-service",
-  "description": "A microservice for creating an SPDX SBOM which can be exported",
+  "name": "occtet-nats-cyclonedx-export-service",
+  "description": "A microservice for creating an cycloneDX SBOM which can be exported",
   "usageType": "RUNNABLE_BY_SERVICE",
-  "acceptableWorkData": "SpdxExportWorkData"
+  "acceptableWorkData": "CycloneDxExportWorkData"
 }
