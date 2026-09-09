@@ -49,6 +49,8 @@ public abstract class WorkConsumer implements InformativeService {
     public void startHandlingMessages(Connection natsConnection, String myServiceName, String streamName,
             String workSubject) throws IOException, JetStreamApiException {
         this.natsConnection = natsConnection;
+        log.debug("startHandlingMessages called, myServiceName: {}, streamName: {}, workSubject: {}", myServiceName,
+                streamName, workSubject);
         JetStream js = natsConnection.jetStream();
         StreamContext streamContext = js.getStreamContext(streamName);
         ConsumerConfiguration config = ConsumerConfiguration.builder()
@@ -66,7 +68,9 @@ public abstract class WorkConsumer implements InformativeService {
         while (natsConnection.getStatus() != Connection.Status.CLOSED) {
             try (FetchConsumer fetchConsumer = consumerContext.fetchMessages(1)) {
                 Message msg = fetchConsumer.nextMessage();
-                if (msg != null) {
+                if(msg != null)
+                    log.debug("received message: {}", msg.getSubject());
+                if (msg != null && msg.getSubject().equals(workSubject)) {
                     log.debug("received message on subject... {}", msg.getSubject());
 
                     workerStatus = WorkerStatus.WORKING;

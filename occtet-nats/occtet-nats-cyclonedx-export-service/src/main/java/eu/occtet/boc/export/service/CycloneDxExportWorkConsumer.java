@@ -33,8 +33,7 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 
 @Service
-public class
-CycloneDxExportWorkConsumer extends WorkConsumer {
+public class CycloneDxExportWorkConsumer extends WorkConsumer {
 
     private static final Logger log = LogManager.getLogger(CycloneDxExportWorkConsumer.class);
 
