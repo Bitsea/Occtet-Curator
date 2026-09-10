@@ -19,14 +19,10 @@
 
 package eu.occtet.boc.processRun.factory;
 
-import eu.occtet.boc.dao.OrtIssueRepository;
 import eu.occtet.boc.entity.OrtIssue;
 import eu.occtet.boc.entity.Project;
 import org.openapitools.client.model.AppliedIssueResolution;
-import org.openapitools.client.model.IssueResolution;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 

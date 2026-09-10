@@ -29,8 +29,7 @@ public class OrtViolationFactory {
 
     public OrtViolation createOrtViolation(String message, String rule, String severity, String purl, String howToFix,
                                            String license, LicenseSource licenseSource, Project project){
-        OrtViolation ortViolation= new OrtViolation(message, rule, severity, purl, howToFix, license, licenseSource.getValue(), false, project);
+        return new OrtViolation(message, rule, severity, purl, howToFix, license, licenseSource.getValue(), false, project);
 
-        return ortViolation;
     }
 }
