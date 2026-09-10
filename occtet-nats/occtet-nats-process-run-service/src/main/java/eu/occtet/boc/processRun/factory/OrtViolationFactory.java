@@ -21,15 +21,15 @@ package eu.occtet.boc.processRun.factory;
 
 import eu.occtet.boc.entity.OrtViolation;
 import eu.occtet.boc.entity.Project;
+import org.openapitools.client.model.LicenseSource;
 import org.springframework.stereotype.Component;
 
 @Component
 public class OrtViolationFactory {
 
     public OrtViolation createOrtViolation(String message, String rule, String severity, String purl, String howToFix,
-                                           String license, String licenseSource, Project project){
-        OrtViolation ortViolation= new OrtViolation(message, rule, severity, purl, howToFix, license, licenseSource, false, project);
+                                           String license, LicenseSource licenseSource, Project project){
+        return new OrtViolation(message, rule, severity, purl, howToFix, license, licenseSource.getValue(), false, project);
 
-        return ortViolation;
     }
 }
