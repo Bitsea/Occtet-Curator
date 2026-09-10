@@ -33,9 +33,6 @@ import java.util.List;
 @Component
 public class OrtIssueFactory {
 
-    @Autowired
-    private OrtIssueRepository ortIssueRepository;
-
 
     public OrtIssue createOrtIssue(String identifier, String severity, String purl, String affectedPath, String message, String source,
                                    List<AppliedIssueResolution> resolutions, String timestamp, String worker, Project project) {
