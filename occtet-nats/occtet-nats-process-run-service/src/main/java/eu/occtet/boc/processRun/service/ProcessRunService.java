@@ -144,6 +144,8 @@ public class ProcessRunService {
 
         List<OrtViolation> toSaveViolations= new ArrayList<>();
         for(RuleViolation rV: ruleViolations){
+            //workaround for bug in ort-server where licensesource is not set
+            if(rV.getLicenseSource()== null) rV.setLicenseSource(LicenseSource.CONCLUDED);
             OrtViolation ortVio= ortViolationFactory.createOrtViolation(rV.getMessage(), rV.getRule(),
                     rV.getSeverity().getValue(), rV.getPurl(), rV.getHowToFix(), rV.getLicense(), rV.getLicenseSource(), project);
             toSaveViolations.add(ortVio);
