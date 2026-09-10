@@ -133,8 +133,6 @@ public class ProcessRunService {
         //send sbom to spdx service for further processing, AI is for now not triggered -> false, false
         answerService.sendToSpdxService(spdxSbom,project.getId(), false, false);
 
-        //delete Run at the end
-        //runsApi.deleteRun(runId);
         return true;
 
     }
