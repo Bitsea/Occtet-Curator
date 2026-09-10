@@ -138,7 +138,7 @@ public class ProcessRunService {
     }
 
     private void handleViolations(RunsApi runsApi, Long runId, Project project) throws ApiException {
-        PagedResponseRuleViolation pagedResponseRuleViolation= runsApi.getRunRuleViolations(runId, null, null, null, null);
+        PagedResponseRuleViolation pagedResponseRuleViolation= runsApi.getRunRuleViolations(runId, null, null, null, null, null, null, null, null);
         List<RuleViolation> ruleViolations= pagedResponseRuleViolation.getData();
         log.debug("Handle violations, found {} violations for run {}", ruleViolations.size(), runId);
 
@@ -157,7 +157,7 @@ public class ProcessRunService {
     }
 
     private void handleIssues(RunsApi runsApi, Long runId, Project project) throws ApiException {
-        PagedResponseIssue pagedResponseIssue= runsApi.getRunIssues(runId, null, null, null, null);
+        PagedResponseIssue pagedResponseIssue= runsApi.getRunIssues(runId, null, null, null, null, null, null, null);
         List<Issue> issues= pagedResponseIssue.getData();
         log.debug("Handle issues, found {} issues for run {}", issues.size(), runId);
 

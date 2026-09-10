@@ -9261,6 +9261,14 @@
         "responses" : {
           "200" : {
             "description" : "Success. The response body contains the requested report file.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "binary"
+                }
+              }
+            },
             "headers" : {
               "Content-Type" : {
                 "description" : "The content type is set to the media type derived from the report file.",

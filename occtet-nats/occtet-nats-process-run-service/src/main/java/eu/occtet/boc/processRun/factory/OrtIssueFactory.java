@@ -22,6 +22,7 @@ package eu.occtet.boc.processRun.factory;
 import eu.occtet.boc.dao.OrtIssueRepository;
 import eu.occtet.boc.entity.OrtIssue;
 import eu.occtet.boc.entity.Project;
+import org.openapitools.client.model.AppliedIssueResolution;
 import org.openapitools.client.model.IssueResolution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,11 +38,11 @@ public class OrtIssueFactory {
 
 
     public OrtIssue createOrtIssue(String identifier, String severity, String purl, String affectedPath, String message, String source,
-                               List<IssueResolution> resolutions, String timestamp, String worker, Project project) {
+                                   List<AppliedIssueResolution> resolutions, String timestamp, String worker, Project project) {
         List<String> resolutionDescriptions =new ArrayList<>();
         if(resolutions!= null) {
              resolutionDescriptions=resolutions.stream()
-                    .map(IssueResolution::getMessage)
+                    .map(AppliedIssueResolution::getMessage)
                     .toList();
         }
         String ident= "";
