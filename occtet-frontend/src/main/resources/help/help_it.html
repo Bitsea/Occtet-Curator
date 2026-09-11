@@ -130,6 +130,8 @@
 
     L’amministratore crea le organizzazioni e assegna loro gli utenti.
     Può inoltre associare i progetti alle organizzazioni.
+    Ogni utente, che sia amministratore o curatore,
+    deve essere assegnato a un'organizzazione per poter utilizzare tutte le funzioni.
 
     - Se un amministratore crea un progetto, può selezionare l’organizzazione
     - Se un curatore crea un progetto, questo viene assegnato automaticamente alla sua organizzazione
@@ -197,9 +199,24 @@
 
     Gli InventoryItems sono la base dell’analisi e permettono di suddividere la SBOM in unità gestibili.
 
-    <h2>11. Lavorare con i file</h2>
+    <h2>11. SoftwareComponents</h2>
 
-    <h3>11.1 Visualizzatore di codice</h3>
+    I componenti software vengono creati automaticamente durante la lettura della SBOM.
+    Ogni componente software appartiene a un articolo di inventario.
+    È possibile creare i componenti software anche manualmente.
+    Questa operazione può essere eseguita direttamente nella gestione SBOM,
+    nella vista Articolo di inventario o nella vista Componente software.
+    Il nome e la versione sono campi obbligatori. Se si crea il componente nella vista Componente software,
+    è necessario creare anche un articolo di inventario e assegnarvi il componente software.
+    L'InventoryItem rappresenta il collegamento a un progetto.
+    Senza l'InventoryItem, la SoftwareComponent non può essere assegnata a nessun progetto.
+    Assegnare la SoftwareComponent a quest'ultimo.
+
+
+
+    <h2>12. Lavorare con i file</h2>
+
+    <h3>12.1 Visualizzatore di codice</h3>
     Puoi:
     - aprire i file
     - leggerli
@@ -215,7 +232,7 @@
     Eventuali restrizioni all’esportazione o altre note legali devono essere anch’esse registrate.
     I termini di ricerca definiti nel profilo vengono evidenziati nel contenuto.
 
-    <h3>11.2 Stato “Reviewed”</h3>
+    <h3>12.2 Stato “Reviewed”</h3>
     Un file è considerato revisionato quando:
     - è assegnato correttamente
     - la licenza è stata verificata
@@ -224,7 +241,7 @@
 
     Una volta completato, viene contrassegnato come <b>reviewed</b>.
 
-    <h2>12. AuditNotes</h2>
+    <h2>13. AuditNotes</h2>
     Le AuditNotes rappresentano la documentazione e la prova delle decisioni. Consentono di registrare, ad esempio:
     - perché una licenza è accettabile
     - perché una CVE non è rilevante
@@ -235,7 +252,7 @@
     - trasparenza verso i clienti
     - documentazione legale
 
-    <h2>13. Vulnerabilità e VEX</h2>
+    <h2>14. Vulnerabilità e VEX</h2>
     Occtet rileva automaticamente le CVE associate a ciascun SoftwareComponent. Puoi valutarle tramite stati VEX:
     - Affected
     - Not Affected
@@ -244,7 +261,7 @@
 
     Queste valutazioni possono essere esportate nel formato VEX (Vulnerability Exploitability Exchange), leggibile automaticamente.
 
-    <h2>14. Viste e panoramiche</h2>
+    <h2>15. Viste e panoramiche</h2>
     Occtet offre diverse viste globali:
 
     <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
@@ -280,7 +297,7 @@
 
     Tutte le liste possono essere filtrate, ordinate e ricercate.
 
-    <h2>15. Esportazione</h2>
+    <h2>16. Esportazione</h2>
     Puoi esportare:
     - SBOM pulite (incluse informazioni rilevanti come CVE, licenze e diritti d’autore)
     - documenti VEX
@@ -289,7 +306,7 @@
     - fornire risultati ai clienti
     - soddisfare requisiti di audit o normativi
 
-    <h2>16. Integrazione</h2>
+    <h2>17. Integrazione</h2>
 
     Grazie all’API e all’integrazione con ORT, Occtet Curator può essere integrato nelle pipeline di build.
     Questo consente di eseguire automaticamente ORT run e importare direttamente i risultati.
