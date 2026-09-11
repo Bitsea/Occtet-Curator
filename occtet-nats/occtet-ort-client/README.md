@@ -29,7 +29,7 @@ Replace all instances of  `"null", "object"` by `"object"` (all in `"type" : [..
 
 (Reason: when the `"null"` is included, the generator does not create a Map<> but a ModelNull<> which does not exist)
 
-It can also be, that some some content is missing for some requests, for example for the getRunReport request.
+It can also be, that some content is missing for some requests, for example for the getRunReport request.
 There you have to add the missing content manually inside the response, for example: 
 
 "responses" : {
