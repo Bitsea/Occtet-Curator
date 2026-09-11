@@ -28,7 +28,12 @@
             <fetchPlan extends="_base"/>
             <loader id="copyrightsDl">
                 <query>
-                    <![CDATA[select c from Copyright c where c in :copyrights]]>
+                    <![CDATA[select distinct c from InventoryItem i join i.softwareComponent sc join sc.copyrights c]]>
+                    <condition>
+                        <c:jpql>
+                            <c:where>i.project = :project</c:where>
+                        </c:jpql>
+                    </condition>
                 </query>
             </loader>
         </collection>
