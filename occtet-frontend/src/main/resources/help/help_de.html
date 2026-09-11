@@ -305,6 +305,195 @@
     werden vom Curator erkannt und können direkt importiert werden.
     So kannst du kontinuierlich deine SBOMs aktuell halten und Schwachstellen bewerten.
 
+    <h2>18. Auditprozess – Prüfung und Kuration einer SBOM</h2>
+
+    Der Import einer SBOM stellt zunächst eine automatisierte Erfassung der im Projekt erkannten Softwarekomponenten dar. Das Ergebnis eines Scans kann jedoch unvollständig sein: Komponenten können vom Scanner (der die SBOM erstellt hat) nicht erkannt, falsch zugeordnet oder nicht mit ausreichenden Informationen zu Lizenz, Copyright oder Schwachstellen versehen worden sein.
+
+    Der Auditprozess dient daher dazu, die automatisch erzeugten Informationen mit dem tatsächlichen Inhalt des Quellcodes abzugleichen und die SBOM zu vervollständigen. Ziel ist ein möglichst vollständiges, nachvollziehbares und auditierbares Softwareinventar.
+
+    Die Prüfung erfolgt im Wesentlichen in folgenden Schritten:
+
+    <ol>
+        <li><b>Projekt und Filetree prüfen</b></li>
+        <li><b>Nicht erkannte Softwarekomponenten identifizieren und aufnehmen</b></li>
+        <li><b>Files und rechtliche Hinweise prüfen</b></li>
+        <li><b>Informationen den InventoryItems zuordnen und in den AuditNotes dokumentieren</b></li>
+        <li><b>Schwachstellen der Softwarekomponenten prüfen und aktualisieren</b></li>
+        <li><b>Prüfung abschließen und Files als reviewed markieren</b></li>
+    </ol>
+
+    <h3>18.1 Projekt und Filetree prüfen</h3>
+
+    Nach dem Import der SBOM wird zunächst das gesamte Projekt im SBOM Management betrachtet. Der Filetree auf der linken Seite und das InventoryItem Grid auf der rechten Seite dienen dabei als Ausgangspunkte für die manuelle Prüfung.
+
+    Ziel ist es, einen Überblick darüber zu erhalten, welche Dateien tatsächlich Bestandteil des Projekts sind und welche davon bereits einem InventoryItem zugeordnet wurden.
+
+    Dabei sollte insbesondere darauf geachtet werden:
+
+    <ul> <li>Sind alle relevanten Dateien im Projekt vorhanden?</li> <li>Sind Dateien bereits einem passenden InventoryItem zugeordnet?</li> <li>Gibt es Dateien, die noch keinem InventoryItem zugeordnet sind?</li> <li>Gibt es InventoryItems zu deren SoftwareComponent kein Code gedownloaded werden konnte? </li> <li>Gibt es Hinweise darauf, dass der Scanner eine Softwarekomponente nicht erkannt hat?</li> <li>Enthalten Dateien Lizenz- oder Copyright-Hinweise, die in der importierten SBOM noch nicht berücksichtigt wurden?</li> </ul>
+
+    Eine vollständige Prüfung des Filetrees ist insbesondere bei Projekten wichtig, deren Abhängigkeiten nicht ausschließlich über den verwendeten Package Manager oder den automatischen Scanner ermittelt werden können.
+    Der Filetree kann trotzdem unvollständig sein, wenn zu einem InventoryItem kein Code gedownloaded werden konnte. Wenn zum Beispiel die Url zu einer SoftwareComponent ungültig, falsch oder nicht auf die Downloadstrategien des Curators passt. (Momentan werden Git und Maven Repositories unterstützt.)
+
+    <h3>18.2 Nicht erkannte Softwarekomponenten identifizieren</h3>
+
+    Ein Audit beschränkt sich nicht darauf, die vom Scanner/Import gelieferten InventoryItems zu überprüfen. Es muss auch festgestellt werden, ob im Quellcode Softwarekomponenten vorhanden sind, die vom Scanner nicht erkannt wurden.
+
+    Werden beispielsweise Dateien gefunden, die eindeutig zu einer Drittanbieter-Komponente gehören, für die jedoch noch kein entsprechendes InventoryItem existiert, muss diese Komponente manuell in Occtet aufgenommen werden.
+
+    Dazu wird zunächst eine passende <b>SoftwareComponent</b> angelegt bzw. ausgewählt und anschließend ein zugehöriges <b>InventoryItem</b> für das Projekt erstellt.
+
+    Das InventoryItem bildet dabei die Verbindung zwischen der technischen Softwarekomponente und dem konkreten Projekt. Erst durch diese Zuordnung kann die Komponente im Rahmen des Projektaudits vollständig bewertet werden.
+
+    Bei der Identifikation unbekannter Komponenten können unter anderem folgende Hinweise hilfreich sein:
+
+    <ul>
+        <li>Datei- und Verzeichnisnamen</li>
+        <li>Package- und Namespace-Strukturen</li>
+        <li>Copyright- und Lizenzheader</li>
+        <li>README- oder NOTICE-Dateien</li>
+        <li>Dokumentation innerhalb der Komponente</li>
+        <li>Versionsinformationen</li>
+        <li>Hinweise auf Drittanbieter oder externe Projekte</li>
+        <li>typische Dateistrukturen oder bekannte Quellcodefragmente</li>
+    </ul>
+
+    Die manuelle Ergänzung ist besonders wichtig, da eine SBOM nur so vollständig sein kann wie die zugrunde liegende Erkennung.
+
+    <h3>18.3 Files und rechtliche Informationen prüfen</h3>
+
+    Anschließend werden die den InventoryItems zugeordneten Files inhaltlich geprüft.
+
+    Der Code-Viewer ermöglicht es, Dateien zu öffnen, zu durchsuchen und nach relevanten Begriffen zu untersuchen. Neben dem eigentlichen Quellcode sind insbesondere rechtliche und lizenzbezogene Informationen relevant. Occtet kann hierfür konfigurierte Suchbegriffe im Dateiinhalt hervorheben.
+
+    Bei der Prüfung sollte insbesondere nach folgenden Informationen gesucht werden:
+
+    <ul>
+        <li>Lizenzheader</li>
+        <li>SPDX-License-Identifier</li>
+        <li>Copyright-Vermerke</li>
+        <li>NOTICE-Dateien und andere rechtliche Hinweise</li>
+        <li>Hinweise auf Drittanbieter-Code</li>
+        <li>Informationen zur Herkunft des Codes</li>
+        <li>zusätzliche Nutzungsbedingungen</li>
+        <li>Exportrestriktionen oder sonstige rechtliche Einschränkungen</li>
+    </ul>
+
+    Dabei sollte nicht nur die Existenz einer Lizenz festgestellt werden. Entscheidend ist auch, <b>welcher Teil des Projekts von der jeweiligen Lizenz betroffen ist</b> und ob die gefundene Information tatsächlich zu der betrachteten Softwarekomponente gehört.
+
+    Beispielsweise kann ein Repository mehrere Komponenten mit unterschiedlichen Lizenzen enthalten. Ebenso können einzelne Dateien einen eigenen Lizenzheader besitzen, während für eine übergeordnete Komponente eine andere Lizenz dokumentiert ist.
+
+    <h3>18.4 Informationen im InventoryItem dokumentieren</h3>
+
+    Die bei der Dateiprüfung gewonnenen Informationen werden anschließend im entsprechenden InventoryItem zusammengeführt.
+
+    Für jede Softwarekomponente sollten insbesondere folgende Informationen nachvollziehbar sein:
+
+    <ul>
+        <li>welche Files zur Komponente gehören,</li>
+        <li>welche Lizenz für die Komponente bzw. die zugehörigen Dateien festgestellt wurde,</li>
+        <li>welche Copyright-Hinweise vorhanden sind,</li>
+        <li>wo diese Informationen im Projekt gefunden wurden,</li>
+        <li>welche manuellen Entscheidungen im Rahmen des Audits getroffen wurden.</li>
+    </ul>
+
+    Die <b>AuditNotes</b> dienen dabei als Nachweis für die getroffenen Entscheidungen. Sie sollten möglichst konkret beschreiben, <b>was festgestellt wurde und wo der entsprechende Nachweis zu finden ist</b>.
+
+    Beispiel:
+
+    <i>„MIT License in LICENSE-Datei des Verzeichnisses /thirdparty/example gefunden. Copyright-Hinweis im Header von example.java. Dateien dem InventoryItem Example Library 2.4 zugeordnet.“</i>
+
+    Dadurch ist auch zu einem späteren Zeitpunkt nachvollziehbar, auf welcher Grundlage die Lizenz- und Copyright-Informationen übernommen wurden.
+
+    Die AuditNotes sind nicht nur eine persönliche Notiz des Curators. Sie bilden die Begründung für manuelle Entscheidungen und unterstützen dadurch spätere Audits, Kundenanfragen und rechtliche Prüfungen.
+
+    <h3>18.5 Lizenzen und Copyrights bewerten</h3>
+
+    Die gefundenen Lizenz- und Copyright-Informationen werden mit den bereits durch den Scanner/Import erkannten Informationen abgeglichen.
+
+    Dabei können beispielsweise folgende Situationen auftreten:
+
+    <ul>
+        <li>Die automatisch erkannte Lizenz wird durch einen eindeutigen Lizenzheader bestätigt.</li>
+        <li>Eine Lizenz wurde automatisch erkannt, ist im Quellcode jedoch nicht eindeutig nachvollziehbar.</li>
+        <li>Eine zusätzliche Lizenz wird in einer Datei gefunden, die vom Scanner nicht berücksichtigt wurde.</li>
+        <li>Ein Copyright-Hinweis wird im Quellcode gefunden und muss der Komponente zugeordnet werden.</li>
+        <li>Es existieren mehrere Lizenzangaben, die genauer bewertet werden müssen.</li>
+    </ul>
+
+    Bei widersprüchlichen oder unklaren Angaben sollte die Entscheidung nicht stillschweigend getroffen werden. Stattdessen sollte die zugrunde liegende Information in den AuditNotes dokumentiert und – sofern erforderlich – weitergehend geprüft werden.
+
+    Insbesondere bei Open-Source-Komponenten ist zwischen der <b>technischen Erkennung einer Lizenz</b> und der <b>rechtlichen Bewertung ihrer Auswirkungen</b> zu unterscheiden. Occtet unterstützt die Erfassung und Nachvollziehbarkeit dieser Informationen; die eigentliche rechtliche Bewertung kann je nach Projekt und Lizenz zusätzliche Prüfung erfordern.
+
+    <h3>18.6 Schwachstellen der Softwarekomponenten prüfen</h3>
+
+    Nachdem die Identität und Zuordnung der Softwarekomponenten geprüft wurde, werden deren bekannten Schwachstellen überprüft.
+
+    Occtet ordnet Schwachstellen zunächst automatisch den SoftwareComponents zu. Im Audit wird anschließend geprüft, ob diese Zuordnung für die konkrete Verwendung im Projekt zutrifft.
+
+    Für jede relevante Schwachstelle sollte insbesondere geprüft werden:
+
+    <ul>
+        <li>Ist die betroffene Softwarekomponente tatsächlich im Projekt vorhanden?</li>
+        <li>Stimmt die erkannte Version mit der tatsächlich verwendeten Version überein?</li>
+        <li>Ist die betreffende Schwachstelle für diese Version relevant?</li>
+        <li>Wird der verwundbare Teil der Komponente im Projekt tatsächlich verwendet?</li>
+        <li>Wurde die Schwachstelle bereits behoben oder durch eine neuere Version beseitigt?</li>
+        <li>Ist die Schwachstelle für das konkrete Projekt bzw. die konkrete Nutzung tatsächlich ausnutzbar?</li>
+    </ul>
+
+    Die Ergebnisse dieser Prüfung werden in der InventoryItem-Ansicht bei den jeweiligen Vulnerabilities aktualisiert.
+
+    Dabei kann beispielsweise zwischen folgenden Zuständen unterschieden werden:
+
+    <ul>
+        <li><b>Affected</b> – die Komponente ist von der Schwachstelle betroffen.</li>
+        <li><b>Not Affected</b> – die Schwachstelle betrifft die konkrete Verwendung der Komponente nicht.</li>
+        <li><b>Under Investigation</b> – die Bewertung ist noch nicht abgeschlossen.</li>
+        <li><b>Fixed</b> – die Schwachstelle wurde beispielsweise durch ein Update behoben.</li>
+    </ul>
+
+    Diese Bewertungen können anschließend als VEX-Information exportiert werden.
+
+    Wichtig ist dabei die Unterscheidung zwischen einer <b>bekannten Schwachstelle einer Komponente</b> und dem <b>tatsächlichen Risiko für das konkrete Projekt</b>. Eine CVE bedeutet nicht automatisch, dass die Anwendung ausnutzbar ist. Für eine belastbare Bewertung müssen unter anderem Version, betroffene Funktionalität und die konkrete Verwendung der Komponente berücksichtigt werden.
+
+    <h3>18.7 InventoryItem als zentrale Audit-Einheit</h3>
+
+    Das InventoryItem bildet damit die zentrale Einheit des Audits. Hier laufen die verschiedenen Informationen einer Softwarekomponente zusammen:
+
+    <ul>
+        <li>SoftwareComponent und Version</li>
+        <li>zugehörige Files</li>
+        <li>Lizenzen</li>
+        <li>Copyrights</li>
+        <li>Schwachstellen</li>
+        <li>VEX-Bewertungen</li>
+        <li>AuditNotes</li>
+    </ul>
+
+    Das Ziel ist, dass ein Auditor oder ein anderer Curator anhand des InventoryItems nachvollziehen kann, <b>welche Komponente verwendet wird, aus welchen Dateien sie besteht, welche rechtlichen Informationen vorliegen und wie sicherheitsrelevante Erkenntnisse bewertet wurden</b>.
+
+    <h3>18.8 Audit abschließen</h3>
+
+    Eine Datei sollte erst dann als <b>reviewed</b> markiert werden, wenn ihre Zuordnung und die relevanten Informationen geprüft wurden.
+
+    Für eine abgeschlossene Prüfung sollte insbesondere sichergestellt sein:
+
+    <ul>
+        <li>Die Datei ist dem richtigen InventoryItem zugeordnet.</li>
+        <li>Die Softwarekomponente wurde eindeutig identifiziert.</li>
+        <li>Lizenzinformationen wurden geprüft.</li>
+        <li>Copyright-Informationen wurden geprüft.</li>
+        <li>Relevante zusätzliche rechtliche Hinweise wurden berücksichtigt.</li>
+        <li>Erkannte Schwachstellen wurden überprüft und bewertet.</li>
+        <li>Manuelle Entscheidungen wurden in den AuditNotes dokumentiert.</li>
+    </ul>
+
+    Dieser Ablauf wird für die relevanten Dateien und Softwarekomponenten des Projekts wiederholt.
+
+    Am Ende des Audits sollte die importierte SBOM nicht mehr lediglich eine maschinell erzeugte Liste von Komponenten darstellen, sondern ein <b>geprüftes und nachvollziehbar kuratiertes Softwareinventar</b>.
+
+    Die daraus entstehenden Informationen bilden anschließend die Grundlage für Sicherheitsbewertungen, Lizenz- und Copyright-Analysen sowie die Erstellung von VEX-Berichten und einer bereinigten SBOM.
 
 
 </div>
