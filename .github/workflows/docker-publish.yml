@@ -187,6 +187,14 @@ jobs:
             context: ./occtet-nats/occtet-nats-spdx-export-service
             dockerfile: ./occtet-nats/occtet-nats-spdx-export-service/Dockerfile
             artifact: occtet-nats-artifacts
+          - name: occtet-nats-cyclonedx-service
+            context: ./occtet-nats/occtet-nats-cyclonedx-service
+            dockerfile: ./occtet-nats/occtet-nats-cyclonedx-service/Dockerfile
+            artifact: occtet-nats-artifacts
+          - name: occtet-nats-cyclonedx-export-service
+            context: ./occtet-nats/occtet-nats-cyclonedx-export-service
+            dockerfile: ./occtet-nats/occtet-nats-cyclonedx-export-service/Dockerfile
+            artifact: occtet-nats-artifacts
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
