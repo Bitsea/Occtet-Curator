@@ -48,8 +48,12 @@
                 <genericFilter id="genericFilter" dataLoader="copyrightsDl" themeNames="small" alignSelf="START" opened="false">
                     <properties include=".*"/>
                 </genericFilter>
-                <simplePagination id="pagination" dataLoader="copyrightsDl" alignSelf="END" />
+
             </hbox>
+            <simplePagination id="pagination" dataLoader="copyrightsDl" itemsPerPageDefaultValue="50"
+                                     itemsPerPageItems="20, 50, 100"
+                                     itemsPerPageVisible="true"
+                                     alignSelf="END"/>
             <dataGrid classNames="occtet-grid" id="copyrightsDataGrid"
                       width="100%"
                       minHeight="30em"

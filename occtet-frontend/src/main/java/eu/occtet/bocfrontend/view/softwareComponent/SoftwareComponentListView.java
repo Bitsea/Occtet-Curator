@@ -21,6 +21,7 @@ package eu.occtet.bocfrontend.view.softwareComponent;
 
 
 import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.Renderer;
@@ -38,6 +39,7 @@ import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -68,41 +70,43 @@ public class SoftwareComponentListView extends StandardListView<SoftwareComponen
     @Autowired
     private Messages messages;
 
+    private Project showAllProject;
 
     @Subscribe
-    public void onInit(InitEvent event){
-        Project showAllProject = new Project();
+    public void onInit(InitEvent event) {
+        showAllProject = new Project();
         showAllProject.setProjectName(messages.getMessage("Showall"));
         showAllProject.setVersion("");
-        showAllProject.setId(new Random().nextLong());
+        showAllProject.setId(-1L);
 
-        List<Project> allProjects = new java.util.ArrayList<>();
+        List<Project> allProjects = new ArrayList<>();
         allProjects.add(showAllProject);
         allProjects.addAll(projectRepository.findAll());
 
         projectComboBox.setItems(allProjects);
+        projectComboBox.setValue(showAllProject);
+
         projectComboBox.setItemLabelGenerator(project -> {
-            if (messages.getMessage("Showall").equals(project.getProjectName())) {
+            if (showAllProject.equals(project)) {
                 return project.getProjectName();
             }
             return project.getProjectName() + " - " + project.getVersion();
         });
     }
 
-    @Subscribe(id = "projectComboBox")
-    public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
-        if(event != null){
-            Project selectedProject = event.getValue();
-            if (selectedProject == null || messages.getMessage("Showall").equals(selectedProject.getProjectName())) {
-                List<SoftwareComponent> softwareComponents = softwareComponentRepository.findAll();
-                loadSoftwareComponent(softwareComponents);
-                filterBox.setVisible(!softwareComponents.isEmpty());
-            } else {
-                List<SoftwareComponent> softwareComponents = softwareComponentRepository.findByProject(event.getValue());
-                loadSoftwareComponent(softwareComponents);
-                filterBox.setVisible(!softwareComponents.isEmpty());
-            }
+    @Subscribe("projectComboBox")
+    public void onProjectComboBoxComponentValueChange(
+            final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event) {
+
+        Project selectedProject = event.getValue();
+
+        if (selectedProject == null || showAllProject.equals(selectedProject)) {
+            softwareComponentsDl.removeParameter("project");
+        } else {
+            softwareComponentsDl.setParameter("project", selectedProject);
         }
+
+        softwareComponentsDl.load();
     }
 
     @Supply(to = "softwareComponentsDataGrid.usageLicenses", subject = "renderer")
@@ -130,8 +134,4 @@ public class SoftwareComponentListView extends StandardListView<SoftwareComponen
         window.open();
     }
 
-    private void loadSoftwareComponent(List<SoftwareComponent> softwareComponents){
-        softwareComponentsDl.setParameter("softwareComponents",softwareComponents);
-        softwareComponentsDl.load();
-    }
 }

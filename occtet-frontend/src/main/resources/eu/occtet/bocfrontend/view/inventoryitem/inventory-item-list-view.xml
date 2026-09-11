@@ -30,8 +30,13 @@
             </fetchPlan>
             <loader id="inventoryItemsDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from InventoryItem e where e in :inventoryItems]]>
-                </query>
+                <![CDATA[select distinct ii from InventoryItem sc join ii.projects p order by ii.inventoryItemName]]>
+                <condition>
+                    <c:jpql>
+                        <c:where>p = :project</c:where>
+                    </c:jpql>
+                </condition>
+            </query>
             </loader>
         </collection>
     </data>
@@ -53,8 +58,12 @@
             <genericFilter id="genericFilter" dataLoader="inventoryItemsDl" themeNames="small" alignSelf="START" opened="false">
                 <properties include=".*"/>
             </genericFilter>
-            <simplePagination id="pagination" dataLoader="inventoryItemsDl" itemsPerPageItems="100"  alignSelf="END"/>
+
         </hbox>
+        <simplePagination id="pagination" dataLoader="inventoryItemsDl" itemsPerPageDefaultValue="50"
+                          itemsPerPageItems="20, 50, 100"
+                          itemsPerPageVisible="true"
+                          alignSelf="END"/>
         <dataGrid classNames="occtet-grid" id="inventoryItemsDataGrid"
                   width="100%"
                   minHeight="20em"

@@ -26,14 +26,13 @@
                     class="eu.occtet.bocfrontend.entity.CuratorTask">
             <loader id="curatorTaskDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from CuratorTask e]]>
-                </query>
+                    <![CDATA[select e from CuratorTask e order by e.startDate desc]]></query>
             </loader>
         </collection>
     </data>
     <facets>
         <dataLoadCoordinator auto="true"/>
-        <timer id="refreshTimer" delay="3000" autostart="true" repeating="true"/>
+        <timer id="refreshTimer" delay="10000" autostart="true" repeating="true"/>
     </facets>
     <actions>
         <action id="lookupSelectAction"
@@ -66,6 +65,7 @@
                     <simplePagination id="pagination" dataLoader="curatorTaskDl"/>
                 </hbox>
             </vbox>
+            <simplePagination dataLoader="curatorTaskDl" itemsPerPageDefaultValue="8"/>
             <dataGrid classNames="occtet-grid" id="curatorTaskDataGrid"
                       width="100%"
                       minHeight="20em"

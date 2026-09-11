@@ -44,7 +44,7 @@
                 </property>
             </fetchPlan>
             <loader id="licenseDl">
-                <query><![CDATA[select e from SoftwareComponentLicenseUsage e]]></query>
+                <query><![CDATA[select e from SoftwareComponentLicenseUsage e where e.softwareComponent = :container_softwareComponentDc]]></query>
             </loader>
         </collection>
     </data>
