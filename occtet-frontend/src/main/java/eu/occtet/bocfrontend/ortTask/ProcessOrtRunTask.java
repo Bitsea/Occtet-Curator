@@ -44,8 +44,6 @@ public class ProcessOrtRunTask  {
     @Value("${https.cacert.path}")
     private String cacertPath;
 
-    @Autowired
-    private CurrentAuthentication currentAuthentication;
 
     @Autowired
     private SystemAuthenticator systemAuthenticator;

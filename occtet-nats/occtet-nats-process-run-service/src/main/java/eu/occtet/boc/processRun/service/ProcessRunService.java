@@ -104,38 +104,52 @@ public class ProcessRunService {
 
         RunsApi runsApi = new RunsApi(apiClient);
 
-        ApiResponse<java.io.File> response = runsApi.getRunReportWithHttpInfo(runId, "bom.spdx.json");
-        log.debug("Requested report for run {} from ort server", runId);
-        java.io.File spdxSbom= response.getData();
-
-
-        OrtRun run= runsApi.getRun(runId);
-        Long productId= run.getProductId();
+        OrtRun run = runsApi.getRun(runId);
+        Long productId = run.getProductId();
         ProductsApi productsApi = new ProductsApi(apiClient);
-        Product product= productsApi.getProduct(productId);
+        Product product = productsApi.getProduct(productId);
         OrganizationsApi organizationsApi = new OrganizationsApi(apiClient);
-        Organization organization= organizationsApi.getOrganization(product.getOrganizationId());
+        Organization organization = organizationsApi.getOrganization(product.getOrganizationId());
 
-        Project project= null;
+        Project project = null;
         List<Project> projects = projectRepository.findByProjectName(product.getName());
-        //if the run was started only via ORT, here a project is created according to the product on ort-server
-        if(projects.isEmpty()){
+        if (projects.isEmpty()) {
             log.debug("No project found for product {}, creating new project", product.getName());
-            project= projectFactory.createProject(product.getName(), organization.getName(), "1.0");
-        }else project= projects.getFirst();
+            project = projectFactory.createProject(product.getName(), organization.getName(), "1.0");
+        } else {
+            project = projects.getFirst();
+        }
         log.debug("Processing run {} for project {}", runId, project.getProjectName());
 
-
-        //handle violations and issues for display in UI and further processing
+        // process violations and issues
         handleViolations(runsApi, runId, project);
         handleIssues(runsApi, runId, project);
 
-        //send sbom to spdx service for further processing, AI is for now not triggered -> false, false
-        answerService.sendToSpdxService(spdxSbom,project.getId(), false, false);
 
-        return true;
+        return fetchAndDispatchSbom(runsApi, runId, project.getId());
 
     }
+
+    private boolean fetchAndDispatchSbom(RunsApi runsApi, long runId, Long projectId) throws ApiException {
+        try {
+            ApiResponse<java.io.File> response = runsApi.getRunReportWithHttpInfo(runId, "bom.spdx.json");
+            log.debug("SPDX report loaded for run {}", runId);
+            return answerService.sendToSpdxService(response.getData(), projectId, false, false);
+        } catch (ApiException e) {
+            if (e.getCode() == 404) {
+                log.info("SPDX report missing for run {}, attempting CycloneDX fallback", runId);
+                ApiResponse<java.io.File> response = runsApi.getRunReportWithHttpInfo(runId, "bom.cyclonedx.json");
+                log.debug("CycloneDX report loaded for run {}", runId);
+                return answerService.sendToCycloneDxService(response.getData(), projectId, false, false);
+            } else {
+                log.error("Error fetching report for run {}: {}", runId, e.getMessage());
+                throw e;
+            }
+        }
+    }
+
+
+
 
     private void handleViolations(RunsApi runsApi, Long runId, Project project) throws ApiException {
         PagedResponseRuleViolation pagedResponseRuleViolation= runsApi.getRunRuleViolations(runId, null, null, null, null, null, null, null, null);
