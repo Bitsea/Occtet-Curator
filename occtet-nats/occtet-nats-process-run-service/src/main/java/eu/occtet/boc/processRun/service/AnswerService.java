@@ -21,6 +21,7 @@ package eu.occtet.boc.processRun.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import eu.occtet.boc.model.CycloneDxWorkData;
 import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.model.WorkTask;
 import eu.occtet.boc.service.NatsHelperService;
@@ -87,6 +88,41 @@ public class AnswerService extends NatsHelperService {
             mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
             String message = mapper.writeValueAsString(workTask);
             log.debug("sending message to spdx service: {}", message);
+            natsStreamSender().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
+            return true;
+
+        } catch(Exception e){
+            log.error("Error sending SPDX data to microservice", e);
+            return false;
+        }
+
+    }
+
+    public boolean sendToCycloneDxService(File file, Long projectId, boolean useCopyright, boolean useLicenseMatch) {
+
+        try {
+            FileInputStream inputStream = new FileInputStream(file);
+
+            ObjectMeta objectMeta = ObjectMeta.builder(file.getAbsolutePath())
+                    .description("CycloneDx document for use by cycloneDx-microservice")
+                    .chunkSize(32 * 1024)
+                    .build();
+
+            setNatsConnection(natsConnection);
+
+            ObjectInfo objectInfo = putDataIntoObjectStore(inputStream, objectMeta);
+            if (objectInfo == null) return false;
+
+            LocalDateTime now = LocalDateTime.now();
+            long actualTimestamp = now.atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
+
+            //prepare worktask for cycloneDx-service
+            CycloneDxWorkData cycloneDxWorkData = new CycloneDxWorkData(objectInfo.getObjectName(), objectInfo.getBucket(), projectId, useCopyright, useLicenseMatch, false);
+            WorkTask workTask = new WorkTask(UUID.randomUUID().toString(), "sbom for d´cycloneDx-service", "send processed cycloneDx sbom to cycloneDx-service", actualTimestamp, cycloneDxWorkData);
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+            String message = mapper.writeValueAsString(workTask);
+            log.debug("sending message to cycloneDx service: {}", message);
             natsStreamSender().sendWorkMessageToStream(message.getBytes(Charset.defaultCharset()));
             return true;
 

@@ -52,6 +52,7 @@ public class StartOrtRunTask extends TaskParent {
                     case CONFIG_KEY_REPOSITORY_TYPE:
                         repoType = configuration.getValue();
                         break;
+
                 }
 
             }
