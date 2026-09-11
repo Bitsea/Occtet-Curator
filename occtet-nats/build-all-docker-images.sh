@@ -37,6 +37,12 @@ cd ..
 cd occtet-nats-copyrightfilter-service
 mvn clean package dockerfile:build
 cd ..
+cd occtet-nats-cyclonedx-service
+mvn clean package dockerfile:build
+cd ..
+cd occtet-nats-cyclonedx-export-service
+mvn clean package dockerfile:build
+cd ..
 cd occtet-nats-download-service
 mvn clean package dockerfile:build
 cd ..
