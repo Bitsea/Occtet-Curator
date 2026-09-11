@@ -129,6 +129,7 @@
 
     Administrators create organizations and assign users to them.
     Projects can also be assigned to organizations.
+    Every user, whether an admin or a curator, must be assigned to an organization in order to use all features.
 
     - When an administrator creates a project, they can select the target organization.
     - When a curator creates a project, it is automatically assigned to their organization.
@@ -151,4 +152,371 @@
 
     Data within an organization can be reused across its projects.
     Licenses and copyrights are not restricted to a specific organization and can be reused globally.
+
+
+
+    <h2>6. Importing an SBOM</h2>
+    You can import an SBOM (currently SPDX format) using the file upload feature. During the import process, you can also configure whether AI-powered workflows should be used for:
+    - Copyright detection
+    - License classification
+
+    After the import, Occtet automatically generates:
+    - SoftwareComponents
+    - InventoryItems
+    - Vulnerabilities (CVEs)
+    - Files
+    - Licenses
+    - Copyrights
+
+    <h2>7. Starting an ORT Run</h2>
+
+    The Import page also provides a button to start an ORT run. To use this feature, a running ORT (Docker) instance must be connected to the system. Connection details can be configured either in the <code>application.properties</code> file or dynamically via a <code>.env</code> file.
+
+    When configuring an ORT run, you define:
+    - The type of repository to scan
+    - The repository URL
+    - The version to analyze
+
+    <h2>8. Dashboard</h2>
+    The dashboard acts as your project’s security indicator. It provides an overview of:
+    - The number of CVEs categorized by severity (Critical, High, Medium, Low)
+    - The number of software components affected by vulnerabilities
+
+    This allows you to quickly assess whether a project is ready for release or poses a potential risk.
+
+    <h2>9. SBOM Management</h2>
+    This is your main workspace. The layout is structured as follows:
+    - Left: File tree
+    - Right: InventoryItems
+    - Center: Overview (vulnerabilities, licenses, copyrights)
+
+    Ideally, each file should be assigned to exactly one InventoryItem.
+
+    <h2>10. InventoryItems – The Core Element</h2>
+    An InventoryItem represents a software component and includes:
+    - SoftwareComponent (name, version, source URL)
+    - Associated files
+    - Vulnerabilities (CVEs) (with the option to create VEX statements)
+    - Licenses
+    - Copyrights
+    - AuditNotes to document decisions
+
+    InventoryItems are the foundation of your analysis. They help break down the SBOM into manageable units that can be reviewed individually.
+
+    <h2>11. SoftwareComponents</h2>
+
+    SoftwareComponents are automatically created when the SBOM is imported. Each SoftwareComponent belongs to an InventoryItem.
+    You can also create SoftwareComponents manually. This can be done directly in SBOM Management within the InventoryItem
+    or in the SoftwareComponent view. Name and version are required fields. If you create the component in the SoftwareComponent view,
+    you must also create an InventoryItem for it and assign the SoftwareComponent to it.
+    The InventoryItem is the link to a project. Without an InventoryItem, the SoftwareComponent cannot be assigned to a project.
+
+
+    <h2>12. Working with Files</h2>
+
+    <h3>12.1 Code Viewer</h3>
+    For each file, you can:
+    - Open it
+    - Read it
+    - Search within it
+    - Assign it to an InventoryItem
+
+    While reviewing files, you may encounter relevant legal information such as:
+    - License headers
+    - Copyright notices
+    - References to third-party code
+
+    These findings should be documented in AuditNotes to ensure traceability of your decisions.
+    For example, you can record why a file was assigned to a specific InventoryItem or why a license or copyright is considered acceptable.
+
+    Export restrictions or similar legal notes identified in the file content should also be documented in AuditNotes.
+    Search terms defined in your profile are highlighted within the file content.
+
+    <h3>12.2 Reviewed Status</h3>
+    A file is considered reviewed when:
+    - It is assigned to the correct InventoryItem
+    - Its license has been verified
+    - Its copyrights have been reviewed
+    - All findings have been documented
+
+    Once these steps are completed, the file can be marked as <b>reviewed</b>.
+
+    <h2>13. AuditNotes</h2>
+    AuditNotes serve as your documentation and audit trail. They are used to record, for example:
+    - Why a license is considered acceptable
+    - Why a CVE is classified as not relevant
+    - Why a copyright notice can be ignored
+
+    They are essential for:
+    - Compliance audits (e.g., ISO)
+    - Customer inquiries and transparency
+    - Legal documentation
+
+    <h2>14. Vulnerabilities & VEX</h2>
+    Occtet automatically detects which CVEs are associated with each SoftwareComponent. You then assess their relevance using VEX statuses:
+    - Affected
+    - Not Affected
+    - Under Investigation
+    - Fixed
+
+    These assessments can be exported in the machine-readable VEX (Vulnerability Exploitability Exchange) format.
+
+    Within the InventoryItem view (detailed view in SBOM Management), VEX statements can be created either individually per CVE or in bulk.
+
+    <h2>15. Views & Overviews</h2>
+    Occtet provides several global views:
+
+    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead>
+        <tr>
+            <th>View</th>
+            <th>Purpose</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Inventory</td>
+            <td>All InventoryItems</td>
+        </tr>
+        <tr>
+            <td>VEX Listing</td>
+            <td>All VEX decisions</td>
+        </tr>
+        <tr>
+            <td>Licenses</td>
+            <td>All licenses used in the project</td>
+        </tr>
+        <tr>
+            <td>SoftwareComponents</td>
+            <td>Technical components</td>
+        </tr>
+        <tr>
+            <td>Projects</td>
+            <td>All projects</td>
+        </tr>
+        </tbody>
+    </table>
+
+    All lists can be filtered, sorted, and searched.
+
+    <h2>16. Export</h2>
+    You can export:
+    - Cleaned SBOMs (including legally relevant information such as CVEs, licenses, and copyrights)
+    - VEX documents
+
+    These exports can be used to:
+    - Deliver results to customers
+    - Provide documentation to authorities or auditors
+
+    <h2>17. Integration</h2>
+
+    Through its API integration with ORT, Occtet Curator can be embedded into a build pipeline. This enables:
+    - Automated execution of ORT runs
+    - Direct import of results into Occtet Curator
+
+    ORT runs initiated externally are also detected by the Curator and can be imported seamlessly.
+
+    This allows you to continuously keep your SBOMs up to date and systematically assess vulnerabilities.
+
+
+    <h2>18. Audit Process – Review and Curation of an SBOM</h2>
+
+    The import of an SBOM initially represents an automated collection of the software components detected in the project. However, the result of a scan may be incomplete: components may not be detected by the scanner (which generated the SBOM), may be incorrectly assigned, or may not be provided with sufficient information regarding licenses, copyrights, or vulnerabilities.
+
+    The purpose of the audit process is therefore to compare the automatically generated information with the actual contents of the source code and to complete the SBOM. The goal is to create a software inventory that is as complete, traceable, and auditable as possible.
+
+    The review essentially consists of the following steps:
+
+    <ol>
+        <li><b>Review the project and Filetree</b></li>
+        <li><b>Identify and add undetected software components</b></li>
+        <li><b>Review files and legal notices</b></li>
+        <li><b>Assign information to InventoryItems and document it in the AuditNotes</b></li>
+        <li><b>Review and update software component vulnerabilities</b></li>
+        <li><b>Complete the review and mark files as reviewed</b></li>
+    </ol>
+
+    <h3>18.1 Review the Project and Filetree</h3>
+
+    After importing the SBOM, the entire project is first examined in SBOM Management. The Filetree on the left and the InventoryItem Grid on the right serve as starting points for the manual review.
+
+    The goal is to obtain an overview of which files are actually part of the project and which of them have already been assigned to an InventoryItem.
+
+    Particular attention should be paid to the following:
+
+    <ul>
+        <li>Are all relevant files present in the project?</li>
+        <li>Have the files already been assigned to an appropriate InventoryItem?</li>
+        <li>Are there any files that have not yet been assigned to an InventoryItem?</li>
+        <li>Are there any InventoryItems for which no code could be downloaded for their SoftwareComponent?</li>
+        <li>Are there any indications that the scanner failed to detect a software component?</li>
+        <li>Do the files contain license or copyright notices that have not yet been taken into account in the imported SBOM?</li>
+    </ul>
+
+    A complete review of the Filetree is particularly important for projects whose dependencies cannot be identified exclusively through the package manager used or the automated scanner.
+
+    However, the Filetree may still be incomplete if no code could be downloaded for an InventoryItem. This can occur, for example, if the URL of a SoftwareComponent is invalid, incorrect, or does not match the Curator's download strategies. Currently, Git and Maven repositories are supported.
+
+    <h3>18.2 Identify Undetected Software Components</h3>
+
+    An audit is not limited to reviewing the InventoryItems provided by the scanner/import. It must also be determined whether software components are present in the source code that were not detected by the scanner.
+
+    If, for example, files are found that clearly belong to a third-party component for which no corresponding InventoryItem exists yet, the component must be added manually to Occtet.
+
+    To do this, an appropriate <b>SoftwareComponent</b> is first created or selected, followed by the creation of a corresponding <b>InventoryItem</b> for the project.
+
+    The InventoryItem thus forms the link between the technical software component and the specific project. Only through this association can the component be fully assessed as part of the project audit.
+
+    The following indicators can be useful when identifying unknown components:
+
+    <ul>
+        <li>File and directory names</li>
+        <li>Package and namespace structures</li>
+        <li>Copyright and license headers</li>
+        <li>README or NOTICE files</li>
+        <li>Documentation within the component</li>
+        <li>Version information</li>
+        <li>References to third-party providers or external projects</li>
+        <li>Typical file structures or known source code fragments</li>
+    </ul>
+
+    Manual additions are particularly important because an SBOM can only be as complete as the underlying detection process.
+
+    <h3>18.3 Review Files and Legal Information</h3>
+
+    The files assigned to the InventoryItems are then reviewed in detail.
+
+    The Code Viewer allows files to be opened, browsed, and searched for relevant terms. In addition to the source code itself, legal and license-related information is particularly relevant. Occtet can highlight configured search terms within the file contents for this purpose.
+
+    The following information should be specifically searched for during the review:
+
+    <ul>
+        <li>License headers</li>
+        <li>SPDX-License-Identifier</li>
+        <li>Copyright notices</li>
+        <li>NOTICE files and other legal notices</li>
+        <li>References to third-party code</li>
+        <li>Information about the origin of the code</li>
+        <li>Additional terms of use</li>
+        <li>Export restrictions or other legal restrictions</li>
+    </ul>
+
+    It is not sufficient to simply establish the existence of a license. It is also important to determine <b>which part of the project is covered by the respective license</b> and whether the information found actually belongs to the software component being examined.
+
+    For example, a repository may contain several components with different licenses. Likewise, individual files may have their own license header, while a different license is documented for a higher-level component.
+
+    <h3>18.4 Document Information in the InventoryItem</h3>
+
+    The information obtained during the file review is then consolidated in the corresponding InventoryItem.
+
+    For each software component, the following information should in particular be traceable:
+
+    <ul>
+        <li>which files belong to the component,</li>
+        <li>which license was identified for the component or the associated files,</li>
+        <li>which copyright notices are present,</li>
+        <li>where this information was found in the project,</li>
+        <li>which manual decisions were made as part of the audit.</li>
+    </ul>
+
+    The <b>AuditNotes</b> serve as evidence and traceability for the decisions made. They should describe as specifically as possible <b>what was identified and where the corresponding evidence can be found</b>.
+
+    Example:
+
+    <i>“MIT License found in the LICENSE file of the /thirdparty/example directory. Copyright notice found in the header of example.java. Files assigned to the InventoryItem Example Library 2.4.”</i>
+
+    This makes it possible to understand at a later point on what basis the license and copyright information was adopted.
+
+    The AuditNotes are therefore not merely a personal note of the Curator. They provide the rationale for manual decisions and thereby support subsequent audits, customer inquiries, and legal reviews.
+
+    <h3>18.5 Assess Licenses and Copyrights</h3>
+
+    The license and copyright information found in the files is compared with the information already identified by the scanner/import.
+
+    The following situations may occur, for example:
+
+    <ul>
+        <li>The automatically detected license is confirmed by an unambiguous license header.</li>
+        <li>A license was detected automatically, but cannot be clearly verified in the source code.</li>
+        <li>An additional license is found in a file that was not taken into account by the scanner.</li>
+        <li>A copyright notice is found in the source code and must be assigned to the component.</li>
+        <li>Multiple license statements exist and require further assessment.</li>
+    </ul>
+
+    In the case of conflicting or unclear information, the decision should not be made without justification. Instead, the underlying information should be documented in the AuditNotes and, if necessary, reviewed further.
+
+    Particularly for Open Source components, it is important to distinguish between the <b>technical identification of a license</b> and the <b>legal assessment of its implications</b>. Occtet supports the collection and traceability of this information; the actual legal assessment may require additional review depending on the project and the license concerned.
+
+    <h3>18.6 Review Software Component Vulnerabilities</h3>
+
+    Once the identity and assignment of the software components have been reviewed, their known vulnerabilities are examined.
+
+    Occtet initially assigns vulnerabilities automatically to the SoftwareComponents. During the audit, it is then checked whether this assignment is relevant to the actual use of the component in the project.
+
+    For each relevant vulnerability, the following points should in particular be checked:
+
+    <ul>
+        <li>Is the affected software component actually present in the project?</li>
+        <li>Does the detected version correspond to the version actually being used?</li>
+        <li>Is the vulnerability relevant to this version?</li>
+        <li>Is the vulnerable part of the component actually used in the project?</li>
+        <li>Has the vulnerability already been fixed or eliminated by a newer version?</li>
+        <li>Is the vulnerability actually exploitable in the specific project or usage context?</li>
+    </ul>
+
+    The results of this review are then updated in the InventoryItem view for the respective Vulnerabilities.
+
+    The following states can, for example, be used:
+
+    <ul>
+        <li><b>Affected</b> – the component is affected by the vulnerability.</li>
+        <li><b>Not Affected</b> – the vulnerability does not affect the specific use of the component.</li>
+        <li><b>Under Investigation</b> – the assessment has not yet been completed.</li>
+        <li><b>Fixed</b> – the vulnerability has, for example, been resolved through an update.</li>
+    </ul>
+
+    These assessments can subsequently be exported as VEX information.
+
+    It is important to distinguish between a <b>known vulnerability of a component</b> and the <b>actual risk to the specific project</b>. The presence of a CVE does not automatically mean that the application is exploitable. A reliable assessment must take into account, among other things, the version, the affected functionality, and the specific use of the component.
+
+    <h3>18.7 InventoryItem as the Central Audit Unit</h3>
+
+    The InventoryItem therefore forms the central unit of the audit. It brings together the various pieces of information relating to a software component:
+
+    <ul>
+        <li>SoftwareComponent and version</li>
+        <li>Associated files</li>
+        <li>Licenses</li>
+        <li>Copyrights</li>
+        <li>Vulnerabilities</li>
+        <li>VEX assessments</li>
+        <li>AuditNotes</li>
+    </ul>
+
+    The goal is that an auditor or another Curator can use the InventoryItem to understand <b>which component is being used, which files it consists of, which legal information is available, and how security-related findings have been assessed</b>.
+
+    <h3>18.8 Completing the Audit</h3>
+
+    A file should only be marked as <b>reviewed</b> once its assignment and the relevant information have been verified.
+
+    For a review to be considered complete, the following should in particular be ensured:
+
+    <ul>
+        <li>The file is assigned to the correct InventoryItem.</li>
+        <li>The software component has been clearly identified.</li>
+        <li>License information has been reviewed.</li>
+        <li>Copyright information has been reviewed.</li>
+        <li>Relevant additional legal information has been taken into account.</li>
+        <li>Detected vulnerabilities have been reviewed and assessed.</li>
+        <li>Manual decisions have been documented in the AuditNotes.</li>
+    </ul>
+
+    This process is repeated for the relevant files and software components of the project.
+
+    At the end of the audit, the imported SBOM should no longer represent merely a machine-generated list of components, but rather a <b>verified and traceably curated software inventory</b>.
+
+    The information obtained in this way subsequently forms the basis for security assessments, license and copyright analyses, as well as the creation of VEX reports and a cleaned SBOM.
+
+
+
 </div>
