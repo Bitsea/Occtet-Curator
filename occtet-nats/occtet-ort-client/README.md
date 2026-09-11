@@ -19,6 +19,8 @@ When the ORT API changes and you need to regenerate the client code, checkout th
 
 `./gradlew :core:generateOpenApiSpec`
 
+the new file will be gernated at ui/build/openapi.json
+
 ## VERY VERY IMPORTANT!!!
 
 Then you need to tweak the generated code because it does not work out of the box!
@@ -26,6 +28,22 @@ Then you need to tweak the generated code because it does not work out of the bo
 Replace all instances of  `"null", "object"` by `"object"` (all in `"type" : [...]` constructs).
 
 (Reason: when the `"null"` is included, the generator does not create a Map<> but a ModelNull<> which does not exist)
+
+It can also be, that some some content is missing for some requests, for example for the getRunReport request.
+There you have to add the missing content manually inside the response, for example: 
+
+"responses" : {
+"200" : {
+    "description" : "Success. The response body contains the requested report file.",
+    "content" : {
+    "application/json" : {
+        "schema" : { "type" : "string",
+                     "format" : "binary"
+                    }
+        }   
+    }
+},
+"headers" : {
 
 ## Usage
 
