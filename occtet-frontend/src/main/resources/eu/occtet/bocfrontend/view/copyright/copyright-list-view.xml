@@ -73,7 +73,7 @@
                 </columns>
             </dataGrid>
             <hbox >
-                <button id="markButton" text="msg://Changegarbagevaluefromselectedcopyrights" themeNames="primary" visible="false"/>
+                <button id="markButton" text="msg://Changegarbagevaluefromselectedcopyrights" themeNames="primary" visible="true"/>
                 <button id="saveButton" text="msg://saveChanges" themeNames="primary" visible="false"/>
                 <button id="exitButton" text="msg://exit" visible="false" themeNames="error"/>
             </hbox>

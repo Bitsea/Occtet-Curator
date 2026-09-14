@@ -25,7 +25,7 @@
     <data>
         <collection id="vexDataDc"
                     class="eu.occtet.bocfrontend.entity.VexData">
-            <fetchPlan extends="_base">
+            <fetchPlan extends="vexData-list-view">
             </fetchPlan>
             <loader id="vexDataDl" readOnly="true">
                 <query>

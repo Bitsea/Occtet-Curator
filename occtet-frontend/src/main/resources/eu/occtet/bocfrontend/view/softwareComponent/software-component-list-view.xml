@@ -28,7 +28,7 @@
             <fetchPlan extends="_base">
                 <property name="usageLicenses" fetchPlan="_base"/>
             </fetchPlan>
-            <loader id="softwareComponentsDl" readOnly="true">
+            <loader id="softwareComponentsDl" readOnly="true" >
                 <query>
                     <![CDATA[select distinct sc from InventoryItem i join i.softwareComponent sc order by sc.name]]>
                     <condition>

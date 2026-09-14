@@ -90,6 +90,10 @@ public class CopyrightListView extends StandardListView<Copyright> {
     @Autowired
     private ProjectRepository projectRepository;
     @Autowired
+    private InventoryItemRepository inventoryItemRepository;
+    @Autowired
+    private CopyrightRepository copyrightRepository;
+    @Autowired
     private Messages messages;
 
     private Project showAllProject;
@@ -124,10 +128,8 @@ public class CopyrightListView extends StandardListView<Copyright> {
 
         if (selectedProject == null || showAllProject.equals(selectedProject)) {
             copyrightsDl.removeParameter("project");
-            markButton.setVisible(false);
         } else {
             copyrightsDl.setParameter("project", selectedProject);
-            markButton.setVisible(true);
         }
 
         copyrightsDl.load();
@@ -135,26 +137,57 @@ public class CopyrightListView extends StandardListView<Copyright> {
         filterBox.setVisible(!copyrightsDc.getItems().isEmpty());
     }
 
+    @Subscribe("markButton")
+    public void clickOnMarkButton(ClickEvent<Button> event) {
+        copyrightsDataGrid.setSelectionMode(Grid.SelectionMode.MULTI);
+        setButtonVisible(true);
+    }
+
     @Subscribe("saveButton")
     public void clickOnSaveButton(ClickEvent<Button> event) {
         Set<Copyright> selectedCopyrights = copyrightsDataGrid.getSelectedItems();
-
         selectedCopyrights.forEach(copyright -> {
-            copyright.setGarbage(!copyright.isGarbage());
+            if(copyright.isGarbage()){
+                copyright.setGarbage(false);
+            }else if(!copyright.isGarbage()){
+                copyright.setGarbage(true);
+            }
             dataManager.save(copyright);
         });
-
-        copyrightsDl.load();
-
+        updateDatagridForProject(showAllProject);
         copyrightsDataGrid.setSelectionMode(Grid.SelectionMode.NONE);
         setButtonVisible(false);
     }
 
+    @Subscribe("exitButton")
+    public void clickOnExitButton(ClickEvent<Button> event) {
+        copyrightsDataGrid.setSelectionMode(Grid.SelectionMode.NONE);
+        setButtonVisible(false);
+    }
+
+    @Supply(to = "copyrightsDataGrid.garbage", subject = "renderer")
+    protected Renderer<Copyright> garbageComponentRenderer() {
+        return new ComponentRenderer<>(this::createCheckbox);
+    }
+
+    private JmixCheckbox createCheckbox(Copyright copyright){
+        JmixCheckbox checkbox = uiComponents.create(JmixCheckbox.class);
+        checkbox.setReadOnly(true);
+        checkbox.setValue(copyright.isGarbage());
+        return checkbox;
+    }
+
+    private void updateDatagridForProject(Project project){
+        log.debug("Loading copyrights for project: {} - {}", project.getProjectName(), project.getVersion());
+        List<InventoryItem> items = inventoryItemRepository.findByProject(project);
+        List<Copyright> copyrights = copyrightRepository.findByInventoryItems(items);
+        copyrightsDl.load();
+        filterBox.setVisible(!copyrights.isEmpty());
+    }
 
     private void setButtonVisible(boolean isVisible){
         saveButton.setVisible(isVisible);
         exitButton.setVisible(isVisible);
     }
-
 
 }

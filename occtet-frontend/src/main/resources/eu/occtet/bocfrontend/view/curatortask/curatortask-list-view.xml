@@ -62,10 +62,13 @@
                     <button text="msg://eu.occtet.bocfrontend.entity/Configuration" id="showConfig" enabled="false"/>
                     <button text="msg://stop" id="stopTaskBtn" enabled="false" themeNames="error" visible="false"/>
                     <button id="removeBtn" action="curatorTaskDataGrid.remove"/>
-                    <simplePagination id="pagination" dataLoader="curatorTaskDl"/>
                 </hbox>
             </vbox>
-            <simplePagination dataLoader="curatorTaskDl" itemsPerPageDefaultValue="8"/>
+            <simplePagination dataLoader="curatorTaskDl"
+                              itemsPerPageDefaultValue="10"
+                              itemsPerPageItems="20, 50, 100"
+                              itemsPerPageVisible="true"
+                              alignSelf="END"/>
             <dataGrid classNames="occtet-grid" id="curatorTaskDataGrid"
                       width="100%"
                       minHeight="20em"

@@ -83,8 +83,6 @@ public class ImportTaskListView extends StandardListView<CuratorTask> {
     @ViewComponent
     private CollectionContainer<CuratorTask> curatorTaskDc;
 
-    @ViewComponent
-    private CollectionLoader<CuratorTask> curatorTaskDl;
     @Autowired
     private Dialogs dialogs;
     @Autowired
@@ -105,8 +103,6 @@ public class ImportTaskListView extends StandardListView<CuratorTask> {
 
     @Autowired
     private SessionData sessionData;
-    @Autowired
-    private CurrentAuthentication currentAuthentication;
 
 
     @Subscribe

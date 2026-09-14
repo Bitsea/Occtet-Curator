@@ -50,8 +50,6 @@ public class InventoryItemListView extends StandardListView<InventoryItem> {
     @ViewComponent
     private JmixComboBox<Project> projectComboBox;
     @ViewComponent
-    private HorizontalLayout filterBox;
-    @ViewComponent
     private CollectionLoader<InventoryItem> inventoryItemsDl;
 
     @Autowired
@@ -113,8 +111,4 @@ public class InventoryItemListView extends StandardListView<InventoryItem> {
         window.open();
     }
 
-    private void loadInventoryItems(List<InventoryItem> inventoryItems){
-        inventoryItemsDl.setParameter("inventoryItems",inventoryItems);
-        inventoryItemsDl.load();
-    }
 }
