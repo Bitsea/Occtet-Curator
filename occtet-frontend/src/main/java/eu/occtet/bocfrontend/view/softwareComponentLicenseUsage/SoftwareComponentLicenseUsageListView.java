@@ -48,8 +48,6 @@ import java.util.Random;
 @DialogMode(width = "80%", height = "80%")
 public class SoftwareComponentLicenseUsageListView extends StandardListView<SoftwareComponentLicenseUsage>{
 
-    @Autowired
-    private SoftwareComponentLicenseUsageRepository licenseRepository;
     @ViewComponent
     private HorizontalLayout filterBox;
     @Autowired

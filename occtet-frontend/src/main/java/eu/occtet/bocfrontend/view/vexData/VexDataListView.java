@@ -33,10 +33,12 @@ import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.component.combobox.JmixComboBox;
+import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -54,53 +56,54 @@ public class VexDataListView extends StandardListView<VexData> {
     private HorizontalLayout filterBox;
     @ViewComponent
     private CollectionLoader<VexData> vexDataDl;
-
-    @Autowired
-    private VexDataRepository vexDataRepository;
+    @ViewComponent
+    private CollectionContainer<VexData> vexDataDc;
     @Autowired
     private ProjectRepository projectRepository;
-    @Autowired
-    private SoftwareComponentRepository softwareComponentRepository;
     @Autowired
     private DialogWindows dialogWindows;
     @Autowired
     private Messages messages;
 
+    private Project showAllProject;
+
     @Subscribe
-    public void onInit(InitEvent event){
-        Project showAllProject = new Project();
+    public void onInit(InitEvent event) {
+        showAllProject = new Project();
         showAllProject.setProjectName(messages.getMessage("Showall"));
         showAllProject.setVersion("");
-        showAllProject.setId(new Random().nextLong());
+        showAllProject.setId(-1L);
 
-        List<Project> allProjects = new java.util.ArrayList<>();
+        List<Project> allProjects = new ArrayList<>();
         allProjects.add(showAllProject);
         allProjects.addAll(projectRepository.findAll());
 
         projectComboBox.setItems(allProjects);
+        projectComboBox.setValue(showAllProject);
+
         projectComboBox.setItemLabelGenerator(project -> {
-            if (messages.getMessage("Showall").equals(project.getProjectName())) {
+            if (showAllProject.equals(project)) {
                 return project.getProjectName();
             }
             return project.getProjectName() + " - " + project.getVersion();
         });
     }
 
-    @Subscribe(id = "projectComboBox")
-    public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
-        if(event != null){
-            Project selectedProject = event.getValue();
-            if (selectedProject == null || messages.getMessage("Showall").equals(selectedProject.getProjectName())) {
-                List<VexData> vexData = vexDataRepository.findAll();
-                loadVexData(vexData);
-                filterBox.setVisible(!vexData.isEmpty());
-            } else {
-                List<SoftwareComponent> softwareComponents = softwareComponentRepository.findByProject(event.getValue());
-                List<VexData> vexDataList = vexDataRepository.findBySoftwareComponents(softwareComponents);
-                loadVexData(vexDataList);
-                filterBox.setVisible(!vexDataList.isEmpty());
-            }
+    @Subscribe("projectComboBox")
+    public void onProjectComboBoxValueChange(
+            final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event) {
+
+        Project selectedProject = event.getValue();
+
+        if (selectedProject == null || showAllProject.equals(selectedProject)) {
+            vexDataDl.removeParameter("project");
+        } else {
+            vexDataDl.setParameter("project", selectedProject);
         }
+
+        vexDataDl.load();
+
+        filterBox.setVisible(!vexDataDc.getItems().isEmpty());
     }
 
     @Subscribe("vexDataDataGrid")

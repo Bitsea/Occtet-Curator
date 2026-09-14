@@ -81,21 +81,14 @@ public class CopyrightListView extends StandardListView<Copyright> {
 
     @ViewComponent
     private JmixButton exitButton;
-
     @ViewComponent
     private JmixButton markButton;
-
-
     @Autowired
     protected UiComponents uiComponents;
     @Autowired
     private DataManager dataManager;
     @Autowired
     private ProjectRepository projectRepository;
-    @Autowired
-    private InventoryItemRepository inventoryItemRepository;
-    @Autowired
-    private CopyrightRepository copyrightRepository;
     @Autowired
     private Messages messages;
 
