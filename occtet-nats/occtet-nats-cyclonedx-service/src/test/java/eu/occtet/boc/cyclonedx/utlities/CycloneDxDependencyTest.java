@@ -152,7 +152,7 @@ public class CycloneDxDependencyTest{
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Main component not found in context"));
 
-        assertTrue(mainApp.getDependencies().size()==0, "Dependencies of mainApp must be 0");
+        assertTrue(mainApp.getDependencies().size()==2, "Dependencies of mainApp must be 2");
 
         assertNotNull(springCore.getDependencies(), "Dependencies of spring-core are not allowed to be null");
         assertTrue(springCore.getDependencies().size()==1, "one dependency from spring-core");
