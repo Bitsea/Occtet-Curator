@@ -136,7 +136,7 @@ class DownloadManagerTest {
         assertTrue(usedPath.toString().contains("clean-lib-name"));
         assertFalse(usedPath.toString().contains("User-Defined-Name"));
 
-        verify(fileService).createEntitiesFromPath(eq(project), any(Path.class), anyString(), inventoryItem);
+        verify(fileService).createEntitiesFromPath(eq(project), any(Path.class), anyString(), eq(inventoryItem));
 
         assertFalse(Files.exists(dummyDownload));
     }
