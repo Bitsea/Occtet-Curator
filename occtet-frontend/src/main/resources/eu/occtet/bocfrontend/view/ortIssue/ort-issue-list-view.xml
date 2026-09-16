@@ -55,8 +55,12 @@
             <genericFilter id="genericFilter" dataLoader="ortIssueDl" themeNames="small" alignSelf="START" opened="false">
                 <properties include=".*"/>
             </genericFilter>
-            <simplePagination id="pagination" dataLoader="ortIssueDl" itemsPerPageItems="100" alignSelf="END" />
+
         </hbox>
+        <simplePagination id="pagination" dataLoader="ortIssueDl" itemsPerPageDefaultValue="50"
+                          itemsPerPageItems="20, 50, 100"
+                          itemsPerPageVisible="true"
+                          alignSelf="END"/>
         <dataGrid classNames="occtet-grid" id="ortIssueDataGrid"
                   width="100%"
                   minHeight="20em"

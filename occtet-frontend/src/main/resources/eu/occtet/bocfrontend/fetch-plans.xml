@@ -18,15 +18,7 @@
   -->
 
 <fetchPlans xmlns="http://jmix.io/schema/core/fetch-plans">
-    <fetchPlan entity="Copyright" name="full" extends="_base">
-        <property name="files">
-            <property name="inventoryItems">
-                <property name="project"/>
-            </property>
-        </property>
-    </fetchPlan>
-
-    <fetchPlan entity="VexData" name="full" extends="_base">
+    <fetchPlan entity="VexData" name="vexData-list-view" extends="_base">
         <property name="softwareComponent">
             <property name="id"/>
             <property name="name"/>
@@ -37,6 +29,14 @@
             <property name="severity"/>
         </property>
     </fetchPlan>
+
+    <fetchPlan entity="InventoryItem" name="inventoryItem-list-view" extends="_base">
+        <property name="project" fetchPlan="_instance_name"/>
+        <property name="softwareComponent" fetchPlan="_instance_name"/>
+        <property name="parent" fetchPlan="_instance_name"/>
+        <property name="organization" fetchPlan="_instance_name"/>
+    </fetchPlan>
+
     <fetchPlan entity="SoftwareComponentLicenseUsage" name="softwareComponentLicenseUsage-fetch-plan" extends="_local">
         <property name="template">
         </property>
@@ -51,6 +51,5 @@
         <property name="template">
         </property>
     </fetchPlan>
-
 
 </fetchPlans>

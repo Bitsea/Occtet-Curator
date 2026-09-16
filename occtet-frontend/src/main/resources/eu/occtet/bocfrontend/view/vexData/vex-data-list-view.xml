@@ -19,16 +19,22 @@
   -->
 
 <view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:c="http://jmix.io/schema/flowui/jpql-condition"
       title="msg://title"
     focusComponent="vexDataDataGrid">
     <data>
         <collection id="vexDataDc"
                     class="eu.occtet.bocfrontend.entity.VexData">
-            <fetchPlan extends="_base">
+            <fetchPlan extends="vexData-list-view">
             </fetchPlan>
             <loader id="vexDataDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from VexData e where e in :vexDataList]]>
+                    <![CDATA[select distinct v from VexData v join v.softwareComponent sc join InventoryItem i on i.softwareComponent = sc]]>
+                    <condition>
+                        <c:jpql>
+                            <c:where>i.project = :project</c:where>
+                        </c:jpql>
+                    </condition>
                 </query>
             </loader>
         </collection>
@@ -52,8 +58,12 @@
                 <genericFilter id="genericFilter" dataLoader="vexDataDl" themeNames="small" alignSelf="START" opened="false">
                     <properties include=".*"/>
                 </genericFilter>
-                <simplePagination id="pagination" dataLoader="vexDataDl" itemsPerPageItems="100"  alignSelf="END"/>
+
             </hbox>
+            <simplePagination id="pagination" dataLoader="vexDataDl" itemsPerPageDefaultValue="50"
+                              itemsPerPageItems="20, 50, 100"
+                              itemsPerPageVisible="true"
+                              alignSelf="END"/>
             <dataGrid classNames="occtet-grid" id="vexDataDataGrid"
                       width="100%"
                       minHeight="20em"

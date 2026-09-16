@@ -46,4 +46,243 @@
         </createIndex>
     </changeSet>
 
+    <changeSet id="20260914-add-idx-copyright-software-component-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_copyright_software_component_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_copyright_software_component_id" tableName="copyright">
+            <column name="software_component_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260914-add-idx-copyright-organization-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_copyright_organization_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_copyright_organization_id" tableName="copyright">
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- 2. SOFTWARE_COMPONENT_LICENSE_USAGE: FKs auf SoftwareComponent, License, Organization -->
+    <changeSet id="20260914-add-idx-sw-comp-lic-usage-sw-comp-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_sw_comp_lic_usage_sw_comp_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_sw_comp_lic_usage_sw_comp_id" tableName="software_component_license_usage">
+            <column name="software_component_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260914-add-idx-sw-comp-lic-usage-license-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_sw_comp_lic_usage_license_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_sw_comp_lic_usage_license_id" tableName="software_component_license_usage">
+            <column name="license_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260914-add-idx-sw-comp-lic-usage-org-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_sw_comp_lic_usage_org_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_sw_comp_lic_usage_org_id" tableName="software_component_license_usage">
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- 3. SOFTWARE_COMPONENT & VULNERABILITY: Organization FKs -->
+    <changeSet id="20260914-add-idx-software-component-org-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_software_component_org_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_software_component_org_id" tableName="software_component">
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260914-add-idx-vulnerability-org-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_vulnerability_org_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_vulnerability_org_id" tableName="vulnerability">
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
+
+    <!-- 5. COPYRIGHT_SOFTWARE_COMPONENT_USAGE_LICENSE_LINK Join-Tabelle -->
+    <changeSet id="20260914-add-idx-cscull-copyright-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_cscull_copyright_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_cscull_copyright_id" tableName="copyright_software_component_usage_license_link">
+            <column name="copyright_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260914-add-idx-cscull-lic-usage-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_cscull_lic_usage_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_cscull_lic_usage_id" tableName="copyright_software_component_usage_license_link">
+            <column name="software_component_license_usage_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260914-add-idx-inventory-item-project-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_inventory_item_project_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_inventory_item_project_id" tableName="inventory_item">
+            <column name="project_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260914-add-idx-inventory-item-sw-comp-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_inventory_item_sw_comp_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_inventory_item_sw_comp_id" tableName="inventory_item">
+            <column name="software_component_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260914-add-idx-inventory-item-parent-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_inventory_item_parent_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_inventory_item_parent_id" tableName="inventory_item">
+            <column name="parent_inventory_item_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260914-add-idx-inventory-item-org-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_inventory_item_org_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_inventory_item_org_id" tableName="inventory_item">
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- 2. PROJECT FKs & Join-Table -->
+    <changeSet id="20260914-add-idx-project-org-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_project_org_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_project_org_id" tableName="project">
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260914-add-idx-pstpl-project-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_pstpl_project_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_pstpl_project_id" tableName="project_search_terms_profiles_link">
+            <column name="project_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260914-add-idx-pstpl-profile-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_pstpl_profile_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_pstpl_profile_id" tableName="project_search_terms_profiles_link">
+            <column name="search_terms_profile_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- 3. CURATOR_TASK & CONFIGURATION -->
+    <changeSet id="20260914-add-idx-curator-task-project-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_curator_task_project_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_curator_task_project_id" tableName="curator_task">
+            <column name="project_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260914-add-idx-configuration-task-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_configuration_task_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_configuration_task_id" tableName="configuration">
+            <column name="task_id"/>
+        </createIndex>
+    </changeSet>
+
+
+    <changeSet id="20260914-add-idx-file-parent-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_file_parent_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_file_parent_id" tableName="file">
+            <column name="parent_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260914-add-idx-file-project-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_file_project_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_file_project_id" tableName="file">
+            <column name="project_id"/>
+        </createIndex>
+    </changeSet>
+
+
+    <changeSet id="20260914-add-idx-file-inventory-item-id" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_file_inventory_item_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_file_inventory_item_id" tableName="file_inventory_item_link">
+            <column name="inventory_item_id"/>
+        </createIndex>
+    </changeSet>
+
 </databaseChangeLog>

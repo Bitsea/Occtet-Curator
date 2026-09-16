@@ -31,12 +31,12 @@
             <loader id="licensesDl" readOnly="true">
                 <query>
                     <![CDATA[select distinct e from SoftwareComponentLicenseUsage e
-             join e.softwareComponent sc
-             join InventoryItem i on i.softwareComponent = sc
-             where e.usageText is not null
-             and length(e.usageText) > 0
-             and e.usageText <> e.template.templateText
-             and (:project is null or i.project = :project)]]>
+                    join e.softwareComponent sc
+                    join InventoryItem i on i.softwareComponent = sc
+                    where e.usageText is not null
+                    and length(e.usageText) > 0
+                    and e.usageText <> e.template.templateText
+                    and (:project is null or i.project = :project)]]>
                 </query>
             </loader>
         </collection>
@@ -60,8 +60,12 @@
                 <genericFilter id="genericFilter" dataLoader="licensesDl" themeNames="small" alignSelf="START" opened="false" autoApply="true">
                     <properties include=".*"/>
                 </genericFilter>
-                <simplePagination id="pagination" dataLoader="licensesDl" itemsPerPageItems="100"  alignSelf="END"/>
+
             </hbox>
+            <simplePagination id="pagination" dataLoader="licensesDl" itemsPerPageDefaultValue="50"
+                              itemsPerPageItems="20, 50, 100"
+                              itemsPerPageVisible="true"
+                              alignSelf="END"/>
             <dataGrid classNames="occtet-grid" id="licensesDataGrid"
                       width="100%"
                       minHeight="20em"

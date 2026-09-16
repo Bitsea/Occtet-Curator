@@ -87,6 +87,7 @@ public class OrtClientService {
         }catch (Exception e){
             log.error("Failed to set SSL CA certs for API client, error: {}", e.getMessage());
         }
+        apiClient.setAccessToken(tokenResponse.accessToken);
         apiClient.addDefaultHeader("Authorization", "Bearer " + tokenResponse.accessToken);
         apiClient.setBasePath(ortBaseUrl);
         return apiClient;

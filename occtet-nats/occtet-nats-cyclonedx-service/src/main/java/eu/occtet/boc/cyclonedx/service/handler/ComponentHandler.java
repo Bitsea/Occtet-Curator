@@ -82,8 +82,11 @@ public class ComponentHandler {
         try {
             log.debug("handling metadata component");
             if (metadata != null && comp != null) {
-                // set project name (else there can be strange names)
-                comp.setName(context.getProject().getProjectName());
+
+                if(metadata.getComponent().getName() != null && !metadata.getComponent().getName().isEmpty())
+                    comp.setName(metadata.getComponent().getName());
+                else
+                    comp.setName(context.getProject().getProjectName());
 
                 mainParent = processAllComponents(copyrightsToSave, inventoryItemsToSave, softwareComponentsToSave, comp, context);
                 context.getMainInventoryItems().add(mainParent);

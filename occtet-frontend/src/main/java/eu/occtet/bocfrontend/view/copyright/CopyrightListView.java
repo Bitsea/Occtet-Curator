@@ -48,6 +48,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -80,11 +81,8 @@ public class CopyrightListView extends StandardListView<Copyright> {
 
     @ViewComponent
     private JmixButton exitButton;
-
     @ViewComponent
     private JmixButton markButton;
-
-
     @Autowired
     protected UiComponents uiComponents;
     @Autowired
@@ -98,46 +96,45 @@ public class CopyrightListView extends StandardListView<Copyright> {
     @Autowired
     private Messages messages;
 
-    private Project project;
-
+    private Project showAllProject;
 
     @Subscribe
-    public void onInit(InitEvent event){
-        Project showAllProject = new Project();
+    public void onInit(InitEvent event) {
+        showAllProject = new Project();
         showAllProject.setProjectName(messages.getMessage("Showall"));
         showAllProject.setVersion("");
-        showAllProject.setId(new Random().nextLong());
+        showAllProject.setId(-1L);
 
-        List<Project> allProjects = new java.util.ArrayList<>();
+        List<Project> allProjects = new ArrayList<>();
         allProjects.add(showAllProject);
         allProjects.addAll(projectRepository.findAll());
 
         projectComboBox.setItems(allProjects);
+        projectComboBox.setValue(showAllProject);
+
         projectComboBox.setItemLabelGenerator(project -> {
-            if (messages.getMessage("Showall").equals(project.getProjectName())) {
+            if (showAllProject.equals(project)) {
                 return project.getProjectName();
             }
             return project.getProjectName() + " - " + project.getVersion();
         });
     }
 
+    @Subscribe("projectComboBox")
+    public void onProjectComboBoxValueChange(
+            final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event) {
 
-    @Subscribe(id = "projectComboBox")
-    public void clickOnProjectComboBox(final AbstractField.ComponentValueChangeEvent<JmixComboBox<Project>, Project> event){
-        if(event != null){
-            Project selectedProject = event.getValue();
-            if (selectedProject == null || messages.getMessage("Showall").equals(selectedProject.getProjectName())) {
-                List<Copyright> copyrights = copyrightRepository.findAll();
-                loadCopyrights(copyrights);
-                filterBox.setVisible(!copyrights.isEmpty());
-            }
-            else {
-                project = event.getValue();
-                updateDatagridForProject(project);
-                markButton.setVisible(true);
-            }
+        Project selectedProject = event.getValue();
 
+        if (selectedProject == null || showAllProject.equals(selectedProject)) {
+            copyrightsDl.removeParameter("project");
+        } else {
+            copyrightsDl.setParameter("project", selectedProject);
         }
+
+        copyrightsDl.load();
+
+        filterBox.setVisible(!copyrightsDc.getItems().isEmpty());
     }
 
     @Subscribe("markButton")
@@ -157,7 +154,7 @@ public class CopyrightListView extends StandardListView<Copyright> {
             }
             dataManager.save(copyright);
         });
-        updateDatagridForProject(project);
+        updateDatagridForProject(showAllProject);
         copyrightsDataGrid.setSelectionMode(Grid.SelectionMode.NONE);
         setButtonVisible(false);
     }
@@ -184,18 +181,13 @@ public class CopyrightListView extends StandardListView<Copyright> {
         log.debug("Loading copyrights for project: {} - {}", project.getProjectName(), project.getVersion());
         List<InventoryItem> items = inventoryItemRepository.findByProject(project);
         List<Copyright> copyrights = copyrightRepository.findByInventoryItems(items);
-        loadCopyrights(copyrights);
+        copyrightsDl.load();
         filterBox.setVisible(!copyrights.isEmpty());
     }
 
     private void setButtonVisible(boolean isVisible){
         saveButton.setVisible(isVisible);
         exitButton.setVisible(isVisible);
-    }
-
-    private void loadCopyrights(List<Copyright> copyrights){
-        copyrightsDl.setParameter("copyrights",copyrights);
-        copyrightsDl.load();
     }
 
 }

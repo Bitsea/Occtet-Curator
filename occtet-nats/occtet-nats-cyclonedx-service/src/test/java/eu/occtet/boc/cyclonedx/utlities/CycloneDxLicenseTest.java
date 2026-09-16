@@ -147,7 +147,7 @@ public class CycloneDxLicenseTest {
         Assertions.assertTrue(licenses.stream().anyMatch(license -> license.getLicenseType().equals("Apache-2.0")));
         Assertions.assertTrue(licenses.stream().anyMatch(license -> license.getLicenseType().equals("MIT")));
 
-        Assertions.assertEquals(2, context.getUsageLicenseCache().size());
+        Assertions.assertEquals(2, context.getLicenseCache().size());
 
         Assertions.assertEquals(4, components.size());
         Assertions.assertTrue(components.stream().anyMatch(component -> component.getName().equals("slf4j-api") &&

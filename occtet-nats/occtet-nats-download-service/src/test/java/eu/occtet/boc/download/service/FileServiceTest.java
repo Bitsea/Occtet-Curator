@@ -72,6 +72,7 @@ class FileServiceTest {
     void setup() {
         Organization organization = new Organization();
         organization.setOrganizationName("TestOrg");
+        organization.setId(100L);
         organizationRepository.save(organization);
 
         testProject = new Project();
@@ -90,6 +91,10 @@ class FileServiceTest {
         //        |-- Main.java
         //    |-- README.md
 
+        InventoryItem inventoryItem = new InventoryItem();
+        inventoryItem.setOrganization(testProject.getOrganization());
+        inventoryItem = entityManager.persistAndFlush(inventoryItem);
+
         Path projectRoot = Files.createDirectories(tempDir.resolve("projectRoot"));
         Path srcDir = Files.createDirectories(projectRoot.resolve("src"));
         Files.createFile(srcDir.resolve("Main.java"));
@@ -97,7 +102,7 @@ class FileServiceTest {
 
         String projectPathString = projectRoot.toAbsolutePath().toString();
 
-        fileService.createEntitiesFromPath(testProject, projectRoot, projectPathString, new InventoryItem());
+        fileService.createEntitiesFromPath(testProject, projectRoot, projectPathString, inventoryItem);
 
         List<File> files = fileRepository.findAll();
         assertEquals(4, files.size());
@@ -115,6 +120,9 @@ class FileServiceTest {
         //    |-- dependencies/
         //        |-- lib-a/  <-- SCAN START
         //            |-- lib.jar
+        InventoryItem inventoryItem = new InventoryItem();
+        inventoryItem.setOrganization(testProject.getOrganization());
+        inventoryItem = entityManager.persistAndFlush(inventoryItem);
 
         Path projectRoot = Files.createDirectories(tempDir.resolve("projectRoot"));
         Path depFolder = Files.createDirectories(projectRoot.resolve("dependencies"));
@@ -123,7 +131,7 @@ class FileServiceTest {
 
         String projectPathString = projectRoot.toAbsolutePath().toString();
 
-        fileService.createEntitiesFromPath(testProject, libFolder, projectPathString, new InventoryItem());
+        fileService.createEntitiesFromPath(testProject, libFolder, projectPathString, inventoryItem);
 
         List<File> files = fileRepository.findAll();
 
@@ -148,6 +156,10 @@ class FileServiceTest {
         Files.createFile(projectRoot.resolve("LICENSE"));
         String projectPathString = projectRoot.toAbsolutePath().toString();
 
+        InventoryItem inventoryItem = new InventoryItem();
+        inventoryItem.setOrganization(testProject.getOrganization());
+        inventoryItem = entityManager.persistAndFlush(inventoryItem);
+
         File spdxEntityPlaceholder = new File();
         spdxEntityPlaceholder.setProject(testProject);
         spdxEntityPlaceholder.setFileName("LICENSE");
@@ -157,7 +169,7 @@ class FileServiceTest {
         spdxEntityPlaceholder = fileRepository.saveAndFlush(spdxEntityPlaceholder);
         Long originalId = spdxEntityPlaceholder.getId();
 
-        fileService.createEntitiesFromPath(testProject, projectRoot, projectPathString, new InventoryItem());
+        fileService.createEntitiesFromPath(testProject, projectRoot, projectPathString, inventoryItem);
 
         List<File> allFiles = fileRepository.findAll();
 
@@ -209,7 +221,7 @@ class FileServiceTest {
         spdxEntityPlaceholder = fileRepository.saveAndFlush(spdxEntityPlaceholder);
         Long originalSpdxId = spdxEntityPlaceholder.getId();
 
-        fileService.createEntitiesFromPath(testProject, packageFolder, projectPathString, new InventoryItem());
+        fileService.createEntitiesFromPath(testProject, packageFolder, projectPathString, inventoryItem);
 
         List<File> testCFiles = fileRepository.findAll().stream()
                 .filter(f -> "test.c".equals(f.getFileName()))
