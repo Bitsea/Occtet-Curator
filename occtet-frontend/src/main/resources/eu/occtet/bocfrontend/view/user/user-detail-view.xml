@@ -54,7 +54,7 @@
             <comboBox id="timeZoneField" property="timeZoneId" clearButtonVisible="true"/>
             <checkbox id="activeField" property="active"/>
             <comboBox id="roleField" label="Rolle" clearButtonVisible="true"/>
-            <comboBox id="organization" property="organization"/>
+            <comboBox id="organization" property="organization" required="true"/>
         </formLayout>
         <hbox id="detailActions">
             <button id="saveAndCloseButton" action="saveAction"/>

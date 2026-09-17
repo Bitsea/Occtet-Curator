@@ -95,6 +95,7 @@ public class UserDetailView extends StandardDetailView<User> {
         roleField.setItemLabelGenerator(ResourceRole::getName);
 
         organization.setItems(organizationRepository.findAll());
+        organization.setItemLabelGenerator(Organization::getOrganizationName);
         timeZoneField.setItems(List.of(TimeZone.getAvailableIDs()));
     }
 
@@ -170,12 +171,20 @@ public class UserDetailView extends StandardDetailView<User> {
             }
 
             // save new role
-            RoleAssignment newAssignment = new RoleAssignment(
-                    username,
-                    selectedRole.getCode(),
-                    "resource"
-            );
+            RoleAssignmentEntity newAssignment = dataManager.create(RoleAssignmentEntity.class);
+            newAssignment.setUsername(username);
+            newAssignment.setRoleCode(selectedRole.getCode());
+            newAssignment.setRoleType("resource");
             dataManager.save(newAssignment);
+
+            //automatically add login  access role for all users
+            if (!"ui-minimal".equals(selectedRole.getCode()) && !"system-full-access".equals(selectedRole.getCode())) {
+                RoleAssignmentEntity uiMinimalAssignment = dataManager.create(RoleAssignmentEntity.class);
+                uiMinimalAssignment.setUsername(username);
+                uiMinimalAssignment.setRoleCode("ui-minimal");
+                uiMinimalAssignment.setRoleType("resource");
+                dataManager.save(uiMinimalAssignment);
+            }
         }
         }
     }
