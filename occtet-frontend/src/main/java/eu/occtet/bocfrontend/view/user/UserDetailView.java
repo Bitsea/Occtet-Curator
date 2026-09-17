@@ -19,6 +19,7 @@
 
 package eu.occtet.bocfrontend.view.user;
 
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.PasswordField;
@@ -27,9 +28,12 @@ import eu.occtet.bocfrontend.dao.OrganizationRepository;
 import eu.occtet.bocfrontend.entity.Organization;
 import eu.occtet.bocfrontend.entity.User;
 import eu.occtet.bocfrontend.view.main.MainView;
+import eu.occtet.bocfrontend.view.project.ProjectDetailView;
 import io.jmix.core.DataManager;
 import io.jmix.core.EntityStates;
+import io.jmix.core.Messages;
 import io.jmix.flowui.Notifications;
+import io.jmix.flowui.component.checkbox.JmixCheckbox;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.view.*;
@@ -38,18 +42,25 @@ import io.jmix.security.role.ResourceRoleRepository;
 import io.jmix.security.role.assignment.RoleAssignment;
 import io.jmix.security.role.assignment.RoleAssignmentRepository;
 import io.jmix.securitydata.entity.RoleAssignmentEntity;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 @Route(value = "users/:id", layout = MainView.class)
 @ViewController(id = "User.detail")
 @ViewDescriptor(path = "user-detail-view.xml")
 @EditedEntityContainer("userDc")
 public class UserDetailView extends StandardDetailView<User> {
+    private static final Logger log = LogManager.getLogger(UserDetailView.class);
+
+
 
     @ViewComponent
     private TypedTextField<String> usernameField;
@@ -82,6 +93,10 @@ public class UserDetailView extends StandardDetailView<User> {
     private OrganizationRepository organizationRepository;
     @Autowired
     private Environment environment;
+    @ViewComponent
+    private JmixCheckbox changePasswordCheckbox;
+    @Autowired
+    private Messages message;
 
 
     private boolean isOidcActive() {
@@ -125,7 +140,22 @@ public class UserDetailView extends StandardDetailView<User> {
                         roleField.setValue(role);
                     });
         }
+
+        changePasswordCheckbox.setVisible(!isOidcActive()); //dont show in oidc
     }
+
+    @Subscribe("changePasswordCheckbox")
+    public void onChangePasswordCheckboxValueChange(final AbstractField.ComponentValueChangeEvent<JmixCheckbox, Boolean> event) {
+        boolean showFields = Boolean.TRUE.equals(event.getValue());
+        passwordField.setVisible(showFields);
+        confirmPasswordField.setVisible(showFields);
+
+        if (!showFields) {
+            passwordField.clear();
+            confirmPasswordField.clear();
+        }
+    }
+
 
     @Subscribe
     public void onReady(final ReadyEvent event) {
@@ -136,21 +166,30 @@ public class UserDetailView extends StandardDetailView<User> {
 
     @Subscribe
     public void onValidation(final ValidationEvent event) {
-        if (entityStates.isNew(getEditedEntity())
-                && !Objects.equals(passwordField.getValue(), confirmPasswordField.getValue())) {
+        boolean isNew = entityStates.isNew(getEditedEntity());
+        if (isNew && !Objects.equals(passwordField.getValue(), confirmPasswordField.getValue())) {
             event.getErrors().add(messageBundle.getMessage("passwordsDoNotMatch"));
+        }
+
+        boolean isChangingPassword = isNew || Boolean.TRUE.equals(changePasswordCheckbox.getValue());
+
+        if (isChangingPassword) {
+            if (passwordField.isEmpty()) {
+                event.getErrors().add(message.getMessage("eu.occtet.bocfrontend.view.login/loginForm.errorPassword"));
+            } else if (!Objects.equals(passwordField.getValue(), confirmPasswordField.getValue())) {
+                event.getErrors().add(messageBundle.getMessage("passwordsDoNotMatch"));
+            }
         }
     }
 
     @Subscribe
     public void onBeforeSave(final BeforeSaveEvent event) {
-        if (entityStates.isNew(getEditedEntity())) {
-            getEditedEntity().setPassword(passwordEncoder.encode(passwordField.getValue()));
+        boolean isNew = entityStates.isNew(getEditedEntity());
+        boolean isChangingPassword = isNew || Boolean.TRUE.equals(changePasswordCheckbox.getValue());
 
-            notifications.create(messageBundle.getMessage("noAssignedRolesNotification"))
-                    .withType(Notifications.Type.WARNING)
-                    .withPosition(Notification.Position.TOP_END)
-                    .show();
+        if (isChangingPassword && passwordField.getValue() != null) {
+            log.debug("save new password for user {}", getEditedEntity().getUsername());
+            getEditedEntity().setPassword(passwordEncoder.encode(passwordField.getValue()));
         }
 
         //give user role
