@@ -63,9 +63,9 @@
             <vbox id="projectDetailContainer" colspan="2" margin="false" padding="false">
                 <vbox colspan="2" margin="false" padding="false">
                     <textField id="orgaField" property="organizationName" required="true"
-                               width="50%" label="msg://organizationName" requiredMessage="msg://io.jmix.flowui.entity.filter/AbstractSingleFilterCondition.required" colspan="2"/>
+                               width="50%" label="msg://organizationName" dataContainer="organizationDc" requiredMessage="msg://io.jmix.flowui.entity.filter/AbstractSingleFilterCondition.required" colspan="2"/>
                     <textField id="organizationContactField" property="organizationEmail"
-                               label="msg://organizationEmail" width="50%"/>
+                               label="msg://organizationEmail" width="50%" dataContainer="organizationDc"/>
 
                 </vbox>
             </vbox>

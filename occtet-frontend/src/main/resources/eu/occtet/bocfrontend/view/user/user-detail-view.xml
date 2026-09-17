@@ -40,6 +40,7 @@
     <layout>
         <formLayout id="form" dataContainer="userDc">
             <textField id="usernameField" property="username" readOnly="true"/>
+            <checkbox id="changePasswordCheckbox" label="msg://io.jmix.securityflowui.view.changepassword/changePasswordView.defaultTitle" visible="false"/>
             <passwordField id="passwordField"
                            label="msg://eu.occtet.bocfrontend.entity/User.password"
                            required="true"
@@ -53,7 +54,8 @@
             <textField id="emailField" property="email"/>
             <comboBox id="timeZoneField" property="timeZoneId" clearButtonVisible="true"/>
             <checkbox id="activeField" property="active"/>
-            <comboBox id="organization" property="organization"/>
+            <comboBox id="roleField" label="Rolle" clearButtonVisible="true"/>
+            <comboBox id="organization" property="organization" required="true"/>
         </formLayout>
         <hbox id="detailActions">
             <button id="saveAndCloseButton" action="saveAction"/>

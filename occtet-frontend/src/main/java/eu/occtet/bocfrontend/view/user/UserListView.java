@@ -19,10 +19,14 @@
 
 package eu.occtet.bocfrontend.view.user;
 
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.User;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.flowui.view.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 
 @Route(value = "users", layout = MainView.class)
 @ViewController(id = "User.list")
@@ -30,4 +34,16 @@ import io.jmix.flowui.view.*;
 @LookupComponent("usersDataGrid")
 @DialogMode(width = "64em")
 public class UserListView extends StandardListView<User> {
+
+    @Autowired
+    private Environment environment;
+    @ViewComponent
+    private Button createBtn;
+
+    @Subscribe
+    public void onInit(final InitEvent event) {
+        if (environment.acceptsProfiles(Profiles.of("oidc"))) {
+            createBtn.setVisible(false); // no manual creation when keycloak is used
+        }
+    }
 }

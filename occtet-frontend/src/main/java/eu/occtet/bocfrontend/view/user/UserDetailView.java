@@ -19,6 +19,7 @@
 
 package eu.occtet.bocfrontend.view.user;
 
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.PasswordField;
@@ -27,26 +28,47 @@ import eu.occtet.bocfrontend.dao.OrganizationRepository;
 import eu.occtet.bocfrontend.entity.Organization;
 import eu.occtet.bocfrontend.entity.User;
 import eu.occtet.bocfrontend.view.main.MainView;
+import eu.occtet.bocfrontend.view.project.ProjectDetailView;
+import io.jmix.core.DataManager;
 import io.jmix.core.EntityStates;
+import io.jmix.core.Messages;
 import io.jmix.flowui.Notifications;
+import io.jmix.flowui.component.checkbox.JmixCheckbox;
 import io.jmix.flowui.component.combobox.JmixComboBox;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.view.*;
+import io.jmix.security.model.ResourceRole;
+import io.jmix.security.role.ResourceRoleRepository;
+import io.jmix.security.role.assignment.RoleAssignment;
+import io.jmix.security.role.assignment.RoleAssignmentRepository;
+import io.jmix.securitydata.entity.RoleAssignmentEntity;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
-import java.util.TimeZone;
 
 @Route(value = "users/:id", layout = MainView.class)
 @ViewController(id = "User.detail")
 @ViewDescriptor(path = "user-detail-view.xml")
 @EditedEntityContainer("userDc")
 public class UserDetailView extends StandardDetailView<User> {
+    private static final Logger log = LogManager.getLogger(UserDetailView.class);
+
+
 
     @ViewComponent
     private TypedTextField<String> usernameField;
+
+    @Autowired
+    private ResourceRoleRepository resourceRoleRepository;
+    @Autowired
+    private RoleAssignmentRepository roleAssignmentRepository;
     @ViewComponent
     private PasswordField passwordField;
     @ViewComponent
@@ -57,22 +79,38 @@ public class UserDetailView extends StandardDetailView<User> {
     private MessageBundle messageBundle;
     @Autowired
     private Notifications notifications;
-
+    @ViewComponent
+    private JmixComboBox<ResourceRole> roleField;
     @Autowired
     private EntityStates entityStates;
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private DataManager dataManager;
     @Autowired
+    private PasswordEncoder passwordEncoder;
+    @ViewComponent
     private JmixComboBox<Organization> organization;
     @Autowired
     private OrganizationRepository organizationRepository;
+    @Autowired
+    private Environment environment;
+    @ViewComponent
+    private JmixCheckbox changePasswordCheckbox;
+    @Autowired
+    private Messages message;
+
+
+    private boolean isOidcActive() {
+        return environment.acceptsProfiles(Profiles.of("oidc"));
+    }
 
     @Subscribe
     public void onInit(final InitEvent event) {
+        List<ResourceRole> roles = new ArrayList<>(resourceRoleRepository.getAllRoles());
+        roleField.setItems(roles);
+        roleField.setItemLabelGenerator(ResourceRole::getName);
+
         organization.setItems(organizationRepository.findAll());
-        if(this.getEditedEntity().getOrganization()!= null){
-            organization.setValue(this.getEditedEntity().getOrganization());
-        }
+        organization.setItemLabelGenerator(Organization::getOrganizationName);
         timeZoneField.setItems(List.of(TimeZone.getAvailableIDs()));
     }
 
@@ -84,6 +122,42 @@ public class UserDetailView extends StandardDetailView<User> {
     }
 
     @Subscribe
+    public void onBeforeShow(final BeforeShowEvent event) {
+        if (isOidcActive()) {
+            // deactivate in oidc modus, keycloak is master here
+            roleField.setReadOnly(true);
+            roleField.setHelperText("Rollen werden extern über Keycloak verwaltet.");
+        }
+        if (!entityStates.isNew(getEditedEntity())) {
+            Collection<RoleAssignment> assignments = roleAssignmentRepository
+                    .getAssignmentsByUsername(getEditedEntity().getUsername());
+
+            assignments.stream()
+                    .filter(a -> "resource".equals(a.getRoleType()))
+                    .findFirst()
+                    .ifPresent(assignment -> {
+                        ResourceRole role = resourceRoleRepository.findRoleByCode(assignment.getRoleCode());
+                        roleField.setValue(role);
+                    });
+        }
+
+        changePasswordCheckbox.setVisible(!isOidcActive()); //dont show in oidc
+    }
+
+    @Subscribe("changePasswordCheckbox")
+    public void onChangePasswordCheckboxValueChange(final AbstractField.ComponentValueChangeEvent<JmixCheckbox, Boolean> event) {
+        boolean showFields = Boolean.TRUE.equals(event.getValue());
+        passwordField.setVisible(showFields);
+        confirmPasswordField.setVisible(showFields);
+
+        if (!showFields) {
+            passwordField.clear();
+            confirmPasswordField.clear();
+        }
+    }
+
+
+    @Subscribe
     public void onReady(final ReadyEvent event) {
         if (entityStates.isNew(getEditedEntity())) {
             usernameField.focus();
@@ -92,21 +166,65 @@ public class UserDetailView extends StandardDetailView<User> {
 
     @Subscribe
     public void onValidation(final ValidationEvent event) {
-        if (entityStates.isNew(getEditedEntity())
-                && !Objects.equals(passwordField.getValue(), confirmPasswordField.getValue())) {
+        boolean isNew = entityStates.isNew(getEditedEntity());
+        if (isNew && !Objects.equals(passwordField.getValue(), confirmPasswordField.getValue())) {
             event.getErrors().add(messageBundle.getMessage("passwordsDoNotMatch"));
+        }
+
+        boolean isChangingPassword = isNew || Boolean.TRUE.equals(changePasswordCheckbox.getValue());
+
+        if (isChangingPassword) {
+            if (passwordField.isEmpty()) {
+                event.getErrors().add(message.getMessage("eu.occtet.bocfrontend.view.login/loginForm.errorPassword"));
+            } else if (!Objects.equals(passwordField.getValue(), confirmPasswordField.getValue())) {
+                event.getErrors().add(messageBundle.getMessage("passwordsDoNotMatch"));
+            }
         }
     }
 
     @Subscribe
     public void onBeforeSave(final BeforeSaveEvent event) {
-        if (entityStates.isNew(getEditedEntity())) {
-            getEditedEntity().setPassword(passwordEncoder.encode(passwordField.getValue()));
+        boolean isNew = entityStates.isNew(getEditedEntity());
+        boolean isChangingPassword = isNew || Boolean.TRUE.equals(changePasswordCheckbox.getValue());
 
-            notifications.create(messageBundle.getMessage("noAssignedRolesNotification"))
-                    .withType(Notifications.Type.WARNING)
-                    .withPosition(Notification.Position.TOP_END)
-                    .show();
+        if (isChangingPassword && passwordField.getValue() != null) {
+            log.debug("save new password for user {}", getEditedEntity().getUsername());
+            getEditedEntity().setPassword(passwordEncoder.encode(passwordField.getValue()));
+        }
+
+        //give user role
+        if (!isOidcActive()) {
+        ResourceRole selectedRole = roleField.getValue();
+        if (selectedRole != null) {
+            String username = getEditedEntity().getUsername();
+
+            // remove existing role
+            List<RoleAssignmentEntity> existingAssignments = dataManager.load(RoleAssignmentEntity.class)
+                    .query("select e from sec_RoleAssignmentEntity e where e.username = :username and e.roleType = :roleType")
+                    .parameter("username", username)
+                    .parameter("roleType", "resource")
+                    .list();
+
+            if (!existingAssignments.isEmpty()) {
+                dataManager.remove(existingAssignments);
+            }
+
+            // save new role
+            RoleAssignmentEntity newAssignment = dataManager.create(RoleAssignmentEntity.class);
+            newAssignment.setUsername(username);
+            newAssignment.setRoleCode(selectedRole.getCode());
+            newAssignment.setRoleType("resource");
+            dataManager.save(newAssignment);
+
+            //automatically add login  access role for all users
+            if (!"ui-minimal".equals(selectedRole.getCode()) && !"system-full-access".equals(selectedRole.getCode())) {
+                RoleAssignmentEntity uiMinimalAssignment = dataManager.create(RoleAssignmentEntity.class);
+                uiMinimalAssignment.setUsername(username);
+                uiMinimalAssignment.setRoleCode("ui-minimal");
+                uiMinimalAssignment.setRoleType("resource");
+                dataManager.save(uiMinimalAssignment);
+            }
+        }
         }
     }
 }
