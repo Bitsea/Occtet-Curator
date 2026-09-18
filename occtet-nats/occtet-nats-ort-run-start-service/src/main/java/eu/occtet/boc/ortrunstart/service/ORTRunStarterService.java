@@ -296,14 +296,24 @@ public class ORTRunStarterService {
 
         ReporterJobConfiguration reporterJobConfiguration = new ReporterJobConfiguration();
         reporterJobConfiguration.setFormats(List.of("SpdxDocument", "CycloneDx"));
-        //set the config options, so you get json as output
-        Map<String, String> options= new HashMap<>();
-        options.put("outputFileFormats", "JSON");
-        options.put("spdxVersion", "SPDX-2.3");
-        Map<String, PluginConfig> pluginConfigMap= new HashMap<>();
-        PluginConfig conf = new PluginConfig();
-        conf.setOptions(options);
-        pluginConfigMap.put("SpdxDocument", conf);
+
+        Map<String, PluginConfig> pluginConfigMap = new HashMap<>();
+
+        // Config options for SpdxDocument (JSON output, SPDX-2.3)
+        Map<String, String> spdxOptions = new HashMap<>();
+        spdxOptions.put("outputFileFormats", "JSON");
+        spdxOptions.put("spdxVersion", "SPDX-2.3");
+        PluginConfig spdxConf = new PluginConfig();
+        spdxConf.setOptions(spdxOptions);
+        pluginConfigMap.put("SpdxDocument", spdxConf);
+
+        // Config options for CycloneDx (JSON output)
+        Map<String, String> cycloneDxOptions = new HashMap<>();
+        cycloneDxOptions.put("outputFileFormats", "JSON");
+        PluginConfig cycloneDxConf = new PluginConfig();
+        cycloneDxConf.setOptions(cycloneDxOptions);
+        pluginConfigMap.put("CycloneDx", cycloneDxConf);
+
         reporterJobConfiguration.config(pluginConfigMap);
         jobConfigurations.setReporter(reporterJobConfiguration);
 
