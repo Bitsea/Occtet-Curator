@@ -96,7 +96,7 @@ public class CuratorTaskService {
         }
         log.debug("sending message to service: {}", message);
         try {
-            log.debug("sending to stream {}", streamName);
+            log.info("sending to stream {}", streamName);
 
                 if(streamName.equals(natsProperties.send_subject_spdx())) {
                     natsService.sendWorkMessageToStream(natsProperties.send_subject_spdx(), message.getBytes(Charset.defaultCharset()));
