@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.occtet.boc.model.BaseWorkData;
 import eu.occtet.boc.model.ORTProcessWorkData;
 import eu.occtet.boc.model.WorkTask;
+import eu.occtet.boc.model.WorkTaskStatus;
 import eu.occtet.boc.service.BaseWorkDataProcessor;
 import eu.occtet.boc.service.WorkConsumer;
 import io.nats.client.Message;
@@ -42,27 +43,28 @@ public class ProcessRunWorkConsumer extends WorkConsumer {
     @Autowired
     private ProcessRunService processRunService;
 
-
     protected void handleMessage(Message msg) {
-        log.info("Received work message from NATS subject '{}' (payload size: {} bytes)", msg.getSubject(), msg.getData() != null ? msg.getData().length : 0);
+        log.info("Received work message from NATS subject '{}' (payload size: {} bytes)", msg.getSubject(),
+                msg.getData() != null ? msg.getData().length : 0);
         String jsonData = new String(msg.getData(), StandardCharsets.UTF_8);
         ObjectMapper objectMapper = new ObjectMapper();
-        WorkTask workTask = null;
         try {
-            workTask = objectMapper.readValue(jsonData, WorkTask.class);
+            WorkTask workTask = objectMapper.readValue(jsonData, WorkTask.class);
             BaseWorkData workData = workTask.workData();
-            log.info("Processing WorkTask with workData type: {}", workData != null ? workData.getClass().getSimpleName() : "null");
+            log.info("Processing WorkTask with workData type: {}",
+                    workData != null ? workData.getClass().getSimpleName() : "null");
 
             boolean result = workData.process(new BaseWorkDataProcessor() {
                 @Override
                 public boolean process(ORTProcessWorkData workData) {
                     log.info("Dispatching ORTProcessWorkData to ProcessRunService (run ID: {})", workData.getRunId());
                     try {
+
                         boolean processed = processRunService.process(workData);
                         if (processed) {
-                            log.info("Successfully finished processing ORT run ID: {}", workData.getRunId());
+                            notifyCompleted(workTask.taskId(), workTask.name());
                         } else {
-                            log.warn("ProcessRunService returned false for ORT run ID: {}", workData.getRunId());
+                            notifyError(workTask.taskId(), workTask.name(), "error during processing");
                         }
                         return processed;
                     } catch (Exception e) {
