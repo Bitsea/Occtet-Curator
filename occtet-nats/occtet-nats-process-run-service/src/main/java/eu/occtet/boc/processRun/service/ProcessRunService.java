@@ -90,20 +90,23 @@ public class ProcessRunService {
 
 
     public boolean process(ORTProcessWorkData workData) throws Exception {
+        log.info("Processing ORTProcessWorkData for run ID: {}", workData.getRunId());
         return fetchRun(workData.getRunId());
     }
 
     public boolean fetchRun(long runId) throws IOException, InterruptedException, ApiException {
-        log.debug("Start processing run with id {}", runId);
+        log.info("Start processing ORT run with ID: {}", runId);
 
         OrtClientService ortClientService = new OrtClientService(ortProperties.baseUrl(), cacertPath, ortProperties.tokenUrl(), ortProperties.clientId());
         AuthService authService = new AuthService(ortProperties.tokenUrl(), cacertPath, ortProperties.clientSecret());
 
+        log.debug("Requesting token from auth service for client ID: {}", ortProperties.clientId());
         TokenResponse tokenResponse = authService.requestToken(ortProperties.clientId(), ortProperties.username(), ortProperties.password(), "openid");
         ApiClient apiClient = ortClientService.createApiClient(tokenResponse);
 
         RunsApi runsApi = new RunsApi(apiClient);
 
+        log.debug("Fetching run details from ORT server for run ID: {}", runId);
         OrtRun run = runsApi.getRun(runId);
         Long productId = run.getProductId();
         ProductsApi productsApi = new ProductsApi(apiClient);
@@ -111,38 +114,45 @@ public class ProcessRunService {
         OrganizationsApi organizationsApi = new OrganizationsApi(apiClient);
         Organization organization = organizationsApi.getOrganization(product.getOrganizationId());
 
+        log.info("Retrieved ORT Run {}: status='{}', product='{}' (ID: {}), organization='{}' (ID: {})",
+                runId, run.getStatus(), product.getName(), productId, organization.getName(), product.getOrganizationId());
+
         Project project = null;
         List<Project> projects = projectRepository.findByProjectName(product.getName());
         if (projects.isEmpty()) {
-            log.debug("No project found for product {}, creating new project", product.getName());
+            log.info("No existing project found in database for product '{}'. Creating new project...", product.getName());
             project = projectFactory.createProject(product.getName(), organization.getName(), "1.0");
         } else {
             project = projects.getFirst();
+            log.info("Found existing project in database: '{}' (ID: {})", project.getProjectName(), project.getId());
         }
-        log.debug("Processing run {} for project {}", runId, project.getProjectName());
+        log.info("Processing run {} for project '{}' (ID: {})", runId, project.getProjectName(), project.getId());
 
         // process violations and issues
         handleViolations(runsApi, runId, project);
         handleIssues(runsApi, runId, project);
 
-
         return fetchAndDispatchSbom(runsApi, runId, project.getId());
-
     }
 
     private boolean fetchAndDispatchSbom(RunsApi runsApi, long runId, Long projectId) throws ApiException {
         try {
+            log.info("Fetching SPDX report ('bom.spdx.json') for run ID: {}", runId);
             ApiResponse<java.io.File> response = runsApi.getRunReportWithHttpInfo(runId, "bom.spdx.json");
-            log.debug("SPDX report loaded for run {}", runId);
-            return answerService.sendToSpdxService(response.getData(), projectId, false, false);
+            log.info("SPDX report loaded for run ID: {}. Dispatching to SPDX service for project ID: {}", runId, projectId);
+            boolean sent = answerService.sendToSpdxService(response.getData(), projectId, false, false);
+            log.info("SPDX report dispatch result for run ID {}: {}", runId, sent);
+            return sent;
         } catch (ApiException e) {
             if (e.getCode() == 404) {
-                log.info("SPDX report missing for run {}, attempting CycloneDX fallback", runId);
+                log.info("SPDX report missing (404) for run ID: {}. Attempting CycloneDX fallback ('bom.cyclonedx.json')...", runId);
                 ApiResponse<java.io.File> response = runsApi.getRunReportWithHttpInfo(runId, "bom.cyclonedx.json");
-                log.debug("CycloneDX report loaded for run {}", runId);
-                return answerService.sendToCycloneDxService(response.getData(), projectId, false, false);
+                log.info("CycloneDX report loaded for run ID: {}. Dispatching to CycloneDX service for project ID: {}", runId, projectId);
+                boolean sent = answerService.sendToCycloneDxService(response.getData(), projectId, false, false);
+                log.info("CycloneDX report dispatch result for run ID {}: {}", runId, sent);
+                return sent;
             } else {
-                log.error("Error fetching report for run {}: {}", runId, e.getMessage());
+                log.error("Error fetching report for run ID {}: code={}, message={}", runId, e.getCode(), e.getMessage());
                 throw e;
             }
         }
@@ -152,9 +162,10 @@ public class ProcessRunService {
 
 
     private void handleViolations(RunsApi runsApi, Long runId, Project project) throws ApiException {
+        log.debug("Fetching rule violations from ORT for run ID: {}", runId);
         PagedResponseRuleViolation pagedResponseRuleViolation= runsApi.getRunRuleViolations(runId, null, null, null, null, null, null, null, null);
         List<RuleViolation> ruleViolations= pagedResponseRuleViolation.getData();
-        log.debug("Handle violations, found {} violations for run {}", ruleViolations.size(), runId);
+        log.info("Found {} rule violation(s) for run ID: {}", ruleViolations.size(), runId);
 
         List<OrtViolation> toSaveViolations= new ArrayList<>();
         for(RuleViolation rV: ruleViolations){
@@ -163,23 +174,22 @@ public class ProcessRunService {
             OrtViolation ortVio= ortViolationFactory.createOrtViolation(rV.getMessage(), rV.getRule(),
                     rV.getSeverity().getValue(), rV.getPurl(), rV.getHowToFix(), rV.getLicense(), rV.getLicenseSource(), project);
             toSaveViolations.add(ortVio);
-
         }
         if (!toSaveViolations.isEmpty()) {
             ortViolationRepository.saveAll(toSaveViolations);
             ortViolationRepository.flush();
+            log.info("Persisted {} rule violation(s) for project '{}' (ID: {})", toSaveViolations.size(), project.getProjectName(), project.getId());
         }
-
     }
 
     private void handleIssues(RunsApi runsApi, Long runId, Project project) throws ApiException {
+        log.debug("Fetching issues from ORT for run ID: {}", runId);
         PagedResponseIssue pagedResponseIssue= runsApi.getRunIssues(runId, null, null, null, null, null, null, null);
         List<Issue> issues= pagedResponseIssue.getData();
-        log.debug("Handle issues, found {} issues for run {}", issues.size(), runId);
+        log.info("Found {} issue(s) for run ID: {}", issues.size(), runId);
 
         List<OrtIssue> toSaveIssues = new ArrayList<>();
         for(Issue issue: issues){
-
             OrtIssue ortIssue= ortIssueFactory.createOrtIssue(issue.getIdentifier().getName(), issue.getSeverity().getValue(),
                     issue.getPurl(), issue.getAffectedPath(), issue.getMessage(), issue.getSource(),
                     issue.getResolutions(), issue.getTimestamp(), issue.getWorker(), project);
@@ -189,7 +199,7 @@ public class ProcessRunService {
         if (!toSaveIssues.isEmpty()) {
             ortIssueRepository.saveAll(toSaveIssues);
             ortIssueRepository.flush();
+            log.info("Persisted {} issue(s) for project '{}' (ID: {})", toSaveIssues.size(), project.getProjectName(), project.getId());
         }
-
     }
 }

@@ -23,11 +23,15 @@ import eu.occtet.boc.dao.OrganizationRepository;
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.Project;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ProjectFactory {
+
+    private static final Logger log = LogManager.getLogger(ProjectFactory.class);
 
     @Autowired
     private ProjectRepository projectRepository;
@@ -36,11 +40,20 @@ public class ProjectFactory {
     private OrganizationRepository organizationRepository;
 
     public Project createProject(String projectName, String organizationName, String version) {
+        log.info("Attempting to create project '{}' (version: {}) for organization '{}'", projectName, version, organizationName);
+
         Organization org = organizationRepository.findByOrganizationName(organizationName)
+                .map(existingOrg -> {
+                    log.info("Found existing organization '{}' with ID: {}", organizationName, existingOrg.getId());
+                    return existingOrg;
+                })
                 .orElseGet(() -> {
+                    log.info("Organization '{}' not found in database. Creating new organization...", organizationName);
                     Organization newOrg = new Organization();
                     newOrg.setOrganizationName(organizationName);
-                    return organizationRepository.save(newOrg);
+                    Organization savedOrg = organizationRepository.save(newOrg);
+                    log.info("Created and saved new organization '{}' with ID: {}", organizationName, savedOrg.getId());
+                    return savedOrg;
                 });
 
         Project project = new Project();
@@ -48,7 +61,9 @@ public class ProjectFactory {
         project.setOrganization(org);
         project.setProjectContact(organizationName);
         project.setVersion(version);
-        projectRepository.save(project);
-        return project;
+        Project savedProject = projectRepository.save(project);
+        log.info("Successfully created and saved project '{}' with ID: {} (Organization: '{}', ID: {})",
+                savedProject.getProjectName(), savedProject.getId(), org.getOrganizationName(), org.getId());
+        return savedProject;
     }
 }

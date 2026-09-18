@@ -44,35 +44,39 @@ public class ProcessRunWorkConsumer extends WorkConsumer {
 
 
     protected void handleMessage(Message msg) {
-        // actually do work here and update the progressPercent attribute accordingly
-        log.debug("handleMessage called");
-        log.debug("sending message to process run service: {}", msg);
+        log.info("Received work message from NATS subject '{}' (payload size: {} bytes)", msg.getSubject(), msg.getData() != null ? msg.getData().length : 0);
         String jsonData = new String(msg.getData(), StandardCharsets.UTF_8);
         ObjectMapper objectMapper = new ObjectMapper();
         WorkTask workTask = null;
         try {
             workTask = objectMapper.readValue(jsonData, WorkTask.class);
-            log.debug("workTask: {}", workTask);
             BaseWorkData workData = workTask.workData();
-            log.debug("parsing baseworkdata into ortprocess {}");
-            boolean result = workData.process(new BaseWorkDataProcessor() {
+            log.info("Processing WorkTask with workData type: {}", workData != null ? workData.getClass().getSimpleName() : "null");
 
+            boolean result = workData.process(new BaseWorkDataProcessor() {
                 @Override
                 public boolean process(ORTProcessWorkData workData) {
-                    log.debug("workData: {}", workData.toString());
+                    log.info("Dispatching ORTProcessWorkData to ProcessRunService (run ID: {})", workData.getRunId());
                     try {
-                        return processRunService.process(workData);
+                        boolean processed = processRunService.process(workData);
+                        if (processed) {
+                            log.info("Successfully finished processing ORT run ID: {}", workData.getRunId());
+                        } else {
+                            log.warn("ProcessRunService returned false for ORT run ID: {}", workData.getRunId());
+                        }
+                        return processed;
                     } catch (Exception e) {
-                        log.error("Could not process workData of type {} with error message: ",
-                                workData.getClass().getName(), e);
+                        log.error("Error occurred while processing ORTProcessWorkData for run ID {}: {}",
+                                workData.getRunId(), e.getMessage(), e);
                         return false;
                     }
                 }
             });
-            if(!result){
-                log.error("Could not process workData of type {}", workData.getClass().getName());
+            if (!result) {
+                log.error("Failed to process workData of type {}", workData.getClass().getName());
             }
         } catch (JsonProcessingException e) {
+            log.error("Failed to deserialize WorkTask JSON: {}", e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
