@@ -4,10 +4,12 @@ import eu.occtet.boc.model.ORTProcessWorkData;
 import eu.occtet.boc.ortclient.AuthService;
 import eu.occtet.boc.ortclient.OrtClientService;
 import eu.occtet.boc.ortclient.TokenResponse;
+import eu.occtet.bocfrontend.config.ConfigNatsProperties;
 import eu.occtet.bocfrontend.config.ConfigOrtProperties;
 import eu.occtet.bocfrontend.entity.CuratorTask;
 import eu.occtet.bocfrontend.factory.CuratorTaskFactory;
 import eu.occtet.bocfrontend.service.CuratorTaskService;
+import eu.occtet.bocfrontend.service.NatsService;
 import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.core.security.SystemAuthenticator;
 import org.apache.logging.log4j.LogManager;
@@ -37,12 +39,13 @@ public class ProcessOrtRunTask {
 
     private final ConfigOrtProperties ortProperties;
 
-    public ProcessOrtRunTask(ConfigOrtProperties ortProperties) {
+    public ProcessOrtRunTask(ConfigOrtProperties ortProperties, ConfigNatsProperties natsProperties) {
         this.ortProperties = ortProperties;
+        this.natsProperties = natsProperties;
     }
 
-    @Value("${nats.send-subject-ort-result}")
-    private String sendSubjectOrtResult;
+    private final ConfigNatsProperties natsProperties;
+
 
     @Value("${https.cacert.path}")
     private String cacertPath;
@@ -84,14 +87,14 @@ public class ProcessOrtRunTask {
                 log.info("Runs fetched {}", pagedSearch.getData().size() + pagedSearchWithIssues.getData().size());
 
                 if (!pagedSearch.getData().isEmpty()) {
-                    log.debug("Got {} finished runs", pagedSearch.getData().size());
+                    log.info("Got {} finished runs", pagedSearch.getData().size());
 
                     sendRuns(pagedSearch);
                 } else
                     log.debug("No finished runs found");
 
                 if (!pagedSearchWithIssues.getData().isEmpty()) {
-                    log.debug("Got {} finished_with_issues runs", pagedSearchWithIssues.getData().size());
+                    log.info("Got {} finished_with_issues runs", pagedSearchWithIssues.getData().size());
                     sendRuns(pagedSearchWithIssues);
                 } else
                     log.debug("No finished_with_issues runs found");
@@ -121,7 +124,7 @@ public class ProcessOrtRunTask {
                 ORTProcessWorkData ortProcessWorkData = new ORTProcessWorkData(summaryId);
 
                 boolean res = curatorTaskService.saveAndRunTask(task, ortProcessWorkData,
-                        "sending message and ort-runId to process-run-microservice", sendSubjectOrtResult);
+                        "sending message and ort-runId to process-run-microservice", natsProperties.send_subject_ort_result());
 
                 if (!res) {
                     log.info("Failed to start task for ORT run {}, removing from processed set to allow retry",
