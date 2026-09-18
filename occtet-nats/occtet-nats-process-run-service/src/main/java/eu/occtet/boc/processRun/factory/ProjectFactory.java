@@ -19,7 +19,9 @@
 
 package eu.occtet.boc.processRun.factory;
 
+import eu.occtet.boc.dao.OrganizationRepository;
 import eu.occtet.boc.dao.ProjectRepository;
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,10 +32,21 @@ public class ProjectFactory {
     @Autowired
     private ProjectRepository projectRepository;
 
-    public Project createProject(String projectName, String projectContact, String version) {
-        Project project= new Project();
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
+    public Project createProject(String projectName, String organizationName, String version) {
+        Organization org = organizationRepository.findByOrganizationName(organizationName)
+                .orElseGet(() -> {
+                    Organization newOrg = new Organization();
+                    newOrg.setOrganizationName(organizationName);
+                    return organizationRepository.save(newOrg);
+                });
+
+        Project project = new Project();
         project.setProjectName(projectName);
-        project.setProjectContact(projectContact);
+        project.setOrganization(org);
+        project.setProjectContact(organizationName);
         project.setVersion(version);
         projectRepository.save(project);
         return project;

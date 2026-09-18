@@ -1,0 +1,403 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "2026-08-18T00:00:00Z",
+    "creators" : [ "Tool: occtet-curator-test" ],
+    "licenseListVersion" : "3.27"
+  },
+  "name" : "SPDX Live UI Test - Archive Prefix Stripping",
+  "dataLicense" : "CC0-1.0",
+  "documentNamespace" : "http://spdx.org/spdxdocs/occtet-live-archive-test-001",
+  "documentDescribes" : [ "SPDXRef-Package-Curator-Live-Demo-1.0.0" ],
+  "packages" : [
+    {
+      "SPDXID" : "SPDXRef-Package-Curator-Live-Demo-1.0.0",
+      "name" : "Curator-Live-Demo",
+      "versionInfo" : "1.0.0",
+      "downloadLocation" : "NONE",
+      "filesAnalyzed" : false,
+      "homepage" : "https://github.com/Bitsea/Occtet-Curator",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseDeclared" : "Apache-2.0",
+      "copyrightText" : "Copyright (C) 2026 Bitsea GmbH"
+    },
+    {
+      "SPDXID" : "SPDXRef-Package-Maven-com.google.code.gson-gson-2.8.0",
+      "name" : "gson",
+      "versionInfo" : "2.8.0",
+      "description" : "Gson JSON library",
+      "downloadLocation" : "https://repo1.maven.org/maven2/com/google/code/gson/gson/2.8.0/gson-2.8.0-sources.jar",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE_MANAGER",
+          "referenceType" : "purl",
+          "referenceLocator" : "pkg:maven/com.google.code.gson/gson@2.8.0"
+        }
+      ],
+      "filesAnalyzed" : true,
+      "homepage" : "https://github.com/google/gson",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseDeclared" : "Apache-2.0",
+      "licenseInfoFromFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (c) 2008-2014 Google Inc.",
+      "packageVerificationCode" : {
+        "packageVerificationCodeValue" : "f98024a6898333cb58df6dcd3cfcdf8f8c652c70"
+      },
+      "hasFiles" : [
+        "SPDXRef-File-gson-1",
+        "SPDXRef-File-gson-2",
+        "SPDXRef-File-gson-3",
+        "SPDXRef-File-gson-4",
+        "SPDXRef-File-gson-5",
+        "SPDXRef-File-gson-6",
+        "SPDXRef-File-gson-7",
+        "SPDXRef-File-gson-8",
+        "SPDXRef-File-gson-9",
+        "SPDXRef-File-gson-10",
+        "SPDXRef-File-gson-11",
+        "SPDXRef-File-gson-12"
+      ]
+    },
+    {
+      "SPDXID" : "SPDXRef-Package-Maven-commons-lang-commons-lang-2.6",
+      "name" : "commons-lang",
+      "versionInfo" : "2.6",
+      "description" : "Apache Commons Lang utility library",
+      "downloadLocation" : "https://repo1.maven.org/maven2/commons-lang/commons-lang/2.6/commons-lang-2.6-sources.jar",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE_MANAGER",
+          "referenceType" : "purl",
+          "referenceLocator" : "pkg:maven/commons-lang/commons-lang@2.6"
+        }
+      ],
+      "filesAnalyzed" : true,
+      "homepage" : "http://commons.apache.org/lang/",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseDeclared" : "Apache-2.0",
+      "licenseInfoFromFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (C) 2001-2011 The Apache Software Foundation",
+      "packageVerificationCode" : {
+        "packageVerificationCodeValue" : "7720fa627999d707c9feeb114251e64dc2d8990d"
+      },
+      "hasFiles" : [
+        "SPDXRef-File-lang-1",
+        "SPDXRef-File-lang-2",
+        "SPDXRef-File-lang-3",
+        "SPDXRef-File-lang-4",
+        "SPDXRef-File-lang-5",
+        "SPDXRef-File-lang-6",
+        "SPDXRef-File-lang-7",
+        "SPDXRef-File-lang-8",
+        "SPDXRef-File-lang-9",
+        "SPDXRef-File-lang-10"
+      ]
+    }
+  ],
+  "files" : [
+    {
+      "SPDXID" : "SPDXRef-File-gson-1",
+      "fileName" : "gson-2.8.0/com/google/gson/Gson.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (c) 2008 Google Inc.",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "962c3a47891ee9dd3b4dbdef8d57ce9ec92c06e0" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-gson-2",
+      "fileName" : "gson-2.8.0/com/google/gson/GsonBuilder.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (c) 2008 Google Inc.",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "1013e13aa61898a8b65739bf4c59c4cec9533245" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-gson-3",
+      "fileName" : "gson-2.8.0/com/google/gson/JsonObject.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (c) 2008 Google Inc.",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "c2a49d4648b727df78d2fa5120de45cb47ca9383" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-gson-4",
+      "fileName" : "gson-2.8.0/com/google/gson/JsonArray.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (c) 2008 Google Inc.",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "71173b7f1d964b5ae594298b0fa11d76c583aa0a" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-gson-5",
+      "fileName" : "gson-2.8.0/com/google/gson/JsonElement.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (c) 2008 Google Inc.",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "c53547a3cca0776240b309331f58c0d1612bd2af" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-gson-6",
+      "fileName" : "gson-2.8.0/com/google/gson/JsonPrimitive.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (c) 2008 Google Inc.",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "6950566e03bf5c61dd3bb7a62cf458990ba62a4e" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-gson-7",
+      "fileName" : "gson-2.8.0/com/google/gson/JsonParser.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (c) 2009 Google Inc.",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "7df8ca3985631fd9c7e71d7476005e0c4b80c665" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-gson-8",
+      "fileName" : "gson-2.8.0/com/google/gson/TypeAdapter.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (c) 2011 Google Inc.",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "d38d1720d20ef39f8e5cbf47a32b6e1ee74e402b" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-gson-9",
+      "fileName" : "gson-2.8.0/com/google/gson/stream/JsonReader.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (c) 2010 Google Inc.",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "4d8d1720d20ef39f8e5cbf47a32b6e1ee74e402b" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-gson-10",
+      "fileName" : "gson-2.8.0/com/google/gson/stream/JsonWriter.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (c) 2010 Google Inc.",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "1720d20ef39f8e5cbf47a32b6e1ee74e402bd48d" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-gson-11",
+      "fileName" : "gson-2.8.0/com/google/gson/annotations/SerializedName.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (c) 2008 Google Inc.",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "8e5cbf47a32b6e1ee74e402bd48d1720d20ef39f" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-gson-12",
+      "fileName" : "gson-2.8.0/com/google/gson/reflect/TypeToken.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (c) 2008 Google Inc.",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "6e1ee74e402bd48d1720d20ef39f8e5cbf47a32b" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-lang-1",
+      "fileName" : "commons-lang-2.6/org/apache/commons/lang/StringUtils.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (C) 2001-2011 The Apache Software Foundation",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "67313d715fbf0ea4fd0bdb69217fb77f807a8ce5" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-lang-2",
+      "fileName" : "commons-lang-2.6/org/apache/commons/lang/ArrayUtils.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (C) 2001-2011 The Apache Software Foundation",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "0ce1edb914c94ebc388f086c6827e8bdeec71ac2" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-lang-3",
+      "fileName" : "commons-lang-2.6/org/apache/commons/lang/BooleanUtils.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (C) 2001-2011 The Apache Software Foundation",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "fd0bdb69217fb77f807a8ce567313d715fbf0ea4" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-lang-4",
+      "fileName" : "commons-lang-2.6/org/apache/commons/lang/ClassUtils.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (C) 2001-2011 The Apache Software Foundation",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "914c94ebc388f086c6827e8bdeec71ac20ce1edb" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-lang-5",
+      "fileName" : "commons-lang-2.6/org/apache/commons/lang/ObjectUtils.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (C) 2001-2011 The Apache Software Foundation",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "217fb77f807a8ce567313d715fbf0ea4fd0bdb69" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-lang-6",
+      "fileName" : "commons-lang-2.6/org/apache/commons/lang/SystemUtils.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (C) 2001-2011 The Apache Software Foundation",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "388f086c6827e8bdeec71ac20ce1edb914c94ebc" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-lang-7",
+      "fileName" : "commons-lang-2.6/org/apache/commons/lang/builder/HashCodeBuilder.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (C) 2001-2011 The Apache Software Foundation",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "77f807a8ce567313d715fbf0ea4fd0bdb69217fb" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-lang-8",
+      "fileName" : "commons-lang-2.6/org/apache/commons/lang/builder/EqualsBuilder.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (C) 2001-2011 The Apache Software Foundation",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "6827e8bdeec71ac20ce1edb914c94ebc388f086c" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-lang-9",
+      "fileName" : "commons-lang-2.6/org/apache/commons/lang/builder/ToStringBuilder.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (C) 2001-2011 The Apache Software Foundation",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "07a8ce567313d715fbf0ea4fd0bdb69217fb77f8" } ]
+    },
+    {
+      "SPDXID" : "SPDXRef-File-lang-10",
+      "fileName" : "commons-lang-2.6/org/apache/commons/lang/math/NumberUtils.java",
+      "licenseConcluded" : "NOASSERTION",
+      "licenseInfoInFiles" : [ "Apache-2.0" ],
+      "copyrightText" : "Copyright (C) 2001-2011 The Apache Software Foundation",
+      "checksums" : [ { "algorithm" : "SHA1", "checksumValue" : "e8bdeec71ac20ce1edb914c94ebc388f086c6827" } ]
+    }
+  ],
+  "relationships" : [
+    {
+      "spdxElementId" : "SPDXRef-DOCUMENT",
+      "relationshipType" : "DESCRIBES",
+      "relatedSpdxElement" : "SPDXRef-Package-Curator-Live-Demo-1.0.0"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Curator-Live-Demo-1.0.0",
+      "relationshipType" : "DEPENDS_ON",
+      "relatedSpdxElement" : "SPDXRef-Package-Maven-com.google.code.gson-gson-2.8.0"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Curator-Live-Demo-1.0.0",
+      "relationshipType" : "DEPENDS_ON",
+      "relatedSpdxElement" : "SPDXRef-Package-Maven-commons-lang-commons-lang-2.6"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-com.google.code.gson-gson-2.8.0",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-gson-1"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-com.google.code.gson-gson-2.8.0",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-gson-2"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-com.google.code.gson-gson-2.8.0",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-gson-3"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-com.google.code.gson-gson-2.8.0",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-gson-4"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-com.google.code.gson-gson-2.8.0",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-gson-5"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-com.google.code.gson-gson-2.8.0",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-gson-6"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-com.google.code.gson-gson-2.8.0",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-gson-7"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-com.google.code.gson-gson-2.8.0",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-gson-8"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-com.google.code.gson-gson-2.8.0",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-gson-9"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-com.google.code.gson-gson-2.8.0",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-gson-10"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-com.google.code.gson-gson-2.8.0",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-gson-11"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-com.google.code.gson-gson-2.8.0",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-gson-12"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-commons-lang-commons-lang-2.6",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-lang-1"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-commons-lang-commons-lang-2.6",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-lang-2"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-commons-lang-commons-lang-2.6",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-lang-3"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-commons-lang-commons-lang-2.6",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-lang-4"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-commons-lang-commons-lang-2.6",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-lang-5"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-commons-lang-commons-lang-2.6",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-lang-6"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-commons-lang-commons-lang-2.6",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-lang-7"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-commons-lang-commons-lang-2.6",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-lang-8"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-commons-lang-commons-lang-2.6",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-lang-9"
+    },
+    {
+      "spdxElementId" : "SPDXRef-Package-Maven-commons-lang-commons-lang-2.6",
+      "relationshipType" : "CONTAINS",
+      "relatedSpdxElement" : "SPDXRef-File-lang-10"
+    }
+  ]
+}
