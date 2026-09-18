@@ -28,11 +28,13 @@ import eu.occtet.boc.model.WorkerStatus;
 import io.nats.client.*;
 import io.nats.client.api.AckPolicy;
 import io.nats.client.api.ConsumerConfiguration;
+import io.nats.client.api.FetchConsumeOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 
 public abstract class WorkConsumer implements InformativeService {
 
@@ -65,10 +67,17 @@ public abstract class WorkConsumer implements InformativeService {
 
         log.debug("startHandlingMessages called, listening on stream {} for subject {}", streamName, workSubject);
 
+        // Long-poll: server holds the request open for up to 2s, so the loop
+        // only wakes when a message arrives or every 2s — no busy-spinning.
+        FetchConsumeOptions fetchOptions = FetchConsumeOptions.builder()
+                .maxMessages(1)
+                .expiresIn(Duration.ofSeconds(2).toMillis())
+                .build();
+
         while (natsConnection.getStatus() != Connection.Status.CLOSED) {
-            try (FetchConsumer fetchConsumer = consumerContext.fetchMessages(1)) {
+            try (FetchConsumer fetchConsumer = consumerContext.fetch(fetchOptions)) {
                 Message msg = fetchConsumer.nextMessage();
-                if(msg != null)
+                if (msg != null)
                     log.debug("received message: {}", msg.getSubject());
                 if (msg != null && msg.getSubject().equals(workSubject)) {
                     log.debug("received message on subject... {}", msg.getSubject());
@@ -79,7 +88,7 @@ public abstract class WorkConsumer implements InformativeService {
                     msg.ack();
                 }
             } catch (Exception e) {
-                log.warn("error handling message: {}", e.getMessage());
+                log.warn("error handling message: {} ({})", e.getMessage(), e.getClass().getSimpleName());
             } finally {
                 workerStatus = WorkerStatus.IDLE;
             }

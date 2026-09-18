@@ -46,7 +46,6 @@ public class ProcessOrtRunTask {
 
     private final ConfigNatsProperties natsProperties;
 
-
     @Value("${https.cacert.path}")
     private String cacertPath;
 
@@ -124,7 +123,8 @@ public class ProcessOrtRunTask {
                 ORTProcessWorkData ortProcessWorkData = new ORTProcessWorkData(summaryId);
 
                 boolean res = curatorTaskService.saveAndRunTask(task, ortProcessWorkData,
-                        "sending message and ort-runId to process-run-microservice", natsProperties.send_subject_ort_result());
+                        "sending message and ort-runId to process-run-microservice",
+                        natsProperties.send_subject_ort_result());
 
                 if (!res) {
                     log.info("Failed to start task for ORT run {}, removing from processed set to allow retry",
