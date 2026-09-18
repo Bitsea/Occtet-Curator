@@ -28,7 +28,7 @@ import eu.occtet.boc.model.WorkerStatus;
 import io.nats.client.*;
 import io.nats.client.api.AckPolicy;
 import io.nats.client.api.ConsumerConfiguration;
-import io.nats.client.api.FetchConsumeOptions;
+import io.nats.client.FetchConsumeOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +49,7 @@ public abstract class WorkConsumer implements InformativeService {
     private boolean poisonPill = false;
 
     public void startHandlingMessages(Connection natsConnection, String myServiceName, String streamName,
-            String workSubject) throws IOException, JetStreamApiException {
+                                      String workSubject) throws IOException, JetStreamApiException {
         this.natsConnection = natsConnection;
         log.debug("startHandlingMessages called, myServiceName: {}, streamName: {}, workSubject: {}", myServiceName,
                 streamName, workSubject);
@@ -59,7 +59,7 @@ public abstract class WorkConsumer implements InformativeService {
                 .durable(myServiceName + "-consumer")
                 .deliverGroup(myServiceName + "-group")
                 .ackPolicy(AckPolicy.Explicit)
-                .ackWait(java.time.Duration.ofMinutes(10))
+                .ackWait(Duration.ofMinutes(10))
                 .filterSubject(workSubject)
                 .build();
         ConsumerContext consumerContext = streamContext.createOrUpdateConsumer(config);
@@ -67,18 +67,14 @@ public abstract class WorkConsumer implements InformativeService {
 
         log.debug("startHandlingMessages called, listening on stream {} for subject {}", streamName, workSubject);
 
-        // Long-poll: server holds the request open for up to 2s, so the loop
-        // only wakes when a message arrives or every 2s — no busy-spinning.
         FetchConsumeOptions fetchOptions = FetchConsumeOptions.builder()
                 .maxMessages(1)
-                .expiresIn(Duration.ofSeconds(2).toMillis())
+                .expiresIn(2000) // 2000ms Long-Polling Timeout
                 .build();
 
         while (natsConnection.getStatus() != Connection.Status.CLOSED) {
             try (FetchConsumer fetchConsumer = consumerContext.fetch(fetchOptions)) {
                 Message msg = fetchConsumer.nextMessage();
-                if (msg != null)
-                    log.debug("received message: {}", msg.getSubject());
                 if (msg != null && msg.getSubject().equals(workSubject)) {
                     log.debug("received message on subject... {}", msg.getSubject());
 
@@ -92,7 +88,7 @@ public abstract class WorkConsumer implements InformativeService {
             } finally {
                 workerStatus = WorkerStatus.IDLE;
             }
-            // if someone wants us to stop, we stop
+
             if (poisonPill)
                 return;
         }
