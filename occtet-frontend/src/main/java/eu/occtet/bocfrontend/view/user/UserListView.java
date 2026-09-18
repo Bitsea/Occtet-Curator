@@ -23,6 +23,8 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.router.Route;
 import eu.occtet.bocfrontend.entity.User;
 import eu.occtet.bocfrontend.view.main.MainView;
+import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.kit.action.Action;
 import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -38,12 +40,16 @@ public class UserListView extends StandardListView<User> {
     @Autowired
     private Environment environment;
     @ViewComponent
-    private Button createBtn;
+    private DataGrid<User> usersDataGrid;
+
 
     @Subscribe
     public void onInit(final InitEvent event) {
         if (environment.acceptsProfiles(Profiles.of("oidc"))) {
-            createBtn.setVisible(false); // no manual creation when keycloak is used
+            Action createAction = usersDataGrid.getAction("createAction");
+            if (createAction != null) {
+                createAction.setVisible(false);
+            }
         }
     }
 }
