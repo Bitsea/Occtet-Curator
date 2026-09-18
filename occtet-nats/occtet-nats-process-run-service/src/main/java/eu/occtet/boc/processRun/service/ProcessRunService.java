@@ -149,85 +149,79 @@ public class ProcessRunService {
 
         log.info("Available report filenames reported by ORT for run {}: {}", runId, reportFilenames);
 
-        // 1. Try to find an SPDX file dynamically from reported filenames
-        Optional<String> spdxFilename = reportFilenames.stream()
-                .filter(name -> name.toLowerCase().contains("spdx"))
-                .findFirst();
+        // 1. SPDX: Prefer JSON reports matching 'spdx' (or fallback to 'bom.spdx.json')
+        String spdxToFetch = reportFilenames.stream()
+                .filter(name -> name.toLowerCase().contains("spdx") && name.toLowerCase().endsWith(".json"))
+                .findFirst()
+                .orElse("bom.spdx.json");
 
-        String spdxToFetch = spdxFilename.orElse("bom.spdx.json");
-        try {
-            log.info("Attempting to fetch SPDX report ('{}') for run ID: {}", spdxToFetch, runId);
-            ApiResponse<java.io.File> response = runsApi.getRunReportWithHttpInfo(runId, spdxToFetch);
-            log.info(
-                    "SPDX report ('{}') loaded successfully for run ID: {}. Dispatching to SPDX service for project ID: {}",
-                    spdxToFetch, runId, projectId);
-            boolean sent = answerService.sendToSpdxService(response.getData(), projectId, false, false);
-            log.info("SPDX report dispatch result for run ID {}: {}", runId, sent);
-            if (sent)
-                return true;
-        } catch (ApiException e) {
-            log.warn("Could not fetch SPDX report '{}' for run ID {} (HTTP status: {}, message: {})", spdxToFetch,
-                    runId, e.getCode(), e.getMessage());
-        } catch (Exception e) {
-            log.error("Unexpected error fetching SPDX report '{}' for run ID {}: {}", spdxToFetch, runId,
-                    e.getMessage(), e);
-        }
-
-        // 2. Fallback: Try to find a CycloneDX file dynamically from reported filenames
-        // or default candidate names
-        Optional<String> cycloneDxFilename = reportFilenames.stream()
-                .filter(name -> name.toLowerCase().contains("cyclonedx"))
-                .findFirst();
-
-        String cycloneToFetch = cycloneDxFilename.orElse("bom.cyclonedx.json");
-
-        try {
-            log.info("Attempting to fetch CycloneDX report ('{}') for run ID: {}", cFilename, runId);
-            ApiResponse<java.io.File> response = runsApi.getRunReportWithHttpInfo(runId, cycloneToFetch);
-            log.info(
-                    "CycloneDX report ('{}') loaded successfully for run ID: {}. Dispatching to CycloneDX service for project ID: {}",
-                    cFilename, runId, projectId);
-            boolean sent = answerService.sendToCycloneDxService(response.getData(), projectId, false, false);
-            log.info("CycloneDX report dispatch result for run ID {}: {}", runId, sent);
-            if (sent)
-                return true;
-        } catch (ApiException e) {
-            log.warn("Could not fetch CycloneDX report '{}' for run ID {} (HTTP status: {}, message: {})", cFilename,
-                    runId, e.getCode(), e.getMessage());
-        } catch (Exception e) {
-            log.error("Unexpected error fetching CycloneDX report '{}' for run ID {}: {}", cFilename, runId,
-                    e.getMessage(), e);
-        }
-
-        // 3. Fallback: Try ANY other report files reported by ORT if available
-        for (String otherFilename : reportFilenames) {
-            if (otherFilename.equalsIgnoreCase(spdxToFetch) || cycloneCandidates.contains(otherFilename)) {
-                continue;
-            }
+        if (isJsonReport(spdxToFetch)) {
             try {
-                log.info("Attempting to fetch generic report ('{}') for run ID: {}", otherFilename, runId);
-                ApiResponse<java.io.File> response = runsApi.getRunReportWithHttpInfo(runId, otherFilename);
-                if (otherFilename.toLowerCase().contains("spdx") || otherFilename.toLowerCase().endsWith(".json")) {
-                    log.info("Dispatching generic report '{}' to SPDX service for project ID: {}", otherFilename,
-                            projectId);
-                    return answerService.sendToSpdxService(response.getData(), projectId, false, false);
+                log.info("Attempting to fetch SPDX JSON report ('{}') for run ID: {}", spdxToFetch, runId);
+                ApiResponse<java.io.File> response = runsApi.getRunReportWithHttpInfo(runId, spdxToFetch);
+                java.io.File file = response.getData();
+                if (file != null && isJsonFile(file, spdxToFetch)) {
+                    log.info("SPDX JSON report ('{}') loaded successfully for run ID: {}. Dispatching to SPDX service for project ID: {}",
+                            spdxToFetch, runId, projectId);
+                    boolean sent = answerService.sendToSpdxService(file, projectId, false, false);
+                    log.info("SPDX report dispatch result for run ID {}: {}", runId, sent);
+                    if (sent) return true;
                 } else {
-                    log.info("Dispatching generic report '{}' to CycloneDX service for project ID: {}", otherFilename,
-                            projectId);
-                    return answerService.sendToCycloneDxService(response.getData(), projectId, false, false);
+                    log.warn("Downloaded SPDX report '{}' for run ID {} is null or not JSON. Skipping dispatch.", spdxToFetch, runId);
                 }
             } catch (ApiException e) {
-                log.warn("Could not fetch generic report '{}' for run ID {} (HTTP status: {}, message: {})",
-                        otherFilename, runId, e.getCode(), e.getMessage());
+                log.warn("Could not fetch SPDX report '{}' for run ID {} (HTTP status: {}, message: {})",
+                        spdxToFetch, runId, e.getCode(), e.getMessage());
             } catch (Exception e) {
-                log.error("Unexpected error fetching generic report '{}' for run ID {}: {}", otherFilename, runId,
-                        e.getMessage(), e);
+                log.error("Unexpected error fetching SPDX report '{}' for run ID {}: {}",
+                        spdxToFetch, runId, e.getMessage(), e);
             }
+        } else {
+            log.info("No JSON SPDX report found in reportFilenames for run ID: {}", runId);
         }
 
-        log.warn("No usable SBOM report could be resolved or fetched for ORT run ID: {} (Project ID: {})", runId,
-                projectId);
+        // 2. CycloneDX Fallback: Prefer JSON reports matching 'cyclonedx' (or fallback to 'bom.cyclonedx.json')
+        String cycloneToFetch = reportFilenames.stream()
+                .filter(name -> name.toLowerCase().contains("cyclonedx") && name.toLowerCase().endsWith(".json"))
+                .findFirst()
+                .orElse("bom.cyclonedx.json");
+
+        if (isJsonReport(cycloneToFetch)) {
+            try {
+                log.info("Attempting to fetch CycloneDX JSON report ('{}') for run ID: {}", cycloneToFetch, runId);
+                ApiResponse<java.io.File> response = runsApi.getRunReportWithHttpInfo(runId, cycloneToFetch);
+                java.io.File file = response.getData();
+                if (file != null && isJsonFile(file, cycloneToFetch)) {
+                    log.info("CycloneDX JSON report ('{}') loaded successfully for run ID: {}. Dispatching to CycloneDX service for project ID: {}",
+                            cycloneToFetch, runId, projectId);
+                    boolean sent = answerService.sendToCycloneDxService(file, projectId, false, false);
+                    log.info("CycloneDX report dispatch result for run ID {}: {}", runId, sent);
+                    if (sent) return true;
+                } else {
+                    log.warn("Downloaded CycloneDX report '{}' for run ID {} is null or not JSON. Skipping dispatch.", cycloneToFetch, runId);
+                }
+            } catch (ApiException e) {
+                log.warn("Could not fetch CycloneDX report '{}' for run ID {} (HTTP status: {}, message: {})",
+                        cycloneToFetch, runId, e.getCode(), e.getMessage());
+            } catch (Exception e) {
+                log.error("Unexpected error fetching CycloneDX report '{}' for run ID {}: {}",
+                        cycloneToFetch, runId, e.getMessage(), e);
+            }
+        } else {
+            log.info("No JSON CycloneDX report found in reportFilenames for run ID: {}", runId);
+        }
+
+        log.warn("No usable JSON SBOM report (SPDX / CycloneDX) could be resolved or fetched for ORT run ID: {} (Project ID: {})",
+                runId, projectId);
         return false;
+    }
+
+    private boolean isJsonReport(String filename) {
+        return filename != null && filename.toLowerCase().endsWith(".json");
+    }
+
+    private boolean isJsonFile(java.io.File file, String filename) {
+        return isJsonReport(filename) || (file != null && file.getName().toLowerCase().endsWith(".json"));
     }
 
     private void handleViolations(RunsApi runsApi, Long runId, Project project) throws ApiException {
