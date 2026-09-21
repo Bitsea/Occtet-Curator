@@ -81,12 +81,16 @@ public abstract class WorkConsumer implements InformativeService {
                         workerStatus = WorkerStatus.WORKING;
                         handleMessage(msg);
 
-                        msg.ack();
                     }catch(Exception e){
                         log.warn("error handling message: {} ({})", e.getMessage(), e.getClass().getSimpleName());
-                        msg.nak();
+
                     }finally{
-                        workerStatus= WorkerStatus.IDLE;
+                        try {
+                            msg.ack();
+                        } catch (Exception e) {
+                            log.error("Failed to ACK message: {}", e.getMessage());
+                        }
+                        workerStatus = WorkerStatus.IDLE;
                     }
                 }
             } catch (Exception e) {

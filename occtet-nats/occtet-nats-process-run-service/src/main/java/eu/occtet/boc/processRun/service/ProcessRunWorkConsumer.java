@@ -56,13 +56,14 @@ public class ProcessRunWorkConsumer extends WorkConsumer {
             workTask = objectMapper.readValue(jsonData, WorkTask.class);
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize WorkTask JSON: {}", e.getMessage(), e);
-            throw new IllegalArgumentException("Invalid WorkTask JSON payload", e);
+            return;
         }
 
         BaseWorkData workData = workTask.workData();
         if (workData == null) {
             log.error("WorkData is null for task ID {}", workTask.taskId());
-            throw new IllegalArgumentException("WorkData must not be null");
+            notifyError(workTask.taskId(), workTask.name(), "WorkData must not be null");
+            return;
         }
 
         log.info("Processing WorkTask with workData type: {}", workData.getClass().getSimpleName());
