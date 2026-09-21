@@ -59,7 +59,7 @@ public class ProcessOrtRunTask {
     private CuratorTaskFactory curatorTaskFactory;
 
     private static final int MAX_PROCESSED_RUNS = 1000;
-    private static final int NUMBER_OF_RUNS=5;
+    private static final int NUMBER_OF_RUNS=1;
     private final Set<Long> processedRuns = Collections.synchronizedSet(
             Collections.newSetFromMap(new LinkedHashMap<>() {
                 @Override
