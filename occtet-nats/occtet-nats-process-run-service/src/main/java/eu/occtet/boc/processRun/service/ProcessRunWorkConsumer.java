@@ -76,6 +76,7 @@ public class ProcessRunWorkConsumer extends WorkConsumer {
                     boolean processed = processRunService.process(workData);
                     if (processed) {
                         notifyCompleted(workTask.taskId(), workTask.name());
+                        log.info("Successfully processed ORTProcessWorkData for run ID {}", workData.getRunId());
                     } else {
                         notifyError(workTask.taskId(), workTask.name(), "Could not resolve SBOM reports from ORT API");
                     }
