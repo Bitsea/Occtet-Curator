@@ -43,43 +43,56 @@ public class ProcessRunWorkConsumer extends WorkConsumer {
     @Autowired
     private ProcessRunService processRunService;
 
+    @Override
     protected void handleMessage(Message msg) {
         log.info("Received work message from NATS subject '{}' (payload size: {} bytes)", msg.getSubject(),
                 msg.getData() != null ? msg.getData().length : 0);
+
         String jsonData = new String(msg.getData(), StandardCharsets.UTF_8);
         ObjectMapper objectMapper = new ObjectMapper();
+
+        WorkTask workTask;
         try {
-            WorkTask workTask = objectMapper.readValue(jsonData, WorkTask.class);
-            BaseWorkData workData = workTask.workData();
-            log.info("Processing WorkTask with workData type: {}",
-                    workData != null ? workData.getClass().getSimpleName() : "null");
-
-            boolean result = workData.process(new BaseWorkDataProcessor() {
-                @Override
-                public boolean process(ORTProcessWorkData workData) {
-                    log.info("Dispatching ORTProcessWorkData to ProcessRunService (run ID: {})", workData.getRunId());
-                    try {
-
-                        boolean processed = processRunService.process(workData);
-                        if (processed) {
-                            notifyCompleted(workTask.taskId(), workTask.name());
-                        } else {
-                            notifyError(workTask.taskId(), workTask.name(), "error during processing");
-                        }
-                        return processed;
-                    } catch (Exception e) {
-                        log.error("Error occurred while processing ORTProcessWorkData for run ID {}: {}",
-                                workData.getRunId(), e.getMessage(), e);
-                        return false;
-                    }
-                }
-            });
-            if (!result) {
-                log.error("Failed to process workData of type {}", workData.getClass().getName());
-            }
+            workTask = objectMapper.readValue(jsonData, WorkTask.class);
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize WorkTask JSON: {}", e.getMessage(), e);
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException("Invalid WorkTask JSON payload", e);
+        }
+
+        BaseWorkData workData = workTask.workData();
+        if (workData == null) {
+            log.error("WorkData is null for task ID {}", workTask.taskId());
+            throw new IllegalArgumentException("WorkData must not be null");
+        }
+
+        log.info("Processing WorkTask with workData type: {}", workData.getClass().getSimpleName());
+
+        boolean result = workData.process(new BaseWorkDataProcessor() {
+            @Override
+            public boolean process(ORTProcessWorkData workData) {
+                log.info("Dispatching ORTProcessWorkData to ProcessRunService (run ID: {})", workData.getRunId());
+                try {
+                    boolean processed = processRunService.process(workData);
+                    if (processed) {
+                        notifyCompleted(workTask.taskId(), workTask.name());
+                    } else {
+                        notifyError(workTask.taskId(), workTask.name(), "Could not resolve SBOM reports from ORT API");
+                    }
+                    return processed;
+                } catch (Exception e) {
+                    log.error("Error occurred while processing ORTProcessWorkData for run ID {}: {}",
+                            workData.getRunId(), e.getMessage(), e);
+                    notifyError(workTask.taskId(), workTask.name(), e.getMessage());
+                    return false;
+                }
+            }
+        });
+
+        if (!result) {
+            log.error("Failed to process workData of type {} for task ID {}",
+                    workData.getClass().getName(), workTask.taskId());
+            throw new RuntimeException("WorkData processing failed for task " + workTask.taskId());
         }
     }
+
 }
