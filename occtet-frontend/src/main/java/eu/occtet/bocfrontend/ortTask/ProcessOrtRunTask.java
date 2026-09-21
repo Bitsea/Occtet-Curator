@@ -59,6 +59,7 @@ public class ProcessOrtRunTask {
     private CuratorTaskFactory curatorTaskFactory;
 
     private static final int MAX_PROCESSED_RUNS = 1000;
+    private static final int NUMBER_OF_RUNS=5;
     private final Set<Long> processedRuns = Collections.synchronizedSet(
             Collections.newSetFromMap(new LinkedHashMap<>() {
                 @Override
@@ -78,11 +79,11 @@ public class ProcessOrtRunTask {
 
                 RunsApi runsApi = new RunsApi(apiClient);
                 log.info("Fetching runs from ORT API: {}", runsApi.getApiClient().getBasePath());
-                PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch = runsApi.getRuns("FINISHED", 10, null,
+                PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearch = runsApi.getRuns("FINISHED", NUMBER_OF_RUNS, null,
                         "-createdAt");
 
                 PagedSearchResponseOrtRunSummaryOrtRunFilters pagedSearchWithIssues = runsApi
-                        .getRuns("FINISHED_WITH_ISSUES", 10, null, "-createdAt");
+                        .getRuns("FINISHED_WITH_ISSUES", NUMBER_OF_RUNS, null, "-createdAt");
                 log.info("Runs fetched {}", pagedSearch.getData().size() + pagedSearchWithIssues.getData().size());
 
                 if (!pagedSearch.getData().isEmpty()) {
