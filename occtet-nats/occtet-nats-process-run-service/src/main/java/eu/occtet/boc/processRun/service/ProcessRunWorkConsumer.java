@@ -92,7 +92,6 @@ public class ProcessRunWorkConsumer extends WorkConsumer {
         if (!result) {
             log.error("Failed to process workData of type {} for task ID {}",
                     workData.getClass().getName(), workTask.taskId());
-            throw new RuntimeException("WorkData processing failed for task " + workTask.taskId());
         }
     }
 

@@ -57,7 +57,6 @@ public abstract class WorkConsumer implements InformativeService {
         StreamContext streamContext = js.getStreamContext(streamName);
         ConsumerConfiguration config = ConsumerConfiguration.builder()
                 .durable(myServiceName + "-consumer")
-                .deliverGroup(myServiceName + "-group")
                 .ackPolicy(AckPolicy.Explicit)
                 .ackWait(Duration.ofMinutes(10))
                 .filterSubject(workSubject)
