@@ -243,6 +243,9 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
                         .add("wasCombined")
                         .add("hasTodos")
                         .add("createdAt")
+                        .add("organization")
+                        .add("dependencies")
+                        .add("files")
                         .add("spdxId")
                         // Hier laden wir die SoftwareComponent direkt tiefen-vollständig!
                         .add("softwareComponent", scPlan -> scPlan.addFetchPlan(FetchPlan.BASE)
@@ -263,8 +266,6 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
 
         this.inventoryItem = dataContext.merge(this.inventoryItem);
 
-        // track instances !important for saving
-        this.inventoryItem = dataContext.merge(inventoryItem);
         this.softwareComponent = this.inventoryItem.getSoftwareComponent();
         if (this.softwareComponent != null) {
             softwareComponentDc.setItem(this.softwareComponent);
@@ -329,7 +330,6 @@ public class InventoryItemTabFragment extends Fragment<JmixTabSheet> {
     @Subscribe("saveAction")
     public void onSaveAction(ActionPerformedEvent event) {
 
-        this.inventoryItem = dataContext.merge(this.inventoryItem);
 
         this.inventoryItem.setExternalNotes(autocompleteAuditNotes.getValue());
         this.inventoryItem.setInventoryName(autocompleteInventoryName.getValue());
