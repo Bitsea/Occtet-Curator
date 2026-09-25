@@ -51,6 +51,8 @@
 
             <tab id="ort" label="msg://configurationView.tab.ort">
                 <formLayout id="ortForm">
+                    <checkbox id="useCopyrightFilter" label="msg://copyrightFilter"/>
+                    <checkbox id="useLicenseMatcher" label="msg://licenseMatching"/>
                 </formLayout>
             </tab>
 

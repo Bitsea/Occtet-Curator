@@ -23,6 +23,7 @@ package eu.occtet.bocfrontend.view.appconfiguration;
 
 
 import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
@@ -68,6 +69,10 @@ public class ConfigurationView extends StandardView {
     private PasswordField vulnerabilityDBToken;
     @ViewComponent
     private JmixTabSheet mainTabSheet;
+    @ViewComponent
+    private Checkbox useCopyrightFilter;
+    @ViewComponent
+    private Checkbox useLicenseMatcher;
 
 
     private Map<AppConfigKey, AppConfiguration> configMap = new HashMap<>();
@@ -89,6 +94,9 @@ public class ConfigurationView extends StandardView {
             AppConfiguration tracked = dataContext.merge(config);
             configMap.put(tracked.getConfigKey(), tracked);
         }
+
+        bindOrtConfig(AppConfigKey.ORT_COPYRIGHT_FILTER, useCopyrightFilter);
+        bindOrtConfig(AppConfigKey.ORT_LICENSE_MATCH, useLicenseMatcher);
 
         bindField(AppConfigKey.GENERAL_BASE_PATH, basePathField);
 
@@ -125,6 +133,10 @@ public class ConfigurationView extends StandardView {
                 finalConfig.setValue(newValue);
             }
         });
+    }
+
+    private void bindOrtConfig(AppConfigKey key, Checkbox checkbox){
+
     }
 
     /**
