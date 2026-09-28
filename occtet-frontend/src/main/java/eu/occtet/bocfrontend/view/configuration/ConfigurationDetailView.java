@@ -80,7 +80,6 @@ public class ConfigurationDetailView extends StandardDetailView<Configuration> {
 
     // Importer names for which the configuration requires
     private final String FLEXERA = "Flexera_Report_Import";
-    private final String SPDX = "SPDX_Import";
 
     private Configuration configPayload;
     private CuratorTask curatorTask;
