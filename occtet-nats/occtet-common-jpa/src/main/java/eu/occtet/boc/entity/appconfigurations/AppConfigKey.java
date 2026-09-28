@@ -41,7 +41,7 @@ public enum AppConfigKey implements EnumClass<String> {
             AppConfigType.BOOLEAN,
             "Use the license matcher after ORT run."
     ),ORT_COPYRIGHT_FILTER(
-            AppConfigGroup.ORT + ".base_path",
+            AppConfigGroup.ORT + ".ort_copyright_filter",
             "",
             AppConfigType.BOOLEAN,
             "Use the copyright filter after ORT run."

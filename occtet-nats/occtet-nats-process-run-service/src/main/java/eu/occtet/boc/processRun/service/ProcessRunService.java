@@ -156,13 +156,17 @@ public class ProcessRunService {
 
         boolean useCopyrightFilter=false;
         Optional<AppConfiguration> copyrightFilter= appConfigurationRepository.findByConfigKey(AppConfigKey.ORT_COPYRIGHT_FILTER);
-        if(copyrightFilter.isPresent())
+        if(copyrightFilter.isPresent()){
             useCopyrightFilter= Boolean.parseBoolean(copyrightFilter.get().getValue());
+        }
+
 
         boolean useLicenseMatcher=false;
         Optional<AppConfiguration> licenseMatcher= appConfigurationRepository.findByConfigKey(AppConfigKey.ORT_LICENSE_MATCH);
         if(licenseMatcher.isPresent())
             useLicenseMatcher= Boolean.parseBoolean(licenseMatcher.get().getValue());
+
+        log.debug("using copyrightfilter: {} and licensematcher: {}", useCopyrightFilter, useLicenseMatcher);
 
         log.info("Available report filenames reported by ORT for run {}: {}", runId, reportFilenames);
 

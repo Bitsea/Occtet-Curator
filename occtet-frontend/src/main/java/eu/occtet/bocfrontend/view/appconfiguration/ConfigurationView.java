@@ -31,6 +31,7 @@ import eu.occtet.bocfrontend.dao.AppConfigurationRepository;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigType;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfiguration;
+import eu.occtet.bocfrontend.ortTask.ProcessOrtRunTask;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.Messages;
 import io.jmix.flowui.Fragments;
@@ -39,6 +40,8 @@ import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.DataContext;
 import io.jmix.flowui.view.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
@@ -73,6 +76,9 @@ public class ConfigurationView extends StandardView {
     private Checkbox useCopyrightFilter;
     @ViewComponent
     private Checkbox useLicenseMatcher;
+
+    private static final Logger log = LogManager.getLogger(ConfigurationView.class);
+
 
 
     private Map<AppConfigKey, AppConfiguration> configMap = new HashMap<>();
@@ -155,6 +161,7 @@ public class ConfigurationView extends StandardView {
         AppConfiguration finalConfig = config;
         checkbox.addValueChangeListener(e -> {
             finalConfig.setValue(String.valueOf(e.getValue()));
+            log.debug("saved ORT config {} with value {}", finalConfig.getConfigKey(), finalConfig.getValue());
         });
 
     }
