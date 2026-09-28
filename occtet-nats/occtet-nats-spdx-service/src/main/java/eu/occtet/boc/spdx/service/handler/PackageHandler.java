@@ -124,6 +124,9 @@ public class PackageHandler {
                 if (percent % 5 == 0) progressCallback.accept(percent);
             }
 
+            if (!context.getComponentCache().isEmpty()) {
+                softwareComponentRepository.saveAll(context.getComponentCache().values());
+            }
             projectRepository.save(context.getProject());
             if (!copyrightsToSave.isEmpty()) {
                 copyrightRepository.saveAll(copyrightsToSave);
@@ -140,9 +143,7 @@ public class PackageHandler {
             } else {
                 log.warn("Main item could not be registered: item is null or has no DB ID yet");
             }
-            if (!context.getComponentCache().isEmpty()) {
-                softwareComponentRepository.saveAll(context.getComponentCache().values());
-            }
+
 
         } catch (InvalidSPDXAnalysisException e) {
             log.error("Error retrieving SPDX object for URI: {}", e.getMessage(), e);
@@ -157,51 +158,41 @@ public class PackageHandler {
 
         boolean isMainPackage = context.getMainPackageIds().contains(spdxPackage.getId());
 
+        // 1. Effektive Version VORAB bestimmen!
+        String effectiveVersion = spdxPackage.getVersionInfo().orElse("");
+        if (isMainPackage && context.getProject().getVersion() != null) {
+            effectiveVersion = context.getProject().getVersion();
+        }
 
-        // component & licenses
-        SoftwareComponent component = resolveSoftwareComponent(spdxPackage, context);
+        SoftwareComponent component = resolveSoftwareComponent(spdxPackage, effectiveVersion, context);
+
         AnyLicenseInfo spdxLicense = resolvePackageLicense(spdxPackage, context, component);
-
-        // create or retrieve InventoryItem for this package
         InventoryItem inventoryItem = createAndConfigureInventoryItem(spdxPackage, component, spdxLicense, isMainPackage, context);
 
-        // collect data
         Set<SpdxFile> packageFiles = collectAllPackageFiles(spdxPackage);
         processFilesAndCopyrights(packageFiles, inventoryItem, component, context, copyrightsToSave);
 
-        // resolve dowload url, fallback to project repo url if main package and no valid download location found
-        String downloadUrl = resolveDownloadLocation(spdxPackage, isMainPackage, context);
-        component.setDetailsUrl(downloadUrl);
+        String downloadUrl = findRelatedDownloadLocation(spdxPackage);
+        if (component.getDetailsUrl() == null) {
+            component.setDetailsUrl(downloadUrl);
+        }
 
-        // extract purl
         extractAndSetPurl(spdxPackage, component);
 
-        log.info("Successfully processed inventoryItem: {} (isMain={})", inventoryItem.getInventoryName(), isMainPackage);
         return inventoryItem;
     }
 
-    private String resolveDownloadLocation(SpdxPackage spdxPackage, boolean isMainPackage, SpdxImportContext context) {
-       try {
-           String location = spdxPackage.getDownloadLocation().orElse("");
+    private SoftwareComponent resolveSoftwareComponent(SpdxPackage spdxPackage, String version, SpdxImportContext context) throws Exception {
+        String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
+        String componentKey = packageName + ":" + version;
 
-           if (!isValidDownloadLocation(location)) {
-               location = findRelatedDownloadLocation(spdxPackage);
-           }
-
-           // fallback repo-url
-           if (!isValidDownloadLocation(location) && isMainPackage) {
-               String projectRepoUrl = context.getProject().getRepositoryURL();
-               if (isValidDownloadLocation(projectRepoUrl)) {
-                   location = projectRepoUrl;
-                   log.info("Using project repository URL '{}' as fallback for main package {}", location, spdxPackage.getId());
-               }
-           }
-
-           return isValidDownloadLocation(location) ? location : null;
-       }catch (Exception e) {
-           log.warn("Error resolving download location for package {}: {}", spdxPackage.getId(), e.getMessage());
-           return null;
-       }
+        SoftwareComponent component = context.getComponentCache().get(componentKey);
+        if (component == null) {
+            component = softwareComponentService.getOrCreateSoftwareComponent(
+                    packageName, version, context.getProject().getOrganization(), "library");
+            context.getComponentCache().put(componentKey, component);
+        }
+        return component;
     }
 
 
@@ -223,12 +214,8 @@ public class PackageHandler {
 
 
         if (isMainPackage) {
-            // Note: inventoryItem.getId() may still be null here (entity not yet persisted).
-            // The ID is registered into context.mainInventoryItems after saveAll() in processAllPackages().
-            context.setMainItem(inventoryItem);
-            if(!inventoryItem.getSoftwareComponent().getVersion().equals(context.getProject().getVersion())){
-                inventoryItem.getSoftwareComponent().setVersion(context.getProject().getVersion());
-            }
+           context.setMainItem(inventoryItem);
+
         }else if(context.getMainItem() != null) {
             inventoryItem.setParent(context.getMainItem());
             context.getMainItem().getDependencies().add(inventoryItem);
@@ -288,19 +275,7 @@ public class PackageHandler {
 
     }
 
-    private SoftwareComponent resolveSoftwareComponent(SpdxPackage spdxPackage, SpdxImportContext context) throws Exception {
-        String packageName = spdxPackage.getName().orElse(spdxPackage.getId());
-        String version = spdxPackage.getVersionInfo().orElse("");
-        String componentKey = packageName + ":" + version;
 
-        SoftwareComponent component = context.getComponentCache().get(componentKey);
-        if (component == null) {
-            component = softwareComponentService.getOrCreateSoftwareComponent(
-                    packageName, version, context.getProject().getOrganization(), "library");
-            context.getComponentCache().put(componentKey, component);
-        }
-        return component;
-    }
 
     private AnyLicenseInfo resolvePackageLicense(SpdxPackage spdxPackage, SpdxImportContext context, SoftwareComponent component) throws Exception {
         AnyLicenseInfo spdxLicense = spdxPackage.getLicenseConcluded();

@@ -19,6 +19,7 @@
 
 package eu.occtet.boc.dao;
 
+import eu.occtet.boc.entity.Organization;
 import eu.occtet.boc.entity.Project;
 import eu.occtet.boc.entity.SoftwareComponent;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -36,4 +37,5 @@ public interface SoftwareComponentRepository extends JpaRepository<SoftwareCompo
     Optional<SoftwareComponent> findByPurl(String purl);
 
 
+    List<SoftwareComponent> findByNameAndVersionAndOrganization(String softwareName, String version, Organization organization);
 }

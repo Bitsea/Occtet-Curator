@@ -45,12 +45,17 @@ public class SoftwareComponentService {
 
 
     public SoftwareComponent getOrCreateSoftwareComponent(String softwareName, String version, Organization organization, String originType){
-        List<SoftwareComponent> softwareComponent = softwareComponentRepository.findByNameAndVersion(
-                softwareName, version);
-        if(softwareComponent.isEmpty()) {
+        List<SoftwareComponent> components = softwareComponentRepository
+                .findByNameAndVersionAndOrganization(softwareName, version, organization);
+
+        log.debug("Found {} components for {}", components.size(), softwareName);
+
+        if (components.isEmpty()) {
+            log.debug("Creating NEW component: {}", softwareName);
             return softwareComponentFactory.create(softwareName, version, organization, originType);
         } else {
-            return softwareComponent.getFirst();
+            log.debug("Fetched EXISTING component from DB: {}", softwareName);
+            return components.getFirst();
         }
     }
 
