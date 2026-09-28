@@ -51,6 +51,11 @@
 
             <tab id="ort" label="msg://configurationView.tab.ort">
                 <formLayout id="ortForm">
+                    <vbox>
+                        <nativeLabel text="msg://ConfigtoUseAIWithORT"/>
+                    <checkbox id="useCopyrightFilter" label="msg://copyrightFilter"/>
+                    <checkbox id="useLicenseMatcher" label="msg://licenseMatching"/>
+                    </vbox>
                 </formLayout>
             </tab>
 

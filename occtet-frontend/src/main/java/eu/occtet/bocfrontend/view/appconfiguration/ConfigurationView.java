@@ -23,6 +23,7 @@ package eu.occtet.bocfrontend.view.appconfiguration;
 
 
 import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
@@ -30,6 +31,7 @@ import eu.occtet.bocfrontend.dao.AppConfigurationRepository;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigKey;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfigType;
 import eu.occtet.bocfrontend.entity.appconfigurations.AppConfiguration;
+import eu.occtet.bocfrontend.ortTask.ProcessOrtRunTask;
 import eu.occtet.bocfrontend.view.main.MainView;
 import io.jmix.core.Messages;
 import io.jmix.flowui.Fragments;
@@ -38,6 +40,8 @@ import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.DataContext;
 import io.jmix.flowui.view.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
@@ -68,6 +72,13 @@ public class ConfigurationView extends StandardView {
     private PasswordField vulnerabilityDBToken;
     @ViewComponent
     private JmixTabSheet mainTabSheet;
+    @ViewComponent
+    private Checkbox useCopyrightFilter;
+    @ViewComponent
+    private Checkbox useLicenseMatcher;
+
+    private static final Logger log = LogManager.getLogger(ConfigurationView.class);
+
 
 
     private Map<AppConfigKey, AppConfiguration> configMap = new HashMap<>();
@@ -89,6 +100,9 @@ public class ConfigurationView extends StandardView {
             AppConfiguration tracked = dataContext.merge(config);
             configMap.put(tracked.getConfigKey(), tracked);
         }
+
+        bindOrtConfig(AppConfigKey.ORT_COPYRIGHT_FILTER, useCopyrightFilter);
+        bindOrtConfig(AppConfigKey.ORT_LICENSE_MATCH, useLicenseMatcher);
 
         bindField(AppConfigKey.GENERAL_BASE_PATH, basePathField);
 
@@ -125,6 +139,31 @@ public class ConfigurationView extends StandardView {
                 finalConfig.setValue(newValue);
             }
         });
+    }
+
+    private void bindOrtConfig(AppConfigKey key, Checkbox checkbox){
+        AppConfiguration config = configMap.get(key);
+
+        if (config == null) {
+            config = dataContext.create(AppConfiguration.class);
+            config.setConfigKey(key);
+            configMap.put(key, config);
+        }
+
+        String storedValue = config.getValue() != null ? config.getValue() : "";
+        if (!storedValue.isEmpty()) {
+            try {
+                checkbox.setValue(Boolean.parseBoolean(storedValue));
+            } catch (Exception e) {
+                checkbox.setValue(Boolean.valueOf(storedValue));
+            }
+        }
+        AppConfiguration finalConfig = config;
+        checkbox.addValueChangeListener(e -> {
+            finalConfig.setValue(String.valueOf(e.getValue()));
+            log.debug("saved ORT config {} with value {}", finalConfig.getConfigKey(), finalConfig.getValue());
+        });
+
     }
 
     /**
