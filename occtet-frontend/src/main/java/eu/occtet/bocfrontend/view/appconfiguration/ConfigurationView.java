@@ -136,6 +136,26 @@ public class ConfigurationView extends StandardView {
     }
 
     private void bindOrtConfig(AppConfigKey key, Checkbox checkbox){
+        AppConfiguration config = configMap.get(key);
+
+        if (config == null) {
+            config = dataContext.create(AppConfiguration.class);
+            config.setConfigKey(key);
+            configMap.put(key, config);
+        }
+
+        String storedValue = config.getValue() != null ? config.getValue() : "";
+        if (!storedValue.isEmpty()) {
+            try {
+                checkbox.setValue(Boolean.parseBoolean(storedValue));
+            } catch (Exception e) {
+                checkbox.setValue(Boolean.valueOf(storedValue));
+            }
+        }
+        AppConfiguration finalConfig = config;
+        checkbox.addValueChangeListener(e -> {
+            finalConfig.setValue(String.valueOf(e.getValue()));
+        });
 
     }
 

@@ -19,11 +19,14 @@
 
 package eu.occtet.boc.processRun.service;
 
+import eu.occtet.boc.dao.AppConfigurationRepository;
 import eu.occtet.boc.dao.OrtIssueRepository;
 import eu.occtet.boc.dao.OrtViolationRepository;
 import eu.occtet.boc.dao.ProjectRepository;
 import eu.occtet.boc.entity.*;
 import eu.occtet.boc.entity.Project;
+import eu.occtet.boc.entity.appconfigurations.AppConfigKey;
+import eu.occtet.boc.entity.appconfigurations.AppConfiguration;
 import eu.occtet.boc.model.ORTProcessWorkData;
 import eu.occtet.boc.ortclient.AuthService;
 import eu.occtet.boc.ortclient.OrtClientService;
@@ -69,10 +72,14 @@ public class ProcessRunService {
     private OrtViolationFactory ortViolationFactory;
 
     @Autowired
+    private AppConfigurationRepository appConfigurationRepository;
+
+    @Autowired
     private OrtViolationRepository ortViolationRepository;
 
     @Autowired
     private AnswerService answerService;
+
 
     @Autowired
     private ProjectFactory projectFactory;
@@ -147,6 +154,16 @@ public class ProcessRunService {
             }
         }
 
+        boolean useCopyrightFilter=false;
+        Optional<AppConfiguration> copyrightFilter= appConfigurationRepository.findByConfigKey(AppConfigKey.ORT_COPYRIGHT_FILTER);
+        if(copyrightFilter.isPresent())
+            useCopyrightFilter= Boolean.parseBoolean(copyrightFilter.get().getValue());
+
+        boolean useLicenseMatcher=false;
+        Optional<AppConfiguration> licenseMatcher= appConfigurationRepository.findByConfigKey(AppConfigKey.ORT_LICENSE_MATCH);
+        if(licenseMatcher.isPresent())
+            useLicenseMatcher= Boolean.parseBoolean(licenseMatcher.get().getValue());
+
         log.info("Available report filenames reported by ORT for run {}: {}", runId, reportFilenames);
 
         // 1. SPDX: Prefer JSON reports matching 'spdx' (or fallback to 'bom.spdx.json')
@@ -163,7 +180,7 @@ public class ProcessRunService {
                 if (file != null && isJsonFile(file, spdxToFetch)) {
                     log.info("SPDX JSON report ('{}') loaded successfully for run ID: {}. Dispatching to SPDX service for project ID: {}",
                             spdxToFetch, runId, projectId);
-                    boolean sent = answerService.sendToSpdxService(file, projectId, false, false);
+                    boolean sent = answerService.sendToSpdxService(file, projectId, useCopyrightFilter, useLicenseMatcher);
                     log.info("SPDX report dispatch result for run ID {}: {}", runId, sent);
                     if (sent) return true;
                 } else {
@@ -194,7 +211,7 @@ public class ProcessRunService {
                 if (file != null && isJsonFile(file, cycloneToFetch)) {
                     log.info("CycloneDX JSON report ('{}') loaded successfully for run ID: {}. Dispatching to CycloneDX service for project ID: {}",
                             cycloneToFetch, runId, projectId);
-                    boolean sent = answerService.sendToCycloneDxService(file, projectId, false, false);
+                    boolean sent = answerService.sendToCycloneDxService(file, projectId, useCopyrightFilter, useLicenseMatcher);
                     log.info("CycloneDX report dispatch result for run ID {}: {}", runId, sent);
                     if (sent) return true;
                 } else {
@@ -271,4 +288,6 @@ public class ProcessRunService {
                     project.getId());
         }
     }
+
+
 }
