@@ -21,6 +21,7 @@ package eu.occtet.boc.processRun.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import eu.occtet.boc.dao.AppConfigurationRepository;
 import eu.occtet.boc.model.CycloneDxWorkData;
 import eu.occtet.boc.model.SpdxWorkData;
 import eu.occtet.boc.model.WorkTask;
@@ -56,6 +57,7 @@ public class AnswerService extends NatsHelperService {
 
     @Value("${nats.send-subject}")
     private String sendSubject;
+
 
     @Bean
     public NatsStreamSender natsStreamSender(){

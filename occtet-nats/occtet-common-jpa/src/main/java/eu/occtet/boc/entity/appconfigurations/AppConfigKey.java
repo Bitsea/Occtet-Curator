@@ -34,6 +34,17 @@ public enum AppConfigKey implements EnumClass<String> {
             "",
             AppConfigType.ENCRYPTED_STRING,
             "The API token used for authenticating with the VulnerableCode API."
+    ),
+    ORT_LICENSE_MATCH(
+            AppConfigGroup.ORT + ".ort_license_match",
+            "",
+            AppConfigType.BOOLEAN,
+            "Use the license matcher after ORT run."
+    ),ORT_COPYRIGHT_FILTER(
+            AppConfigGroup.ORT + ".ort_copyright_filter",
+            "",
+            AppConfigType.BOOLEAN,
+            "Use the copyright filter after ORT run."
     );
 
 
