@@ -7,5 +7,9 @@ WORKDIR /app
 # Kopiere das JAR-File ins Image
 COPY target/*.jar app.jar
 
+# Erstelle einen Nicht-Root-Benutzer und wechsle zu diesem
+RUN groupadd -r appuser && useradd -r -g appuser appuser && chown -R appuser:appuser /app
+USER appuser
+
 # Starte die Spring Boot Anwendung
 ENTRYPOINT ["java", "-Dspring.profiles.active=live", "-jar", "app.jar"]
