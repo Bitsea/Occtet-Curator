@@ -19,7 +19,7 @@ jobs:
       AUTO_CREATE_PRS: 'true'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
 
@@ -33,6 +33,6 @@ jobs:
           ./opengrep scan --sarif --sarif-output=opengrep-results.sarif --config auto . || true
 
       - name: AppSecAI Vulnerability Analysis
-        uses: AppSecureAI/automation-action@v1
+        uses: AppSecureAI/automation-action@fa14a3fe4d5f0ddbe690e6dc46da8addb1ea85e1
         with:
           file: opengrep-results.sarif
