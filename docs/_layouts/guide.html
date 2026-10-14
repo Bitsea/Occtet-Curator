@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ page.title }}</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --text: #1f2328;
+            --muted: #59636e;
+            --border: #d1d9e0;
+            --link: #0969da;
+            --bg: #ffffff;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --text: #e6edf3;
+                --muted: #9198a1;
+                --border: #3d444d;
+                --link: #4493f8;
+                --bg: #0d1117;
+            }
+        }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+        }
+        header, main {
+            max-width: 60rem;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+        header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding-top: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        header .site-title {
+            font-weight: bold;
+        }
+        nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 12px;
+        }
+        nav a {
+            color: var(--link);
+            text-decoration: none;
+        }
+        nav a[aria-current="page"] {
+            color: var(--muted);
+            font-weight: bold;
+        }
+        main {
+            padding-bottom: 48px;
+            overflow-wrap: break-word;
+        }
+        a {
+            color: var(--link);
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+        code {
+            font-family: ui-monospace, monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <span class="site-title">{{ site.title }}</span>
+    <nav aria-label="Language">
+        {%- for language in site.languages %}
+        <a href="{{ page.root }}{{ language.path }}" hreflang="{{ language.code }}"{% if language.code == page.lang %} aria-current="page"{% endif %}>{{ language.name }}</a>
+        {%- endfor %}
+    </nav>
+</header>
+<main>
+{{ content }}
+</main>
+</body>
+</html>

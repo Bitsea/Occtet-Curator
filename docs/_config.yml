@@ -1,0 +1,52 @@
+# GitHub Pages site for the Occtet Curator user guide, written in Markdown:
+# index.md (English) and <lang>/index.md. Pages take their title from
+# their first heading.
+# The frontend's Help view shows its own HTML copy of the guide, in
+# occtet-frontend/src/main/resources/help/.
+
+title: Occtet Curator
+
+languages:
+  - code: en
+    name: English
+    path: ""
+  - code: de
+    name: Deutsch
+    path: de/
+  - code: es
+    name: Español
+    path: es/
+  - code: fr
+    name: Français
+    path: fr/
+  - code: it
+    name: Italiano
+    path: it/
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: guide
+      lang: en
+      root: ./
+  - scope:
+      path: de
+    values:
+      lang: de
+      root: ../
+  - scope:
+      path: es
+    values:
+      lang: es
+      root: ../
+  - scope:
+      path: fr
+    values:
+      lang: fr
+      root: ../
+  - scope:
+      path: it
+    values:
+      lang: it
+      root: ../
