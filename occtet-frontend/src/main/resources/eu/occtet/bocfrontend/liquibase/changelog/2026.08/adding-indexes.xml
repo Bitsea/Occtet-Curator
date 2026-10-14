@@ -127,6 +127,18 @@
 
 
     <!-- 5. COPYRIGHT_SOFTWARE_COMPONENT_USAGE_LICENSE_LINK Join-Tabelle -->
+    <!-- created as COPYRIGHT_LICENSE_USAGE_LINK in 2026.05, align with the Copyright entity mapping -->
+    <changeSet id="20261014-rename-copyright-license-usage-link" author="occtet">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="copyright_license_usage_link"/>
+            <not>
+                <tableExists tableName="copyright_software_component_usage_license_link"/>
+            </not>
+        </preConditions>
+        <renameTable oldTableName="copyright_license_usage_link"
+                     newTableName="copyright_software_component_usage_license_link"/>
+    </changeSet>
+
     <changeSet id="20260914-add-idx-cscull-copyright-id" author="occtet">
         <preConditions onFail="MARK_RAN">
             <not>
