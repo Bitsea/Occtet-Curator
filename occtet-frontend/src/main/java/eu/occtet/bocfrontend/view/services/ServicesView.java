@@ -31,6 +31,8 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.boc.model.MicroserviceDescriptor;
 import eu.occtet.boc.model.StatusDescriptor;
+import eu.occtet.bocfrontend.service.IOnMicroserviceDescriptorReceived;
+import eu.occtet.bocfrontend.service.IOnStatusDescriptorReceived;
 import eu.occtet.bocfrontend.service.NatsService;
 import eu.occtet.bocfrontend.view.dialog.servicesDialog.SpdxServicesDialog;
 import eu.occtet.bocfrontend.view.main.MainView;
@@ -40,6 +42,7 @@ import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.listbox.JmixListBox;
+import io.jmix.flowui.facet.Timer;
 import io.jmix.flowui.kit.component.ComponentUtils;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.view.*;
@@ -47,7 +50,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,6 +84,10 @@ public class ServicesView extends StandardView {
 
     private UI ui;
 
+    // kept as fields so the exact same instances can be removed from the singleton NatsService on detach
+    private final IOnMicroserviceDescriptorReceived microserviceDescriptorListener = this::onMicroserviceDescriptorReceived;
+    private final IOnStatusDescriptorReceived statusDescriptorListener = this::onStatusDescriptorReceived;
+
     @Autowired
     private Dialogs dialogs;
 
@@ -93,13 +99,18 @@ public class ServicesView extends StandardView {
     @Subscribe
     protected void onInit(InitEvent event) {
         ui = UI.getCurrent();
-        // connect listeners to NATS service
-        natsService.addMicroserviceDescriptorListener(this::onMicroserviceDescriptorReceived);
-        natsService.addStatusDescriptorListener(this::onStatusDescriptorReceived);
-
-        updateAvailableServices();
-
-        updateServiceStatus();
+        // NatsService is a singleton: listeners must be removed on detach, otherwise this view
+        // (and its whole UI/session) is retained forever
+        addAttachListener(e -> {
+            natsService.addMicroserviceDescriptorListener(microserviceDescriptorListener);
+            natsService.addStatusDescriptorListener(statusDescriptorListener);
+            updateAvailableServices();
+            updateServiceStatus();
+        });
+        addDetachListener(e -> {
+            natsService.removeMicroserviceDescriptorListener(microserviceDescriptorListener);
+            natsService.removeStatusDescriptorListener(statusDescriptorListener);
+        });
 
         updateNatsStreamStatus();
 
@@ -114,8 +125,8 @@ public class ServicesView extends StandardView {
     }
 
 
-    @Scheduled(fixedRate = 10000)
-    public void execute() {
+    @Subscribe("statusTimer")
+    public void onStatusTimerTimerAction(final Timer.TimerActionEvent event) {
         updateServiceStatus();
     }
 

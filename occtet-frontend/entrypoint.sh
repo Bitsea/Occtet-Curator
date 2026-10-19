@@ -33,7 +33,9 @@ fi
 
 ACTIVE_PROFILE=${SPRING_PROFILES_ACTIVE:-live}
 
+# JVM options (e.g. heap sizing) are provided by the deployment through JAVA_OPTS
 echo "Starting Spring Boot..."
 echo "Active Profile: $ACTIVE_PROFILE"
+echo "Java Options: $JAVA_OPTS"
 
-exec java -Dspring.profiles.active="$ACTIVE_PROFILE" -jar /app.jar
+exec java $JAVA_OPTS -Dspring.profiles.active="$ACTIVE_PROFILE" -jar /app.jar

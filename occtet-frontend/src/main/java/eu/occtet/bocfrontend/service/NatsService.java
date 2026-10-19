@@ -50,6 +50,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -74,11 +75,12 @@ public class NatsService extends NatsHelperService {
 
 
 
-    private List<IOnStatusDescriptorReceived> statusDescriptorListeners = new ArrayList<>();
+    // listeners are added/removed from UI threads while being iterated on the NATS dispatcher thread
+    private final List<IOnStatusDescriptorReceived> statusDescriptorListeners = new CopyOnWriteArrayList<>();
 
-    private List<IOnMicroserviceDescriptorReceived> microserviceDescriptorListeners = new ArrayList<>();
+    private final List<IOnMicroserviceDescriptorReceived> microserviceDescriptorListeners = new CopyOnWriteArrayList<>();
 
-    private List<IOnProgressMessageReceived> progressListeners = new ArrayList<>();
+    private final List<IOnProgressMessageReceived> progressListeners = new CopyOnWriteArrayList<>();
 
     private StreamInfo stream;
     private ObjectStore objectStore;
@@ -229,8 +231,16 @@ public class NatsService extends NatsHelperService {
         microserviceDescriptorListeners.add(listener);
     }
 
+    public void removeMicroserviceDescriptorListener(IOnMicroserviceDescriptorReceived listener) {
+        microserviceDescriptorListeners.remove(listener);
+    }
+
     public void addStatusDescriptorListener(IOnStatusDescriptorReceived listener) {
         statusDescriptorListeners.add(listener);
+    }
+
+    public void removeStatusDescriptorListener(IOnStatusDescriptorReceived listener) {
+        statusDescriptorListeners.remove(listener);
     }
 
     public void addProgressListener(IOnProgressMessageReceived listener) {

@@ -20,6 +20,9 @@
 
 <view xmlns="http://jmix.io/schema/flowui/view"
       title="msg://servicesView.title">
+    <facets>
+        <timer id="statusTimer" delay="10000" autostart="true" repeating="true"/>
+    </facets>
     <layout>
         <vbox spacing="false" margin="false" width="1000px">
             <h2 text="Services"/>
