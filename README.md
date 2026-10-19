@@ -17,6 +17,15 @@ To get the system running in a live/dockerized enviroment:
 
 <small>Detailed instructions are available in the respective subdirectories.</small>
 
+## User Guide
+The user guide is written in Markdown in `docs/`: [English](docs/index.md),
+[Deutsch](docs/de/index.md), [Español](docs/es/index.md), [Français](docs/fr/index.md),
+[Italiano](docs/it/index.md). The `Publish User Guide to GitHub Pages` workflow
+publishes it as a GitHub Pages site.
+
+The frontend's Help view uses its own HTML version of the guide, in
+`occtet-frontend/src/main/resources/help/`. Keep both versions in sync when changing the guide.
+
 # Funding
 
 OCCTET project has received funding from the Digital Europe Programme (DIGITAL), under grant agreement number: 101190474.
