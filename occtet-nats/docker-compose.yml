@@ -90,6 +90,8 @@ services:
       HTTPS_CA_CERT_PATH: /cacerts
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       ENCRYPTION_SALT: ${ENCRYPTION_SALT}
+      MAX_FILE_SIZE: 70MB
+      MAX_REQUEST_SIZE: 70MB
 #      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:8090/boc/ > /dev/null || exit 1"]
