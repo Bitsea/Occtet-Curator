@@ -30,7 +30,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
 import eu.occtet.boc.model.WorkTaskProgress;
-import eu.occtet.bocfrontend.dao.VulnerabilityRepository;
 import eu.occtet.bocfrontend.entity.DashboardQueryRisk;
 import eu.occtet.bocfrontend.entity.Project;
 import eu.occtet.bocfrontend.entity.Vulnerability;
@@ -54,6 +53,7 @@ import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.listbox.JmixListBox;
 import io.jmix.flowui.facet.Timer;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.view.*;
 import org.apache.logging.log4j.LogManager;
@@ -77,7 +77,13 @@ public class DashboardView extends StandardView {
     private CollectionLoader<Project> projectsDl;
 
     @ViewComponent
+    private CollectionContainer<Project> projectsDc;
+
+    @ViewComponent
     private CollectionLoader<Vulnerability> vulnerabilitiesDl;
+
+    @ViewComponent
+    private CollectionContainer<Vulnerability> vulnerabilitiesDc;
 
     @ViewComponent
     private DataGrid<Vulnerability> vulnerabilitiesGrid;
@@ -105,9 +111,6 @@ public class DashboardView extends StandardView {
 
     @Autowired
     private Messages messages;
-
-    @Autowired
-    private VulnerabilityRepository vulnerabilityRepository;
 
     private final static String sumRiskScore = "sumRiskScore";
     private final static String sumRiskValue = "value";
@@ -159,15 +162,33 @@ public class DashboardView extends StandardView {
                 return showButton;
             }).setKey("infoBtn").setFlexGrow(0);
         }
+
+        showDashboard(null);
     }
 
     @Subscribe("projectSelector")
     public void chooseProject(AbstractField.ComponentValueChangeEvent<EntityComboBox<Project>, Project> event) {
         if (event != null) {
-            Project project = event.getValue();
-            loadVulnerabilities(vulnerabilityRepository.findByProject(project));
-            setValuesForPieCharts(project);
+            showDashboard(event.getValue());
         }
+    }
+
+    /**
+     * Shows vulnerabilities and charts for the given project, or for all projects when it is null.
+     */
+    private void showDashboard(Project project) {
+        List<Long> projectIds = project != null
+                ? List.of(project.getId())
+                : projectsDc.getItems().stream().map(Project::getId).toList();
+
+        if (projectIds.isEmpty()) {
+            vulnerabilitiesDc.getMutableItems().clear();
+            setChartDataSet(chartVulnerabilites, new ListChartItems<>(new ArrayList<>()));
+            setChartDataSet(chartSoftwareComponent, new ListChartItems<>(new ArrayList<>()));
+            return;
+        }
+        loadVulnerabilities(projectIds);
+        setValuesForPieCharts(projectIds);
     }
 
     @Subscribe("refreshTimer")
@@ -192,38 +213,38 @@ public class DashboardView extends StandardView {
         dialog.open();
     }
 
-    private void setValuesForPieCharts(Project project) {
+    private void setValuesForPieCharts(List<Long> projectIds) {
 
         //Values for vulnerability pie chart
         Long vulnerLowRisk =
-                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_0_1, v_3_9, DashboardQueryRisk.vulnerabilityRisk)))
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(projectIds, v_0_1, v_3_9, DashboardQueryRisk.vulnerabilityRisk)))
                 .getFirst().getValue(sumRiskScore);
         Long vulnerMediumRisk =
-                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_4_0, v_6_9, DashboardQueryRisk.vulnerabilityRisk)))
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(projectIds, v_4_0, v_6_9, DashboardQueryRisk.vulnerabilityRisk)))
                 .getFirst().getValue(sumRiskScore);
         Long vulnerHighRisk =
-                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_7_0, v_8_9, DashboardQueryRisk.vulnerabilityRisk)))
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(projectIds, v_7_0, v_8_9, DashboardQueryRisk.vulnerabilityRisk)))
                 .getFirst().getValue(sumRiskScore);
         Long vulnerCriticalRisk =
-                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_9_0, v_10, DashboardQueryRisk.vulnerabilityRisk)))
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(projectIds, v_9_0, v_10, DashboardQueryRisk.vulnerabilityRisk)))
                 .getFirst().getValue(sumRiskScore);
 
 
         //Values for softwareComponent pie chart
         Long softwareNoRisk =
-                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, ZERO, ZERO, DashboardQueryRisk.noRisk)))
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(projectIds, ZERO, ZERO, DashboardQueryRisk.noRisk)))
                 .getFirst().getValue(sumRiskScore);
         Long softwareLowRisk =
-                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_0_1, v_3_9, DashboardQueryRisk.softwareRisk)))
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(projectIds, v_0_1, v_3_9, DashboardQueryRisk.softwareRisk)))
                 .getFirst().getValue(sumRiskScore);
         Long softwareMediumRisk =
-                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_4_0, v_6_9, DashboardQueryRisk.softwareRisk)))
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(projectIds, v_4_0, v_6_9, DashboardQueryRisk.softwareRisk)))
                 .getFirst().getValue(sumRiskScore);
         Long softwareHighRisk =
-                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_7_0, v_8_9, DashboardQueryRisk.softwareRisk)))
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(projectIds, v_7_0, v_8_9, DashboardQueryRisk.softwareRisk)))
                 .getFirst().getValue(sumRiskScore);
         Long softwareCriticalRisk =
-                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(project, v_9_0, v_10, DashboardQueryRisk.softwareRisk)))
+                dataManager.loadValues(Objects.requireNonNull(getSpecificLoadContext(projectIds, v_9_0, v_10, DashboardQueryRisk.softwareRisk)))
                 .getFirst().getValue(sumRiskScore);
 
 
@@ -288,7 +309,7 @@ public class DashboardView extends StandardView {
         );
     }
 
-    private ValueLoadContext getSpecificLoadContext(Project project, double minRisk, double maxRisk, DashboardQueryRisk query) {
+    private ValueLoadContext getSpecificLoadContext(List<Long> projectIds, double minRisk, double maxRisk, DashboardQueryRisk query) {
 
         switch(query){
             case noRisk -> {
@@ -298,8 +319,8 @@ public class DashboardView extends StandardView {
                 from InventoryItem i
                 join i.softwareComponent s
                 join i.project p
-                where p.id = :project_id and s.vulnerabilityLinks is empty
-                """).setParameter("project_id", project.getId()))
+                where p.id in :project_ids and s.vulnerabilityLinks is empty
+                """).setParameter("project_ids", projectIds))
                         .addProperty("sumRiskScore");
             }
             case vulnerabilityRisk -> {
@@ -311,8 +332,8 @@ public class DashboardView extends StandardView {
                 join s.vulnerabilityLinks vl
                 join vl.vulnerability v
                 join i.project p
-                where p.id = :project_id and (v.riskScore >= :minRisk and v.riskScore <= :maxRisk)
-                """).setParameter("project_id", project.getId())
+                where p.id in :project_ids and (v.riskScore >= :minRisk and v.riskScore <= :maxRisk)
+                """).setParameter("project_ids", projectIds)
                                 .setParameter("minRisk", minRisk)
                                 .setParameter("maxRisk", maxRisk))
                         .addProperty("sumRiskScore");
@@ -326,8 +347,8 @@ public class DashboardView extends StandardView {
                 join s.vulnerabilityLinks vl
                 join vl.vulnerability v
                 join i.project p
-                where p.id = :project_id and (v.riskScore >= :minRisk and v.riskScore <= :maxRisk)
-                """).setParameter("project_id", project.getId())
+                where p.id in :project_ids and (v.riskScore >= :minRisk and v.riskScore <= :maxRisk)
+                """).setParameter("project_ids", projectIds)
                                 .setParameter("minRisk", minRisk)
                                 .setParameter("maxRisk", maxRisk))
                         .addProperty("sumRiskScore");
@@ -345,8 +366,8 @@ public class DashboardView extends StandardView {
         return showButton;
     }
 
-    private void loadVulnerabilities(List<Vulnerability> vulnerabilities){
-        vulnerabilitiesDl.setParameter("vulnerabilitiesProject",vulnerabilities);
+    private void loadVulnerabilities(List<Long> projectIds){
+        vulnerabilitiesDl.setParameter("projectIds", projectIds);
         vulnerabilitiesDl.load();
     }
 
