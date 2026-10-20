@@ -1,4 +1,4 @@
-## Service for turning valid spdx json into entities
+## Service for turning valid cyclonedx json into entities
 
 # Building
 
@@ -14,7 +14,7 @@ This will be tagged automatically according to name and version in the pom.xml a
 in the docker registry, so you should find it with `docker images`.
 
 Export Docker image as file for remote deployment:
-`docker save occtet-nats-spdx-service | gzip > occtet-nats-spdx-service.tar.gz`
+`docker save occtet-nats-cyclonedx-service | gzip > occtet-nats-cyclonedx-service.tar.gz`
 
 Import Docker image on remote machine:
-`gunzip -c occtet-nats-spdx-service.tar.gz | docker load`
+`gunzip -c occtet-nats-cyclonedx-service.tar.gz | docker load`
