@@ -1,6 +1,12 @@
 # The Occtet Curator Frontend Application
 The frontend is a Jmix application. It acts as the primary UI and the database schema orchestrator.
 
+#Ort client is needed to connect to ORT server. Please install this library first.
+#You find it here: occtet-nats/occtet-ort-client
+
+#To connect to vulnerable code DB you need a token, you get one if you register here: https://www.vulncode-db.com/
+#the token is set in the UI, once the application is running under the configuration tab (admin role required)
+
 ## Custom Certificates (SSL/TLS)
 If your Keycloak server uses internal certificates, the java runtime inside Docker must trust them. 
 1. Create a folder named .certs in this directory (it is ignored by Git).

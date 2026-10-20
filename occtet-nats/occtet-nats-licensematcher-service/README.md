@@ -1,4 +1,4 @@
-##Service for calling an AI model
+##Service for filtering deviant license texts
 
 # Building
 
