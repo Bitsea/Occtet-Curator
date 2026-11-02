@@ -32,7 +32,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Converter(autoApply = true)
+// Applied with @Convert on JSONB columns only: auto-applied, it would also convert each value of the
+// element collections of strings (SPDX entities), which are plain strings.
+@Converter
 public class StringListJsonbConverter implements AttributeConverter<List<String>, PGobject> {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
