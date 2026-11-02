@@ -1,4 +1,4 @@
-##Service for processing and ort run
+##Service for processing the result of an ort run
 
 # Building
 
