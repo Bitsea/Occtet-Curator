@@ -48,6 +48,15 @@ public class OrtClientService {
 
 
 
+    /**
+     * Default timeouts for the ORT API client in milliseconds.
+     * ORT server operations (like postProductRuns which resolve Git revisions remotely)
+     * can take significantly longer than the default 10 seconds.
+     */
+    private static final int DEFAULT_CONNECT_TIMEOUT_MS = 60_000;  // 60 seconds
+    private static final int DEFAULT_READ_TIMEOUT_MS    = 120_000; // 120 seconds
+    private static final int DEFAULT_WRITE_TIMEOUT_MS   = 60_000;  // 60 seconds
+
     public OrtClientService(String ortBaseUrl, String cacertPath, String keycloakTokenUrl, String clientId) {
         this.cacertPath = cacertPath;
         this.ortBaseUrl = ortBaseUrl;
@@ -78,6 +87,9 @@ public class OrtClientService {
     public ApiClient createApiClient(TokenResponse tokenResponse) {
         if(!tokenResponse.isValid()) throw  new IllegalArgumentException("TokenResponse is expired");
         ApiClient apiClient = new ApiClient();
+        apiClient.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MS);
+        apiClient.setReadTimeout(DEFAULT_READ_TIMEOUT_MS);
+        apiClient.setWriteTimeout(DEFAULT_WRITE_TIMEOUT_MS);
         log.info("Loading SSL CA certs for API client from path: {}", cacertPath);
         Collection<? extends Certificate> certificates = CertificateHelper.loadCertificates(cacertPath);
         try {
