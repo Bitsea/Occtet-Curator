@@ -25,6 +25,8 @@ import eu.occtet.boc.download.factory.FileFactory;
 import eu.occtet.boc.entity.File;
 import eu.occtet.boc.entity.InventoryItem;
 import eu.occtet.boc.entity.Project;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,14 +60,19 @@ public class FileService {
     @Autowired
     private ProjectRepository projectRepository;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Value("${occtet.scanner.ignored-names:}")
     private List<String> ignoredNames = Collections.emptyList();
 
     /**
      * Scans a directory located at the given path and creates corresponding File entities.
      * <p>
-     * <b>Performance Note:</b> This method pre-loads all existing files for the project into a Map.
-     * This reduces the time complexity of checking for existing files from O(N*Query) to O(1).
+     * <b>Performance Note:</b> This method pre-loads only the essential fields of existing files
+     * for the project into a Map to build O(1) lookup structures. The query deliberately avoids
+     * triggering EclipseLink IndirectSet lazy-loading of large collections (copyrights, inventoryItems)
+     * which was the primary cause of {@code OutOfMemoryError: Java heap space} on large projects.
      *
      * @param project       the Project entity
      * @param rootPath      the physical path on disk
@@ -75,7 +82,9 @@ public class FileService {
     public void createEntitiesFromPath(Project project, Path rootPath, String projectPath, InventoryItem inventoryItem) {
         long start = System.currentTimeMillis();
         try {
-            List<File> existingFiles = fileRepository.findAllByProject(project);
+            // Use lightweight query to avoid triggering EclipseLink IndirectSet bulk-loading of
+            // associations (copyrights, inventoryItems) which causes OOM on large projects.
+            List<File> existingFiles = fileRepository.findAllByProjectLightweight(project);
             log.debug("Loaded {} existing File entities for project {}", existingFiles.size(), project.getId());
 
             Map<String, File> filesCreatedInSpdxService = new HashMap<>();
@@ -125,7 +134,7 @@ public class FileService {
                 if (inventoryItem != null) {
                     rootEntity.getInventoryItems().add(inventoryItem);
                 }
-                project.addFile(rootEntity);
+                // Note: no project.addFile() – see comment in scanDir for the reason.
                 filesCreatedOrUpdatedInFileService.put(rootPhysicalPath, rootEntity);
                 addToBatch(rootEntity, batchBuffer, BATCHSIZE);
             }
@@ -237,7 +246,12 @@ public class FileService {
                 fileEntity.getInventoryItems().add(inventoryItem);
             }
 
-            project.addFile(fileEntity);
+            // Note: we deliberately do NOT call project.addFile(fileEntity) here.
+            // Calling addFile() during a large scan accumulates all File objects inside
+            // Project.files (a HashSet), which pins them in heap for the entire transaction
+            // and was the root cause of OutOfMemoryError on large projects.
+            // The FK relationship is established via fileEntity.setProject(project) inside
+            // FileFactory.createWithoutInventoryItem(), so the DB relation is correct.
             filesInFileService.put(physicalPath, fileEntity);
             addToBatch(fileEntity, batchBuffer, batchSize);
 
@@ -287,7 +301,7 @@ public class FileService {
             newEntity.getInventoryItems().add(inventoryItem);
         }
 
-        project.addFile(newEntity);
+        // Note: no project.addFile() – see comment in scanDir for the reason.
         filesInFileService.put(currentPhysicalPath, newEntity);
         addToBatch(newEntity, batchBuffer, BATCHSIZE);
 
@@ -301,6 +315,10 @@ public class FileService {
         if (batch.size() >= batchSize) {
             fileRepository.saveAll(batch);
             fileRepository.flush();
+            // Clear the EclipseLink 1st-level cache after each flush so saved entities
+            // can be garbage-collected. Without this, all flushed objects remain pinned
+            // in the persistence context for the entire transaction, growing heap unboundedly.
+            entityManager.clear();
             batch.clear();
         }
     }

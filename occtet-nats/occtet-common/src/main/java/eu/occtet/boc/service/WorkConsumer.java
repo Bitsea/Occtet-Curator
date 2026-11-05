@@ -80,7 +80,14 @@ public abstract class WorkConsumer implements InformativeService {
                         workerStatus = WorkerStatus.WORKING;
                         handleMessage(msg);
 
-                    }catch(Exception e){
+                    } catch (OutOfMemoryError oom) {
+                        // OOM must not be swallowed – log and exit so Kubernetes restarts the pod.
+                        // The JVM flag -XX:+ExitOnOutOfMemoryError in the Dockerfile also covers this,
+                        // but we add an explicit handler here as a belt-and-suspenders guard for the
+                        // case where the OOM originates from a background/scheduled thread.
+                        log.error("FATAL: OutOfMemoryError in message handler – forcing process exit for pod restart", oom);
+                        Runtime.getRuntime().halt(1);
+                    } catch(Exception e){
                         log.warn("error handling message: {} ({})", e.getMessage(), e.getClass().getSimpleName());
 
                     }finally{
