@@ -206,34 +206,44 @@ public class OverviewProjectTabFragment extends Fragment<VerticalLayout>{
         licensesAccordion.setSummaryText(messages.getMessage("eu.occtet.bocfrontend.view/overvoewProjectTabFragment.licenseAccordion.summary") + " ("+licensesDTOs.size()+")");
     }
 
-    private void setVulnerabilities(Project project){
-
+    private void setVulnerabilities(Project project) {
         List<AuditVulnerabilityDTO> vulnerabilityDTOs = new ArrayList<>();
 
         ValueLoadContext context = new ValueLoadContext()
                 .setQuery(new ValueLoadContext.Query("""
-                    select v.id as vulnerabilityId, count(s) as countV
-                    from InventoryItem i
-                    join i.softwareComponent s
-                    join s.vulnerabilityLinks vl
-                    join vl.vulnerability v
-                    join i.project p
-                    where p.id = :project_id
-                    group by v.id
-               """)
+                select v.id as vulnerabilityId, v.riskScore as riskScore, count(s) as countV
+                from InventoryItem i
+                join i.softwareComponent s
+                join s.vulnerabilityLinks vl
+                join vl.vulnerability v
+                join i.project p
+                where p.id = :project_id
+                group by v.id, v.riskScore
+           """)
                         .setParameter("project_id", project.getId()))
                 .addProperty("vulnerabilityId")
+                .addProperty("riskScore")
                 .addProperty("countV");
-
 
         List<KeyValueEntity> values = dataManager.loadValues(context);
         values.forEach(s -> {
-            Vulnerability v = vulnerabilityRepository.findVulnerabilityById(s.getValue("vulnerabilityId"));
-            Long value = s.getValue("countV");
-            vulnerabilityDTOs.add(new AuditVulnerabilityDTO(v.getVulnerabilityId(),v.getRiskScore(),value.intValue()));
+            Object vulnId = s.getValue("vulnerabilityId");
+            Object riskScoreObj = s.getValue("riskScore");
+            Long countV = s.getValue("countV");
+
+            if (vulnId != null) {
+                double riskScore = riskScoreObj instanceof Number ? ((Number) riskScoreObj).doubleValue() : 0.0;
+                int count = countV != null ? countV.intValue() : 0;
+
+                vulnerabilityDTOs.add(new AuditVulnerabilityDTO(vulnId.toString(), riskScore, count));
+            }
         });
+
         auditVulnerabilitiesDc.setItems(vulnerabilityDTOs);
-        vulnerabilityAccordion.setSummaryText(messages.getMessage("eu.occtet.bocfrontend.view/overvoewProjectTabFragment.vulnerabilityAccordion.summary") + " ("+vulnerabilityDTOs.size()+")");
+        vulnerabilityAccordion.setSummaryText(
+                messages.getMessage("eu.occtet.bocfrontend.view/overvoewProjectTabFragment.vulnerabilityAccordion.summary")
+                        + " (" + vulnerabilityDTOs.size() + ")"
+        );
     }
 
     private void showContentInformationDialog(Object content){

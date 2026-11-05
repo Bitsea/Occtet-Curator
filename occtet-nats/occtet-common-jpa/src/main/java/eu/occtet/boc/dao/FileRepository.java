@@ -34,71 +34,75 @@ import java.util.List;
 @Repository
 public interface FileRepository extends JpaRepository<File, Long> {
 
-    List<File> findAllByProject(Project project);
-    List<File> findByInventoryItemsContaining(InventoryItem inventoryItem);
+        List<File> findAllByProject(Project project);
 
-    /**
-     * Loads only the fields needed to build the in-memory lookup maps in FileService.
-     * Avoids loading full entity graphs (copyrights, inventoryItems, children, …) which
-     * previously caused IndirectSet-triggered bulk queries and OOM on large projects.
-     */
-    @Query("SELECT f FROM File f WHERE f.project = :project")
-    List<File> findAllByProjectLightweight(@Param("project") Project project);
+        List<File> findByInventoryItemsContaining(InventoryItem inventoryItem);
 
-    /**
-     * Checks whether a file with the given physicalPath already exists for the project.
-     * Used for lightweight existence checks without loading the full entity.
-     */
-    @Query("SELECT COUNT(f) > 0 FROM File f WHERE f.project = :project AND f.physicalPath = :physicalPath")
-    boolean existsByProjectAndPhysicalPath(@Param("project") Project project, @Param("physicalPath") String physicalPath);
+        /**
+         * Loads only the fields needed to build the in-memory lookup maps in
+         * FileService.
+         * Avoids loading full entity graphs (copyrights, inventoryItems, children, …)
+         * which
+         * previously caused IndirectSet-triggered bulk queries and OOM on large
+         * projects.
+         */
+        @Query("SELECT f FROM File f WHERE f.project = :project")
+        List<File> findAllByProjectLightweight(@Param("project") Project project);
 
+        /**
+         * Checks whether a file with the given physicalPath already exists for the
+         * project.
+         * Used for lightweight existence checks without loading the full entity.
+         */
+        @Query("SELECT CASE WHEN COUNT(f) > 0 THEN TRUE ELSE FALSE END FROM File f WHERE f.project = :project AND f.physicalPath = :physicalPath")
+        boolean existsByProjectAndPhysicalPath(@Param("project") Project project,
+                        @Param("physicalPath") String physicalPath);
 
-    @Modifying
-    @Query(value = "DELETE FROM copyright_file_link WHERE file_id IN (SELECT id FROM file WHERE project_id = ?1)", nativeQuery = true)
-    void deleteCopyrightFileLinksByProject(@Param("projectId") Long projectId);
+        @Modifying
+        @Query(value = "DELETE FROM copyright_file_link WHERE file_id IN (SELECT id FROM file WHERE project_id = ?1)", nativeQuery = true)
+        void deleteCopyrightFileLinksByProject(@Param("projectId") Long projectId);
 
-    @Modifying
-    @Query(value = "DELETE FROM file_inventory_item_link WHERE file_id IN (SELECT id FROM file WHERE project_id = ?1)", nativeQuery = true)
-    void deleteInventoryItemFileLinksByProject(@Param("projectId") Long projectId);
+        @Modifying
+        @Query(value = "DELETE FROM file_inventory_item_link WHERE file_id IN (SELECT id FROM file WHERE project_id = ?1)", nativeQuery = true)
+        void deleteInventoryItemFileLinksByProject(@Param("projectId") Long projectId);
 
-    @Modifying
-    @Query(value = "UPDATE file SET parent_id = NULL WHERE project_id = ?1", nativeQuery = true)
-    void unlinkParentsByProject(@Param("projectId") Long projectId);
+        @Modifying
+        @Query(value = "UPDATE file SET parent_id = NULL WHERE project_id = ?1", nativeQuery = true)
+        void unlinkParentsByProject(@Param("projectId") Long projectId);
 
+        boolean existsByProject(Project project);
 
-    boolean existsByProject(Project project);
+        @Modifying
+        @Query(value = "DELETE FROM copyright_file_link WHERE file_id IN (" +
+                        "  SELECT link.file_id FROM copyright_file_link link " +
+                        "  JOIN file f ON link.file_id = f.id " +
+                        "  WHERE f.project_id = ?1 LIMIT ?2" +
+                        ")", nativeQuery = true)
+        int deleteCopyrightFileLinksBatchByProject(Long projectId, int limit);
 
-    @Modifying
-    @Query(value = "DELETE FROM copyright_file_link WHERE file_id IN (" +
-            "  SELECT link.file_id FROM copyright_file_link link " +
-            "  JOIN file f ON link.file_id = f.id " +
-            "  WHERE f.project_id = ?1 LIMIT ?2" +
-            ")", nativeQuery = true)
-    int deleteCopyrightFileLinksBatchByProject(Long projectId, int limit);
+        // 2. Inventory Item Links
+        @Modifying
+        @Query(value = "DELETE FROM file_inventory_item_link WHERE file_id IN (" +
+                        "  SELECT link.file_id FROM file_inventory_item_link link " +
+                        "  JOIN file f ON link.file_id = f.id " +
+                        "  WHERE f.project_id = ?1 LIMIT ?2" +
+                        ")", nativeQuery = true)
+        int deleteInventoryItemFileLinksBatchByProject(Long projectId, int limit);
 
-    // 2. Inventory Item Links
-    @Modifying
-    @Query(value = "DELETE FROM file_inventory_item_link WHERE file_id IN (" +
-            "  SELECT link.file_id FROM file_inventory_item_link link " +
-            "  JOIN file f ON link.file_id = f.id " +
-            "  WHERE f.project_id = ?1 LIMIT ?2" +
-            ")", nativeQuery = true)
-    int deleteInventoryItemFileLinksBatchByProject(Long projectId, int limit);
+        // 3. Parent-Child Hierarchien auflösen
+        @Modifying
+        @Query(value = "UPDATE file SET parent_id = NULL WHERE id IN (" +
+                        "  SELECT id FROM file " +
+                        "  WHERE project_id = ?1 AND parent_id IS NOT NULL LIMIT ?2" +
+                        ")", nativeQuery = true)
+        int unlinkParentsBatchByProject(Long projectId, int limit);
 
-    // 3. Parent-Child Hierarchien auflösen
-    @Modifying
-    @Query(value = "UPDATE file SET parent_id = NULL WHERE id IN (" +
-            "  SELECT id FROM file " +
-            "  WHERE project_id = ?1 AND parent_id IS NOT NULL LIMIT ?2" +
-            ")", nativeQuery = true)
-    int unlinkParentsBatchByProject(Long projectId, int limit);
-
-    // 4. File-Hauptdatensätze löschen
-    @Modifying
-    @Query(value = "DELETE FROM file WHERE id IN (" +
-            "  SELECT id FROM file " +
-            "  WHERE project_id = ?1 LIMIT ?2" +
-            ")", nativeQuery = true)
-    int deleteBatchByProject(Long projectId, int limit);
+        // 4. File-Hauptdatensätze löschen
+        @Modifying
+        @Query(value = "DELETE FROM file WHERE id IN (" +
+                        "  SELECT id FROM file " +
+                        "  WHERE project_id = ?1 LIMIT ?2" +
+                        ")", nativeQuery = true)
+        int deleteBatchByProject(Long projectId, int limit);
 
 }
