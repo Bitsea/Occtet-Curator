@@ -67,6 +67,7 @@ public class File {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PARENT_ID")
+    @OnDelete(DeletePolicy.CASCADE)
     private File parent;
 
     @JoinTable(name = "FILE_INVENTORY_ITEM_LINK",
