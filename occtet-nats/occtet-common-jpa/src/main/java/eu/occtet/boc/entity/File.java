@@ -41,11 +41,12 @@ public class File {
 
     @Id
     @Column(name = "ID", nullable = false)
-    @GeneratedValue(strategy= GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "file_seq_gen")
+    @SequenceGenerator(name = "file_seq_gen", sequenceName = "seq_id_file", allocationSize = 1)
     private Long id;
 
 
-    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PARENT_ID")
     private File parent;
 
