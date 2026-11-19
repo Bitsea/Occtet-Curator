@@ -30,10 +30,10 @@
             </fetchPlan>
             <loader id="softwareComponentsDl" readOnly="true" >
                 <query>
-                    <![CDATA[select distinct sc from InventoryItem i join i.softwareComponent sc order by sc.name]]>
+                    <![CDATA[select sc from SoftwareComponent sc where exists (select 1 from InventoryItem i where i.softwareComponent = sc) order by sc.name]]>
                     <condition>
                         <c:jpql>
-                            <c:where>i.project = :project</c:where>
+                            <c:where>exists (select 1 from InventoryItem ip where ip.softwareComponent = sc and ip.project = :project)</c:where>
                         </c:jpql>
                     </condition>
                 </query>
