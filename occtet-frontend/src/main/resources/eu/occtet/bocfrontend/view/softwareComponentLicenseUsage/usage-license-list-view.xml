@@ -34,7 +34,7 @@
                     where e.usageText is not null
                     and length(e.usageText) > 0
                     and e.usageText <> e.template.templateText
-                    and exists (select 1 from InventoryItem i
+                    and exists (select i from InventoryItem i
                                 where i.softwareComponent = e.softwareComponent
                                 and (:project is null or i.project = :project))]]>
                 </query>

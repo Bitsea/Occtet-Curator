@@ -28,10 +28,10 @@
             <fetchPlan extends="_base"/>
             <loader id="copyrightsDl">
                 <query>
-                    <![CDATA[select c from Copyright c where exists (select 1 from InventoryItem i join i.softwareComponent sc join sc.copyrights cc where cc = c)]]>
+                    <![CDATA[select c from Copyright c where exists (select i from InventoryItem i join i.softwareComponent sc join sc.copyrights cc where cc = c)]]>
                     <condition>
                         <c:jpql>
-                            <c:where>exists (select 1 from InventoryItem ip join ip.softwareComponent scp join scp.copyrights ccp where ccp = c and ip.project = :project)</c:where>
+                            <c:where>exists (select ip from InventoryItem ip join ip.softwareComponent scp join scp.copyrights ccp where ccp = c and ip.project = :project)</c:where>
                         </c:jpql>
                     </condition>
                 </query>
