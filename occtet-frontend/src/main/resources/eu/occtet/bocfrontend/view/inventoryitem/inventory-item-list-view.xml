@@ -28,10 +28,10 @@
             <fetchPlan extends="inventoryItem-list-view"/>
             <loader id="inventoryItemsDl" readOnly="true">
                 <query>
-                    <![CDATA[select distinct ii from InventoryItem ii join ii.project p order by ii.inventoryName]]>
+                    <![CDATA[select ii from InventoryItem ii order by ii.inventoryName]]>
                     <condition>
                         <c:jpql>
-                            <c:where>p = :project</c:where>
+                            <c:where>ii.project = :project</c:where>
                         </c:jpql>
                     </condition>
                 </query>
