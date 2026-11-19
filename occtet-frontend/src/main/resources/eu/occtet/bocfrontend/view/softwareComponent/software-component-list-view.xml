@@ -26,7 +26,11 @@
         <collection id="softwareComponentsDc"
                     class="eu.occtet.bocfrontend.entity.SoftwareComponent">
             <fetchPlan extends="_base">
-                <property name="usageLicenses" fetchPlan="_base"/>
+                <property name="usageLicenses" fetchPlan="_base">
+                    <property name="template">
+                        <property name="licenseType"/>
+                    </property>
+                </property>
             </fetchPlan>
             <loader id="softwareComponentsDl" readOnly="true" >
                 <query>
