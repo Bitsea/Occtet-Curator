@@ -60,6 +60,12 @@ public interface CuratorRowLevelRole {
     )
     void vexData();
 
+    @JpqlRowLevelPolicy(
+            entityClass = SafetyContext.class,
+            where = "{E}.softwareComponent.organization = :current_user_organization"
+    )
+    void safetyContext();
+
     @JpqlRowLevelPolicy(entityClass = OrtIssue.class, where = "{E}.project.organization = :current_user_organization")
     void ortIssue();
 

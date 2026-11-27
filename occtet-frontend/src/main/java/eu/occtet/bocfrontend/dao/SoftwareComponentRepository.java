@@ -35,6 +35,7 @@ import java.util.List;
 public interface SoftwareComponentRepository extends JmixDataRepository<SoftwareComponent, Long> {
 
     SoftwareComponent findByName(String softwareComponentName);
+    List<SoftwareComponent> findByPurl(String purl);
     List<SoftwareComponent> findAll();
     List<SoftwareComponent> findSoftwareComponentsByCurated(Boolean curated);
     @Query("select sc from SoftwareComponent sc join sc.vulnerabilityLinks vl where vl.vulnerability = :vuln")
