@@ -47,6 +47,13 @@
                 <query><![CDATA[select e from SoftwareComponentLicenseUsage e where e.softwareComponent = :container_softwareComponentDc]]></query>
             </loader>
         </collection>
+        <collection id="safetyContextsDc"
+                    class="eu.occtet.bocfrontend.entity.SafetyContext">
+            <fetchPlan extends="_base"/>
+            <loader id="safetyContextsDl" readOnly="true">
+                <query><![CDATA[select s from SafetyContext s where s.softwareComponent = :container_softwareComponentDc order by s.id]]></query>
+            </loader>
+        </collection>
     </data>
     <facets>
         <dataLoadCoordinator auto="true"/>
@@ -70,6 +77,16 @@
                         <checkbox id="curatedField" property="curated" label="msg://eu.occtet.bocfrontend.entity/Copyright.curated"/>
                         <checkbox id="licenseAICurated" property="licenseAiControlled" label="msg://licenseAiControlled"/>
                     </formLayout>
+                    <h4 text="msg://safetyContext.heading"/>
+                    <dataGrid id="safetyContextsDataGrid" dataContainer="safetyContextsDc"
+                              width="100%" height="14em" classNames="occtet-grid">
+                        <columns resizable="true">
+                            <column property="safetyRelevant" header="msg://safetyContext.safetyRelevant"/>
+                            <column property="assuranceLevel" header="msg://safetyContext.assuranceLevel"/>
+                            <column property="safetyCategory" header="msg://safetyContext.safetyCategory"/>
+                            <column property="rationale" header="msg://safetyContext.rationale" flexGrow="2"/>
+                        </columns>
+                    </dataGrid>
                 </vbox>
             </tab>
 
