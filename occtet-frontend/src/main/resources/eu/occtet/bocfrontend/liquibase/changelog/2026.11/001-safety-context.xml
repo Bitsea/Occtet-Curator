@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2026.11-001-safety-context" author="occtet">
+        <createTable tableName="SAFETY_CONTEXT">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_SAFETY_CONTEXT"/>
+            </column>
+            <column name="SOFTWARE_COMPONENT_ID" type="BIGINT"/>
+            <column name="SAFETY_RELEVANT" type="BOOLEAN"/>
+            <column name="SAFETY_CATEGORY" type="VARCHAR(255)"/>
+            <column name="ASSURANCE_LEVEL" type="VARCHAR(255)"/>
+            <column name="RATIONALE" type="TEXT"/>
+            <column name="SOURCE" type="VARCHAR(255)"/>
+            <column name="SOURCE_DOCUMENT" type="TEXT"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="SAFETY_CONTEXT"
+                                 baseColumnNames="SOFTWARE_COMPONENT_ID"
+                                 constraintName="FK_SAFETY_CONTEXT_SOFTWARE_COMPONENT"
+                                 referencedTableName="SOFTWARE_COMPONENT"
+                                 referencedColumnNames="ID"/>
+
+        <createIndex tableName="SAFETY_CONTEXT" indexName="IDX_SAFETY_CONTEXT_SOFTWARE_COMPONENT">
+            <column name="SOFTWARE_COMPONENT_ID"/>
+        </createIndex>
+
+        <rollback>
+            <dropTable tableName="SAFETY_CONTEXT"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
